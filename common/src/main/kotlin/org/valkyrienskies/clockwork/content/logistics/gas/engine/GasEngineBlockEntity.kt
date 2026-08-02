@@ -43,8 +43,6 @@ class GasEngineBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: Block
             blockPos,
             getDuctNodePosition(),
             blockState.getValue(BlockStateProperties.AXIS),
-            ClockworkConfig.SERVER.gasEngine.gasEngineFlowForFullEfficiency,
-            ClockworkConfig.SERVER.gasEngine.gasEngineMinimumFlowRate,
             ClockworkConfig.SERVER.gasEngine.gasEngineFlowRateIncrement,
             ClockworkConfig.SERVER.gasEngine.gasEngineTemperatureIncrement
         )
@@ -94,8 +92,6 @@ class GasEngineBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: Block
             getTooltipTemperature(),
             ClockworkConfig.SERVER.gasEngine.gasEngineTemperatureIncrement,
             rawFlowRate,
-            ClockworkConfig.SERVER.gasEngine.gasEngineFlowForFullEfficiency,
-            ClockworkConfig.SERVER.gasEngine.gasEngineMinimumFlowRate,
             ClockworkConfig.SERVER.gasEngine.gasEngineFlowRateIncrement
         )
         return super.addToGoggleTooltip(tooltip, isPlayerSneaking)

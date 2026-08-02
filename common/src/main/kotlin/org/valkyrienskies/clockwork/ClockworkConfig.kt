@@ -246,12 +246,6 @@ object ClockworkConfig {
     }
 
     class GasEngine {
-        @ConfigEntry(description = "Gas mass flow rate through a Gas Engine required for full power, in kg/s. Set to 0 to make any non-zero through-flow full power.", min = 0.0)
-        var gasEngineFlowForFullEfficiency = 5.0
-
-        @ConfigEntry(description = "Gas mass flow rate below which a Gas Engine treats through-flow as zero, in kg/s.", min = 0.0)
-        var gasEngineMinimumFlowRate = 0.5
-
         @ConfigEntry(description = "Gas Engine flow rate increment, in kg/s. Through-flow is rounded down to this step before efficiency is calculated. Set to 0 to disable flow stepping.", min = 0.0)
         var gasEngineFlowRateIncrement = 0.25
 

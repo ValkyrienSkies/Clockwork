@@ -20,8 +20,6 @@ object EngineGoggleTooltip {
         temperature: Double,
         temperatureIncrement: Double,
         flowRate: Double,
-        flowForFullEfficiency: Double,
-        minimumFlowRate: Double,
         flowRateIncrement: Double
     ) {
         ClockworkLang.translate("gui.gas_engine.info.title").forGoggles(tooltip)
@@ -40,7 +38,7 @@ object EngineGoggleTooltip {
             flowEfficiency,
             tierHintPerTick(
                 isPlayerSneaking,
-                flowUntilNextTierComponent(flowRate, flowForFullEfficiency, minimumFlowRate, flowRateIncrement)
+                flowUntilNextTierComponent(flowRate, flowRateIncrement)
             )
         )
     }
@@ -120,14 +118,10 @@ object EngineGoggleTooltip {
 
     private fun flowUntilNextTierComponent(
         flowRate: Double,
-        flowForFullEfficiency: Double,
-        minimumFlowRate: Double,
         flowRateIncrement: Double
     ): Component {
         val kilogramsPerTick = GasEngineLogic.flowUntilNextTierKilogramsPerTick(
             flowRate,
-            flowForFullEfficiency,
-            minimumFlowRate,
             flowRateIncrement
         )
         return DuctTextUtil.translateMass(
