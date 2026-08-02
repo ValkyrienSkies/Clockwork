@@ -20,6 +20,7 @@ import org.valkyrienskies.clockwork.ClockworkMod
 import org.valkyrienskies.clockwork.ClockworkModClient
 import org.valkyrienskies.clockwork.util.kelvin.KNodeBlockEntity
 import org.valkyrienskies.clockwork.util.kelvin.KelvinParticleHelper
+import kotlin.math.ceil
 import kotlin.math.floor
 
 class GasEngineBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: BlockState): KNodeBlockEntity(type, pos, state) {
@@ -80,11 +81,14 @@ class GasEngineBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: Block
     }
 
     private fun getTotalStressCapacity(): Double {
-        if (attachedEngines <= 0) return 0.0
-        return floor(
-            getEngineEfficiency() * 16.0 * attachedEngines *
-                BlockStressValues.getCapacity(AllBlocks.STEAM_ENGINE.get())
-        )
+        val fullEngineCapacity = 16.0 * BlockStressValues.getCapacity(AllBlocks.STEAM_ENGINE.get())
+        return floor(totalEfficiency.coerceAtLeast(0f) * fullEngineCapacity)
+    }
+
+    private fun getRequiredEngineCount(stressCapacity: Double): Int {
+        val fullEngineCapacity = 16.0 * BlockStressValues.getCapacity(AllBlocks.STEAM_ENGINE.get())
+        if (stressCapacity <= 0.0 || fullEngineCapacity <= 0.0) return 0
+        return ceil(stressCapacity / fullEngineCapacity).toInt()
     }
 
     //todo: this doesnt work on dedicated servers you moron
@@ -93,6 +97,7 @@ class GasEngineBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: Block
     }
 
     override fun addToGoggleTooltip(tooltip: List<Component>?, isPlayerSneaking: Boolean): Boolean {
+        val stressCapacity = getTotalStressCapacity()
         EngineGoggleTooltip.addGasEngineTooltip(
             tooltip as MutableList<Component>,
             temperatureEfficiency,
@@ -102,8 +107,8 @@ class GasEngineBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: Block
             ClockworkConfig.SERVER.gasEngine.gasEngineTemperatureIncrement,
             rawFlowRate,
             ClockworkConfig.SERVER.gasEngine.gasEngineFlowRateIncrement,
-            getTotalStressCapacity(),
-            attachedEngines
+            stressCapacity,
+            getRequiredEngineCount(stressCapacity)
         )
         return super.addToGoggleTooltip(tooltip, isPlayerSneaking)
     }

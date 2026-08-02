@@ -24,7 +24,7 @@ object EngineGoggleTooltip {
         flowRate: Double,
         flowRateIncrement: Double,
         stressCapacity: Double,
-        attachedEngines: Int
+        engineCount: Int
     ) {
         ClockworkLang.translate("gui.gas_engine.info.title").forGoggles(tooltip)
         addBar(
@@ -45,8 +45,8 @@ object EngineGoggleTooltip {
                 flowUntilNextTierComponent(flowRate, flowRateIncrement)
             )
         )
-        if (attachedEngines > 0) {
-            addKineticStressCapacity(tooltip, stressCapacity, attachedEngines)
+        if (engineCount > 0) {
+            addKineticStressCapacity(tooltip, stressCapacity, engineCount)
         }
     }
 
