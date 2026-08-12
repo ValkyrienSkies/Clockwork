@@ -28,6 +28,7 @@ import org.valkyrienskies.clockwork.content.contraptions.flap.dual_link.DualLink
 import org.valkyrienskies.clockwork.content.events.CollisionSoundEffectHandler
 import org.valkyrienskies.clockwork.content.forces.*
 import org.valkyrienskies.clockwork.content.forces.contraption.BearingController
+import org.valkyrienskies.clockwork.content.forces.contraption.NewBearingController
 import org.valkyrienskies.clockwork.content.physicalities.gyro.GyroShipControl
 import org.valkyrienskies.clockwork.integration.cc.GenericPeripheralsCommon
 import org.valkyrienskies.clockwork.util.ClockworkUtils
@@ -110,6 +111,7 @@ object ClockworkMod {
         vsCore.registerAttachment(SugarRocketController::class.java)
         vsCore.registerAttachment(GravitronController::class.java) { useTransientSerializer() }
         vsCore.registerAttachment(BearingController::class.java) { useTransientSerializer() }
+        vsCore.registerAttachment(NewBearingController::class.java) { useTransientSerializer() }
         vsCore.registerAttachment(BalloonController::class.java)
 
         vsApi.shipLoadEvent.on { event -> val ship = event.ship;
