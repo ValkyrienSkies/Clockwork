@@ -3,7 +3,6 @@ package org.valkyrienskies.clockwork
 import com.simibubi.create.AllPartialModels
 import com.simibubi.create.content.contraptions.bearing.BearingRenderer
 import com.simibubi.create.content.contraptions.bearing.BearingVisual
-import com.simibubi.create.content.fluids.pump.PumpRenderer
 import com.simibubi.create.content.kinetics.base.KineticBlockEntity
 import com.simibubi.create.content.kinetics.base.ShaftRenderer
 import com.simibubi.create.content.kinetics.base.ShaftVisual
@@ -11,7 +10,6 @@ import com.simibubi.create.content.kinetics.base.SingleAxisRotatingVisual
 import com.tterrag.registrate.util.entry.BlockEntityEntry
 import com.tterrag.registrate.util.nullness.NonNullFunction
 import dev.engine_room.flywheel.lib.model.Models
-import net.minecraft.client.renderer.blockentity.BlockEntityRenderer
 import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider
 import net.minecraft.core.BlockPos
 import net.minecraft.core.Direction
@@ -22,6 +20,7 @@ import org.valkyrienskies.clockwork.content.contraptions.flap.FlapBearingBlockEn
 import org.valkyrienskies.clockwork.content.contraptions.flap.FlapBearingRenderer
 import org.valkyrienskies.clockwork.content.contraptions.flap.FlapBearingVisual
 import org.valkyrienskies.clockwork.content.contraptions.flap.smart_flap.SmartFlapBearingBlockEntity
+import org.valkyrienskies.clockwork.content.contraptions.phys.bearing.NewPhysBearingBlockEntity
 import org.valkyrienskies.clockwork.content.contraptions.phys.bearing.PhysBearingBlockEntity
 import org.valkyrienskies.clockwork.content.contraptions.phys.bearing.PhysBearingRenderer
 import org.valkyrienskies.clockwork.content.contraptions.phys.infuser.PhysicsInfuserBlockEntity
@@ -204,6 +203,20 @@ object ClockworkBlockEntities {
                 )
             }
         }
+        .register()
+
+    @JvmField
+    val NEW_PHYS_BEARING: BlockEntityEntry<NewPhysBearingBlockEntity> = ClockworkMod.REGISTRATE
+        .blockEntity<NewPhysBearingBlockEntity>(
+            "new_phys_bearing"
+        ) { type: BlockEntityType<NewPhysBearingBlockEntity?>?, pos: BlockPos?, state: BlockState? ->
+            NewPhysBearingBlockEntity(
+                type,
+                pos,
+                state
+            )
+        }
+        .validBlocks(ClockworkBlocks.NEW_PHYS_BEARING)
         .register()
 
 
