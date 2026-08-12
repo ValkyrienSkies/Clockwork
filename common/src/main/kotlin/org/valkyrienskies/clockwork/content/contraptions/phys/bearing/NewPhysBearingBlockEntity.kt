@@ -116,7 +116,8 @@ class NewPhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state
         super.read(tag, clientPacket)
         jointId = tag.getInt("jointId")
         if (tag.contains("partnerPosx")) {
-            partnerPos = tag.getVector3d("partnerPos")!!.toMinecraft()
+            val vec = tag.getVector3d("partnerPos")!!
+            partnerPos = BlockPos.containing(Vec3(vec.x, vec.y, vec.z))
         }
         if (clientPacket) { return }
         val level = level as? ServerLevel ?: return
@@ -216,6 +217,14 @@ class NewPhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state
         sendData()
     }
 
+
+    override fun remove() {
+        if (!(level?.isClientSide ?: true)) {
+            removeJoint(level as ServerLevel)
+        }
+        super.remove()
+    }
+
     fun disassemble() {
         val level = level as? ServerLevel ?: return
         val partnerPos = partnerPos ?: return
@@ -300,6 +309,7 @@ class NewPhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state
             return
         }
         jointId = id
+        queuedJointToAdd = null
     }
 
     private fun buildJoint(targetAngle: Float): VSJoint? {
@@ -310,11 +320,13 @@ class NewPhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state
         val pose0 = VSJointPose(worldPosition.center.toJOML(), getHingeRotation(facing))
         val pose1 = VSJointPose(partnerPos.relative(facing.opposite).center.toJOML(), getHingeRotation(facing))
 
-        return if (movementMode?.get() == LockedMode.FOLLOW_ANGLE) {
+        val joint = if (movementMode?.get() == LockedMode.FOLLOW_ANGLE) {
             VSFixedJoint(thisShipId, pose0, partnerShipId, pose1, compliance = 1e-100)
         } else {
             VSRevoluteJoint(thisShipId, pose0, partnerShipId, pose1, compliance = 1e-100, driveFreeSpin = true)
         }
+        joint.serialized()
+        return joint
     }
 
     private fun getHingeRotation(localDirection: Direction): Quaterniond {
