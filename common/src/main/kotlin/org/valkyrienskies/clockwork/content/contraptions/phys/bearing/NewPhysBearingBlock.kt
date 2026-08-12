@@ -21,18 +21,70 @@ import net.minecraft.world.level.block.state.BlockState
 import net.minecraft.world.phys.BlockHitResult
 import net.minecraft.world.phys.shapes.CollisionContext
 import net.minecraft.world.phys.shapes.VoxelShape
-import org.joml.Vector3d
 import org.joml.Vector3dc
 import org.valkyrienskies.clockwork.ClockworkBlockEntities
 import org.valkyrienskies.clockwork.ClockworkConfig
-import org.valkyrienskies.clockwork.util.ClockworkConstants
-import org.valkyrienskies.clockwork.util.ClockworkUtils.getVector3d
 import org.valkyrienskies.core.api.ships.ServerShip
-import org.valkyrienskies.kelvin.util.KelvinExtensions.toMinecraft
 import org.valkyrienskies.mod.common.assembly.ICopyableBlock
-import org.valkyrienskies.mod.util.putVector3d
 import java.util.function.Consumer
 
 class NewPhysBearingBlock(properties: Properties) : BearingBlock(properties), IBE<NewPhysBearingBlockEntity>, ICopyableBlock {
+    override fun onCopy(level: ServerLevel, pos: BlockPos, state: BlockState, be: BlockEntity?, shipsBeingCopied: List<ServerShip>, centerPositions: Map<Long, Vector3dc>): CompoundTag? = null
+    override fun onPaste(
+        level: ServerLevel,
+        pos: BlockPos,
+        state: BlockState,
+        oldShipIdToNewId: Map<Long, Long>,
+        centerPositions: Map<Long, Pair<Vector3dc, Vector3dc>>,
+        tag: CompoundTag?
+    ): CompoundTag? {
+        val be = level.getBlockEntity(pos) as? NewPhysBearingBlockEntity ?: return tag
+        return be.onPaste(level, pos, state, oldShipIdToNewId, centerPositions, tag)
+    }
 
+    override fun use(state: BlockState, worldIn: Level, pos: BlockPos, player: Player, handIn: InteractionHand, hit: BlockHitResult): InteractionResult {
+        if (!player.mayBuild()) return InteractionResult.FAIL
+        if (player.isShiftKeyDown) return InteractionResult.FAIL
+        if (handIn == InteractionHand.OFF_HAND) return InteractionResult.FAIL
+        if (!player.getItemInHand(handIn).isEmpty) return InteractionResult.PASS
+        if (worldIn.isClientSide) return InteractionResult.SUCCESS
+
+        withBlockEntityDo(worldIn, pos, Consumer withBlockEntityDo@{ te: NewPhysBearingBlockEntity ->
+            if (te.jointId != -1) te.disassemble() else te.assemble()
+        })
+        return InteractionResult.SUCCESS
+    }
+
+    override fun onWrenched(state: BlockState?, context: UseOnContext): InteractionResult {
+        if (context.level.isClientSide) return super.onWrenched(state, context)
+        val be = context.getLevel().getBlockEntity(context.getClickedPos()) as? NewPhysBearingBlockEntity ?: return InteractionResult.FAIL
+        if (be.jointId != -1 && !ClockworkConfig.SERVER.allowWrenchingActivatedPhysBearing) return InteractionResult.FAIL
+
+        return super.onWrenched(state, context)
+    }
+
+    override fun neighborChanged(state: BlockState, level: Level, pos: BlockPos, block: Block, fromPos: BlockPos, isMoving: Boolean) {
+        super.neighborChanged(state, level, pos, block, fromPos, isMoving)
+        if (level.isClientSide) {return}
+        val blockEntity = level.getBlockEntity(pos)
+        if (blockEntity !is NewPhysBearingBlockEntity) {return}
+    }
+
+    override fun getBlockEntityClass(): Class<NewPhysBearingBlockEntity> = NewPhysBearingBlockEntity::class.java
+    override fun getBlockEntityType(): BlockEntityType<out NewPhysBearingBlockEntity> = ClockworkBlockEntities.NEW_PHYS_BEARING.get()
+    override fun getRotationAxis(state: BlockState): Direction.Axis = state.getValue(FACING).axis
+
+    override fun getShape(state: BlockState, worldIn: BlockGetter, pos: BlockPos, context: CollisionContext): VoxelShape {
+        return AllShapes.MECHANICAL_PISTON[state.getValue(FACING)]
+    }
+
+    override fun hasShaftTowards(world: LevelReader, pos: BlockPos, state: BlockState, face: Direction): Boolean {
+        return face == state.getValue(FACING).opposite
+    }
+
+    companion object {
+        fun getLight(state: BlockState?): Int {
+            return 11
+        }
+    }
 }
