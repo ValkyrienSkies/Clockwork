@@ -20,7 +20,6 @@ import org.valkyrienskies.clockwork.content.contraptions.flap.FlapBearingBlockEn
 import org.valkyrienskies.clockwork.content.contraptions.flap.FlapBearingRenderer
 import org.valkyrienskies.clockwork.content.contraptions.flap.FlapBearingVisual
 import org.valkyrienskies.clockwork.content.contraptions.flap.smart_flap.SmartFlapBearingBlockEntity
-import org.valkyrienskies.clockwork.content.contraptions.phys.bearing.NewPhysBearingBlockEntity
 import org.valkyrienskies.clockwork.content.contraptions.phys.bearing.PhysBearingBlockEntity
 import org.valkyrienskies.clockwork.content.contraptions.phys.bearing.PhysBearingRenderer
 import org.valkyrienskies.clockwork.content.contraptions.phys.infuser.PhysicsInfuserBlockEntity
@@ -204,21 +203,6 @@ object ClockworkBlockEntities {
             }
         }
         .register()
-
-    @JvmField
-    val NEW_PHYS_BEARING: BlockEntityEntry<NewPhysBearingBlockEntity> = ClockworkMod.REGISTRATE
-        .blockEntity<NewPhysBearingBlockEntity>(
-            "new_phys_bearing"
-        ) { type: BlockEntityType<NewPhysBearingBlockEntity?>?, pos: BlockPos?, state: BlockState? ->
-            NewPhysBearingBlockEntity(
-                type,
-                pos,
-                state
-            )
-        }
-        .validBlocks(ClockworkBlocks.NEW_PHYS_BEARING)
-        .register()
-
 
     @JvmField
     val COMMAND_SEAT: BlockEntityEntry<SequencedSeatBlockEntity> = ClockworkMod.REGISTRATE

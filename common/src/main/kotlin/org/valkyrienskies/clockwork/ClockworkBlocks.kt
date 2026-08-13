@@ -28,7 +28,6 @@ import org.valkyrienskies.clockwork.ClockworkMod.REGISTRATE
 import org.valkyrienskies.clockwork.client.render.WingBlockItemRenderer
 import org.valkyrienskies.clockwork.content.contraptions.flap.FlapBearingBlock
 import org.valkyrienskies.clockwork.content.contraptions.flap.smart_flap.SmartFlapBearingBlock
-import org.valkyrienskies.clockwork.content.contraptions.phys.bearing.NewPhysBearingBlock
 import org.valkyrienskies.clockwork.content.contraptions.phys.bearing.PhysBearingBlock
 import org.valkyrienskies.clockwork.content.contraptions.phys.infuser.PhysicsInfuserBlock
 import org.valkyrienskies.clockwork.content.contraptions.phys.slicker.SlickerBlock
@@ -184,28 +183,6 @@ object ClockworkBlocks {
             .item()
             .tab(ClockworkMod.PHYSICAL_CREATIVE_TABINFO)
             .model(AssetLookup.customBlockItemModel("phys_bearing"))
-            .build()
-            .register()
-
-    @JvmField
-    val NEW_PHYS_BEARING: BlockEntry<NewPhysBearingBlock> =
-        REGISTRATE.block("new_phys_bearing") { properties: BlockBehaviour.Properties? ->
-            NewPhysBearingBlock(properties!!)
-        }
-            .initialProperties { SharedProperties.stone() }
-            .transform(axeOrPickaxe())
-            .transform(displaySource(ClockworkDisplaySources.PHYS_BEARING))
-            .properties {
-                it.lightLevel { state: BlockState? -> NewPhysBearingBlock.getLight(state) }
-            }
-            .addLayer { Supplier { RenderType.cutout() } }
-            .blockstate { c: DataGenContext<Block?, NewPhysBearingBlock>, p: RegistrateBlockstateProvider ->
-                p.directionalBlock(c.entry, AssetLookup.partialBaseModel(c, p))
-            }
-            .tag(AllTags.AllBlockTags.SAFE_NBT.tag)
-            .item()
-            .tab(ClockworkMod.PHYSICAL_CREATIVE_TABINFO)
-            .model(AssetLookup.customBlockItemModel("new_phys_bearing"))
             .build()
             .register()
 
