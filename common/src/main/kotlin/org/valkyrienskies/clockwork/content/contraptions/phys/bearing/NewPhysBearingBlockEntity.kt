@@ -93,6 +93,8 @@ class NewPhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state
     @Volatile
     private var queuedJointToAdd: VSJoint? = null
     private var lastException: AssemblyException? = null
+
+    @Volatile
     private var targetAngle = 0f
 
     @Volatile override lateinit var dimension: DimensionId
@@ -115,20 +117,33 @@ class NewPhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state
     private fun movementModeChanged(value: Int) {
         if (level == null || level!!.isClientSide) { return }
 
+        val enteringFollowAngle = movementMode?.get() == LockedMode.FOLLOW_ANGLE && partnerPos != null
+
         // Prevent abrupt jumps when switching into follow mode
-        if (movementMode?.get() == LockedMode.FOLLOW_ANGLE && partnerPos != null) {
+        if (enteringFollowAngle) {
             val subShip = level.getShipManagingPos(partnerPos!!)
             val mainShip = level.getShipManagingPos(worldPosition)
             if (subShip != null) {
-                targetAngle = NewBearingController.getAngle(
-                    originalFacing.normal.toJOMLD(),
-                    subShip.transform,
-                    mainShip?.transform
+                targetAngle = -Math.toDegrees(
+                    NewBearingController.getAngle(
+                        originalFacing.normal.toJOMLD(),
+                        subShip.transform,
+                        mainShip?.transform
+                    )
                 ).toFloat()
             }
+
+            // So that the fixed joint doesn't do funky interpolation
+            lockedCurrentAngle = targetAngle
+            lockedInterpolationStartAngle = targetAngle
+            lockedInterpolationGoalAngle = targetAngle
+            lockedInterpolationTick = 0
         }
 
-        updateJoint()
+
+        if (!(enteringFollowAngle && jointId != -1)) {
+            updateJoint()
+        }
         sendData()
     }
 
@@ -402,13 +417,9 @@ class NewPhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state
                 joint.pose1.pos.get(Vector3d())
             )
         } else {
-            // targetAngle advances using the velocity-matching sign convention (same as
-            // UNLOCKED), but computeLockedRotationalForce compares bearingAngle directly
-            // against actualAngle from getAngle(), which uses the opposite sign convention.
-            // Negate here so LOCKED mode's PD hold-angle matches the direction it was spun to.
             BearingData(
                 originalFacing.normal.toJOMLD(),
-                -Math.toRadians(targetAngle.toDouble()),
+                -Math.toRadians(targetAngle.toDouble()), // why negative here? idk but it breaks without it
                 if (aligning) 0.0f else getRealisticAngularSpeed(),
                 movementMode?.get() == LockedMode.LOCKED,
                 false,
@@ -441,7 +452,7 @@ class NewPhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state
         queuedJointToAdd ?: return
 
         physLevel as VsiPhysLevel
-        // If either ship isn't loaded, skip this tick
+        // If either ship isn't loaded, skip
         if (
             queuedJointToAdd!!.shipId0 != null && physLevel.getShipById(queuedJointToAdd!!.shipId0!!) == null ||
             queuedJointToAdd!!.shipId1 != null && physLevel.getShipById(queuedJointToAdd!!.shipId1!!) == null
@@ -455,7 +466,7 @@ class NewPhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state
         queuedJointToAdd = null
     }
 
-    // Used for Locked mode only
+    // Used for locked mode only
     @Volatile private var lockedInterpolationTick = 0
     @Volatile private var lockedInterpolationStartAngle = targetAngle
     @Volatile private var lockedInterpolationGoalAngle = targetAngle
@@ -488,6 +499,7 @@ class NewPhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state
             joint!!.shipId1, VSJointPose(joint!!.pose1.pos, fRot2),
             compliance = 1e-100
         )
+        updatedJoint.serialized()
 
         physLevel.updateJoint(jointId, updatedJoint)
 
