@@ -39,21 +39,24 @@ commands:
     steps:
       # Rename artifacts to "forge.jar" and "fabric.jar"
       - run: mkdir artifacts
-      - run: find ./forge/build/libs \
-          -name "<< parameters.artifact_name >>*.jar" \
-          ! -name "*-sources.jar" \
-          ! -name "*-dev.jar" \
-          ! -name "*-shadow.jar" \
-          ! -name "*-javadoc.jar" \
-          -exec bash -c 'cp "$0" "./artifacts/<< parameters.artifact_name >>-forge-<< parameters.version >>.jar"' {} \;
-          find ./fabric/build/libs \
-          -name "<< parameters.artifact_name >>*.jar" \
-          ! -name "*-sources.jar" \
-          ! -name "*-dev.jar" \
-          ! -name "*-shadow.jar" \
-          ! -name "*-javadoc.jar" \
-          -exec bash -c 'cp "$0" "./artifacts/<< parameters.artifact_name >>-fabric-<< parameters.version >>.jar"' {} \;
+      - run:
+          name: Collect artifacts
+          command: |
+            find ./forge/build/libs \
+              -name "<< parameters.artifact_name >>*.jar" \
+              ! -name "*-sources.jar" \
+              ! -name "*-dev.jar" \
+              ! -name "*-shadow.jar" \
+              ! -name "*-javadoc.jar" \
+              -exec bash -c 'cp "$1" "./artifacts/<< parameters.artifact_name >>-forge-<< parameters.version >>.jar"' _ {} \;
 
+            find ./fabric/build/libs \
+              -name "<< parameters.artifact_name >>*.jar" \
+              ! -name "*-sources.jar" \
+              ! -name "*-dev.jar" \
+              ! -name "*-shadow.jar" \
+              ! -name "*-javadoc.jar" \
+              -exec bash -c 'cp "$1" "./artifacts/<< parameters.artifact_name >>-fabric-<< parameters.version >>.jar"' _ {} \;
       # Store artifacts
       - store_artifacts:
           path: artifacts
