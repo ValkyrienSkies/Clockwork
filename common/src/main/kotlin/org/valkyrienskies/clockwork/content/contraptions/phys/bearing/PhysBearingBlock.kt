@@ -21,14 +21,12 @@ import net.minecraft.world.level.block.state.BlockState
 import net.minecraft.world.phys.BlockHitResult
 import net.minecraft.world.phys.shapes.CollisionContext
 import net.minecraft.world.phys.shapes.VoxelShape
-import org.joml.Vector3d
 import org.joml.Vector3dc
 import org.valkyrienskies.clockwork.ClockworkBlockEntities
 import org.valkyrienskies.clockwork.ClockworkConfig
-import org.valkyrienskies.clockwork.util.ClockworkConstants
-import org.valkyrienskies.clockwork.util.ClockworkUtils.getVector3d
 import org.valkyrienskies.core.api.ships.ServerShip
 import org.valkyrienskies.mod.common.assembly.ICopyableBlock
+import org.valkyrienskies.mod.util.getVector3d
 import org.valkyrienskies.mod.util.putVector3d
 import java.util.function.Consumer
 
@@ -42,15 +40,20 @@ class PhysBearingBlock(properties: Properties) : BearingBlock(properties), IBE<P
         centerPositions: Map<Long, Pair<Vector3dc, Vector3dc>>,
         tag: CompoundTag?
     ): CompoundTag? {
-        val tag = tag ?: return null
+        tag ?: return null
 
-        if (!tag.contains(ClockworkConstants.Nbt.SHIPTRAPTION_ID)) return tag
-        val oldShiptraptionCenter = tag.getVector3d(ClockworkConstants.Nbt.NEW_SHIPTRAPTION_CENTER) ?: return tag
-        val oldId = tag.getLong(ClockworkConstants.Nbt.SHIPTRAPTION_ID)
-        tag.putLong(ClockworkConstants.Nbt.SHIPTRAPTION_ID, oldShipIdToNewId[oldId] ?: -1)
-        val (oldCenter, newCenter) = centerPositions[oldId] ?: (Vector3d() to Vector3d())
-        tag.putVector3d(ClockworkConstants.Nbt.NEW_SHIPTRAPTION_CENTER, oldShiptraptionCenter.sub(oldCenter).add(newCenter))
-        return tag
+        if (tag.contains("partnerPosx")) {
+            var newPartnerPos = tag.getVector3d("partnerPos")!!
+
+            val partnerId = tag.getInt("partnerShipId").toLong()
+            val centerMigrate = centerPositions[partnerId] ?: return null
+            newPartnerPos = newPartnerPos.sub(centerMigrate.first).add(centerMigrate.second)
+            tag.putVector3d("partnerPos", newPartnerPos)
+            tag.putInt("jointId", -1)
+            return tag
+        }
+
+        return null
     }
 
     override fun use(state: BlockState, worldIn: Level, pos: BlockPos, player: Player, handIn: InteractionHand, hit: BlockHitResult): InteractionResult {
@@ -61,18 +64,15 @@ class PhysBearingBlock(properties: Properties) : BearingBlock(properties), IBE<P
         if (worldIn.isClientSide) return InteractionResult.SUCCESS
 
         withBlockEntityDo(worldIn, pos, Consumer withBlockEntityDo@{ te: PhysBearingBlockEntity ->
-            when (te.isRunning) {
-                true -> te.disassemble()
-                false -> te.assembleNextTick = true
-            }
+            if (te.jointId != -1) te.disassemble() else te.assemble()
         })
         return InteractionResult.SUCCESS
     }
 
     override fun onWrenched(state: BlockState?, context: UseOnContext): InteractionResult {
         if (context.level.isClientSide) return super.onWrenched(state, context)
-        val be = context.getLevel().getBlockEntity(context.getClickedPos()) as? NewPhysBearingBlockEntity ?: return InteractionResult.FAIL
-        if ((be.jointId != -1) && !ClockworkConfig.SERVER.allowWrenchingActivatedPhysBearing) return InteractionResult.FAIL
+        val be = context.getLevel().getBlockEntity(context.getClickedPos()) as? PhysBearingBlockEntity ?: return InteractionResult.FAIL
+        if (be.jointId != -1 && !ClockworkConfig.SERVER.allowWrenchingActivatedPhysBearing) return InteractionResult.FAIL
 
         return super.onWrenched(state, context)
     }
@@ -97,6 +97,8 @@ class PhysBearingBlock(properties: Properties) : BearingBlock(properties), IBE<P
     }
 
     companion object {
-        fun getLight(state: BlockState?): Int = 8
+        fun getLight(state: BlockState?): Int {
+            return 11
+        }
     }
 }

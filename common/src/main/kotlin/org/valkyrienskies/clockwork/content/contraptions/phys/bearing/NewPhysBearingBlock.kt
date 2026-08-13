@@ -26,6 +26,8 @@ import org.valkyrienskies.clockwork.ClockworkBlockEntities
 import org.valkyrienskies.clockwork.ClockworkConfig
 import org.valkyrienskies.core.api.ships.ServerShip
 import org.valkyrienskies.mod.common.assembly.ICopyableBlock
+import org.valkyrienskies.mod.util.getVector3d
+import org.valkyrienskies.mod.util.putVector3d
 import java.util.function.Consumer
 
 class NewPhysBearingBlock(properties: Properties) : BearingBlock(properties), IBE<NewPhysBearingBlockEntity>, ICopyableBlock {
@@ -38,8 +40,20 @@ class NewPhysBearingBlock(properties: Properties) : BearingBlock(properties), IB
         centerPositions: Map<Long, Pair<Vector3dc, Vector3dc>>,
         tag: CompoundTag?
     ): CompoundTag? {
-        val be = level.getBlockEntity(pos) as? NewPhysBearingBlockEntity ?: return tag
-        return be.onPaste(level, pos, state, oldShipIdToNewId, centerPositions, tag)
+        tag ?: return null
+
+        if (tag.contains("partnerPosx")) {
+            var newPartnerPos = tag.getVector3d("partnerPos")!!
+
+            val partnerId = tag.getInt("partnerShipId").toLong()
+            val centerMigrate = centerPositions[partnerId] ?: return null
+            newPartnerPos = newPartnerPos.sub(centerMigrate.first).add(centerMigrate.second)
+            tag.putVector3d("partnerPos", newPartnerPos)
+            tag.putInt("jointId", -1)
+            return tag
+        }
+
+        return null
     }
 
     override fun use(state: BlockState, worldIn: Level, pos: BlockPos, player: Player, handIn: InteractionHand, hit: BlockHitResult): InteractionResult {

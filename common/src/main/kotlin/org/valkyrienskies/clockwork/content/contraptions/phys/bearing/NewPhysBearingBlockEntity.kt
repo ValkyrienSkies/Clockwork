@@ -27,11 +27,8 @@ import org.joml.Vector3dc
 import org.valkyrienskies.clockwork.ClockworkConfig
 import org.valkyrienskies.clockwork.ClockworkMod.MOD_ID
 import org.valkyrienskies.clockwork.ClockworkSounds
-import org.valkyrienskies.clockwork.content.contraptions.phys.bearing.PhysBearingBlockEntity.Companion.NO_SHIPTRAPTION_ID
-import org.valkyrienskies.clockwork.content.contraptions.phys.bearing.data.PhysBearingUpdateData
-import org.valkyrienskies.clockwork.content.forces.contraption.BearingController
 import org.valkyrienskies.clockwork.content.forces.contraption.BearingData
-import org.valkyrienskies.clockwork.content.forces.contraption.NewBearingController
+import org.valkyrienskies.clockwork.content.forces.contraption.BearingController
 import org.valkyrienskies.clockwork.platform.api.ContraptionController
 import org.valkyrienskies.clockwork.platform.api.ContraptionController.LockedMode
 import org.valkyrienskies.clockwork.util.GlueAssembler.collectGlued
@@ -125,7 +122,7 @@ class NewPhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state
             val mainShip = level.getShipManagingPos(worldPosition)
             if (subShip != null) {
                 targetAngle = -Math.toDegrees(
-                    NewBearingController.getAngle(
+                    BearingController.getAngle(
                         originalFacing.normal.toJOMLD(),
                         subShip.transform,
                         mainShip?.transform
@@ -162,6 +159,13 @@ class NewPhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state
         super.write(tag, clientPacket)
         tag.putInt("jointId", jointId)
         tag.putString("originalFacing", originalFacing.name)
+
+        // Save rotational state
+        tag.putFloat("targetAngle", targetAngle)
+        tag.putFloat("sequencedAngleLimit", sequencedAngleLimit)
+        tag.putFloat("sequencedAngleProgress", sequencedAngleProgress)
+        tag.putBoolean("aligning", aligning)
+
         partnerPos?.let { pos -> tag.putVector3d("partnerPos", pos.center.toJOML()) }
         tag.putLong("partnerShipId", partnerShipId)
     }
@@ -170,6 +174,18 @@ class NewPhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state
         super.read(tag, clientPacket)
         jointId = tag.getInt("jointId")
         originalFacing = Direction.valueOf(tag.getString("originalFacing"))
+
+        // Load rotational state
+        targetAngle = tag.getFloat("targetAngle")
+        sequencedAngleLimit = tag.getFloat("sequencedAngleLimit")
+        sequencedAngleProgress = tag.getFloat("sequencedAngleProgress")
+        aligning = tag.getBoolean("aligning")
+
+        lockedCurrentAngle = targetAngle
+        lockedInterpolationStartAngle = targetAngle
+        lockedInterpolationGoalAngle = targetAngle
+        lockedInterpolationTick = 0
+
         if (tag.contains("partnerPosx")) {
             val vec = tag.getVector3d("partnerPos")!!
             partnerPos = BlockPos.containing(Vec3(vec.x, vec.y, vec.z))
@@ -177,30 +193,6 @@ class NewPhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state
         if (clientPacket) { return }
         val level = level as? ServerLevel ?: return
         updateJoint(level)
-    }
-
-    fun onPaste(
-        level: ServerLevel,
-        pos: BlockPos,
-        state: BlockState,
-        oldShipIdToNewId: Map<Long, Long>,
-        centerPositions: Map<Long, Pair<Vector3dc, Vector3dc>>,
-        tag: CompoundTag?
-    ): CompoundTag? {
-        tag ?: return null
-
-        if (tag.contains("partnerPosx")) {
-            var newPartnerPos = tag.getVector3d("partnerPos")!!
-
-            val partnerId = tag.getInt("partnerShipId").toLong()
-            val centerMigrate = centerPositions[partnerId] ?: return null
-            newPartnerPos = newPartnerPos.sub(centerMigrate.first).add(centerMigrate.second)
-            tag.putVector3d("partnerPos", newPartnerPos)
-            tag.putInt("jointId", -1)
-            return tag
-        }
-
-        return null
     }
 
     fun assemble() {
@@ -289,9 +281,16 @@ class NewPhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state
         val mainShip = level.getLoadedShipManagingPos(worldPosition)
 
         val axis = originalFacing.normal.toJOMLD()
-        if (abs(Math.toDegrees(BearingController.getAngle(axis, subShip.transform, mainShip?.transform))) > DISASSEMBLE_ANGLE_TOLERANCE_DEGREES) {
+        val angleDegrees = Math.toDegrees(BearingController.getAngle(axis, subShip.transform, mainShip?.transform))
+
+        if (abs(angleDegrees) > DISASSEMBLE_ANGLE_TOLERANCE_DEGREES) {
+            if (!aligning) {
+                aligning = true
+                sendData()
+            }
             return
         }
+        aligning = false
 
         val inMain = worldPosition.relative(originalFacing, 1)
         val inSubship = partnerPos
@@ -319,7 +318,10 @@ class NewPhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state
         if (subCouldSplit) { subShip.getAttachment<SplittingDisablerAttachment>()?.enableSplitting() }
         if (mainCouldSplit) { mainShip?.getAttachment<SplittingDisablerAttachment>()?.enableSplitting() }
 
-        if (!hasMoved) return
+        if (!hasMoved) {
+            aligning = false
+            return
+        }
 
         removeJoint(level)
         AllSoundEvents.CONTRAPTION_DISASSEMBLE.playOnServer(level, worldPosition)
@@ -379,10 +381,11 @@ class NewPhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state
             val newAngle = targetAngle + angularSpeed - diff
             if (movementMode?.get() == LockedMode.FOLLOW_ANGLE || aligning) {
                 if (aligning) {
-                    targetAngle = 0f
-                    if (lockedInterpolationGoalAngle != 0f) {
-                        setLockedAngleGoal(0f)
+                    targetAngle = 0.0f
+                    if (lockedInterpolationGoalAngle != 0.0f) {
+                        setLockedAngleGoal(0.0f)
                     }
+                    disassemble()
                 } else if (newAngle != targetAngle) {
                     targetAngle = newAngle
                     setLockedAngleGoal(targetAngle)
@@ -431,7 +434,7 @@ class NewPhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state
         }
 
         val serverLevel = level as? ServerLevel ?: return
-        val controller = NewBearingController.getOrCreate(serverLevel.getLoadedShipManagingPos(partnerPos ?: return) ?: return)
+        val controller = BearingController.getOrCreate(serverLevel.getLoadedShipManagingPos(partnerPos ?: return) ?: return)
 
         controller.setData(partnerPos!!, data)
     }
@@ -466,7 +469,7 @@ class NewPhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state
         queuedJointToAdd = null
     }
 
-    // Used for locked mode only
+    // Used for follow angle mode only
     @Volatile private var lockedInterpolationTick = 0
     @Volatile private var lockedInterpolationStartAngle = targetAngle
     @Volatile private var lockedInterpolationGoalAngle = targetAngle
