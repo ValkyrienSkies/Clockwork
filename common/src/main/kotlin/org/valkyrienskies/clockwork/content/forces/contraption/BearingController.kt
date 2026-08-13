@@ -1,55 +1,52 @@
 package org.valkyrienskies.clockwork.content.forces.contraption
 
 import com.fasterxml.jackson.annotation.JsonAutoDetect
-import com.fasterxml.jackson.annotation.JsonIgnore
+import net.minecraft.core.BlockPos
 import org.joml.Matrix3dc
 import org.joml.Quaterniondc
 import org.joml.Vector3d
 import org.joml.Vector3dc
 import org.valkyrienskies.clockwork.ClockworkConfig
-import org.valkyrienskies.clockwork.content.contraptions.phys.bearing.PhysBearingBlockEntity
-import org.valkyrienskies.clockwork.content.contraptions.phys.bearing.data.PhysBearingData
-import org.valkyrienskies.clockwork.content.contraptions.phys.bearing.data.PhysBearingUpdateData
 import org.valkyrienskies.clockwork.util.minus
 import org.valkyrienskies.clockwork.util.times
 import org.valkyrienskies.core.api.VsBeta
 import org.valkyrienskies.core.api.ships.*
 import org.valkyrienskies.core.api.ships.properties.ShipTransform
 import org.valkyrienskies.core.api.world.PhysLevel
+import java.lang.Float
 import java.util.*
-import java.util.concurrent.ConcurrentHashMap
-import java.util.concurrent.ConcurrentLinkedQueue
 import kotlin.math.abs
 import kotlin.math.max
 import kotlin.math.sign
 
+data class BearingData(
+    val bearingAxis: Vector3dc? = null,
+    var bearingAngle: Double = 0.0,
+    var angularSpeed: kotlin.Float = 0f,
+    var locked: Boolean = false,
+    var kinematic: Boolean = false,
+    var aligning: Boolean = false,
+
+    var mainShipId: Long = -1,
+    var mainPos: Vector3d = Vector3d(),
+    var subPos: Vector3d = Vector3d(),
+    var actualAngle: Double = 0.0,
+    var lastLockedTorque: Double = 0.0,
+)
+
 @JsonAutoDetect(fieldVisibility = JsonAutoDetect.Visibility.ANY)
 class BearingController : ShipPhysicsListener {
-    val bearingData = HashMap<Int, PhysBearingData>()
+    val bearingData = HashMap<Long, BearingData>()
 
-    @JsonIgnore
-    private val bearingUpdateData = ConcurrentHashMap<Int, PhysBearingUpdateData>()
-
-    @JsonIgnore
-    private val createdBearings = ConcurrentLinkedQueue<Pair<Int, PhysBearingData>>()
-    private val removedBearings = ConcurrentLinkedQueue<Int>()
-    private var nextBearingID = 0
 
     //attachment from subship moves iteslf
     override fun physTick(physShip: PhysShip, physLevel: PhysLevel) {
-        while (!createdBearings.isEmpty()) { createdBearings.remove().also { (id, data) -> bearingData[id] = data } }
-        while (!removedBearings.isEmpty()) { bearingData.remove(removedBearings.remove()) }
-        bearingUpdateData.forEach { (id: Int, data: PhysBearingUpdateData) ->
-            val physData = bearingData[id] ?: return@forEach
-            physData.bearingAngle = data.bearingAngle
-            physData.angularSpeed = data.bearingRPM
-            physData.angleFollowing = data.locked
-        }
-        bearingUpdateData.clear()
         for (data in bearingData.values) {
-            if (data.angleFollowing) continue
+            // Locked bearings use a fixed joint with a target rotation, they don't need any torque
+            if (data.kinematic) continue
+
             val physShipBearingIsOnId = data.mainShipId
-            if (physShipBearingIsOnId == PhysBearingBlockEntity.NO_SHIPTRAPTION_ID) {
+            if (physShipBearingIsOnId == -1L) {
                 // Constraint connects to world
                 val torque = computeRotationalForce(data, physShip, null)
                 physShip.applyWorldTorque(torque)
@@ -68,22 +65,21 @@ class BearingController : ShipPhysicsListener {
     }
 
     private fun computeRotationalForce(
-        data: PhysBearingData,
+        data: BearingData,
         physShip: PhysShip,
         otherPhysShip: PhysShip?
     ): Vector3dc {
         val prevRPM = data.angularSpeed
         val prevAngle = data.bearingAngle
         data.actualAngle = getAngle(data.bearingAxis!!, physShip.transform, otherPhysShip?.transform)
-        if (!java.lang.Double.isFinite(data.actualAngle) || !java.lang.Double.isFinite(data.bearingAngle) || !java.lang.Float.isFinite(data.angularSpeed)) {
+        if (!java.lang.Double.isFinite(data.actualAngle) || !java.lang.Double.isFinite(data.bearingAngle) || !Float.isFinite(data.angularSpeed)) {
             return Vector3d()
         }
         if (data.aligning) {
             data.angularSpeed = abs(prevRPM) * if (data.actualAngle > 0) -1 else 1
             data.bearingAngle = 0.0
-            data.angleFollowing = true
         }
-        val torque = if (data.angleFollowing) {
+        val torque = if (data.aligning || data.locked) {
             computeLockedRotationalForce(data, physShip, otherPhysShip)
         } else {
             computeUnlockedRotationalForce(data, physShip, otherPhysShip)
@@ -125,7 +121,7 @@ class BearingController : ShipPhysicsListener {
     }
 
     private fun computeUnlockedRotationalForce(
-        data: PhysBearingData,
+        data: BearingData,
         subShip: PhysShip,
         mainShip: PhysShip?
     ): Vector3dc {
@@ -192,7 +188,7 @@ class BearingController : ShipPhysicsListener {
     }
 
     private fun computeLockedRotationalForce(
-        data: PhysBearingData,
+        data: BearingData,
         subShip: PhysShip,
         mainShip: PhysShip?
     ): Vector3dc {
@@ -232,9 +228,9 @@ class BearingController : ShipPhysicsListener {
         }
         val omegaErr = -bearingAxisInGlobal.dot(actualRelativeOmega)
         var torque = (
-            angleErr * torqueMassMultiplier * ClockworkConfig.SERVER.angleFollowingAngleErrorMultiplier +
-                omegaErr * torqueMassMultiplier * ClockworkConfig.SERVER.angleFollowingOmegaErrorMultiplier
-            )
+                angleErr * torqueMassMultiplier * ClockworkConfig.SERVER.angleFollowingAngleErrorMultiplier +
+                        omegaErr * torqueMassMultiplier * ClockworkConfig.SERVER.angleFollowingOmegaErrorMultiplier
+                )
         if (!java.lang.Double.isFinite(torque)) {
             return Vector3d()
         }
@@ -270,14 +266,13 @@ class BearingController : ShipPhysicsListener {
         return delta
     }
 
-    fun addPhysBearing(data: PhysBearingData): Int {
-        val id = nextBearingID++
-        createdBearings.add(Pair(id, data))
-        return id
+    fun setData(bearingKey: BlockPos, data: BearingData) {
+        bearingData[bearingKey.asLong()] = data
     }
 
-    fun removePhysBearing(id: Int) { removedBearings.add(id) }
-    fun updatePhysBearing(id: Int, data: PhysBearingUpdateData) { bearingUpdateData[id] = data }
+    fun removeData(bearingKey: BlockPos) {
+        bearingData.remove(bearingKey.asLong())
+    }
 
     companion object {
         @JvmStatic
@@ -309,11 +304,11 @@ class BearingController : ShipPhysicsListener {
         }
 
         @OptIn(VsBeta::class)
-        fun getOrCreate(ship: LoadedServerShip): BearingController? {
+        fun getOrCreate(ship: LoadedServerShip): BearingController {
             if (ship.getAttachment(BearingController::class.java) == null) {
                 ship.setAttachment(BearingController())
             }
-            return ship.getAttachment(BearingController::class.java)
+            return ship.getAttachment(BearingController::class.java)!!
         }
 
         inline fun <reified T> areQueuesEqual(left: Queue<T>, right: Queue<T>): Boolean {
