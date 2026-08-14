@@ -36,6 +36,7 @@ import org.valkyrienskies.core.internal.joints.VSRevoluteJoint
 import org.valkyrienskies.core.internal.world.VsiPhysLevel
 import org.valkyrienskies.mod.api.BlockEntityPhysicsListener
 import org.valkyrienskies.mod.common.getLoadedShipManagingPos
+import org.valkyrienskies.mod.common.getShipManagingPos
 import org.valkyrienskies.mod.common.toWorldCoordinates
 import org.valkyrienskies.mod.common.util.toJOMLD
 import org.valkyrienskies.mod.common.world.clipIncludeShips
@@ -56,6 +57,8 @@ class SpinoffBearingBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: 
     @Volatile
     var isLeader: Boolean = false
 
+    var wasStatic: Boolean = false
+
     @Volatile
     var isConnected : Boolean = false
     @Volatile
@@ -68,6 +71,12 @@ class SpinoffBearingBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: 
 
     override lateinit var dimension: DimensionId
 
+    @Volatile
+    var overrideStatic: Boolean = false
+        set(value) {
+            field = value
+            (level as? ServerLevel).getShipManagingPos(worldPosition)?.isStatic = value
+        }
     @Volatile
     var shouldVerifyConnection: Boolean = false
     @Volatile
@@ -87,6 +96,7 @@ class SpinoffBearingBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: 
             tag.putInt("partnerY", partnerPos!!.y)
             tag.putInt("partnerZ", partnerPos!!.z)
         }
+
         tag.putInt("jointId", jointId)
 
         // We only serialize this for the ICopyableBlock.onPaste in SpinoffBearingBlock
@@ -108,6 +118,10 @@ class SpinoffBearingBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: 
         }
         if (tag.contains("isLeader")) {
             isLeader = tag.getBoolean("isLeader")
+        }
+
+        if (tag.contains("overrideStatic")) {
+            overrideStatic = true
         }
 
         jointId = tag.getInt("jointId")
@@ -229,10 +243,12 @@ class SpinoffBearingBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: 
                         vsiPhysLevel.removeJoint(jointId)
                         isConnected = false
                         jointId = -1
+                        overrideStatic = false
                     } else {
                         isConnected = true
                         vsiPhysLevel.removeMatchingJointsExcept(existingJoint, jointId)
                         shouldVerifyConnection = false
+                        overrideStatic = false
                     }
                 }
             }
@@ -246,6 +262,7 @@ class SpinoffBearingBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: 
                     isConnected = true
                     vsiPhysLevel.removeMatchingJointsExcept(matchingJoint.joint, matchingJoint.jointId)
                     shouldVerifyConnection = false
+                    overrideStatic = false
                     return
                 }
                 if (!revoluteJoint.hasFinitePoseData()) {
@@ -255,6 +272,7 @@ class SpinoffBearingBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: 
                     )
                     shouldVerifyConnection = false
                     jointId = -1
+                    overrideStatic = false
                     return
                 }
                 jointId = vsiPhysLevel.addJoint(revoluteJoint)
@@ -263,6 +281,7 @@ class SpinoffBearingBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: 
                 }
                 isConnected = jointId != -1
                 shouldVerifyConnection = false
+                overrideStatic = false
             }
         }
         if (shouldRemoveJoint) {
@@ -276,6 +295,7 @@ class SpinoffBearingBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: 
                 jointId = -1
                 shouldRemoveJoint = false
                 pendingRemovalJoint = null
+                overrideStatic = false
             }
         }
     }

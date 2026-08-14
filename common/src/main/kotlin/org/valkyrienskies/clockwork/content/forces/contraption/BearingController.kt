@@ -235,7 +235,7 @@ class BearingController : ShipPhysicsListener {
             return Vector3d()
         }
 
-        val maxTorque = ClockworkConfig.SERVER.angleFollowingMaxTorque
+        val maxTorque = ClockworkConfig.SERVER.angleFollowingMaxTorque.toDouble()
         if (maxTorque > 0.0) {
             torque = torque.coerceIn(-maxTorque, maxTorque)
         }
