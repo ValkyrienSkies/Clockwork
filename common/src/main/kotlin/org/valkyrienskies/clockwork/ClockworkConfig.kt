@@ -143,16 +143,13 @@ object ClockworkConfig {
         var angleFollowingOmegaErrorMultiplier = 16.0
 
         @ConfigEntry(min = 0.0, description = "Maximum torque magnitude applied by follow-angle PhysBearing controller. Set 0 to disable clamping.")
-        var angleFollowingMaxTorque = 5000.0
+        var angleFollowingMaxTorque = 0
 
         @ConfigEntry(min = 0.0, description = "Maximum change in follow-angle PhysBearing torque per physics tick. Lower values reduce violent impulses.")
-        var angleFollowingMaxTorqueStep = 250.0
+        var angleFollowingMaxTorqueStep = 0
 
         @ConfigEntry(min = 0.0, description = "Follow-angle deadband in degrees. Within this error band, the angle term is ignored to avoid oscillation.")
         var angleFollowingAngleDeadbandDeg = 0.75
-
-        @ConfigEntry(min = 0.0, description = "Seconds to block Phys Bearing rotation updates after restore/reload so joints can settle. 0 disables the settle gate.")
-        var physBearingRestoreSettleSeconds = 1.0
 
         @ConfigEntry()
         var allowWrenchingActivatedPhysBearing = false
