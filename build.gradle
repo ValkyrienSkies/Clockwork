@@ -167,6 +167,18 @@ allprojects {
                 }
             }
         }
+        // For VMod + CC tweaked only
+        exclusiveContent {
+            forRepository {
+                maven {
+                    name = "Modrinth"
+                    url = "https://api.modrinth.com/maven"
+                }
+            }
+            filter {
+                includeGroup "maven.modrinth"
+            }
+        }
     }
 
     tasks.withType(JavaCompile) {

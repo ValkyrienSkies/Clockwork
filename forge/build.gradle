@@ -46,13 +46,6 @@ configurations {
 
 repositories {
     if (!block_external_repositories) {
-        maven {
-            name = "Modrinth"
-            url = "https://api.modrinth.com/maven"
-            content {
-                includeModule("maven.modrinth", "jei")
-            }
-        }
 
         // mavens for Forge-exclusives
         maven { url = "https://maven.theillusivec4.top/" } // Curios
