@@ -92,16 +92,19 @@ object ClockworkConfig {
         var maxGravitronMass = 256
 
         @ConfigEntry(description = "Force multiplier for balloons. Realism is 1.0, default is 1000.0. Range: > 0.0", min = 0.0)
-        var balloonForceMult: Double = 50.0
+        var balloonForceMult: Double = 3000.0
 
         @ConfigEntry(description = "Speed multiplier for the gas nozzle pointer, default is 0.5. Range: > 0.0", min = 0.0)
-        var gasNozzleSensitivity = 0.5
+        var gasNozzleSensitivity = 0.05
 
         @ConfigEntry(description = "Sets the gas retention efficiency of the balloon material; lower values simulate airtight rubber/synthetic, while higher values represent porous fabrics. Default 0.001.", min = 0.0, max = 1.0)
         var permeabilityConstant = 0.01
 
         @ConfigEntry(description = "Controls how fast air pocket temperature equalizes with the ambient temperature; lower values simulate thick insulation, while higher values cause rapid cooling or heating. Default 0.001", min = 0.0, max = 1.0)
         var heatTransferCoefficient = 0.01
+
+        @ConfigEntry(description = "Extra multiplier on how much faster a balloon's temperature equalizes with the outside air while it's actively leaking gas. 0 disables the extra cooling from leaking.", min = 0.0)
+        var leakHeatTransferMultiplier = 5.0
 
         @ConfigEntry(description = "Effectiveness scalar for reaction wheels. Higher value means a single reaction wheel can better control an entire ship, regardless of its mass. Default value is 0.1.", min = 0.001, max = 1.0)
         var reactionWheelEffectiveness = 1.0

@@ -18,6 +18,7 @@ import net.minecraft.util.Mth
 import net.minecraft.util.RandomSource
 import net.minecraft.world.level.block.entity.BlockEntityType
 import net.minecraft.world.level.block.state.BlockState
+import org.joml.Vector3d
 import org.valkyrienskies.clockwork.ClockworkAugmentations
 import org.valkyrienskies.clockwork.ClockworkConfig
 import org.valkyrienskies.clockwork.ClockworkLang
@@ -39,6 +40,7 @@ import org.valkyrienskies.kelvin.util.GasPhysics.mixtureCapacity
 import org.valkyrienskies.kelvin.util.KelvinExtensions.toDuctNodePos
 import org.valkyrienskies.kelvin.util.KelvinExtensions.toVector3i
 import org.valkyrienskies.mod.api.isBlockInShipyard
+import org.valkyrienskies.mod.api.positionToWorld
 import org.valkyrienskies.mod.common.dimensionId
 import org.valkyrienskies.mod.common.getLoadedShipManagingPos
 import org.valkyrienskies.mod.common.shipObjectWorld
@@ -48,6 +50,7 @@ import kotlin.collections.component2
 import kotlin.collections.iterator
 import kotlin.math.abs
 import kotlin.math.floor
+import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.pow
 import kotlin.math.roundToInt
@@ -66,6 +69,8 @@ class GasNozzleBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: Block
 
     var pocketTemperature: Double = 0.0
     var balloonVolume: Double = 0.0
+    var balloonHotAir: Double = 0.0
+    var balloonFullness: Double = 0.0
 
     var balloon: BalloonData? = null
 
@@ -81,6 +86,8 @@ class GasNozzleBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: Block
         tag.putBoolean("has_pocket",hasPocket)
         tag.putDouble("pocket_temperature", pocketTemperature)
         tag.putDouble("balloon_volume", balloonVolume)
+        tag.putDouble("balloon_hot_air", balloonHotAir)
+        tag.putDouble("balloon_fullness", balloonFullness)
         tag.putInt("leaks", currentIdealOutput.toInt())
         super.write(tag, clientPacket)
     }
@@ -93,6 +100,8 @@ class GasNozzleBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: Block
         hasPocket = tag.getBoolean("has_pocket")
         pocketTemperature = tag.getDouble("pocket_temperature")
         balloonVolume = tag.getDouble("balloon_volume")
+        balloonHotAir = tag.getDouble("balloon_hot_air")
+        balloonFullness = tag.getDouble("balloon_fullness")
         currentIdealOutput = tag.getInt("leaks").toDouble()
 
         pointer.startWithValue(tag.getDouble("pointer_value"))
@@ -220,6 +229,11 @@ class GasNozzleBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: Block
                 pocketTemperature = currentPocketTemperature
                 balloonVolume = balloon!!.currentVolume
                 currentIdealOutput = balloon!!.missingExternalPositions.toDouble() // this is cursed but i made it without reloading the game so variable reuse lesgo
+
+                val (hotAir, fullness) = calculateHotAirAndFullness(serverLevel, balloon!!, pocketGasMass)
+                balloonHotAir = hotAir
+                balloonFullness = fullness
+
                 sendData()
             }
 
@@ -239,6 +253,25 @@ class GasNozzleBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: Block
 //            sendData()
 //        }
 
+    }
+
+    private fun calculateHotAirAndFullness(
+        serverLevel: ServerLevel,
+        balloon: BalloonData,
+        pocketGasMass: HashMap<GasType, Double>
+    ): Pair<Double, Double> {
+        val volume = balloon.currentVolume
+        if (volume <= 1e-9) return 0.0 to 0.0
+
+        val ship = serverLevel.getLoadedShipManagingPos(blockPos) ?: return 0.0 to 0.0
+        val center = balloon.getCenter()
+        val yInWorld = ship.transform.positionToWorld(Vector3d(center.x(), center.y(), center.z())).y
+        val atmoDensity = serverLevel.shipObjectWorld.aerodynamicUtils.getAirDensityForY(yInWorld, serverLevel.dimensionId)
+
+        val internalMass = pocketGasMass.values.sum()
+        val hotAir = max(0.0, atmoDensity * volume - internalMass)
+        val fullness = hotAir / volume
+        return hotAir to fullness
     }
 
     fun fetchBloon() {
@@ -268,6 +301,7 @@ class GasNozzleBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: Block
     private fun heatBalloon() {
         val balloon = this.balloon ?: return
         if (this.pointer.value <= 0) return
+        if (balloon.isLeaking) return
 
         var pocketGasMass: HashMap<GasType, Double> = HashMap()
         for ((key, value) in balloon.gasMasses) {
@@ -445,18 +479,19 @@ class GasNozzleBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: Block
                 "gui.gas_nozzle.info.volume",
                 DuctTextUtil.translateVolume(ClockworkLang.builder(), balloonVolume, true)
             ).style(ChatFormatting.GREEN).forGoggles(tooltip)
+
             ClockworkLang.translate(
                 "gui.gas_nozzle.info.temperature",
                 DuctTextUtil.translateTemperature(ClockworkLang.builder(), pocketTemperature, true)
             ).style(ChatFormatting.GOLD).forGoggles(tooltip)
 
-            if (isPlayerSneaking) {
-                val targetTemperature = ClockworkModClient.getKelvin().getTemperatureAt(getDuctNodePosition()) * pointer.value.toDouble()
-                ClockworkLang.translate(
-                    "gui.gas_nozzle.info.target_temperature",
-                    DuctTextUtil.translateTemperature(ClockworkLang.builder(), targetTemperature, true)
-                ).style(ChatFormatting.YELLOW).style(ChatFormatting.ITALIC).forGoggles(tooltip)
-            }
+
+            val targetTemperature = ClockworkModClient.getKelvin().getTemperatureAt(getDuctNodePosition()) * pointer.value.toDouble()
+            ClockworkLang.translate(
+                "gui.gas_nozzle.info.target_temperature",
+                DuctTextUtil.translateTemperature(ClockworkLang.builder(), targetTemperature, true)
+            ).style(ChatFormatting.YELLOW).forGoggles(tooltip)
+
             if (currentIdealOutput.toInt() != 0) {
                 tooltip.add(CommonComponents.EMPTY)
                 ClockworkTooltipHelper.addHint(tooltip, "gui.gas_nozzle.info.leak", ChatFormatting.RED, -2)

@@ -4,18 +4,15 @@ import com.fasterxml.jackson.annotation.JsonAutoDetect
 import com.fasterxml.jackson.annotation.JsonIgnore
 import net.minecraft.core.BlockPos
 import net.minecraft.core.Direction
-import net.minecraft.core.Vec3i
-import net.minecraft.core.particles.ParticleTypes
-import net.minecraft.network.chat.Component
 import net.minecraft.server.level.ServerLevel
-import net.minecraft.world.entity.ai.targeting.TargetingConditions
 import net.minecraft.world.level.ClipContext
 import net.minecraft.world.level.Level
 import net.minecraft.world.level.block.state.BlockState
 import net.minecraft.world.phys.HitResult
+import org.joml.Matrix3dc
+import org.joml.Matrix4dc
 import org.joml.Vector3d
 import org.joml.Vector3dc
-import org.joml.Vector3f
 import org.joml.primitives.AABBic
 import org.valkyrienskies.clockwork.ClockworkConfig
 import org.valkyrienskies.clockwork.content.curiosities.tools.wanderwand.WanderwandItem.Companion.toAABBic
@@ -23,18 +20,22 @@ import org.valkyrienskies.clockwork.content.forces.data.BalloonData
 import org.valkyrienskies.clockwork.content.forces.data.BalloonData.PhysBalloonData
 import org.valkyrienskies.clockwork.util.AABBHelper.mergeAdjacentFast
 import org.valkyrienskies.core.api.VsBeta
-import org.valkyrienskies.core.api.attachment.getAttachment
 import org.valkyrienskies.core.api.ships.LoadedServerShip
 import org.valkyrienskies.core.api.ships.PhysShip
 import org.valkyrienskies.core.api.ships.ShipPhysicsListener
 import org.valkyrienskies.core.api.util.PhysTickOnly
 import org.valkyrienskies.core.api.world.PhysLevel
-import org.valkyrienskies.core.util.pollUntilEmpty
+import org.valkyrienskies.core.api.world.properties.DimensionId
+import org.valkyrienskies.core.impl.game.ships.PhysShipImpl
 import org.valkyrienskies.mod.common.dimensionId
-import org.valkyrienskies.mod.common.getLoadedShipManagingPos
 import java.util.concurrent.ConcurrentHashMap
+import kotlin.math.abs
 import kotlin.math.max
+import kotlin.math.pow
 
+/**
+ * Inspired by https://github.com/SergeyFeduk/Create-Propulsion/blob/main/src/main/java/com/deltasf/createpropulsion/balloons/hot_air/BalloonAttachment.java
+ */
 @OptIn(PhysTickOnly::class, VsBeta::class)
 @JsonAutoDetect(fieldVisibility = JsonAutoDetect.Visibility.ANY)
 class BalloonController: ShipPhysicsListener {
@@ -46,29 +47,169 @@ class BalloonController: ShipPhysicsListener {
     val nextBalloonID: Int
         get() = (balloons.keys.maxOrNull() ?: 0) + 1
 
+    @JsonIgnore
+    private val epsilon = 1e-5
+
+    @JsonIgnore
+    private val balloonAngularDamping = 1.2
+
+    @JsonIgnore
+    private val balloonAlignmentKp = 10.0
+
+    @JsonIgnore
+    private val balloonVerticalDragCoefficient = 100.0
+
+    @JsonIgnore
+    private val balloonHorizontalDragCoefficient = 80.0
+
+    // Scratch vectors, reused every tick to avoid allocations on the physics thread
+    @JsonIgnore
+    private val accumulatedForce = Vector3d()
+    @JsonIgnore
+    private val accumulatedTorque = Vector3d()
+    @JsonIgnore
+    private val shipCOMWorld = Vector3d()
+    @JsonIgnore
+    private val balloonWorldPos = Vector3d()
+    @JsonIgnore
+    private val leverArmWorld = Vector3d()
+    @JsonIgnore
+    private val upWorld = Vector3d(0.0, 1.0, 0.0)
+    @JsonIgnore
+    private val tmpForce = Vector3d()
+    @JsonIgnore
+    private val shipUpWorld = Vector3d()
+    @JsonIgnore
+    private val alignAxis = Vector3d()
+    @JsonIgnore
+    private val alignTorque = Vector3d()
+    @JsonIgnore
+    private val angMomentumShipSpace = Vector3d()
+    @JsonIgnore
+    private val dampingTorqueShipSpace = Vector3d()
+    @JsonIgnore
+    private val dampingTorqueWorldSpace = Vector3d()
+    @JsonIgnore
+    private val angVelShipSpace = Vector3d()
+    @JsonIgnore
+    private val horizontalVelocity = Vector3d()
+
     override fun physTick(
         physShip: PhysShip,
         physLevel: PhysLevel
     ) {
+        val shipToWorld: Matrix4dc = physShip.transform.shipToWorld
+
+        accumulatedForce.zero()
+        accumulatedTorque.zero()
+
         for ((_, balloonData) in forcefulBalloons) {
-            val buoyancyForce = calculateBuoyancyForce(physShip, physLevel, balloonData)
-            if (buoyancyForce > 0.0) {
-                val forceVector: Vector3dc = Vector3d(0.0, buoyancyForce, 0.0)
-                physShip.applyWorldForceToModelPos(forceVector, balloonData.center)
+            val fullness = balloonData.hotAir / balloonData.volume
+            if (fullness <= epsilon) continue
+            calculateForcesForBalloon(shipToWorld, physShip, physLevel, balloonData, fullness)
+        }
+
+        // Angular dampening keeps balloon-borne ships flying upright
+        shipUpWorld.set(0.0, 1.0, 0.0)
+        shipToWorld.transformDirection(shipUpWorld)
+        shipUpWorld.normalize()
+
+        shipUpWorld.cross(upWorld, alignAxis) // axis direction and magnitude ~ sin(angle)
+        val alignMag = alignAxis.length()
+
+        // P torque dampening
+        if (alignMag > 1e-6) {
+            alignAxis.normalize()
+            alignTorque.set(alignAxis).mul(balloonAlignmentKp * alignMag)
+            accumulatedTorque.add(alignTorque)
+        }
+
+        // D torque dampening
+        val physShipImpl = physShip as PhysShipImpl
+        val angVel = physShipImpl.angularVelocity
+
+        if (angVel.lengthSquared() > 1e-9) {
+            val worldToShip: Matrix4dc = physShip.transform.worldToShip
+            worldToShip.transformDirection(angVel, angVelShipSpace)
+            val momentOfInertia: Matrix3dc = physShipImpl.momentOfInertia
+            momentOfInertia.transform(angVelShipSpace, angMomentumShipSpace)
+            dampingTorqueShipSpace.set(angMomentumShipSpace).mul(-balloonAngularDamping)
+            dampingTorqueShipSpace.y *= 0.2 // Dampen the dampening to make rotation along Y axis actually possible
+            shipToWorld.transformDirection(dampingTorqueShipSpace, dampingTorqueWorldSpace)
+            accumulatedTorque.add(dampingTorqueWorldSpace)
+        }
+
+        // Vertical/horizontal linear drag based on surface area of all balloons
+        val linearVel: Vector3dc = physShipImpl.velocity
+
+        if (linearVel.lengthSquared() > epsilon * epsilon) {
+            var totalBalloonVolume = 0.0
+            for ((_, balloonData) in forcefulBalloons) {
+                if (balloonData.hotAir > epsilon) {
+                    totalBalloonVolume += balloonData.volume
+                }
             }
+
+            if (totalBalloonVolume > epsilon) {
+                val approxSurfaceArea = totalBalloonVolume.pow(2.0 / 3.0)
+
+                // Vertical drag
+                val verticalVelocity = linearVel.y()
+                if (abs(verticalVelocity) > epsilon) {
+                    val dragForceY = -verticalVelocity * approxSurfaceArea * balloonVerticalDragCoefficient
+                    accumulatedForce.add(0.0, dragForceY, 0.0)
+                }
+
+                // Horizontal drag
+                horizontalVelocity.set(linearVel.x(), 0.0, linearVel.z())
+                if (horizontalVelocity.lengthSquared() > epsilon * epsilon) {
+                    horizontalVelocity.mul(-approxSurfaceArea * balloonHorizontalDragCoefficient)
+                    accumulatedForce.add(horizontalVelocity)
+                }
+            }
+        }
+
+        // Apply aggregated force and torque
+        if (accumulatedForce.lengthSquared() > 1e-9) {
+            physShip.applyWorldForce(accumulatedForce, physShip.kinematics.position)
+        }
+        if (accumulatedTorque.lengthSquared() > 1e-9) {
+            physShip.applyWorldTorque(accumulatedTorque)
         }
     }
 
-    fun calculateBuoyancyForce(physShip: PhysShip, physLevel: PhysLevel, physBalloon: PhysBalloonData): Double {
-        val (_, _, gravity) = physLevel.aerodynamicUtils.getAtmosphereForDimension(physLevel.dimension)
-        val yHeight = physShip.transform.shipToWorld.transformPosition(physBalloon.center, Vector3d()).y()
-        val atmoDensity = physLevel.aerodynamicUtils.getAirDensityForY(yHeight, physLevel.dimension)
+    private fun calculateForcesForBalloon(
+        shipToWorld: Matrix4dc,
+        physShip: PhysShip,
+        physLevel: PhysLevel,
+        balloonData: PhysBalloonData,
+        fullness: Double
+    ) {
+        val shipCOMInShipSpace = physShip.transform.positionInShip
+        shipToWorld.transformPosition(shipCOMInShipSpace.x(), shipCOMInShipSpace.y(), shipCOMInShipSpace.z(), shipCOMWorld)
+        shipToWorld.transformPosition(balloonData.center.x(), balloonData.center.y(), balloonData.center.z(), balloonWorldPos)
 
-        val buoyantForce = physBalloon.volume * (atmoDensity - physBalloon.internalDensity) * gravity * ClockworkConfig.SERVER.balloonForceMult * 100.0
-        if (buoyantForce.isInfinite() || buoyantForce.isNaN()) {
-            return 0.0
-        }
-        return max(buoyantForce, 0.0)
+        // Calculate force magnitude
+        val externalDensity = calculateVariableExternalAirDensity(physLevel, balloonWorldPos.y(), physLevel.dimension)
+        var forceMagnitude = balloonData.volume * externalDensity * gravity(physLevel) * fullness
+        forceMagnitude = max(0.0, forceMagnitude * ClockworkConfig.SERVER.balloonForceMult)
+
+        // Calculate force vector
+        tmpForce.set(upWorld).mul(forceMagnitude)
+
+        // Aggregate force and torque
+        accumulatedForce.add(tmpForce)
+        leverArmWorld.set(balloonWorldPos).sub(shipCOMWorld)
+        leverArmWorld.cross(tmpForce, tmpForce) // tmpForce is reused to hold torque here
+        accumulatedTorque.add(tmpForce)
+    }
+
+    private fun calculateVariableExternalAirDensity(physLevel: PhysLevel, y: Double, id: DimensionId): Double {
+        return physLevel.aerodynamicUtils.getAirDensityForY(y, id )
+    }
+
+    private fun gravity(physLevel: PhysLevel): Double {
+        return physLevel.aerodynamicUtils.getAtmosphereForDimension(physLevel.dimension).third
     }
 
     fun gameTick(
@@ -157,7 +298,7 @@ class BalloonController: ShipPhysicsListener {
         forcefulBalloons.clear()
         for (id in shouldApplyForces) {
             val balloon = balloons[id] ?: continue
-            forcefulBalloons[id] = balloon.makeForceData()
+            forcefulBalloons[id] = balloon.makeForceData(level, ship)
         }
     }
 

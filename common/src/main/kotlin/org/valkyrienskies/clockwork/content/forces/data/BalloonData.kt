@@ -184,7 +184,8 @@ class BalloonData {
         currentTemperature = currentHeatEnergy / newCapacity
 
         // Gas leak heat transfer
-        val heatFlow = ClockworkConfig.SERVER.heatTransferCoefficient * estimatedSurfaceArea * (atmoTemperature - currentTemperature) * max(1.0, missingExternalPositions.toDouble() * 2.0 + 1.0)
+        val leakRateFraction = (exitGas / totalMass).coerceIn(0.0, 1.0)
+        val heatFlow = ClockworkConfig.SERVER.heatTransferCoefficient * estimatedSurfaceArea * (atmoTemperature - currentTemperature) * max(1.0, missingExternalPositions.toDouble() * 2.0 + 1.0) * (1.0 + leakRateFraction * ClockworkConfig.SERVER.leakHeatTransferMultiplier)
         var newHeatEnergy = currentHeatEnergy + heatFlow //* 0.05
 
         var newTemperature = newHeatEnergy / newCapacity
@@ -219,16 +220,18 @@ class BalloonData {
         return true
     }
 
-    fun makeForceData(): PhysBalloonData {
-        val internalDensity = if (currentVolume > 1e-9) {
-            gasMasses.values.sum() / currentVolume
-        } else {
-            0.0
-        }
+    fun makeForceData(level: ServerLevel, ship: LoadedServerShip): PhysBalloonData {
         val center = getCenter()
+        val rootYInWorld = ship.transform.positionToWorld(Vector3d(center.x(), center.y(), center.z())).y
+        val atmoDensity = level.shipObjectWorld.aerodynamicUtils.getAirDensityForY(rootYInWorld, level.dimensionId)
+
+        val internalMass = gasMasses.values.sum()
+        val atmosphericMassAtVolume = atmoDensity * currentVolume
+        val hotAir = max(0.0, atmosphericMassAtVolume - internalMass)
+
         return PhysBalloonData(
             center = center,
-            internalDensity = internalDensity,
+            hotAir = hotAir,
             volume = currentVolume
         )
     }
@@ -575,7 +578,7 @@ class BalloonData {
 
     data class PhysBalloonData(
         val center : Vector3dc,
-        val internalDensity : Double,
+        val hotAir : Double,
         val volume : Double
     )
 }
