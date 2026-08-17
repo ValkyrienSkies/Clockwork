@@ -190,7 +190,7 @@ object ClockworkMod {
     @JvmStatic
     fun registerHeaters() {
         // Needs to be deferred (event.enqueueWork) on forge, but fabric it can be run immediately
-        BoilerHeater.REGISTRY.register(ClockworkBlocks.GAS_HEATER.get(), BoilerHeater.BLAZE_BURNER)
+        ClockworkBoilerHeaters.init()
     }
     @JvmStatic
     fun physTickOnce(dimensionId: String, fn: (level: PhysLevel, delta: Double, tryNextTick: () -> Unit) -> Unit) {

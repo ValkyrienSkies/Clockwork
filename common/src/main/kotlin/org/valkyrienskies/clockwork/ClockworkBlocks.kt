@@ -8,6 +8,7 @@ import com.simibubi.create.api.stress.BlockStressValues
 import com.simibubi.create.content.decoration.encasing.CasingBlock
 import com.simibubi.create.content.decoration.encasing.EncasingRegistry
 import com.simibubi.create.content.fluids.PipeAttachmentModel
+import com.simibubi.create.content.kinetics.simpleRelays.ShaftBlock
 import com.simibubi.create.foundation.data.AssetLookup
 import com.simibubi.create.foundation.data.CreateRegistrate
 import com.simibubi.create.foundation.data.ModelGen.customItemModel
@@ -17,6 +18,7 @@ import com.tterrag.registrate.providers.DataGenContext
 import com.tterrag.registrate.providers.RegistrateBlockstateProvider
 import com.tterrag.registrate.util.entry.BlockEntry
 import com.tterrag.registrate.util.nullness.NonNullFunction
+import dev.architectury.event.events.common.LifecycleEvent
 import net.minecraft.client.renderer.RenderType
 import net.minecraft.client.resources.model.BakedModel
 import net.minecraft.world.item.CreativeModeTabs
@@ -1027,7 +1029,6 @@ object ClockworkBlocks {
         .initialProperties { SharedProperties.wooden() }
         .transform(axeOrPickaxe())
         .transform(BuilderTransformersClockwork.encasedShaft("balloon") { ClockworkSpriteShifts.BALLOON_CASING })
-        .transform(EncasingRegistry.addVariantTo { AllBlocks.SHAFT.get() })
         .item()
         .build()
         .register()
@@ -1154,7 +1155,12 @@ object ClockworkBlocks {
 
     @JvmStatic
     fun register() {
-
+        // This needs to be deferred because fabric idk
+        LifecycleEvent.SETUP.register {
+            EncasingRegistry.addVariant<ShaftBlock, ExtendedEncasedShaftBlock, Any>(
+                AllBlocks.SHAFT.get(), BALLOON_ENCASED_SHAFT.get()
+            )
+        }
     }
 
 }

@@ -11,9 +11,6 @@ import net.minecraft.world.level.block.state.BlockState
 
 
 object ClockworkBoilerHeaters {
-
-
-
     fun registerHeater(block: Block, heater: BoilerHeater) {
         BoilerHeater.REGISTRY.register(block, heater)
     }
