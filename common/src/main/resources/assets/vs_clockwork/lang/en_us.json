@@ -435,6 +435,9 @@
   "vs_clockwork.unit.mass.imperial_ton": "ton",
   "vs_clockwork.unit.mass.ounce": "oz",
 
+  "vs_clockwork.delivery_cannon.distribution_mode": "Distribution Mode",
+  "vs_clockwork.delivery_cannon.distribution_mode.round_robin": "Round Robin",
+  "vs_clockwork.delivery_cannon.distribution_mode.always_closest": "Always Closest",
   "vs_clockwork.gui.delivery_cannon.info.obstructed.title": "Cannon cannot activate",
   "vs_clockwork.gui.delivery_cannon.info.obstructed": "It appears the destination chute is full. The cannon cannot fire until the chute is emptied.",
   "vs_clockwork.gui.delivery_chute.info.obstructed.title": "Chute contains excess items",
