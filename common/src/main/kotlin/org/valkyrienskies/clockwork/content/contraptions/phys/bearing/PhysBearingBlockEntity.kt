@@ -274,7 +274,11 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
     override fun read(tag: CompoundTag, clientPacket: Boolean) {
         super.read(tag, clientPacket)
         jointId = tag.getInt("jointId")
-        originalFacing = Direction.valueOf(tag.getString("originalFacing"))
+        if (tag.contains("originalFacing")) {
+            originalFacing = Direction.valueOf(tag.getString("originalFacing"))
+        } else {
+            originalFacing = facing
+        }
 
         // Load rotational state
         targetAngle = tag.getFloat("targetAngle")
