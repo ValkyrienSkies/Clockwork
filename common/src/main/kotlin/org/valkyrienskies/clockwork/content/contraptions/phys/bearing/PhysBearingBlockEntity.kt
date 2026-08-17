@@ -94,6 +94,11 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
     private var queuedJointToAdd: VSJoint? = null
     private var lastException: AssemblyException? = null
 
+    // jointId is updated on phys tick, but for some dumb reasaon the block entity
+    // needs sendData to be run from the server tick. So we compare with this
+    // in tick() to sync on game tick
+    private var lastSyncedJointId: VSJointId = jointId
+
     @Volatile
     var targetAngle = 0f
         private set
@@ -273,7 +278,11 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
 
     override fun read(tag: CompoundTag, clientPacket: Boolean) {
         super.read(tag, clientPacket)
-        jointId = tag.getInt("jointId")
+        if (tag.isEmpty) return
+        if (tag.contains("jointId")) {
+            jointId = tag.getInt("jointId")
+        }
+
         if (tag.contains("originalFacing")) {
             originalFacing = Direction.valueOf(tag.getString("originalFacing"))
         } else {
@@ -295,6 +304,7 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
             val vec = tag.getVector3d("partnerPos")!!
             partnerPos = BlockPos.containing(Vec3(vec.x, vec.y, vec.z))
         }
+
         if (clientPacket) { return }
         val level = level as? ServerLevel ?: return
         updateJoint(level)
@@ -428,6 +438,12 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
             return
         }
 
+        open = false
+        opening = false
+        openProgress = 0f
+        inOutCorner = 0f
+        cornerShrinking = false
+
         removeJoint(level)
         AllSoundEvents.CONTRAPTION_DISASSEMBLE.playOnServer(level, worldPosition)
         sendData()
@@ -451,6 +467,7 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
         } else {
             queuedJointToAdd = updatedJoint
         }
+        sendData()
     }
 
     override fun onSpeedChanged(previousSpeed: Float) {
@@ -469,6 +486,11 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
         if (level!!.isClientSide) {
             tickAnimationLogic()
             return
+        }
+
+        if (jointId != lastSyncedJointId) {
+            lastSyncedJointId = jointId
+            sendData()
         }
 
         if (joint != null) {
@@ -574,7 +596,6 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
             return
         }
         jointId = id
-        sendData()
         queuedJointToAdd = null
     }
 
