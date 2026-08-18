@@ -57,6 +57,10 @@ repositories {
             }
         }
         maven { url = "https://jitpack.io/" }
+
+        flatDir {
+            dir("libs")
+        }
     }
 }
 
@@ -127,6 +131,9 @@ dependencies {
     //Spark profiler
     //modRuntimeOnly("maven.modrinth:spark:1.10.53-forge")
 
+    // VMOD
+    modRuntimeOnly("maven.modrinth:qS1ot7R2:xuf6SajY")
+    modRuntimeOnly("net.spaceeye:valkyrien-ship-schematics:1.20.1-forge:2.0")
 
     //modRuntimeOnly "me.shedaniel:RoughlyEnoughItems-forge:${rei_version}"
 
