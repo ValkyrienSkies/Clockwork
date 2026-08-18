@@ -59,6 +59,9 @@ object ClockworkConfig {
         @ConfigCategory(title = "Gas Engine")
         val gasEngine = GasEngine()
 
+        @ConfigCategory(title = "balloons")
+        val balloons = Balloons()
+
         @ConfigEntry(description = "Enable verbose debug logging")
         var debugMode = false
 
@@ -91,12 +94,6 @@ object ClockworkConfig {
         @ConfigEntry(description = "Max Gravitron mass in 1000 kg")
         var maxGravitronMass = 256
 
-        @ConfigEntry(description = "Force multiplier for balloons. Realism is 1.0, default is 1000.0. Range: > 0.0", min = 0.0)
-        var balloonForceMult: Double = 3000.0
-
-        @ConfigEntry(description = "Speed multiplier for the gas nozzle pointer, default is 0.5. Range: > 0.0", min = 0.0)
-        var gasNozzleSensitivity = 0.05
-
         @ConfigEntry(description = "Sets the gas retention efficiency of the balloon material; lower values simulate airtight rubber/synthetic, while higher values represent porous fabrics. Default 0.001.", min = 0.0, max = 1.0)
         var permeabilityConstant = 0.01
 
@@ -117,15 +114,6 @@ object ClockworkConfig {
 
         @ConfigEntry(description = "The maximum distance (in blocks) allowed between two Universal Joints while connected.", min = 1.0)
         var maxUniversalJointDistance = 10.0
-
-        @ConfigEntry(description = "The length of the raycast made by the Gas Nozzle when attempting to find a valid balloon ceiling.", min = 1.0)
-        var hotAirBalloonMaxRaycastDistance = 64.0
-
-        @ConfigEntry(description = "The maximum volume (in blocks) that the hot air balloon floodfill will scan when trying to determine the balloon's interior.", min = 1.0)
-        var hotAirBalloonMaxScanVolume = 100000.0
-
-        @ConfigEntry(description = "The maximum surface area (in blocks) that the hot air balloon floodfill will scan when trying to determine the balloon's exterior.", min = 1.0)
-        var hotAirBalloonMaxScanSurface = 100000.0
 
         @ConfigEntry(description = "Force multiplier when no rpm is given")
         var unlockedModeRotationResistanceMultiplier = 1.0
@@ -223,8 +211,6 @@ object ClockworkConfig {
         @ConfigEntry(description = "Maximum amount of blocks a smart flap bearing can assemble", min = 0.0, max = Int.MAX_VALUE.toDouble())
         var smartFlapBearingMaxSize = 24
 
-
-
         @ConfigEntry(description = "Whether the (smart) flap bearing peripheral can use setAngle without rotational power")
         var cheatFlapBearingPeripheral = false
 
@@ -284,5 +270,22 @@ object ClockworkConfig {
 
         @ConfigEntry(description = "Whether the generic kelvin peripheral can move gas/heat through only a peripheral connection")
         var cheatKelvinPeripheral = false
+    }
+
+    class Balloons {
+        @ConfigEntry(description = "Force multiplier for balloons. Realism is 1.0, default is 3000.0. Range: > 0.0", min = 0.0)
+        var balloonForceMult: Double = 3000.0
+
+        @ConfigEntry(description = "The length of the raycast made by the Gas Nozzle when attempting to find a valid balloon ceiling.", min = 1.0)
+        var hotAirBalloonMaxRaycastDistance = 64.0
+
+        @ConfigEntry(description = "The maximum volume (in blocks) that the hot air balloon floodfill will scan when trying to determine the balloon's interior.", min = 1.0)
+        var hotAirBalloonMaxScanVolume = 100000.0
+
+        @ConfigEntry(description = "The maximum surface area (in blocks) that the hot air balloon floodfill will scan when trying to determine the balloon's exterior.", min = 1.0)
+        var hotAirBalloonMaxScanSurface = 100000.0
+
+        @ConfigEntry(description = "Speed multiplier for the gas nozzle pointer, default is 0.5. Range: > 0.0", min = 0.0)
+        var gasNozzleSensitivity = 0.05
     }
 }

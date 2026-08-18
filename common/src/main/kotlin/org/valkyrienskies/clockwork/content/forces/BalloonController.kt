@@ -192,7 +192,7 @@ class BalloonController: ShipPhysicsListener {
         // Calculate force magnitude
         val externalDensity = calculateVariableExternalAirDensity(physLevel, balloonWorldPos.y(), physLevel.dimension)
         var forceMagnitude = balloonData.volume * externalDensity * gravity(physLevel) * fullness
-        forceMagnitude = max(0.0, forceMagnitude * ClockworkConfig.SERVER.balloonForceMult)
+        forceMagnitude = max(0.0, forceMagnitude * ClockworkConfig.SERVER.balloons.balloonForceMult)
 
         // Calculate force vector
         tmpForce.set(upWorld).mul(forceMagnitude)
@@ -246,7 +246,7 @@ class BalloonController: ShipPhysicsListener {
                 val shell = scanShell(
                     validScanStart,
                     level,
-                    ClockworkConfig.SERVER.hotAirBalloonMaxScanSurface.toInt()
+                    ClockworkConfig.SERVER.balloons.hotAirBalloonMaxScanSurface.toInt()
                 )
                 if (shell == null) {
                     // Balloon is no longer valid
@@ -323,7 +323,7 @@ class BalloonController: ShipPhysicsListener {
         val result = level.clip(
             ClipContext(
                 startPos.center.add(0.0, 0.5, 0.0),
-                startPos.center.add(0.0, ClockworkConfig.SERVER.hotAirBalloonMaxRaycastDistance, 0.0),
+                startPos.center.add(0.0, ClockworkConfig.SERVER.balloons.hotAirBalloonMaxRaycastDistance, 0.0),
                 ClipContext.Block.COLLIDER,
                 ClipContext.Fluid.NONE,
                 null
@@ -341,7 +341,7 @@ class BalloonController: ShipPhysicsListener {
         val existingBalloonID = getExistingBalloon(shellStart.relative(Direction.DOWN))
         if (existingBalloonID != -1) return existingBalloonID
 
-        val shell = scanShell(shellStart, level, ClockworkConfig.SERVER.hotAirBalloonMaxScanSurface.toInt())
+        val shell = scanShell(shellStart, level, ClockworkConfig.SERVER.balloons.hotAirBalloonMaxScanSurface.toInt())
             ?: return -1
 
         //Finding valid position inside the balloon
@@ -442,7 +442,7 @@ class BalloonController: ShipPhysicsListener {
     }
 
     fun tryFillBalloonFromShell(shell: ShellInfo, seed: BlockPos, level: Level): List<AABBic> {
-        val maxScan = ClockworkConfig.SERVER.hotAirBalloonMaxScanVolume
+        val maxScan = ClockworkConfig.SERVER.balloons.hotAirBalloonMaxScanVolume
 
         val minYInterior = shell.minY + 1
 

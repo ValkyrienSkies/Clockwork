@@ -295,7 +295,7 @@ class GasNozzleBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: Block
     }
 
     fun getChaseSpeed(): Double {
-        return abs(getSpeed().toDouble()) / 16.0 / 40.0 * ClockworkConfig.SERVER.gasNozzleSensitivity
+        return abs(getSpeed().toDouble()) / 16.0 / 40.0 * ClockworkConfig.SERVER.balloons.gasNozzleSensitivity
     }
 
     private fun heatBalloon() {
