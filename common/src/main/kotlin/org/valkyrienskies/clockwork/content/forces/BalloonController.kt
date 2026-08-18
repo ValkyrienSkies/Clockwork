@@ -34,7 +34,7 @@ import kotlin.math.max
 import kotlin.math.pow
 
 /**
- * Inspired by https://github.com/SergeyFeduk/Create-Propulsion/blob/main/src/main/java/com/deltasf/createpropulsion/balloons/hot_air/BalloonAttachment.java
+ * Partially taken from https://github.com/SergeyFeduk/Create-Propulsion/blob/main/src/main/java/com/deltasf/createpropulsion/balloons/hot_air/BalloonAttachment.java
  * Many thanks to Delta for making his code open source and MIT licensed.
  */
 @OptIn(PhysTickOnly::class, VsBeta::class)
