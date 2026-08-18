@@ -34,6 +34,7 @@ import org.valkyrienskies.clockwork.util.kelvin.KelvinParticleHelper
 import org.valkyrienskies.clockwork.util.gui.ClockworkTooltipHelper
 import org.valkyrienskies.clockwork.util.gui.DuctTextUtil
 import org.valkyrienskies.kelvin.KelvinMod
+import org.valkyrienskies.kelvin.api.DuctNetwork
 import org.valkyrienskies.kelvin.api.GasType
 import org.valkyrienskies.kelvin.impl.registry.GasTypeRegistry
 import org.valkyrienskies.kelvin.util.GasPhysics.mixtureCapacity
@@ -312,7 +313,9 @@ class GasNozzleBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: Block
 
         val gasMass = ClockworkMod.getKelvin(level).getGasMassAt(getDuctNodePosition())
         val gasMassTotal = gasMass.values.sum()
-        val heatEnergy = ClockworkMod.getKelvin(level).getHeatEnergy(getDuctNodePosition())
+        if (gasMassTotal <= 1e-9) return
+        val heatEnergy = temporaryHeatEnergyCalc(ClockworkMod.getKelvin(level), getDuctNodePosition())
+
         val pocketCapacity = mixtureCapacity(pocketGasMass)
         val currentPocketTemperature = (pocketHeatEnergy) / pocketCapacity
         val targetTemperature = ClockworkConfig.SERVER.balloons.gasNozzleMaxTemp * pointer.value.toDouble()
@@ -334,6 +337,13 @@ class GasNozzleBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: Block
         }
 
         sendData()
+    }
+
+    private fun temporaryHeatEnergyCalc(kelvin: DuctNetwork<*>, pos: DuctNodePos): Double {
+        val gasses = kelvin.getGasMassAt(pos)
+        val capacity = mixtureCapacity(gasses)
+        val energy = kelvin.getTemperatureAt(pos)
+        return capacity * energy
     }
 
     private fun heatPocket() {
