@@ -288,6 +288,9 @@ object ClockworkConfig {
         @ConfigEntry(description = "Speed multiplier for the gas nozzle pointer, default is 0.5. Range: > 0.0", min = 0.0)
         var gasNozzleSensitivity = 0.05
 
+        @ConfigEntry(description = "Maximum target temperature the gas nozzle can aim for", min = 0.0)
+        var gasNozzleMaxTemp = 1500
+
         @ConfigEntry(description = "Multiplier that balloons apply on dampening rotational movement", min = 0.0)
         var balloonAngularDamping = 1.2
 

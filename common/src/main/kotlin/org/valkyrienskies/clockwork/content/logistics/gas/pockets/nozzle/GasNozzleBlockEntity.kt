@@ -315,7 +315,7 @@ class GasNozzleBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: Block
         val heatEnergy = ClockworkMod.getKelvin(level).getHeatEnergy(getDuctNodePosition())
         val pocketCapacity = mixtureCapacity(pocketGasMass)
         val currentPocketTemperature = (pocketHeatEnergy) / pocketCapacity
-        val targetTemperature = ClockworkMod.getKelvin(level).getTemperatureAt(getDuctNodePosition()) * pointer.value.toDouble()
+        val targetTemperature = ClockworkConfig.SERVER.balloons.gasNozzleMaxTemp * pointer.value.toDouble()
         if (currentPocketTemperature >= targetTemperature) return
         val maxEnergyAddedThisTick = (heatEnergy / 2.0)
         val energyToAdd = min(pocketCapacity * min(targetTemperature - currentPocketTemperature, 100.0), maxEnergyAddedThisTick)
@@ -486,7 +486,7 @@ class GasNozzleBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: Block
             ).style(ChatFormatting.GOLD).forGoggles(tooltip)
 
 
-            val targetTemperature = ClockworkModClient.getKelvin().getTemperatureAt(getDuctNodePosition()) * pointer.value.toDouble()
+            val targetTemperature = ClockworkConfig.SERVER.balloons.gasNozzleMaxTemp * pointer.value.toDouble()
             ClockworkLang.translate(
                 "gui.gas_nozzle.info.target_temperature",
                 DuctTextUtil.translateTemperature(ClockworkLang.builder(), targetTemperature, true)
