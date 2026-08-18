@@ -35,6 +35,7 @@ import kotlin.math.pow
 
 /**
  * Inspired by https://github.com/SergeyFeduk/Create-Propulsion/blob/main/src/main/java/com/deltasf/createpropulsion/balloons/hot_air/BalloonAttachment.java
+ * Many thanks to Delta for making his code open source and MIT licensed.
  */
 @OptIn(PhysTickOnly::class, VsBeta::class)
 @JsonAutoDetect(fieldVisibility = JsonAutoDetect.Visibility.ANY)
@@ -49,18 +50,6 @@ class BalloonController: ShipPhysicsListener {
 
     @JsonIgnore
     private val epsilon = 1e-5
-
-    @JsonIgnore
-    private val balloonAngularDamping = 1.2
-
-    @JsonIgnore
-    private val balloonAlignmentKp = 10.0
-
-    @JsonIgnore
-    private val balloonVerticalDragCoefficient = 100.0
-
-    @JsonIgnore
-    private val balloonHorizontalDragCoefficient = 80.0
 
     // Scratch vectors, reused every tick to avoid allocations on the physics thread
     @JsonIgnore
@@ -120,7 +109,7 @@ class BalloonController: ShipPhysicsListener {
         // P torque dampening
         if (alignMag > 1e-6) {
             alignAxis.normalize()
-            alignTorque.set(alignAxis).mul(balloonAlignmentKp * alignMag)
+            alignTorque.set(alignAxis).mul(ClockworkConfig.SERVER.balloons.balloonAlignmentKp * alignMag)
             accumulatedTorque.add(alignTorque)
         }
 
@@ -133,7 +122,7 @@ class BalloonController: ShipPhysicsListener {
             worldToShip.transformDirection(angVel, angVelShipSpace)
             val momentOfInertia: Matrix3dc = physShipImpl.momentOfInertia
             momentOfInertia.transform(angVelShipSpace, angMomentumShipSpace)
-            dampingTorqueShipSpace.set(angMomentumShipSpace).mul(-balloonAngularDamping)
+            dampingTorqueShipSpace.set(angMomentumShipSpace).mul(-ClockworkConfig.SERVER.balloons.balloonAngularDamping)
             dampingTorqueShipSpace.y *= 0.2 // Dampen the dampening to make rotation along Y axis actually possible
             shipToWorld.transformDirection(dampingTorqueShipSpace, dampingTorqueWorldSpace)
             accumulatedTorque.add(dampingTorqueWorldSpace)
@@ -156,14 +145,14 @@ class BalloonController: ShipPhysicsListener {
                 // Vertical drag
                 val verticalVelocity = linearVel.y()
                 if (abs(verticalVelocity) > epsilon) {
-                    val dragForceY = -verticalVelocity * approxSurfaceArea * balloonVerticalDragCoefficient
+                    val dragForceY = -verticalVelocity * approxSurfaceArea * ClockworkConfig.SERVER.balloons.balloonVerticalDragCoefficient
                     accumulatedForce.add(0.0, dragForceY, 0.0)
                 }
 
                 // Horizontal drag
                 horizontalVelocity.set(linearVel.x(), 0.0, linearVel.z())
                 if (horizontalVelocity.lengthSquared() > epsilon * epsilon) {
-                    horizontalVelocity.mul(-approxSurfaceArea * balloonHorizontalDragCoefficient)
+                    horizontalVelocity.mul(-approxSurfaceArea * ClockworkConfig.SERVER.balloons.balloonHorizontalDragCoefficient)
                     accumulatedForce.add(horizontalVelocity)
                 }
             }

@@ -287,5 +287,17 @@ object ClockworkConfig {
 
         @ConfigEntry(description = "Speed multiplier for the gas nozzle pointer, default is 0.5. Range: > 0.0", min = 0.0)
         var gasNozzleSensitivity = 0.05
+
+        @ConfigEntry(description = "Multiplier that balloons apply on dampening rotational movement", min = 0.0)
+        var balloonAngularDamping = 1.2
+
+        @ConfigEntry(description = "Multiplier on balloon vertical angular alignment torque", min = 0.0)
+        var balloonAlignmentKp = 10.0
+
+        @ConfigEntry(description = "Vertical linear drag. Helps prevent balloons bobbing up and down endlessly", min = 0.0)
+        var balloonVerticalDragCoefficient = 100.0
+
+        @ConfigEntry(description = "Horizontal linear drag. Helps prevent balloons drifting endlessly", min = 0.0)
+        var balloonHorizontalDragCoefficient = 80.0
     }
 }
