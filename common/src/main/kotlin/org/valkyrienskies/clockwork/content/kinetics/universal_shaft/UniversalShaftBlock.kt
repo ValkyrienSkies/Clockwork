@@ -147,4 +147,19 @@ class UniversalShaftBlock(properties: Properties?) : DirectionalKineticBlock(pro
 
         return InteractionResult.PASS
     }
+
+    override fun getDrops(
+        state: BlockState,
+        params: LootParams.Builder
+    ): List<ItemStack> {
+        val drops = super.getDrops(state, params).toMutableList()
+
+        val blockEntity = params.getOptionalParameter(LootContextParams.BLOCK_ENTITY)
+
+        if (blockEntity is UniversalShaftBlockEntity && (blockEntity.connectedBe != null)) {
+            drops.add(ItemStack(ClockworkItems.UNIVERSAL_SHAFT_ITEM.get()))
+        }
+
+        return drops
+    }
 }
