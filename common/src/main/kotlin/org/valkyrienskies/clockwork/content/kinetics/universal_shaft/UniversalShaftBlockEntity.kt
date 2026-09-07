@@ -13,8 +13,8 @@ import net.minecraft.world.level.block.state.BlockState
 import org.valkyrienskies.clockwork.ClockworkConfig
 import org.valkyrienskies.clockwork.ClockworkItems
 import org.valkyrienskies.clockwork.ClockworkSounds
-import org.valkyrienskies.clockwork.content.physicalities.extendon.ExtendonBlockEntity
 import org.valkyrienskies.clockwork.util.universal_joint.IUniversalJoint
+import org.valkyrienskies.mod.common.getShipManagingPos
 import org.valkyrienskies.mod.common.toWorldCoordinates
 
 class UniversalShaftBlockEntity(typeIn: BlockEntityType<*>?, pos: BlockPos?, state: BlockState?) : KineticBlockEntity(typeIn, pos, state), IUniversalJoint {
@@ -138,6 +138,12 @@ class UniversalShaftBlockEntity(typeIn: BlockEntityType<*>?, pos: BlockPos?, sta
             compound.putInt("otherPosY",connectedPos!!.y)
             compound.putInt("otherPosZ",connectedPos!!.z)
             compound.putBoolean("main", main)
+
+            // Used for onPaste
+            val ship = level.getShipManagingPos(connectedPos!!)
+            if (ship != null) {
+                compound.putLong("otherShipId", ship.id)
+            }
         }
 
         super.write(compound, clientPacket)
