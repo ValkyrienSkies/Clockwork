@@ -1,22 +1,17 @@
 package org.valkyrienskies.clockwork.content.kinetics.universal_shaft
 
-import com.mojang.blaze3d.systems.RenderSystem
 import com.mojang.blaze3d.vertex.PoseStack
-import com.mojang.blaze3d.vertex.Tesselator
 import com.mojang.blaze3d.vertex.VertexConsumer
-import com.mojang.blaze3d.vertex.VertexFormat
 import com.simibubi.create.content.kinetics.base.KineticBlockEntityRenderer
 import dev.engine_room.flywheel.lib.transform.TransformStack
 import net.createmod.catnip.render.CachedBuffers
 import net.minecraft.client.Minecraft
-import net.minecraft.client.renderer.GameRenderer
 import net.minecraft.client.renderer.LightTexture
 import net.minecraft.client.renderer.MultiBufferSource
 import net.minecraft.client.renderer.RenderType
 import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider
 import net.minecraft.client.renderer.texture.OverlayTexture
 import net.minecraft.core.BlockPos
-import net.minecraft.core.Direction
 import net.minecraft.resources.ResourceLocation
 import net.minecraft.world.level.LightLayer
 import net.minecraft.world.level.block.state.properties.BlockStateProperties
@@ -24,14 +19,12 @@ import net.minecraft.world.phys.Vec3
 import org.joml.Matrix3f
 import org.joml.Matrix4f
 import org.joml.Vector3d
-import org.lwjgl.opengl.GL11
 import org.valkyrienskies.clockwork.ClockworkMod
 import org.valkyrienskies.clockwork.util.minus
 import org.valkyrienskies.clockwork.util.plus
 import org.valkyrienskies.core.api.ships.ClientShip
 import org.valkyrienskies.mod.common.getShipManagingPos
 import org.valkyrienskies.mod.common.util.toJOMLD
-import kotlin.math.PI
 import kotlin.math.atan2
 import kotlin.math.sqrt
 
@@ -78,7 +71,11 @@ class UniversalShaftRenderer(context: BlockEntityRendererProvider.Context?) : Ki
                 val tubeLengthMultiplier = (1.0 / mainScale).toFloat()
                 val tubeTextureMultiplier = if (otherScale > mainScale) 1f else (otherScale / mainScale).toFloat()
 
-                val roll = getAngleForBe(be, be.pos, be.blockState.getValue<Direction>(BlockStateProperties.FACING).axis)
+                // Output must be negated whenever the two shafts share an axis sign
+                // (e.g. both directions are positive axis or both are negative axis)
+                // Why? Idk it's probably create's fault.
+                val facing = be.blockState.getValue(BlockStateProperties.FACING)
+                val roll = getAngleForBe(be, be.pos, facing.axis) * facing.axisDirection.step
                 val realAngles = Triple(angles.first, angles.second, roll.toDouble())
 
                 renderTubes(direction.length().toFloat() * tubeLengthMultiplier, ms, realAngles, be.blockPos, be.connectedBe!!.blockPos, tubeRadiusMultiplier, tubeTextureMultiplier, tubeBuffer)
