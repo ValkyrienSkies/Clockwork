@@ -1100,7 +1100,7 @@ object ClockworkBlocks {
         }
             .initialProperties { SharedProperties.stone() }
             .transform(axeOrPickaxe())
-            .properties { it.noOcclusion() }
+            .properties { it.forceSolidOn().noOcclusion() }
             .addLayer { Supplier { RenderType.cutout() } }
             .tag(AllTags.AllBlockTags.SAFE_NBT.tag)
             .item()
