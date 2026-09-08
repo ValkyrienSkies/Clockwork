@@ -24,7 +24,9 @@ import org.valkyrienskies.clockwork.util.minus
 import org.valkyrienskies.clockwork.util.plus
 import org.valkyrienskies.core.api.ships.ClientShip
 import org.valkyrienskies.mod.common.getShipManagingPos
+import org.valkyrienskies.mod.common.isBlockInShipyard
 import org.valkyrienskies.mod.common.util.toJOMLD
+import org.valkyrienskies.mod.common.util.toMinecraft
 import kotlin.math.atan2
 import kotlin.math.sqrt
 
@@ -56,6 +58,13 @@ class UniversalShaftRenderer(context: BlockEntityRendererProvider.Context?) : Ki
 
             val otherShip = be.level!!.getShipManagingPos(be.connectedBe!!.pos) as ClientShip?
             val otherPos = if (otherShip == null)be.connectedBe!!.pos.toJOMLD() + 0.5 else otherShip.renderTransform.shipToWorld.transformPosition(be.connectedBe!!.pos.toJOMLD() + 0.5)!!
+
+            // One of our ships wasn't loaded, so the transform out of shipyard failed.
+            // Stops https://github.com/ValkyrienSkies/Clockwork/issues/348 from happening when
+            // a compressible shaft from world -> ship is going to an unloaded ship
+            if (be.level!!.isBlockInShipyard(thisPos.toMinecraft()) || be.level!!.isBlockInShipyard(otherPos.toMinecraft())) {
+                return
+            }
 
             val direction = otherPos - thisPos
 
