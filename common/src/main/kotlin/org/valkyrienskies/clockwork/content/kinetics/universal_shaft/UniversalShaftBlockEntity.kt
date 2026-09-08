@@ -1,7 +1,9 @@
 package org.valkyrienskies.clockwork.content.kinetics.universal_shaft
 
+import com.simibubi.create.api.schematic.requirement.SpecialBlockEntityItemRequirement
 import com.simibubi.create.content.kinetics.base.IRotate
 import com.simibubi.create.content.kinetics.base.KineticBlockEntity
+import com.simibubi.create.content.schematics.requirement.ItemRequirement
 import net.minecraft.core.BlockPos
 import net.minecraft.nbt.CompoundTag
 import net.minecraft.server.level.ServerLevel
@@ -18,7 +20,8 @@ import org.valkyrienskies.clockwork.util.universal_joint.IUniversalJoint
 import org.valkyrienskies.mod.common.getShipManagingPos
 import org.valkyrienskies.mod.common.toWorldCoordinates
 
-class UniversalShaftBlockEntity(typeIn: BlockEntityType<*>?, pos: BlockPos?, state: BlockState?) : KineticBlockEntity(typeIn, pos, state), IUniversalJoint {
+class UniversalShaftBlockEntity(typeIn: BlockEntityType<*>?, pos: BlockPos?, state: BlockState?) : KineticBlockEntity(typeIn, pos, state), IUniversalJoint,
+    SpecialBlockEntityItemRequirement {
     override var connectedJoint: IUniversalJoint? = null
     override var pos = blockPos
     var connectedPos: BlockPos? = null
@@ -173,5 +176,12 @@ class UniversalShaftBlockEntity(typeIn: BlockEntityType<*>?, pos: BlockPos?, sta
     override fun remove() {
         disconnect()
         super.remove()
+    }
+
+    override fun getRequiredItems(state: BlockState): ItemRequirement {
+        return if (connectedBe == null) ItemRequirement.NONE else ItemRequirement(
+            ItemRequirement.ItemUseType.CONSUME,
+            ClockworkItems.UNIVERSAL_SHAFT_ITEM.get()
+        )
     }
 }
