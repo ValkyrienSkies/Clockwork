@@ -88,7 +88,7 @@ open class GravitronItemRenderer : CustomRenderedItemModelRenderer() {
         renderer.render(ClockworkPartials.GRAV_PRONG_RIGHT_THREE.get(), light)
 
         if (stack.item is CreativeGravitronItem) {
-            overloadAngle = (overloadAngle + 1f * partialTicks) % 360f
+            overloadAngle = ((player.tickCount + partialTicks) * 5f) % 360f
             ms.pushPose()
 
             ms.translate(0.0, -0.1, 0.0)
@@ -176,7 +176,7 @@ open class GravitronItemRenderer : CustomRenderedItemModelRenderer() {
         val y = -7.3/16
         val z = -22.0/16
 
-        matrices.translate(x,y,y)
+        matrices.translate(x,y,z)
         matrices.mulPose(Quaternionf(AxisAngle4f(AngleHelper.rad(angle - 180.0 + 10.0), 0f, 0f, -1f)))
         matrices.translate(-x,-y,-z)
 
