@@ -3,6 +3,7 @@ package org.valkyrienskies.clockwork.content.kinetics.universal_shaft
 import com.simibubi.create.content.kinetics.base.DirectionalKineticBlock
 import com.simibubi.create.content.kinetics.base.IRotate
 import com.simibubi.create.foundation.block.IBE
+import com.simibubi.create.foundation.block.ProperWaterloggedBlock
 import net.createmod.catnip.data.Iterate
 import net.minecraft.core.BlockPos
 import net.minecraft.core.Direction
@@ -17,11 +18,15 @@ import net.minecraft.world.item.context.BlockPlaceContext
 import net.minecraft.world.level.BlockGetter
 import net.minecraft.world.level.Level
 import net.minecraft.world.level.LevelReader
+import net.minecraft.world.level.LevelAccessor
+import net.minecraft.world.level.block.Block
 import net.minecraft.world.level.block.RenderShape
 import net.minecraft.world.level.block.entity.BlockEntity
 import net.minecraft.world.level.block.entity.BlockEntityType
 import net.minecraft.world.level.block.state.BlockState
+import net.minecraft.world.level.block.state.StateDefinition
 import net.minecraft.world.level.block.state.properties.BlockStateProperties
+import net.minecraft.world.level.material.FluidState
 import net.minecraft.world.level.storage.loot.LootParams
 import net.minecraft.world.level.storage.loot.parameters.LootContextParams
 import net.minecraft.world.phys.BlockHitResult
@@ -38,7 +43,36 @@ import org.valkyrienskies.mod.api.toJOML
 import org.valkyrienskies.mod.api.toMinecraft
 import org.valkyrienskies.mod.common.assembly.ICopyableBlock
 
-class UniversalShaftBlock(properties: Properties?) : DirectionalKineticBlock(properties), IBE<UniversalShaftBlockEntity>, ICopyableBlock {
+class UniversalShaftBlock(properties: Properties?) : DirectionalKineticBlock(properties), IBE<UniversalShaftBlockEntity>, ICopyableBlock, ProperWaterloggedBlock {
+
+    init {
+        registerDefaultState(defaultBlockState().setValue(BlockStateProperties.WATERLOGGED, false))
+    }
+
+    override fun createBlockStateDefinition(builder: StateDefinition.Builder<Block, BlockState>) {
+        super.createBlockStateDefinition(builder.add(BlockStateProperties.WATERLOGGED))
+    }
+
+    override fun getFluidState(state: BlockState): FluidState {
+        return fluidState(state)
+    }
+
+    override fun getStateForPlacement(context: BlockPlaceContext): BlockState {
+        return withWater(super.getStateForPlacement(context), context)
+    }
+
+    override fun updateShape(
+        state: BlockState,
+        direction: Direction,
+        neighbourState: BlockState,
+        level: LevelAccessor,
+        pos: BlockPos,
+        neighbourPos: BlockPos
+    ): BlockState {
+        updateWater(level, state, pos)
+        return state
+    }
+
     override fun onCopy(
         level: ServerLevel,
         pos: BlockPos,
