@@ -145,14 +145,14 @@ object ClockworkConfig {
         @ConfigEntry()
         var allowWrenchingActivatedPhysBearing = false
 
-        @ConfigEntry(min = 0.0)
-        var forceMulPerSailInPropeller = 12.0
+        @ConfigEntry(min = 0.0, description = "Gameplay strength of sail and item-blade propellers. Scales aerodynamic force and torque together without changing the RPM, pitch, stall or altitude curves.")
+        var forceMulPerSailInPropeller = 240.0
 
-        @ConfigEntry(min = 0.0, description = "Maximum net force magnitude applied by each propeller controller update. Set 0 to disable clamping.")
-        var propellerMaxForce = 200000.0
+        @ConfigEntry(min = 0.0, description = "Optional per-rotor force limit in N. 0 disables this limit (default); a fixed cap makes larger or faster rotors stop gaining thrust. Force and torque are reduced together when either limit is reached.")
+        var propellerMaxForce = 0.0
 
-        @ConfigEntry(min = 0.0, description = "Maximum net torque magnitude applied by each propeller controller update. Set 0 to disable clamping.")
-        var propellerMaxTorque = 200000.0
+        @ConfigEntry(min = 0.0, description = "Optional per-rotor torque limit about the ship COM in N*m, including off-center thrust. 0 disables this limit (default). Force and torque are reduced together when either limit is reached.")
+        var propellerMaxTorque = 0.0
 
         @ConfigEntry(min = 0.0, description = "Damping used by extendon distance joints. Default matches legacy extendon behavior.")
         var extendonDistanceJointDamping = 1000.0

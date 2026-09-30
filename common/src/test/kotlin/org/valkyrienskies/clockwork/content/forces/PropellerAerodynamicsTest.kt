@@ -13,6 +13,7 @@ import org.valkyrienskies.clockwork.content.contraptions.propeller.data.PropData
 import kotlin.math.PI
 import kotlin.math.abs
 import kotlin.math.pow
+import kotlin.math.tan
 
 class PropellerAerodynamicsTest {
     private val density = 1.225
@@ -247,6 +248,64 @@ class PropellerAerodynamicsTest {
     }
 
     @Test
+    fun `sails keep useful thrust beyond the former collective limits`() {
+        val staticThrust = solve(rotor(sails = true, rpm = 64.0)).first.z()
+        for (speed in listOf(-12.0, -6.0, 6.0, 12.0)) {
+            val prop = rotor(sails = true, rpm = 64.0)
+            val result = settled(prop, flow(velocity = Vector3d(0.0, 0.0, speed)))
+            assertTrue(result.first.z() > staticThrust,
+                "Collective should follow inflow and preserve useful thrust at $speed m/s")
+            if (speed > 0.0) assertTrue(prop.currentBladePitch > Math.toRadians(30.0))
+            else assertTrue(prop.currentBladePitch < Math.toRadians(-5.0))
+        }
+    }
+
+    @Test
+    fun `settled sail force has no corner at the former pitch limits`() {
+        val omega = 64.0 * 2.0 * PI / 60.0
+        for (oldLimit in listOf(-5.0, 30.0)) {
+            // All four sails are at radius one, so their former boundary speed is analytic.
+            val boundarySpeed = omega * tan(Math.toRadians(oldLimit - 4.0))
+            fun thrust(speed: Double) = settled(rotor(sails = true, rpm = 64.0),
+                flow(velocity = Vector3d(0.0, 0.0, speed))).first.z()
+            val left = thrust(boundarySpeed - 0.01)
+            val center = thrust(boundarySpeed)
+            val right = thrust(boundarySpeed + 0.01)
+            assertTrue(abs(right - 2.0 * center + left) < abs(center) * 1e-4,
+                "Thrust slope should remain smooth across the former $oldLimit degree limit")
+        }
+    }
+
+    @Test
+    fun `reversing RPM and axial flow mirrors sails beyond the old pitch range`() {
+        for (speed in listOf(-12.0, -6.0, 6.0, 12.0)) {
+            val positive = rotor(sails = true, rpm = 64.0)
+            val negative = rotor(sails = true, rpm = -64.0)
+            val a = settled(positive, flow(velocity = Vector3d(0.0, 0.0, speed)))
+            val b = settled(negative, flow(velocity = Vector3d(0.0, 0.0, -speed)))
+            assertVector(Vector3d(a.first).negate(), b.first)
+            assertVector(Vector3d(a.second).negate(), b.second)
+            assertEquals(positive.currentBladePitch, negative.currentBladePitch, 1e-10)
+        }
+    }
+
+    @Test
+    fun `fully adjusted sails stay passive when stopped and at extreme advance ratios`() {
+        for (rpm in listOf(-64.0, -0.001, 0.0, 0.001, 64.0)) {
+            for (speed in listOf(-1000.0, -12.0, 12.0, 1000.0)) {
+                val velocity = Vector3d(0.0, 0.0, speed)
+                val result = settled(rotor(sails = true, rpm = rpm), flow(velocity = velocity))
+                assertTrue(result.first.isFinite && result.second.isFinite)
+                val translationPower = result.first.dot(velocity)
+                val shaftPower = result.second.z() * rpm * 2.0 * PI / 60.0
+                assertTrue(translationPower + shaftPower <= 1e-8 * maxOf(1.0, abs(translationPower), abs(shaftPower)),
+                    "The aerodynamic forces must dissipate total relative motion, including rotor spin")
+                if (rpm == 0.0) assertTrue(translationPower < 0.0, "Stopped sails must resist translation")
+            }
+        }
+    }
+
+    @Test
     fun `limiting includes the full moment and preserves its relation to force`() {
         val prop = rotor(length = 3.0)
         val base = solve(prop)
@@ -284,6 +343,11 @@ class PropellerAerodynamicsTest {
     private fun solve(
         prop: PropData, flow: PropellerAerodynamics.Flow = flow(), angle: Double = 0.0, segments: Int = 8
     ) = PropellerAerodynamics.compute(prop, flow, angle, 1.0, 1e12, 1e12, segments)
+
+    private fun settled(prop: PropData, flow: PropellerAerodynamics.Flow): Pair<Vector3dc, Vector3dc> {
+        repeat(500) { solve(prop, flow) }
+        return solve(prop, flow)
+    }
 
     private fun assertVector(expected: Vector3dc, actual: Vector3dc, relativeTolerance: Double = 1e-8) {
         assertTrue(expected.distance(actual) <= relativeTolerance * maxOf(1.0, expected.length()), "Expected $expected, got $actual")

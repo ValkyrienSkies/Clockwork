@@ -60,6 +60,29 @@ class PropellerForceRegressionTest {
     }
 
     @Test
+    fun `default tuning rewards higher RPM beyond the old force ceiling`() {
+        val defaults = ClockworkConfig.Server()
+        ClockworkConfig.SERVER.forceMulPerSailInPropeller = defaults.forceMulPerSailInPropeller
+        ClockworkConfig.SERVER.propellerMaxForce = defaults.propellerMaxForce
+        ClockworkConfig.SERVER.propellerMaxTorque = defaults.propellerMaxTorque
+        for (sails in listOf(false, true)) {
+            fun at(rpm: Double) = forces(PropData(
+                Vector3i(), Vector3d(0.0, 0.0, 1.0), 0.0, rpm * 0.3,
+                (1..2).flatMap { r -> listOf(Vector3i(r, 0, 0), Vector3i(-r, 0, 0), Vector3i(0, r, 0), Vector3i(0, -r, 0)) },
+                false, true, sails, List(4) { BladeData(false, -12.0, 4.0) }
+            ).apply { currentBladePitch = Math.toRadians(4.0) }, ship())
+            val low = at(64.0)
+            val medium = at(128.0)
+            val high = at(256.0)
+            assertTrue(low.first.z() > 20000.0, "A modest rotor should produce useful low-RPM thrust")
+            assertTrue(high.first.z() > 200000.0, "High RPM must not flatten at the old global cap")
+            assertVectorEquals(Vector3d(low.first).mul(4.0), medium.first)
+            assertVectorEquals(Vector3d(medium.first).mul(4.0), high.first)
+            assertVectorEquals(Vector3d(low.second).mul(16.0), high.second)
+        }
+    }
+
+    @Test
     fun `sail static thrust uses one revolution per second at sixty RPM`() {
         val prop = propeller(sails = true, rpm = 60.0)
         val speedBefore = prop.bearingSpeed

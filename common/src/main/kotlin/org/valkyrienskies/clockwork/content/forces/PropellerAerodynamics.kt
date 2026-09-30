@@ -163,8 +163,11 @@ internal object PropellerAerodynamics {
                 val normalWorld = spanWorld.cross(tangentWorld, Vector3d())
                 inflow += atan2(velocity.dot(normalWorld) * rotationSign, max(abs(velocity.dot(tangentWorld)), 1e-6))
             }
-            val targetPitch = (inflow / elements.size + Math.toRadians(4.0))
-                .coerceIn(Math.toRadians(-5.0), Math.toRadians(30.0))
+            // Follow the airflow with a 4-degree mean angle of attack. Clamping absolute
+            // pitch creates an artificial thrust cliff as inflow crosses that limit;
+            // stall and drag depend on each section's angle to the air, not the rotor plane.
+            // atan2 above already bounds the target to -86..94 degrees for finite flow.
+            val targetPitch = inflow / elements.size + Math.toRadians(4.0)
             // One collective update per rotor, independent of sail count and iteration order.
             if (!prop.currentBladePitch.isFinite()) prop.currentBladePitch = Math.toRadians(4.0)
             prop.currentBladePitch += 0.05 * (targetPitch - prop.currentBladePitch)
