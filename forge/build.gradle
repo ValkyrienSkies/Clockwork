@@ -157,6 +157,17 @@ processResources {
 
 loom {
     accessWidenerPath = project(":common").loom.accessWidenerPath
+    runs {
+        gameTestServer {
+            environment "gameTestServer"
+            forgeTemplate("gameTestServer")
+            // Loom 1.3 lowercases this value, but Forge's launch.cfg section is case-sensitive.
+            property "fabric.dli.env", "gameTestServer"
+            property "forge.enabledGameTestNamespaces", "vs_clockwork"
+            runDir "build/gametest"
+            vmArg "-Xmx4G"
+        }
+    }
     forge {
         mixinConfig(
                 "vs_clockwork-common.mixins.json",

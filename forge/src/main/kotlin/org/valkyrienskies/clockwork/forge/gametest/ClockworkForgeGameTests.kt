@@ -9,11 +9,16 @@ import net.minecraft.server.level.ServerLevel
 import net.minecraft.world.InteractionHand
 import net.minecraft.world.item.context.UseOnContext
 import net.minecraft.world.level.block.state.BlockState
+import net.minecraft.world.level.block.state.properties.BlockStateProperties
 import net.minecraft.world.phys.BlockHitResult
 import net.minecraft.world.phys.Vec3
 import net.minecraftforge.gametest.GameTestHolder
 import org.joml.Vector3dc
+import org.joml.Vector3d
+import org.valkyrienskies.clockwork.ClockworkBlocks
 import org.valkyrienskies.clockwork.ClockworkMod
+import org.valkyrienskies.clockwork.content.contraptions.propeller.PropellerBearingBlockEntity.RotationDirection
+import org.valkyrienskies.clockwork.content.contraptions.propeller.copter.CopterBearingBlockEntity
 import org.valkyrienskies.core.api.ships.ServerShip
 import org.valkyrienskies.mod.common.allShips
 import org.valkyrienskies.mod.common.assembly.ShipAssembler
@@ -23,6 +28,36 @@ import org.valkyrienskies.mod.common.assembly.ShipAssembler
 @GameTestHolder(ClockworkMod.MOD_ID)
 class ClockworkForgeGameTests {
     companion object {
+        @JvmStatic
+        @GameTest(timeoutTicks = 40, batch = "copter_controls", template = "bladetestpositive")
+        fun copterRotationSettingKeepsTiltControls(helper: GameTestHelper) {
+            val pos = BlockPos(1, 1, 1)
+            for (facing in Direction.values()) {
+                helper.setBlock(pos, ClockworkBlocks.COPTER_BEARING.get().defaultBlockState()
+                    .setValue(BlockStateProperties.FACING, facing))
+                val bearing = helper.getBlockEntity(pos) as CopterBearingBlockEntity
+                bearing.powerOne = 8
+                bearing.powerTwo = -3
+                for (rpm in listOf(64f, -64f, 0f)) {
+                    bearing.speed = rpm
+                    bearing.rotationDirection.setValue(RotationDirection.NORMAL.ordinal)
+                    val expectedScale = if (rpm == 0f || rpm * facing.axisDirection.step > 0f) 1f else -1f
+                    helper.assertTrue(bearing.getDirectionScale() == expectedScale, "Wrong input-RPM sign for $facing at $rpm RPM")
+                    bearing.applyPowerEffect()
+                    val normalOffset = Vector3d(bearing.desiredLocalOffset)
+
+                    bearing.rotationDirection.setValue(RotationDirection.INVERTED.ordinal)
+                    helper.assertTrue(bearing.isInverted(), "Reversed setting was not applied")
+                    helper.assertTrue(bearing.getDirectionScale() == expectedScale,
+                        "Reversed rotor setting changed the copter tilt target for $facing at $rpm RPM")
+                    bearing.applyPowerEffect()
+                    helper.assertTrue(normalOffset.distance(bearing.desiredLocalOffset) < 1e-12,
+                        "Reversed rotor setting changed redstone tilt for $facing at $rpm RPM")
+                }
+            }
+            helper.succeed()
+        }
+
         @JvmStatic
         @GameTest(timeoutTicks = 200, setupTicks = 12, batch = "props", template = "")
         // Template Location at 'data/vs_clockwork/structures/clockworkforgegametests.proptestpositive'

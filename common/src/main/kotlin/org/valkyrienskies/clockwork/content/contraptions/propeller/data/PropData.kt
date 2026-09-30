@@ -14,6 +14,7 @@ class PropData: ForceApplierData<PropUpdateData> {
     val bearingAxis: Vector3dc?
     val sailPositions: List<Vector3ic>?
     var bearingAngle = 0.0
+    /** Signed degrees per game tick, shared with animation. Convert to rad/s for force calculations. */
     var bearingSpeed = 0.0
     var inverted = false
     var prevAngularMomentum: Vector3dc? = null

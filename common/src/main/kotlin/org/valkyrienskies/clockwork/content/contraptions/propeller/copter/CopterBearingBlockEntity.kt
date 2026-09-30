@@ -281,7 +281,7 @@ class CopterBearingBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: B
 
         if (propellerContraption is CopterContraptionEntity) {
             val copterContraption = propellerContraption as CopterContraptionEntity
-            copterContraption.tiltQuaternion = clientTiltQuat
+            copterContraption.tiltQuaternion = Quaternionf(if (level!!.isClientSide) clientTiltQuat else tiltQuaternion)
             copterContraption.superDirection = blockState.getValue(BlockStateProperties.FACING)
         }
 
@@ -360,16 +360,12 @@ class CopterBearingBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: B
     }
 
     fun getDirectionScale(): Float {
-        var speed = getSpeed()
-        if (speed == 0f) {
+        // Steering follows the input shaft. The rotation setting only changes rotor spin.
+        val inputSpeed = getSpeed()
+        if (inputSpeed == 0f) {
             return 1f
         }
-        val facing = blockState.getValue(BlockStateProperties.FACING)
-        speed = convertToDirection(speed, facing)
-        if (rotationDirection.value == 1) {
-            speed *= -1f
-        }
-        return if (speed > 0) 1f else -1f
+        return if (convertToDirection(inputSpeed, facing) > 0f) 1f else -1f
     }
 
 
