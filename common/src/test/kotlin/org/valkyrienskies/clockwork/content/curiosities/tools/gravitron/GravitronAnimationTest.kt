@@ -55,6 +55,10 @@ class GravitronAnimationTest {
         assertFalse(animation.holding)
         assertEquals(held.opening, animation.sample(30, 0f).opening)
         assertEquals(held.dial, animation.sample(30, 0f).dial)
+        val release = animation.sample(33, 0f)
+        assertTrue(release.opening > held.opening)
+        assertTrue(release.recoil < 0f)
+        assertTrue(release.energy < held.energy)
         assertEquals(0f, animation.sample(50, 0f).opening)
         assertEquals(10f, animation.sample(50, 0f).dial)
     }

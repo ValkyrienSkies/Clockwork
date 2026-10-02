@@ -7,6 +7,7 @@ import net.minecraft.client.renderer.GameRenderer
 import net.minecraft.client.renderer.RenderStateShard
 import net.minecraft.client.renderer.RenderType
 import net.minecraft.resources.ResourceLocation
+import net.minecraft.client.renderer.texture.TextureAtlas
 import org.valkyrienskies.clockwork.ClockworkShaders.crystal
 import org.valkyrienskies.clockwork.ClockworkShaders.haze
 import org.valkyrienskies.clockwork.ClockworkShaders.heat
@@ -119,6 +120,22 @@ class ClockworkRenderTypes(
                 .setTextureState(TextureStateShard(TEX, false, false))
                 .setTransparencyState(ADDITIVE_TRANSPARENCY)
                 .setCullState(NO_CULL)
+                .setWriteMaskState(COLOR_WRITE)
+                .setDepthTestState(LEQUAL_DEPTH_TEST)
+                .createCompositeState(false)
+        )
+
+        val GRAVITRON_SURFACE: RenderType = create(
+            "gravitron_surface", DefaultVertexFormat.NEW_ENTITY, VertexFormat.Mode.QUADS,
+            262144, false, true,
+            CompositeState.builder()
+                .setShaderState(ShaderStateShard(ClockworkShaders::gravitronSurface))
+                .setTextureState(TextureStateShard(TextureAtlas.LOCATION_BLOCKS, false, false))
+                .setTransparencyState(TRANSLUCENT_TRANSPARENCY)
+                .setLightmapState(LIGHTMAP)
+                .setOverlayState(NO_OVERLAY)
+                .setCullState(NO_CULL)
+                .setLayeringState(VIEW_OFFSET_Z_LAYERING)
                 .setWriteMaskState(COLOR_WRITE)
                 .setDepthTestState(LEQUAL_DEPTH_TEST)
                 .createCompositeState(false)

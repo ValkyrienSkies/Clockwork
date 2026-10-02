@@ -13,6 +13,7 @@ import net.minecraft.world.phys.Vec3
 import org.joml.Matrix4f
 import org.joml.Vector3d
 import org.joml.Vector3f
+import org.valkyrienskies.clockwork.ClockworkConfig
 import org.valkyrienskies.clockwork.ClockworkRenderTypes
 import org.valkyrienskies.clockwork.mixin.content.gravitron.GameRendererAccessor
 import org.valkyrienskies.clockwork.util.render.RenderUtil.addRibbonSegment
@@ -35,13 +36,15 @@ object GravitronEffects {
         var lastSync = 0L
         var slot = -1
         var item: net.minecraft.world.item.Item? = null
-        val worldTips = arrayOfNulls<Vec3>(3)
-        val viewTips = arrayOfNulls<Vec3>(3)
+        // Three articulated prongs and the central body emitter.
+        val worldTips = arrayOfNulls<Vec3>(4)
+        val viewTips = arrayOfNulls<Vec3>(4)
         var worldTipsTime = -1L
         var viewTipsTime = -1L
     }
 
-    private data class ShipPulse(val shipId: Long, val action: GravitronAction, val birth: Long, val color: Int)
+    private data class ShipPulse(val shipId: Long, val anchor: Vec3, val action: GravitronAction, val birth: Long)
+    private data class SurfacePass(val ship: ClientShip, val anchor: Vec3, val action: GravitronAction, val age: Float)
     private data class RenderOwner(val player: Player?)
     private val owners = ArrayDeque<RenderOwner>()
     private val states = mutableMapOf<UUID, State>()
@@ -57,6 +60,7 @@ object GravitronEffects {
             states.clear()
             pulses.clear()
             owners.clear()
+            GravitronSurfaceEffects.clear()
             world = level
         }
         return level
@@ -90,6 +94,7 @@ object GravitronEffects {
             }
         }
         pulses.removeAll { now - it.birth > pulseLife(it.action) }
+        GravitronSurfaceEffects.tick(level)
     }
 
     fun accept(packet: GravitronAnimationPacket) {
@@ -106,10 +111,15 @@ object GravitronEffects {
             state.shipId = packet.shipId
             state.anchor = packet.anchor
         }
-        if (packet.action in listOf(GravitronAction.LAUNCH, GravitronAction.FREEZE, GravitronAction.UNFREEZE)) {
+        if (packet.action == GravitronAction.GRAB || packet.action == GravitronAction.HOLD) {
+            // Grabbing also unfreezes the ship on the server.
+            pulses.removeAll { it.shipId == packet.shipId }
+        }
+        if (packet.shipId >= 0 && packet.action in listOf(GravitronAction.LAUNCH, GravitronAction.FREEZE,
+                GravitronAction.UNFREEZE, GravitronAction.RELEASE)) {
             pulses.removeAll { it.shipId == packet.shipId }
             if (pulses.size >= 64) pulses.removeAt(0)
-            pulses.add(ShipPulse(packet.shipId, packet.action, now, color(state)))
+            pulses.add(ShipPulse(packet.shipId, packet.anchor, packet.action, now))
         }
     }
 
@@ -174,7 +184,7 @@ object GravitronEffects {
             .add(right.scale(sign * 0.32)).add(0.0, -0.28 - pose.lowering * 0.25, 0.0)
         val (u, v) = basis(direction)
         return (0..2).map { center.add(u.scale(cos(it * PI * 2 / 3) * 0.12))
-            .add(v.scale(sin(it * PI * 2 / 3) * 0.12)) }
+            .add(v.scale(sin(it * PI * 2 / 3) * 0.12)) } + center.subtract(direction.scale(0.3))
     }
 
     @JvmStatic
@@ -185,6 +195,9 @@ object GravitronEffects {
         val now = level.gameTime
         val time = (now % 24000).toFloat() + partialTick
         val buffers = mc.renderBuffers().bufferSource()
+        val surfaces = mutableListOf<SurfacePass>()
+        val legacy = ClockworkConfig.CLIENT.gravitronLegacyShipContours
+        GravitronSurfaceEffects.beginFrame()
         val type = ClockworkRenderTypes.GRAVITRON_ENERGY
         val vc = buffers.getBuffer(type)
         val pose = ms.last().pose()
@@ -204,27 +217,69 @@ object GravitronEffects {
             val ship = level.shipObjectWorld.loadedShips.getById(state.shipId) ?: continue
             val end = shipPoint(ship, state.anchor).subtract(camera)
             val starts = tips(player, state, partialTick, inverseView).map { it.subtract(camera) }
-            val start = starts.reduce(Vec3::add).scale(1.0 / 3)
+            val start = starts[3]
             val fade = if (holding) GravitronAnimation.smooth(age / 3f) else 1f - age / action.duration
-            val rgb = if (action == GravitronAction.OVERLOAD) 0xFF4930 else color(state)
-            tether(vc, pose, starts, end, time, player.id, rgb, fade, action, age)
+            val rgb = GravitronVisuals.WANDERLITE
+            if (action == GravitronAction.LAUNCH) {
+                launchBurst(vc, pose, start, end, age)
+            } else {
+                tether(vc, pose, starts.take(3), end, time, player.id, rgb, fade, action, age)
+            }
             if (holding) {
-                shipField(vc, pose, ship, camera, time, rgb, 0.16f + animation.load.coerceAtMost(1f) * 0.08f, 1f)
+                if (legacy) {
+                    shipField(vc, pose, ship, camera, time, rgb, 0.16f + animation.load.coerceAtMost(1f) * 0.08f, 1f)
+                } else {
+                    surfaces.add(SurfacePass(ship, state.anchor, GravitronAction.HOLD, age))
+                }
                 ring(vc, pose, end, end.subtract(start).normalize(), 0.2 + 0.04 * sin(time * 0.2), rgb, fade * 0.65f, time)
             }
         }
         for (pulse in pulses) {
             val ship = level.shipObjectWorld.loadedShips.getById(pulse.shipId) ?: continue
             if (ship.renderTransform.positionInWorld.distanceSquared(Vector3d(camera.x, camera.y, camera.z)) > 192.0 * 192.0) continue
-            val progress = ((now - pulse.birth + partialTick) / pulseLife(pulse.action)).coerceIn(0f, 1f)
+            val age = now - pulse.birth + partialTick
+            if (!legacy) {
+                // The launch packet reaches the surface after the short central burst travels out.
+                surfaces.add(SurfacePass(ship, pulse.anchor, pulse.action,
+                    if (pulse.action == GravitronAction.LAUNCH) (age - 3f).coerceAtLeast(0f) else age))
+                continue
+            }
+            // Preserve the original contour timing as well as its geometry for comparison.
+            if (pulse.action == GravitronAction.RELEASE) continue
+            val legacyLife = if (pulse.action == GravitronAction.FREEZE) 80f else 28f
+            val progress = (age / legacyLife).coerceIn(0f, 1f)
             val scale = when (pulse.action) {
                 GravitronAction.UNFREEZE -> 1f - progress * 0.7f
                 GravitronAction.LAUNCH -> 1f + progress * 0.7f
                 else -> 1.15f - GravitronAnimation.smooth(progress * 3f) * 0.15f
             }
-            shipField(vc, pose, ship, camera, time, pulse.color, (1f - progress) * 0.7f, scale)
+            shipField(vc, pose, ship, camera, time, GravitronVisuals.WANDERLITE, (1f - progress) * 0.7f, scale)
         }
         buffers.endBatch(type)
+        // These share BufferSource's fallback builder: finish all ribbons before changing formats.
+        for (surface in surfaces) {
+            GravitronSurfaceEffects.render(level, surface.ship, surface.anchor, surface.action,
+                surface.age, ms, buffers, camera)
+        }
+        buffers.endBatch(ClockworkRenderTypes.GRAVITRON_SURFACE)
+    }
+
+    /** A single impulse from the body, including when no grab preceded the launch. */
+    private fun launchBurst(vc: VertexConsumer, pose: Matrix4f, start: Vec3, end: Vec3, age: Float) {
+        if (age >= 8f) return
+        val direction = end.subtract(start).normalize()
+        val head = (age / 3f).coerceIn(0f, 1f)
+        val tail = ((age - 2f) / 3f).coerceIn(0f, 1f)
+        val fade = 1f - GravitronAnimation.smooth(age / 8f)
+        if (head > tail) {
+            val a = start.lerp(end, tail.toDouble())
+            val b = start.lerp(end, head.toDouble())
+            ribbon(vc, pose, a, b, 0.13f, GravitronVisuals.WANDERLITE, fade * 0.22f)
+            ribbon(vc, pose, a, b, 0.047f, GravitronVisuals.WANDERLITE, fade * 0.85f)
+            ribbon(vc, pose, a, b, 0.016f, GravitronVisuals.WANDERLITE_LIGHT, fade)
+        }
+        ring(vc, pose, start.add(direction.scale(age * 0.035)), direction,
+            0.07 + age * 0.025, GravitronVisuals.WANDERLITE, fade * 0.7f, 0f)
     }
 
     /** Three thin, bowed force strands; no solid core or death-ray beam geometry. */
@@ -247,8 +302,10 @@ object GravitronEffects {
                 val angle = phase + t * 5.5 - time * 0.12
                 val radius = spread * envelope
                 val flutter = sin(t * 23 + time * 0.45 + phase) * 0.025 * envelope
-                return starts[strand].lerp(end, t).add(u.scale(cos(angle) * radius + flutter))
-                    .add(v.scale(sin(angle) * radius))
+                val reach = if (action == GravitronAction.RELEASE)
+                    1f - GravitronAnimation.smooth((age - 2f) / 10f) else 1f
+                return starts[strand].lerp(end, t * reach).add(u.scale((cos(angle) * radius + flutter) * reach))
+                    .add(v.scale(sin(angle) * radius * reach))
             }
             var previous = point(0.0)
             for (i in 1..segments) {
@@ -322,6 +379,10 @@ object GravitronEffects {
         addRibbonSegment(vc, pose, a, b, width, (rgb shr 16 and 255) / 255f,
             (rgb shr 8 and 255) / 255f, (rgb and 255) / 255f, alpha.coerceIn(0f, 1f))
 
-    private fun color(state: State): Int = if (state.supercharged) 0x91DFFF else 0xFFB34F
-    private fun pulseLife(action: GravitronAction): Float = if (action == GravitronAction.FREEZE) 80f else 28f
+    private fun pulseLife(action: GravitronAction): Float = when (action) {
+        GravitronAction.FREEZE -> 120f
+        GravitronAction.RELEASE -> 14f
+        GravitronAction.LAUNCH -> 31f
+        else -> 28f
+    }
 }

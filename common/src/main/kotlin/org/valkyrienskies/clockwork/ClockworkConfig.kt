@@ -17,6 +17,9 @@ object ClockworkConfig {
 
 
     class Client {
+        @ConfigEntry(description = "Show the original rectangular Gravitron ship contours instead of block surface effects")
+        var gravitronLegacyShipContours = false
+
         @ConfigEntry(description = "Enable debug rendering")
         var debugRender = false
 

@@ -61,6 +61,11 @@ class GravitronItemRenderer : CustomRenderedItemModelRenderer() {
         }
         renderer.renderSolid(model.originalModel, light)
         renderDial(pose.dial, ms, renderer, light)
+        if (player != null) {
+            GravitronEffects.captureTip(player, transformType, ms, 3,
+                Vector3f(GravitronVisuals.EMITTER_X / 16f - 0.5f,
+                    GravitronVisuals.EMITTER_Y / 16f - 0.5f, GravitronVisuals.EMITTER_Z / 16f - 0.5f))
+        }
         arms.forEachIndexed { index, arm ->
             ms.pushPose()
             val holding = state?.animation?.holding == true
@@ -89,19 +94,22 @@ class GravitronItemRenderer : CustomRenderedItemModelRenderer() {
         }
         if (creative) {
             ms.pushPose()
-            ms.translate(0.0, -0.1, 0.0)
-            ms.mulPose(Axis.ZP.rotationDegrees(time * (5f + pose.energy * 7f)))
-            ms.translate(0.5, 0.5, 0.0)
+            ms.translate(GravitronVisuals.EMITTER_X / 16.0 - 0.5,
+                GravitronVisuals.EMITTER_Y / 16.0 - 0.5, GravitronVisuals.EMITTER_Z / 16.0 - 0.5)
+            ms.mulPose(Axis.ZP.rotationDegrees(GravitronVisuals.coreAngle(time)))
+            ms.scale(GravitronVisuals.CORE_SCALE, GravitronVisuals.CORE_SCALE, GravitronVisuals.CORE_SCALE)
+            // PartialItemModelRenderer subtracts half a block; the FX model is centered at (0, 0, 7.75).
+            ms.translate(0.5, 0.5, 0.5 - 7.75 / 16.0)
             renderer.renderGlowing(ClockworkPartials.OVERLOAD_FX.get(), 0xF000F0)
             ms.popPose()
         }
-        if (state != null) renderCore(ms, buffer, pose, time, creative)
+        if (state != null) renderCore(ms, buffer, pose, time)
         ms.popPose()
     }
 
-    private fun renderCore(ms: PoseStack, buffer: MultiBufferSource, pose: GravitronAnimation.Pose, time: Float, creative: Boolean) {
+    private fun renderCore(ms: PoseStack, buffer: MultiBufferSource, pose: GravitronAnimation.Pose, time: Float) {
         val energy = 0.12f + pose.energy * 0.65f
-        val rgb = if (pose.strain > 0.9f) 0xFF4930 else if (creative) 0x91DFFF else 0xFFB34F
+        val rgb = GravitronVisuals.WANDERLITE
         val vc = buffer.getBuffer(ClockworkRenderTypes.GRAVITRON_ENERGY)
         val matrix = ms.last().pose()
         val radius = 0.045f + pose.energy * 0.025f
@@ -112,7 +120,9 @@ class GravitronItemRenderer : CustomRenderedItemModelRenderer() {
                 i * PI / 16 to radius, (i + 1) * PI / 16 to radius,
                 (i + 1) * PI / 16 to radius + 0.015f, i * PI / 16 to radius + 0.015f)) {
                 val a = angle + time * 0.12
-                vc.vertex(matrix, -0.016f + cos(a).toFloat() * r, -0.125f + sin(a).toFloat() * r, -0.41f)
+                vc.vertex(matrix, GravitronVisuals.EMITTER_X / 16f - 0.5f + cos(a).toFloat() * r,
+                    GravitronVisuals.EMITTER_Y / 16f - 0.5f + sin(a).toFloat() * r,
+                    GravitronVisuals.EMITTER_Z / 16f - 0.5f - 0.015f)
                     .color((rgb shr 16 and 255) / 255f, (rgb shr 8 and 255) / 255f, (rgb and 255) / 255f, energy)
                     .uv(0.5f, 0.5f).endVertex()
             }
@@ -130,11 +140,12 @@ class GravitronItemRenderer : CustomRenderedItemModelRenderer() {
 
     private fun renderDial(angle: Float, ms: PoseStack, renderer: PartialItemModelRenderer, light: Int) {
         ms.pushPose()
+        // Anchor the local needle at the dial hub in gravitronbase.json, then rotate in its tilted plane.
+        ms.translate(GravitronVisuals.DIAL_X / 16.0 - 0.5, GravitronVisuals.DIAL_Y / 16.0 - 0.5,
+            GravitronVisuals.DIAL_Z / 16.0 - 0.5)
         ms.mulPose(Axis.XN.rotationDegrees(22.5f))
-        ms.translate(0.275, 0.2275, -0.115)
-        ms.translate(-7.9 / 16, -7.3 / 16, -22.0 / 16)
         ms.mulPose(Axis.ZN.rotationDegrees(angle - 170f))
-        ms.translate(7.9 / 16, 7.3 / 16, 22.0 / 16)
+        ms.translate(0.5, 0.5, 0.5)
         renderer.render(ClockworkPartials.GRAV_DIAL_HAND.get(), light)
         ms.popPose()
     }

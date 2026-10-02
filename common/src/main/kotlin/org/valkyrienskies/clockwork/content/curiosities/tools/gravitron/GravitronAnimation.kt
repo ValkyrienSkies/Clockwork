@@ -64,6 +64,14 @@ class GravitronAnimation {
                 recoil = 0.26f * pulse(age, 4f, 12f)
                 energy += 0.35f * impulse
             }
+            GravitronAction.RELEASE -> {
+                // Ease the claws apart to let go, then latch them closed as the field drains.
+                val relax = pulse(age, 3f, 14f)
+                opening = openingFrom * (1f - smooth((age - 3f) / 11f)) + 9f * relax
+                recoil = -0.1f * relax
+                lowering = 0.055f * relax
+                energy = 0.5f * (1f - smooth(age / 9f))
+            }
             GravitronAction.LAUNCH -> {
                 opening += 64f * impulse
                 recoil = impulse

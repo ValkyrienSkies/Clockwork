@@ -11,6 +11,9 @@ object ClockworkShaders {
     private var crystal: ShaderInstance? = null
     private var heat: ShaderInstance? = null
     private var haze: ShaderInstance? = null
+    private var gravitronSurface: ShaderInstance? = null
+
+    fun gravitronSurface(): ShaderInstance? = gravitronSurface
 
     fun crystal(): ShaderInstance {
         return crystal!!
@@ -27,6 +30,12 @@ object ClockworkShaders {
     fun init() {
         ClientReloadShadersEvent.EVENT.register { resourceProvider: ResourceProvider, shadersSink: ClientReloadShadersEvent.ShadersSink ->
             try {
+                shadersSink.registerShader(
+                    ShaderInstance(resourceProvider, "clockwork_gravitron_surface", DefaultVertexFormat.NEW_ENTITY)
+                ) { inst ->
+                    gravitronSurface = inst
+                    org.valkyrienskies.clockwork.content.curiosities.tools.gravitron.GravitronSurfaceEffects.clear()
+                }
                 shadersSink.registerShader(
                     ShaderInstance(
                         resourceProvider,
