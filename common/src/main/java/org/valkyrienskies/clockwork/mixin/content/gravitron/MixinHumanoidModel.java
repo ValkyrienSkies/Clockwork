@@ -14,6 +14,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.valkyrienskies.clockwork.content.curiosities.tools.gravitron.GravitronAnimation;
 import org.valkyrienskies.clockwork.content.curiosities.tools.gravitron.GravitronEffects;
 import org.valkyrienskies.clockwork.content.curiosities.tools.wanderwand.WanderwandHandEffects;
+import org.valkyrienskies.clockwork.ClockworkModClient;
 import net.minecraft.world.entity.HumanoidArm;
 
 @Mixin(HumanoidModel.class)
@@ -26,7 +27,7 @@ public class MixinHumanoidModel {
                                           float age, float yaw, float pitch, CallbackInfo ci) {
         if (!(entity instanceof Player player)) return;
         var wandState = WanderwandHandEffects.INSTANCE.state(player);
-        if (wandState != null) {
+        if (wandState != null && !ClockworkModClient.getWANDERWAND_EFFECT_RENDERER().isSwinging(player)) {
             var wandPose = wandState.getAnimation().sample(player.level().getGameTime(), Minecraft.getInstance().getFrameTime());
             ModelPart arm = player.getMainArm() == HumanoidArm.RIGHT ? rightArm : leftArm;
             arm.xRot -= 0.35f - wandPose.getLower() * 0.4f + wandPose.getTilt() * 0.012f;

@@ -43,12 +43,13 @@ class WanderwandItemRenderer : CustomRenderedItemModelRenderer() {
 
         // All crystal layers rotate around their exported center (8, 12.5, 8), never the item origin.
         val centerY = 4.5f / 16f
-        val bob = sin(time * 0.08f) * 0.012f + pose.charge * 0.025f
+        val bob = WandCrystalMotion.lift(now, pt) + pose.charge * 0.04f
         ms.pushPose()
         ms.translate(0.0, (centerY + bob).toDouble(), 0.0)
         if (player != null) WanderwandHandEffects.capture(player, transformType, ms, Vector3f())
-        ms.mulPose(Axis.YP.rotationDegrees(time * 1.4f))
-        ms.mulPose(Axis.XP.rotationDegrees(sin(time * 0.045f) * 9f))
+        ms.mulPose(Axis.XP.rotationDegrees(WandCrystalMotion.angle(now, pt, 0)))
+        ms.mulPose(Axis.YP.rotationDegrees(WandCrystalMotion.angle(now, pt, 1)))
+        ms.mulPose(Axis.ZP.rotationDegrees(WandCrystalMotion.angle(now, pt, 2)))
         val size = 1f + pose.charge * 0.16f
         ms.scale(size, size, size)
         ms.translate(0.0, -centerY.toDouble(), 0.0)

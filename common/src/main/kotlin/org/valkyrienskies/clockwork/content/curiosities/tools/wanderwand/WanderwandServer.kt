@@ -83,7 +83,7 @@ object WanderwandServer {
                 }
                     .minByOrNull { min(it.a.world(level)?.distanceToSqr(eye) ?: Double.MAX_VALUE,
                         it.b.world(level)?.distanceToSqr(eye) ?: Double.MAX_VALUE) }
-                if (link != null) { data.remove(level, link); breakEffect(level, link, player.uuid) }
+                if (link != null) { data.remove(level, link); breakEffect(level, link, player.uuid); syncLinks(level) }
             }
             sync(player, state); return
         }
@@ -210,7 +210,7 @@ object WanderwandServer {
                 val anchor = rope.world(level)
                 if (anchor == null || !level.hasChunkAt(rope.pos) || level.getBlockState(rope.pos).isAir ||
                     anchor.distanceToSqr(player.position()) > 160 * 160) {
-                    effect(level, player.uuid, "break", rope); s.rope = null; s.previousAnchor = null; sync(player, s)
+                    effect(level, player.uuid, "rope_break", rope); s.rope = null; s.previousAnchor = null; sync(player, s)
                 } else {
                     val anchorVelocity = anchor.subtract(s.previousAnchor ?: anchor)
                     s.previousAnchor = anchor
@@ -218,6 +218,12 @@ object WanderwandServer {
                     // tangential motion instead of repeatedly sending the server's stale deltaMovement.
                     val movement = s.previousPlayer?.let { player.position().subtract(it) } ?: player.deltaMovement
                     s.previousPlayer = player.position()
+                    if (WandLinkPhysics.grappleOverloaded(player.position().add(0.0, 1.0, 0.0), movement,
+                            anchor, anchorVelocity, s.length)) {
+                        effect(level, player.uuid, "rope_break", rope)
+                        s.rope = null; s.previousAnchor = null; sync(player, s)
+                        continue
+                    }
                     val result = WandRopePhysics.constrain(player.position().add(0.0, 1.0, 0.0),
                         if (movement.lengthSqr() < 100) movement else player.deltaMovement, anchor, anchorVelocity, s.length)
                     if (result != null && !player.abilities.flying && !player.isPassenger) {
@@ -229,7 +235,8 @@ object WanderwandServer {
             }
             if (level.gameTime % 10L == 0L) sync(player, s)
         }
-        if (level.gameTime % 20L == 0L) { data.tick(level); syncLinks(level) }
+        val linksChanged = data.tick(level)
+        if (linksChanged || level.gameTime % 20L == 0L) syncLinks(level)
     }
 
     private fun sync(player: ServerPlayer, s: Session) {
@@ -252,7 +259,8 @@ object WanderwandServer {
         }
     }
 
-    fun breakEffect(level: ServerLevel, link: WandLinks.Link, owner: UUID = UUID(0, 0)) = effect(level, owner, "break", link.a, link.b)
+    fun breakEffect(level: ServerLevel, link: WandLinks.Link, owner: UUID = UUID(0, 0)) =
+        effect(level, owner, if (link.rope) "rope_break" else "attach_break", link.a, link.b)
     private fun effect(level: ServerLevel, owner: UUID, action: String, anchor: WandAnchor, other: WandAnchor? = null) {
         val tag = CompoundTag()
         tag.putString("kind", "event"); tag.putUUID("owner", owner); tag.putString("action", action); tag.put("anchor", anchor.save())
@@ -260,7 +268,10 @@ object WanderwandServer {
         val world = anchor.world(level) ?: return
         ClockworkPackets.sendToNear(level, BlockPos.containing(world), 192, WanderwandStatePacket(tag))
         val sound = if (action.endsWith("start")) ClockworkSounds.WAND_START else ClockworkSounds.WAND_FINISH
-        if (!action.startsWith("weld") && action != "break") sound.playOnServer(level, BlockPos.containing(world), 0.45f, if (action == "dismiss") 0.8f else 1.1f)
+        if (action.endsWith("break")) level.playSound(null, BlockPos.containing(world),
+            if (action == "rope_break") net.minecraft.sounds.SoundEvents.LEASH_KNOT_BREAK else net.minecraft.sounds.SoundEvents.AMETHYST_BLOCK_BREAK,
+            net.minecraft.sounds.SoundSource.PLAYERS, 0.85f, if (action == "rope_break") 1.4f else 0.7f)
+        else if (!action.startsWith("weld")) sound.playOnServer(level, BlockPos.containing(world), 0.45f, if (action == "dismiss") 0.8f else 1.1f)
     }
     private fun message(player: ServerPlayer, text: String) = player.displayClientMessage(Component.literal(text), true)
 }

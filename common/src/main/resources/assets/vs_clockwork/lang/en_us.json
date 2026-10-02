@@ -608,6 +608,7 @@
   "vs_clockwork.ponder.duct.text_10": "Right-Clicking a leak with a Wrench will seal it back up.",
 
   "vs_clockwork.recipe.gas_crafting": "Gas Crafting",
+  "vs_clockwork.subtitle.wand_weld": "Wanderwand welds",
 
   "death.attack.gas_burn": "%s was singed to a crisp",
   "death.attack.gas_explosion": "%s couldn't handle the pressure"

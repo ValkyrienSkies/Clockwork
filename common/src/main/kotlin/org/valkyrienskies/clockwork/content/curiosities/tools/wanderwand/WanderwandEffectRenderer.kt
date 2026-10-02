@@ -51,6 +51,13 @@ class WanderwandEffectRenderer {
         return states[Minecraft.getInstance().player?.uuid]?.rope != null
     }
     fun ropeLength(): Double? = states[Minecraft.getInstance().player?.uuid]?.takeIf { it.rope != null }?.length
+    fun isSwinging(player: net.minecraft.world.entity.player.Player): Boolean {
+        if (player.onGround() || player.abilities.flying || player.isPassenger || player.isFallFlying ||
+            player.mainHandItem.item !is WanderwandItem) return false
+        val state = states[player.uuid] ?: return false
+        val anchor = state.rope?.world(player.level(), true) ?: return false
+        return anchor.y > player.y + 0.5 && anchor.distanceTo(player.position().add(0.0, 1.0, 0.0)) >= state.length - 0.6
+    }
     fun accept(data: CompoundTag) {
         val level = checkWorld() ?: return
         when (data.getString("kind")) {
@@ -78,6 +85,7 @@ class WanderwandEffectRenderer {
                 pulses.add(pulse)
                 WanderwandHandEffects.accept(pulse.owner, pulse.action)
                 if (pulse.action.startsWith("select") || pulse.action.startsWith("deselect")) blocks.pulseOrigin = pulse.anchor.local()
+                if (pulse.action == "weld_end") blocks.weldPulse(pulse.anchor, level.gameTime)
             }
         }
     }
@@ -88,7 +96,8 @@ class WanderwandEffectRenderer {
     fun clientTick(clientLevel: ClientLevel) {
         val level = checkWorld() ?: return
         val player = Minecraft.getInstance().player ?: return
-        pulses.removeAll { level.gameTime - it.born > 32 }
+        pulses.removeAll { level.gameTime - it.born > 16 }
+        blocks.tickPulses(level)
         states.entries.removeIf { (id, s) -> level.gameTime - s.sync > 40 || level.getPlayerByUUID(id)?.mainHandItem?.item !is WanderwandItem }
         if (player.mainHandItem.item is WanderwandItem) {
             // Read the equipped stack too: swapping wands or dimensions cannot leave a previous wand's selection.
@@ -153,43 +162,45 @@ class WanderwandEffectRenderer {
             val a = WanderwandHandEffects.tip(owner, partialTicks, inverse).subtract(camera)
             val b = anchor.world(level, true)?.subtract(camera) ?: continue
             val shotAge = pulses.lastOrNull { it.owner == id && it.action == "bind_start" }?.let { level.gameTime - it.born + partialTicks } ?: 20f
-            tether(vc, matrix, a, a.lerp(b, (shotAge / 7f).toDouble().coerceIn(0.0, 1.0)), time, true, state.length, 1f)
+            tether(vc, matrix, a, a.lerp(b, (shotAge / 4f).toDouble().coerceIn(0.0, 1.0)), time, true, state.length, 1f)
             ring(vc, matrix, b, a.subtract(b), 0.2, time, 0.8f)
         }
         for (pulse in pulses) {
             val age = (level.gameTime - pulse.born).toFloat() + partialTicks
-            val life = (1 - age / 30f).coerceIn(0f, 1f)
+            val life = (1 - age / 14f).coerceIn(0f, 1f)
             val end = pulse.anchor.world(level, true)?.subtract(camera) ?: continue
             val owner = level.getPlayerByUUID(pulse.owner)
-            val start = pulse.other?.world(level, true)?.subtract(camera)
-                ?: owner?.let { WanderwandHandEffects.tip(it, partialTicks, inverse).subtract(camera) } ?: end
+            val hand = owner?.let { WanderwandHandEffects.tip(it, partialTicks, inverse).subtract(camera) }
+            val other = pulse.other?.world(level, true)?.subtract(camera)
+            val start = hand ?: other ?: end
             if (end.lengthSqr() > 192 * 192) continue
+            if (pulse.action.endsWith("break")) {
+                snap(vc, matrix, other ?: start, end, age, pulse.action == "rope_break", time)
+                continue
+            }
             val inward = pulse.action in listOf("weld_start", "dismiss", "cancel", "deselect_end")
-            val progress = (age / 15f).coerceIn(0f, 1f)
+            val red = pulse.action.startsWith("deselect")
+            val progress = (age / 8f).coerceIn(0f, 1f)
             val a = if (inward) end else start
             val b = if (inward) start else end
-            if (age < 20 && pulse.action != "bind_start") {
-                val front = a.lerp(b, min(1.0, progress * 1.3))
-                val back = a.lerp(b, max(0.0, progress * 1.3 - 0.35))
-                tether(vc, matrix, back, front, time, true, back.distanceTo(front), life * 1.2f)
-            }
+            cast(vc, matrix, a, b, age, time, if (pulse.action.endsWith("end")) 1.35f else 1f, red)
+            if (other != null) cast(vc, matrix, end, other, age, time, 0.9f, false)
             val radius = if (inward) 0.12 + (1 - progress) * 0.9 else 0.12 + progress * if (pulse.action.endsWith("end")) 1.7 else 0.7
-            ring(vc, matrix, end, start.subtract(end), radius, time, life)
-            ring(vc, matrix, end, Vec3(0.3, 1.0, 0.2), radius * 0.65, -time, life * 0.6f)
-            if (pulse.action == "break") {
-                for (i in 0..7) {
-                    val d = Vec3(cos(i * PI / 4), sin(i * 1.7) * 0.5, sin(i * PI / 4))
-                    addRibbonSegment(vc, matrix, end.add(d.scale(age * 0.03)), end.add(d.scale(age * 0.03 + 0.15)),
-                        0.018f, 0.95f, 0.75f, 1f, life)
-                }
-            }
+            ring(vc, matrix, end, start.subtract(end), radius, time, life, red)
+            ring(vc, matrix, end, Vec3(0.3, 1.0, 0.2), radius * 0.65, -time, life * 0.8f, red)
+            if (hand != null) ring(vc, matrix, hand, end.subtract(hand), 0.07 + progress * 0.27, time, life, red)
         }
+        blocks.renderPulses(level, ms, buffers, camera, partialTicks)
         if (player.mainHandItem.item is WanderwandItem) {
             val tool = SharedValues.wanderwandHandler.currentTool ?: ToolType.SELECT
             val state = states[player.uuid]
             val hit = target(level, tool, state)
             if (tool == ToolType.SELECT || tool == ToolType.DESELECT) {
-                blocks.renderSelection(level, ms, buffers, camera, time)
+                val first = state?.first?.pos ?: hit?.pos
+                val deselect = if (tool == ToolType.DESELECT && first != null && hit != null)
+                    org.joml.primitives.AABBi(min(first.x, hit.pos.x), min(first.y, hit.pos.y), min(first.z, hit.pos.z),
+                        max(first.x, hit.pos.x) + 1, max(first.y, hit.pos.y) + 1, max(first.z, hit.pos.z) + 1) else null
+                blocks.renderSelection(level, ms, buffers, camera, time, deselect)
                 vc = buffers.getBuffer(ClockworkRenderTypes.GRAVITRON_ENERGY)
                 if (hit != null && hit.shipId < 0) selectionBox(vc, matrix, state?.first?.pos ?: hit.pos, hit.pos, camera, time, tool == ToolType.DESELECT)
             }
@@ -208,6 +219,70 @@ class WanderwandEffectRenderer {
         buffers.endBatch(ClockworkRenderTypes.GRAVITRON_SURFACE)
         buffers.endBatch(ClockworkRenderTypes.GRAVITRON_ENERGY)
         buffers.endBatch(markerType)
+    }
+
+    /** A bright, short impulse from the crystal, independent of the fine persistent rope strands. */
+    private fun cast(vc: VertexConsumer, matrix: Matrix4f, a: Vec3, b: Vec3, age: Float, time: Float, power: Float, red: Boolean) {
+        if (age >= 8 || a.distanceToSqr(b) < 0.0001) return
+        val progress = age / 5.5
+        val front = min(1.0, progress * 1.5)
+        val back = max(0.0, progress * 1.5 - 0.65).coerceAtMost(1.0)
+        val alpha = (1 - age / 8f).coerceAtLeast(0f)
+        val (u, v) = basis(b.subtract(a))
+        var previous = a.lerp(b, back)
+        for (i in 1..16) {
+            val t = back + (front - back) * i / 16.0
+            val p = a.lerp(b, t)
+            addRibbonSegment(vc, matrix, previous, p, 0.15f * power, 0.65f, if (red) 0.1f else 0.3f, if (red) 0.15f else 0.9f, alpha * 0.25f)
+            addRibbonSegment(vc, matrix, previous, p, 0.055f * power, if (red) 1f else 0.765f, if (red) 0.22f else 0.627f, if (red) 0.25f else 0.89f, alpha)
+            addRibbonSegment(vc, matrix, previous, p, 0.019f * power, 1f, if (red) 0.75f else 0.9f, if (red) 0.7f else 1f, alpha)
+            previous = p
+        }
+        for (strand in 0..2) {
+            var old = a.lerp(b, back)
+            for (i in 1..16) {
+                val t = back + (front - back) * i / 16.0
+                val phase = t * PI * 5 + strand * 2 * PI / 3 - time * 0.25
+                val radius = sin(i * PI / 16) * 0.10 * power
+                val p = a.lerp(b, t).add(u.scale(cos(phase) * radius)).add(v.scale(sin(phase) * radius))
+                addRibbonSegment(vc, matrix, old, p, 0.011f, if (red) 1f else 0.85f, if (red) 0.32f else 0.7f, if (red) 0.3f else 1f, alpha * 0.7f)
+                old = p
+            }
+        }
+    }
+
+    private fun snap(vc: VertexConsumer, matrix: Matrix4f, a: Vec3, b: Vec3, age: Float, rope: Boolean, time: Float) {
+        val life = (1 - age / if (rope) 10f else 13f).coerceIn(0f, 1f)
+        if (life <= 0) return
+        val center = a.lerp(b, 0.5)
+        val (u, v) = basis(b.subtract(a))
+        if (rope) {
+            // Two loose halves recoil toward their anchors, with an obvious gap at the fracture.
+            for (end in listOf(a, b)) {
+                var previous = end
+                for (i in 1..20) {
+                    val t = i / 20.0
+                    val reach = life * 0.9
+                    val point = end.lerp(center, t * reach)
+                        .add(u.scale(sin(t * PI * 3 - age * 0.7) * t * (1 - life) * 0.8))
+                        .add(v.scale(sin(t * PI) * (1 - life) * 0.5))
+                    addRibbonSegment(vc, matrix, previous, point, 0.022f, 0.94f, 0.8f, 1f, life)
+                    previous = point
+                }
+            }
+        } else {
+            // Glue tears into thicker globules, unlike the rope's whipping strands.
+            ring(vc, matrix, center, b.subtract(a), 0.15 + age * 0.13, time, life)
+            ring(vc, matrix, center, u, 0.1 + age * 0.09, -time, life * 0.7f)
+        }
+        for (i in 0 until if (rope) 8 else 14) {
+            val angle = i * 2.39996
+            val direction = Vec3(cos(angle), sin(i * 1.73) * 0.8, sin(angle)).normalize()
+            val p = center.add(direction.scale(age * if (rope) 0.075 else 0.045)).add(0.0, if (rope) 0.0 else -age * age * 0.002, 0.0)
+            val size = if (rope) 0.014f else 0.055f * life
+            addRibbonSegment(vc, matrix, p, p.add(direction.scale(if (rope) 0.22 else 0.09)), size * 3, 0.7f, 0.4f, 0.95f, life * 0.25f)
+            addRibbonSegment(vc, matrix, p, p.add(direction.scale(if (rope) 0.22 else 0.09)), size, 0.95f, 0.8f, 1f, life)
+        }
     }
 
     private fun tether(vc: VertexConsumer, matrix: Matrix4f, a: Vec3, b: Vec3, time: Float, rope: Boolean, length: Double, alpha: Float) {
@@ -239,14 +314,17 @@ class WanderwandEffectRenderer {
         val u = n.cross(if (abs(n.y) > 0.9) Vec3(1.0, 0.0, 0.0) else Vec3(0.0, 1.0, 0.0)).normalize()
         return u to n.cross(u).normalize()
     }
-    private fun ring(vc: VertexConsumer, matrix: Matrix4f, center: Vec3, normal: Vec3, radius: Double, time: Float, alpha: Float) {
+    private fun ring(vc: VertexConsumer, matrix: Matrix4f, center: Vec3, normal: Vec3, radius: Double, time: Float, alpha: Float, red: Boolean = false) {
         val (u, v) = basis(normal)
         var previous: Vec3? = null
         for (i in 0..32) {
             val angle = i * PI / 16 + time * 0.012
             val r = radius * (1 + sin(angle * 5 + time * 0.15) * 0.035)
             val p = center.add(u.scale(cos(angle) * r)).add(v.scale(sin(angle) * r))
-            previous?.let { addRibbonSegment(vc, matrix, it, p, 0.012f, 0.765f, 0.627f, 0.89f, alpha) }
+            previous?.let {
+                addRibbonSegment(vc, matrix, it, p, 0.036f, if (red) 1f else 0.765f, if (red) 0.2f else 0.627f, if (red) 0.24f else 0.89f, alpha * 0.25f)
+                addRibbonSegment(vc, matrix, it, p, 0.012f, if (red) 1f else 0.88f, if (red) 0.3f else 0.75f, if (red) 0.32f else 1f, alpha)
+            }
             previous = p
         }
     }
@@ -284,9 +362,9 @@ class WanderwandEffectRenderer {
             var previous = a
             for (j in 1..8) {
                 val t = j / 8.0
-                val jitter = sin(t * PI) * sin(time * 0.4 + i + j) * 0.025
+                val jitter = sin(t * PI) * sin(time * 0.08 + i + j * 0.35) * 0.008
                 val p = a.lerp(b, t).add(jitter, -jitter, jitter)
-                addRibbonSegment(vc, matrix, previous, p, 0.013f, if (remove) 1f else 0.765f, if (remove) 0.3f else 0.627f, 0.89f, 0.75f)
+                addRibbonSegment(vc, matrix, previous, p, 0.016f, if (remove) 1f else 0.765f, if (remove) 0.2f else 0.627f, if (remove) 0.24f else 0.89f, 0.85f)
                 previous = p
             }
         }

@@ -63,7 +63,7 @@ object ClockworkSounds {
         .category(SoundSource.PLAYERS)
         .attenuationDistance(16)
         .build()
-    val WAND_WELD = create("welder_whirr").subtitle("Wanderwand whirrs")
+    val WAND_WELD = create("wand_weld").subtitle("Wanderwand welds")
         .category(SoundSource.PLAYERS)
         .attenuationDistance(16)
         .build()

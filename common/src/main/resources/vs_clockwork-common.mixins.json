@@ -41,6 +41,7 @@
     "content.gravitron.MinecraftAccessor",
     "content.gravitron.GameRendererAccessor",
     "content.gravitron.MixinHumanoidModel",
+    "content.wanderwand.MixinPlayerSkyhookRenderer",
     "content.gravitron.MixinLocalPlayer"
   ],
   "injectors": {

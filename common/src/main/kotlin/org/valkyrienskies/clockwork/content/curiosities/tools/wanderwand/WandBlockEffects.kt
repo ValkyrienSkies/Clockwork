@@ -19,7 +19,6 @@ import org.joml.Matrix4f
 import org.joml.Quaterniond
 import org.joml.primitives.AABBic
 import org.valkyrienskies.clockwork.ClockworkRenderTypes
-import org.valkyrienskies.clockwork.util.render.RenderUtil.addRibbonSegment
 import org.valkyrienskies.mod.common.shipObjectWorld
 import kotlin.math.*
 
@@ -40,8 +39,9 @@ class WandBlockEffects {
     fun update(tag: CompoundTag) {
         boxes = WanderwandItem.readAABBSetFromNBT(tag).filter { WandSelectionMath.volume(it) in 1..100000 }.take(512)
         visible.clear(); building.clear(); scan = null; builtAt = -100
+        boxes.firstOrNull()?.let { pulseOrigin = Vec3(it.minX().toDouble(), it.minY().toDouble(), it.minZ().toDouble()) }
     }
-    fun clear() = update(CompoundTag())
+    fun clear() { update(CompoundTag()); weldPulses.clear() }
 
     fun tick(level: ClientLevel) {
         val player = Minecraft.getInstance().player ?: return
@@ -83,40 +83,65 @@ class WandBlockEffects {
         return quads
     }
 
-    fun renderSelection(level: ClientLevel, ms: PoseStack, buffers: MultiBufferSource, camera: Vec3, time: Float) {
+    fun renderSelection(level: ClientLevel, ms: PoseStack, buffers: MultiBufferSource, camera: Vec3, time: Float,
+                        deselect: AABBic? = null) {
         val vc = buffers.getBuffer(ClockworkRenderTypes.GRAVITRON_SURFACE)
-        val matrix = ms.last().pose()
         for (surface in visible) {
             if (level.getBlockState(surface.pos) != surface.state) continue
             val origin = Vec3.atLowerCornerOf(surface.pos).subtract(camera)
-            val distance = Vec3.atCenterOf(surface.pos).distanceTo(pulseOrigin).toFloat()
-            val wave = (0.5f + 0.5f * sin(distance * 1.7f - time * 0.17f)).pow(6)
-            for (quad in surface.quads) emit(vc, matrix, quad, origin, 0.28f + wave * 0.8f, distance, false)
-        }
-        val energy = buffers.getBuffer(ClockworkRenderTypes.GRAVITRON_ENERGY)
-        var edges = 0
-        for (surface in visible) {
-            if (level.getBlockState(surface.pos) != surface.state) continue
-            for (quad in surface.quads) {
-                if (edges >= 640) return
-                // Distribute energetic seams, instead of outlining every tessellated face.
-                if ((surface.pos.asLong() xor quad.direction.ordinal.toLong()) and 3L != 0L) continue
-                val data = quad.vertices; val stride = data.size / 4
-                val points = (0..3).map { i -> Vec3(Float.fromBits(data[i * stride]).toDouble() + surface.pos.x - camera.x,
-                    Float.fromBits(data[i * stride + 1]).toDouble() + surface.pos.y - camera.y,
-                    Float.fromBits(data[i * stride + 2]).toDouble() + surface.pos.z - camera.z) }
-                for (i in 0..3) {
-                    val a = points[i]; val b = points[(i + 1) % 4]
-                    val jitter = sin(time * 0.55 + surface.pos.x * 2.1 + surface.pos.z + i) * 0.015
-                    val mid = a.add(b).scale(0.5).add(jitter, jitter * 0.4, -jitter)
-                    addRibbonSegment(energy, matrix, a, mid, 0.009f, 0.765f, 0.627f, 0.89f, 0.55f)
-                    addRibbonSegment(energy, matrix, mid, b, 0.009f, 0.765f, 0.627f, 0.89f, 0.55f)
-                    edges++
-                }
-            }
+            val red = deselect?.let { WandSelectionMath.contains(it, surface.pos.x, surface.pos.y, surface.pos.z) } == true
+            for (quad in surface.quads) emit(vc, ms.last().pose(), quad, origin, 0.65f, 0f, red,
+                mode = 3, pulseCenter = pulseOrigin.subtract(camera))
         }
     }
 
+    private class WeldPulse(val anchor: WandAnchor, val born: Long, val scan: Iterator<BlockPos>) {
+        val surfaces = mutableListOf<Surface>()
+        var quads = 0
+    }
+    private val weldPulses = mutableListOf<WeldPulse>()
+    fun weldPulse(anchor: WandAnchor, now: Long) {
+        if (weldPulses.size >= 8) weldPulses.removeAt(0)
+        weldPulses.add(WeldPulse(anchor, now, pulseOffsets.asSequence().map { anchor.pos.offset(it) }.iterator()))
+    }
+    fun tickPulses(level: ClientLevel) {
+        weldPulses.removeAll { level.gameTime - it.born > 22 }
+        var budget = 2048
+        for (pulse in weldPulses) {
+            if (level.gameTime <= pulse.born) continue // Let the welded block updates arrive first.
+            while (budget > 0 && pulse.scan.hasNext() && pulse.quads < 3072) {
+                budget--
+                val pos = pulse.scan.next()
+                if (!level.hasChunkAt(pos)) continue
+                val state = level.getBlockState(pos)
+                if (state.isAir || state.renderShape != RenderShape.MODEL) continue
+                val faces = quads(level, pos, state, true).take(3072 - pulse.quads)
+                if (faces.isNotEmpty()) pulse.surfaces.add(Surface(pos, state, faces))
+                pulse.quads += faces.size
+            }
+        }
+    }
+    fun renderPulses(level: ClientLevel, ms: PoseStack, buffers: MultiBufferSource, camera: Vec3, partial: Float) {
+        val vc = buffers.getBuffer(ClockworkRenderTypes.GRAVITRON_SURFACE)
+        for (pulse in weldPulses) {
+            val age = (level.gameTime - pulse.born).toFloat() + partial
+            val ship = level.shipObjectWorld.loadedShips.getById(pulse.anchor.shipId)
+            if (pulse.anchor.shipId >= 0 && ship == null) continue
+            val transform = ship?.renderTransform?.shipToWorld?.let(::Matrix4d) ?: Matrix4d()
+            // Keep shipyard coordinates out of float vertices, including on very distant ships.
+            transform.translate(pulse.anchor.pos.x.toDouble(), pulse.anchor.pos.y.toDouble(), pulse.anchor.pos.z.toDouble())
+            transform.m30(transform.m30() - camera.x); transform.m31(transform.m31() - camera.y); transform.m32(transform.m32() - camera.z)
+            ms.pushPose(); ms.mulPoseMatrix(Matrix4f(transform))
+            val center = pulse.anchor.local().subtract(Vec3.atLowerCornerOf(pulse.anchor.pos))
+            for (surface in pulse.surfaces) {
+                if (level.getBlockState(surface.pos) != surface.state) continue
+                val offset = Vec3.atLowerCornerOf(surface.pos.subtract(pulse.anchor.pos))
+                for (quad in surface.quads) emit(vc, ms.last().pose(), quad, offset,
+                    (1 - age / 22f).coerceIn(0f, 1f), -age * 0.65f, false, mode = 4, pulseCenter = center)
+            }
+            ms.popPose()
+        }
+    }
     fun renderPreview(level: ClientLevel, from: WandAnchor, to: WandAnchor, ms: PoseStack,
                       buffers: MultiBufferSource, camera: Vec3, time: Float) {
         val source = level.shipObjectWorld.loadedShips.getById(from.shipId) ?: return
@@ -148,14 +173,24 @@ class WandBlockEffects {
         ms.popPose()
     }
 
-    private fun emit(vc: VertexConsumer, matrix: Matrix4f, quad: BakedQuad, offset: Vec3, alpha: Float, distance: Float, red: Boolean) {
+    private fun emit(vc: VertexConsumer, matrix: Matrix4f, quad: BakedQuad, offset: Vec3, alpha: Float, distance: Float, red: Boolean,
+                     mode: Int = 0, pulseCenter: Vec3? = null) {
         val data = quad.vertices; val stride = data.size / 4
         for (i in 0..3) {
             val j = i * stride
-            vc.vertex(matrix, Float.fromBits(data[j]) + offset.x.toFloat(), Float.fromBits(data[j + 1]) + offset.y.toFloat(), Float.fromBits(data[j + 2]) + offset.z.toFloat())
+            val p = offset.add(Float.fromBits(data[j]).toDouble(), Float.fromBits(data[j + 1]).toDouble(), Float.fromBits(data[j + 2]).toDouble())
+            val phase = if (pulseCenter != null) p.distanceTo(pulseCenter).toFloat() + distance else distance
+            vc.vertex(matrix, p.x.toFloat(), p.y.toFloat(), p.z.toFloat())
                 .color(if (red) 1f else 0.765f, if (red) 0.2f else 0.627f, if (red) 0.3f else 0.89f, alpha)
-                .uv(Float.fromBits(data[j + 4]), Float.fromBits(data[j + 5])).overlayCoords((distance * 256).toInt(), 0)
+                .uv(Float.fromBits(data[j + 4]), Float.fromBits(data[j + 5])).overlayCoords((phase.coerceIn(-127f, 127f) * 256).toInt(), mode)
                 .uv2(0xF000F0).normal(quad.direction.stepX.toFloat(), quad.direction.stepY.toFloat(), quad.direction.stepZ.toFloat()).endVertex()
+        }
+    }
+
+    companion object {
+        private val pulseOffsets by lazy {
+            ( -8..8).flatMap { x -> (-8..8).flatMap { y -> (-8..8).map { z -> BlockPos(x, y, z) } } }
+                .filter { it.distSqr(BlockPos.ZERO) <= 64 }.sortedBy { it.distSqr(BlockPos.ZERO) }
         }
     }
 }

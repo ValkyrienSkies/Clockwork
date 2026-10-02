@@ -19,10 +19,11 @@ class WanderwandAnimation {
             val lower = (1 - t) * (1 - t) * (1 - t)
             return Pose(lower, -35 * lower, -22 * lower, sin(t * PI).toFloat() * 0.3f)
         }
-        val t = (age / 22f).coerceIn(0f, 1f)
-        val pulse = sin(t * PI).toFloat() * (1 - t)
+        val t = (age / 12f).coerceIn(0f, 1f)
+        // Quick attack, a longer recoil/recovery, and no frame-count-dependent spin.
+        val pulse = if (t < 0.16f) sin(t / 0.16f * PI / 2).toFloat() else ((1 - t) / 0.84f).let { it * it }
         val inward = action in listOf("weld_start", "dismiss", "deselect_end", "cancel")
-        val finish = action.endsWith("end") || action == "break"
+        val finish = action.endsWith("end") || action.endsWith("break")
         return Pose(0f, pulse * if (inward) -16f else if (finish) 23f else 12f,
             pulse * if (inward) -12f else 8f, pulse * if (finish) 1.4f else 0.8f)
     }

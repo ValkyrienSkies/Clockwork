@@ -37,6 +37,18 @@ void main() {
         float glitch = step(0.96, row);
         rgb = vec3(grey) * (1.0 - 0.22 * glitch) + vec3(0.12, 0.08, 0.18) * fizzle;
         alpha *= 1.0 - 0.22 * glitch;
+    } else if (effectMode == 3) {
+        // One broad continuous field, with no texture noise or individual block outlines.
+        float wave = 0.5 + 0.5 * sin(hitDistance * 0.85 - time * 0.12);
+        wave = wave * wave * (3.0 - 2.0 * wave);
+        rgb = vertexColor.rgb * (0.95 + 0.25 * wave);
+        alpha *= 0.3 + 0.65 * wave;
+    } else if (effectMode == 4) {
+        // Distance from the advancing weld front, interpolated across actual block surfaces.
+        float front = 1.0 - smoothstep(0.15, 1.3, abs(hitDistance));
+        float wake = (1.0 - smoothstep(0.0, 2.8, -hitDistance)) * step(hitDistance, 0.0);
+        rgb = mix(vertexColor.rgb * 1.25, vec3(0.98, 0.88, 1.0), front);
+        alpha *= front * 0.95 + wake * 0.18;
     } else {
         // Fine interference patterns shimmer on the faces under the expanding local pulse.
         float phase = hitDistance * 3.8 - time * 0.13 + noise(pixel) * 0.35;
