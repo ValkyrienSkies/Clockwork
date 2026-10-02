@@ -202,6 +202,14 @@ class WanderwandEffectRenderer {
                         max(first.x, hit.pos.x) + 1, max(first.y, hit.pos.y) + 1, max(first.z, hit.pos.z) + 1) else null
                 blocks.renderSelection(level, ms, buffers, camera, time, deselect)
                 vc = buffers.getBuffer(ClockworkRenderTypes.GRAVITRON_ENERGY)
+                // Keep the region borders visible after completing a selection, including empty space.
+                for (box in blocks.boxes) {
+                    if (camera.x < box.minX() - 64.0 || camera.x > box.maxX() + 64.0 ||
+                        camera.y < box.minY() - 64.0 || camera.y > box.maxY() + 64.0 ||
+                        camera.z < box.minZ() - 64.0 || camera.z > box.maxZ() + 64.0) continue
+                    selectionBox(vc, matrix, BlockPos(box.minX(), box.minY(), box.minZ()),
+                        BlockPos(box.maxX() - 1, box.maxY() - 1, box.maxZ() - 1), camera, time, false)
+                }
                 if (hit != null && hit.shipId < 0) selectionBox(vc, matrix, state?.first?.pos ?: hit.pos, hit.pos, camera, time, tool == ToolType.DESELECT)
             }
             if (tool == ToolType.WELD && state?.first != null && hit != null)
@@ -354,15 +362,15 @@ class WanderwandEffectRenderer {
             .normal(normal.x.toFloat(), normal.y.toFloat(), normal.z.toFloat()).endVertex()
     }
     private fun selectionBox(vc: VertexConsumer, matrix: Matrix4f, first: BlockPos, second: BlockPos, camera: Vec3, time: Float, remove: Boolean) {
-        val low = Vec3(min(first.x, second.x).toDouble(), min(first.y, second.y).toDouble(), min(first.z, second.z).toDouble()).subtract(camera)
-        val high = Vec3(max(first.x, second.x) + 1.0, max(first.y, second.y) + 1.0, max(first.z, second.z) + 1.0).subtract(camera)
+        val low = Vec3(min(first.x, second.x) - 0.03, min(first.y, second.y) - 0.03, min(first.z, second.z) - 0.03).subtract(camera)
+        val high = Vec3(max(first.x, second.x) + 1.03, max(first.y, second.y) + 1.03, max(first.z, second.z) + 1.03).subtract(camera)
         val points = (0..7).map { i -> Vec3(if (i and 1 == 0) low.x else high.x, if (i and 2 == 0) low.y else high.y, if (i and 4 == 0) low.z else high.z) }
         for (i in 0..7) for (axis in listOf(1, 2, 4)) if (i and axis == 0) {
             val a = points[i]; val b = points[i or axis]
             var previous = a
             for (j in 1..8) {
                 val t = j / 8.0
-                val jitter = sin(t * PI) * sin(time * 0.08 + i + j * 0.35) * 0.008
+                val jitter = sin(t * PI) * sin(time * 0.4 + i + j) * 0.025
                 val p = a.lerp(b, t).add(jitter, -jitter, jitter)
                 addRibbonSegment(vc, matrix, previous, p, 0.016f, if (remove) 1f else 0.765f, if (remove) 0.2f else 0.627f, if (remove) 0.24f else 0.89f, 0.85f)
                 previous = p
