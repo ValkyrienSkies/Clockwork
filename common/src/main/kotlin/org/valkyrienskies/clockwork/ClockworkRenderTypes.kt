@@ -125,6 +125,10 @@ class ClockworkRenderTypes(
                 .createCompositeState(false)
         )
 
+        // Vanilla's emissive translucent pass blends texture alpha and only writes color.
+        // Transparent areas of the energy model must not occlude the body or articulated prongs.
+        val GRAVITRON_OVERCHARGE: RenderType = RenderType.entityTranslucentEmissive(TextureAtlas.LOCATION_BLOCKS, false)
+
         val GRAVITRON_SURFACE: RenderType = create(
             "gravitron_surface", DefaultVertexFormat.NEW_ENTITY, VertexFormat.Mode.QUADS,
             262144, false, true,

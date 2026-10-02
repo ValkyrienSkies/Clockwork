@@ -79,6 +79,8 @@ class GravitronLeftClickPacket : C2SCWPacket {
                         }
 
                         ship.isStatic = !ship.isStatic
+                        if (ship.isStatic) GravitronFrozenShip.freeze(level, ship, anchor)
+                        else GravitronFrozenShip.thaw(level, ship)
                         GravitronAnimationPacket.send(serverPlayer,
                             if (ship.isStatic) GravitronAction.FREEZE else GravitronAction.UNFREEZE, ship.id, anchor)
                         level.playSound(

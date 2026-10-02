@@ -44,7 +44,13 @@ void main() {
         float mote = step(0.985, noise(pixel + floor(time * 0.12)));
         float detail = dot(texel.rgb, vec3(0.2126, 0.7152, 0.0722));
         rgb = vertexColor.rgb * (0.7 + detail * 0.3) + vec3(0.18, 0.1, 0.22) * interference;
-        alpha *= 0.28 + 0.55 * interference + 0.17 * mote;
+        if (effectMode == 2) {
+            // Launch carries a wider, brighter impulse than the sustained grab field.
+            rgb *= 1.35;
+            alpha *= 0.5 + 0.65 * interference + 0.2 * mote;
+        } else {
+            alpha *= 0.28 + 0.55 * interference + 0.17 * mote;
+        }
     }
-    fragColor = linear_fog(vec4(rgb, alpha) * ColorModulator, vertexDistance, FogStart, FogEnd, FogColor);
+    fragColor = linear_fog(vec4(rgb, min(alpha, 1.0)) * ColorModulator, vertexDistance, FogStart, FogEnd, FogColor);
 }

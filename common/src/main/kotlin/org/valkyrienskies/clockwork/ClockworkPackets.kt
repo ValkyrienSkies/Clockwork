@@ -13,6 +13,7 @@ import org.valkyrienskies.clockwork.content.contraptions.phys.infuser.PhysicsInf
 import org.valkyrienskies.clockwork.content.contraptions.phys.slicker.SlickerAttachmentSyncPacket
 import org.valkyrienskies.clockwork.content.curiosities.tools.gravitron.GravitronDisassemblyPacket
 import org.valkyrienskies.clockwork.content.curiosities.tools.gravitron.GravitronAnimationPacket
+import org.valkyrienskies.clockwork.content.curiosities.tools.gravitron.GravitronFreezePacket
 import org.valkyrienskies.clockwork.content.curiosities.tools.gravitron.GravitronDialPacket
 import org.valkyrienskies.clockwork.content.curiosities.tools.gravitron.GravitronGrabPacket
 import org.valkyrienskies.clockwork.content.curiosities.tools.gravitron.GravitronLeftClickPacket
@@ -84,6 +85,7 @@ enum class ClockworkPackets(
 
     FLAP_LINKED_CONTROLLER_BIND_PACKET(FlapLinkedControllerBindPacket::class.java, ::FlapLinkedControllerBindPacket),
     GRAVITRON_ANIMATION_PACKET(GravitronAnimationPacket::class.java, ::GravitronAnimationPacket),
+    GRAVITRON_FREEZE_PACKET(GravitronFreezePacket::class.java, ::GravitronFreezePacket),
 
     ;
 

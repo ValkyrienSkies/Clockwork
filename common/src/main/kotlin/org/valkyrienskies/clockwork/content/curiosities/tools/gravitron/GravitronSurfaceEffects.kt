@@ -33,9 +33,12 @@ object GravitronSurfaceEffects {
         var cursor = 0
         var quadCount = 0
         var lastUsed = createdAt
+        var replacement: Mesh? = null
+        fun complete() = cursor >= offsets.size || quadCount >= MAX_QUADS
     }
 
     private val meshes = linkedMapOf<Key, Mesh>()
+    private val frameKeys = mutableSetOf<Key>()
     private val random = RandomSource.create()
     private var frameQuads = 0
     // Near-first scanning makes the advancing wave visible immediately while farther faces are gathered.
@@ -46,19 +49,20 @@ object GravitronSurfaceEffects {
         }
     }.sortedBy { it.x * it.x + it.y * it.y + it.z * it.z }
 
-    fun clear() = meshes.clear()
-    fun beginFrame() { frameQuads = 0 }
+    fun clear() { meshes.clear(); frameKeys.clear() }
+    fun beginFrame() { frameQuads = 0; frameKeys.clear() }
 
     fun tick(level: ClientLevel) {
         val now = level.gameTime
         meshes.entries.removeIf { now - it.value.lastUsed > 40 || level.shipObjectWorld.loadedShips.getById(it.key.shipId) == null }
         val budget = SCAN_BUDGET / meshes.size.coerceAtLeast(1)
-        for ((key, mesh) in meshes) {
+        for ((key, visible) in meshes) {
             // Rebuild long-lived grabs occasionally so added/removed blocks are reflected as well.
-            if (now - mesh.createdAt > 80 && (mesh.cursor >= offsets.size || mesh.quadCount >= MAX_QUADS)) {
-                meshes[key] = Mesh(now)
-                continue
+            // Keep the previous mesh visible until the replacement is ready: frozen fields never blink off.
+            if (now - visible.createdAt > 80 && visible.complete() && visible.replacement == null) {
+                visible.replacement = Mesh(now)
             }
+            val mesh = visible.replacement ?: visible
             val ship = level.shipObjectWorld.loadedShips.getById(key.shipId) ?: continue
             val bounds = ship.shipAABB ?: continue
             for (scan in 0 until budget) {
@@ -83,16 +87,27 @@ object GravitronSurfaceEffects {
                     mesh.quadCount += limited.size
                 }
             }
+            if (visible.replacement != null && mesh.complete()) {
+                mesh.lastUsed = visible.lastUsed
+                meshes[key] = mesh
+            }
         }
     }
 
     fun render(level: ClientLevel, ship: ClientShip, anchor: Vec3, action: GravitronAction, age: Float,
-               ms: PoseStack, buffers: MultiBufferSource, camera: Vec3) {
+               ms: PoseStack, buffers: MultiBufferSource, camera: Vec3, frozenAge: Float = 40f) {
         val key = Key(ship.id, BlockPos.containing(anchor))
+        // Persistent fields can outnumber the cache. Keep the nearest set stable instead of
+        // evicting every unfinished mesh again each frame when many ships are frozen nearby.
+        if (key !in frameKeys && frameKeys.size >= MAX_CACHES) return
         val mesh = meshes[key] ?: run {
-            if (meshes.size >= MAX_CACHES) meshes.remove(meshes.minBy { it.value.lastUsed }.key)
+            if (meshes.size >= MAX_CACHES) {
+                val evict = meshes.entries.filter { it.key !in frameKeys }.minBy { it.value.lastUsed }.key
+                meshes.remove(evict)
+            }
             Mesh(level.gameTime).also { meshes[key] = it }
         }
+        frameKeys.add(key)
         mesh.lastUsed = level.gameTime
         if (mesh.surfaces.isEmpty() || frameQuads >= FRAME_QUAD_BUDGET) return
         val mc = Minecraft.getInstance()
@@ -129,7 +144,7 @@ object GravitronSurfaceEffects {
                     val y = Float.fromBits(data[i * stride + 1]) + oy - ay
                     val z = Float.fromBits(data[i * stride + 2]) + oz - az
                     distances[i] = sqrt(x * x + y * y + z * z).toFloat()
-                    strengths[i] = GravitronVisuals.surfaceStrength(action, distances[i], age)
+                    strengths[i] = GravitronVisuals.surfaceStrength(action, distances[i], age, frozenAge)
                 }
                 if (strengths.all { it < 0.005f }) continue
                 val tint = if (freeze && quad.isTinted) mc.blockColors.getColor(surface.state, level, surface.pos, quad.tintIndex)
@@ -142,7 +157,11 @@ object GravitronSurfaceEffects {
                             (tint and 255) / 255f * shade, strengths[i])
                         .uv(Float.fromBits(data[j + 4]), Float.fromBits(data[j + 5]))
                         // The dedicated shader uses overlay coordinates for distance and mode.
-                        .overlayCoords((distances[i] * 256).toInt(), if (freeze) 1 else 0)
+                        .overlayCoords((distances[i] * 256).toInt(), when {
+                            freeze -> 1
+                            action == GravitronAction.LAUNCH -> 2
+                            else -> 0
+                        })
                         .uv2(light)
                         .normal(quad.direction.stepX.toFloat(), quad.direction.stepY.toFloat(), quad.direction.stepZ.toFloat())
                         .endVertex()

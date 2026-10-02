@@ -26,6 +26,7 @@ import org.valkyrienskies.clockwork.content.curiosities.tools.gravitron.Gravitro
 import org.valkyrienskies.clockwork.content.curiosities.tools.gravitron.GravitronGrabPacket
 import org.valkyrienskies.clockwork.content.curiosities.tools.gravitron.GravitronLeftClickPacket
 import org.valkyrienskies.clockwork.content.curiosities.tools.gravitron.GravitronState
+import org.valkyrienskies.clockwork.content.curiosities.tools.gravitron.GravitronFrozenShip
 import org.valkyrienskies.clockwork.content.curiosities.tools.gravitron.GravitronState.Companion.getState
 import org.valkyrienskies.clockwork.util.ClockworkUtils.readVec3
 import org.valkyrienskies.core.api.ships.LoadedServerShip
@@ -293,6 +294,7 @@ class GrabTool : GravitronToolBase() {
             s.shipGrabbedRot = ship.transform.shipToWorldRotation
             s.shipGrabbedDistance = player.eyePosition.toJOML().distance(heldPosInWorld)
             ship.isStatic = false
+            (player.level() as? ServerLevel)?.let { GravitronFrozenShip.thaw(it, ship) }
             GravitronAnimationPacket.send(player, GravitronAction.GRAB, ship.id, grabPosInShip, loadOf(ship))
         }
 

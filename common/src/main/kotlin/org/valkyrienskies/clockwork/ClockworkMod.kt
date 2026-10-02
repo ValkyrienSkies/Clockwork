@@ -26,6 +26,7 @@ import org.slf4j.LoggerFactory
 import org.valkyrienskies.clockwork.client.render.airpocket.AirpocketRenderer
 import org.valkyrienskies.clockwork.content.contraptions.flap.dual_link.DualLinkHandler
 import org.valkyrienskies.clockwork.content.events.CollisionSoundEffectHandler
+import org.valkyrienskies.clockwork.content.curiosities.tools.gravitron.GravitronFrozenShip
 import org.valkyrienskies.clockwork.content.forces.*
 import org.valkyrienskies.clockwork.content.forces.contraption.BearingController
 import org.valkyrienskies.clockwork.content.physicalities.gyro.GyroShipControl
@@ -109,6 +110,9 @@ object ClockworkMod {
         vsCore.registerAttachment(GyroShipControl::class.java)
         vsCore.registerAttachment(SugarRocketController::class.java)
         vsCore.registerAttachment(GravitronController::class.java) { useTransientSerializer() }
+        vsCore.registerAttachment(GravitronFrozenShip::class.java) {
+            useJacksonSerializer()
+        }
         vsCore.registerAttachment(BearingController::class.java) { useTransientSerializer() }
         vsCore.registerAttachment(BalloonController::class.java)
 
@@ -150,6 +154,7 @@ object ClockworkMod {
 
         TickEvent.SERVER_LEVEL_POST.register {
             for (ship in it.shipObjectWorld.loadedShips) {
+                GravitronFrozenShip.tick(it, ship)
                 //TODO: UNCOMMENT WHEN POCKET FORCES IS FIXED
                 //ship.getAttachment(PocketForcesController::class.java)?.gameTick(it, ship.id)
                 ship.getAttachment(BalloonController::class.java)?.gameTick(it, ship)

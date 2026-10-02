@@ -44,11 +44,14 @@ object GravitronEffects {
     }
 
     private data class ShipPulse(val shipId: Long, val anchor: Vec3, val action: GravitronAction, val birth: Long)
-    private data class SurfacePass(val ship: ClientShip, val anchor: Vec3, val action: GravitronAction, val age: Float)
+    private data class SurfacePass(val ship: ClientShip, val anchor: Vec3, val action: GravitronAction,
+                                   val age: Float, val frozenAge: Float = 40f)
+    private data class FrozenField(val anchor: Vec3, val animation: GravitronFreezeAnimation, var lastSync: Long)
     private data class RenderOwner(val player: Player?)
     private val owners = ArrayDeque<RenderOwner>()
     private val states = mutableMapOf<UUID, State>()
     private val pulses = mutableListOf<ShipPulse>()
+    private val frozenFields = mutableMapOf<Long, FrozenField>()
     private var world: ClientLevel? = null
 
     @JvmStatic
@@ -59,6 +62,7 @@ object GravitronEffects {
         if (world !== level) {
             states.clear()
             pulses.clear()
+            frozenFields.clear()
             owners.clear()
             GravitronSurfaceEffects.clear()
             world = level
@@ -94,7 +98,25 @@ object GravitronEffects {
             }
         }
         pulses.removeAll { now - it.birth > pulseLife(it.action) }
+        frozenFields.entries.removeIf { (id, field) ->
+            field.animation.finished(now) || (now - field.lastSync > 40 && level.shipObjectWorld.loadedShips.getById(id) == null)
+        }
         GravitronSurfaceEffects.tick(level)
+    }
+
+    fun acceptFreeze(packet: GravitronFreezePacket) {
+        val now = checkWorld()?.gameTime ?: return
+        val previous = frozenFields[packet.shipId]
+        if (packet.frozen) {
+            if (previous != null && !previous.animation.thawing && previous.anchor == packet.anchor) {
+                previous.lastSync = now // Heartbeats must never restart the freeze front.
+            } else {
+                frozenFields[packet.shipId] = FrozenField(packet.anchor,
+                    GravitronFreezeAnimation(now, packet.age.coerceIn(0f, 40f)), now)
+            }
+        } else {
+            previous?.animation?.thaw(now)
+        }
     }
 
     fun accept(packet: GravitronAnimationPacket) {
@@ -239,6 +261,8 @@ object GravitronEffects {
             if (ship.renderTransform.positionInWorld.distanceSquared(Vector3d(camera.x, camera.y, camera.z)) > 192.0 * 192.0) continue
             val age = now - pulse.birth + partialTick
             if (!legacy) {
+                // Freeze/thaw coverage belongs to the ship's persistent field, not the weapon's one-shot.
+                if (pulse.action == GravitronAction.FREEZE || pulse.action == GravitronAction.UNFREEZE) continue
                 // The launch packet reaches the surface after the short central burst travels out.
                 surfaces.add(SurfacePass(ship, pulse.anchor, pulse.action,
                     if (pulse.action == GravitronAction.LAUNCH) (age - 3f).coerceAtLeast(0f) else age))
@@ -255,11 +279,20 @@ object GravitronEffects {
             }
             shipField(vc, pose, ship, camera, time, GravitronVisuals.WANDERLITE, (1f - progress) * 0.7f, scale)
         }
+        if (!legacy) for ((id, field) in frozenFields) {
+            val ship = level.shipObjectWorld.loadedShips.getById(id) ?: continue
+            if (shipPoint(ship, field.anchor).distanceToSqr(camera) > 192.0 * 192.0) continue
+            val animation = field.animation
+            val age = animation.freezeAge(now, partialTick)
+            surfaces.add(SurfacePass(ship, field.anchor,
+                if (animation.thawing) GravitronAction.UNFREEZE else GravitronAction.FREEZE,
+                if (animation.thawing) animation.thawAge(now, partialTick) else age, age))
+        }
         buffers.endBatch(type)
         // These share BufferSource's fallback builder: finish all ribbons before changing formats.
-        for (surface in surfaces) {
+        for (surface in surfaces.sortedBy { shipPoint(it.ship, it.anchor).distanceToSqr(camera) }) {
             GravitronSurfaceEffects.render(level, surface.ship, surface.anchor, surface.action,
-                surface.age, ms, buffers, camera)
+                surface.age, ms, buffers, camera, surface.frozenAge)
         }
         buffers.endBatch(ClockworkRenderTypes.GRAVITRON_SURFACE)
     }

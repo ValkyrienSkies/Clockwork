@@ -9,6 +9,7 @@ import dev.engine_room.flywheel.lib.model.baked.PartialModel
 import net.createmod.catnip.animation.AnimationTickHolder
 import net.minecraft.client.Minecraft
 import net.minecraft.client.renderer.MultiBufferSource
+import net.minecraft.client.renderer.Sheets
 import net.minecraft.world.item.ItemDisplayContext
 import net.minecraft.world.item.ItemStack
 import org.joml.Quaternionf
@@ -93,14 +94,14 @@ class GravitronItemRenderer : CustomRenderedItemModelRenderer() {
             ms.popPose()
         }
         if (creative) {
+            // Solid item parts use a fixed buffer, while this translucent pass uses the shared
+            // buffer. Flush the solid parts first so the full-sized aura blends over their depth.
+            (buffer as? MultiBufferSource.BufferSource)?.endBatch(Sheets.solidBlockSheet())
             ms.pushPose()
-            ms.translate(GravitronVisuals.EMITTER_X / 16.0 - 0.5,
-                GravitronVisuals.EMITTER_Y / 16.0 - 0.5, GravitronVisuals.EMITTER_Z / 16.0 - 0.5)
-            ms.mulPose(Axis.ZP.rotationDegrees(GravitronVisuals.coreAngle(time)))
-            ms.scale(GravitronVisuals.CORE_SCALE, GravitronVisuals.CORE_SCALE, GravitronVisuals.CORE_SCALE)
-            // PartialItemModelRenderer subtracts half a block; the FX model is centered at (0, 0, 7.75).
-            ms.translate(0.5, 0.5, 0.5 - 7.75 / 16.0)
-            renderer.renderGlowing(ClockworkPartials.OVERLOAD_FX.get(), 0xF000F0)
+            pivot(ms, GravitronVisuals.OVERCHARGE_X, GravitronVisuals.OVERCHARGE_Y, GravitronVisuals.OVERCHARGE_Z) {
+                ms.mulPose(Axis.ZP.rotationDegrees(GravitronVisuals.coreAngle(time)))
+            }
+            renderer.render(ClockworkPartials.OVERLOAD_FX.get(), ClockworkRenderTypes.GRAVITRON_OVERCHARGE, 0xF000F0)
             ms.popPose()
         }
         if (state != null) renderCore(ms, buffer, pose, time)
@@ -140,13 +141,11 @@ class GravitronItemRenderer : CustomRenderedItemModelRenderer() {
 
     private fun renderDial(angle: Float, ms: PoseStack, renderer: PartialItemModelRenderer, light: Int) {
         ms.pushPose()
-        // Anchor the local needle at the dial hub in gravitronbase.json, then rotate in its tilted plane.
-        ms.translate(GravitronVisuals.DIAL_X / 16.0 - 0.5, GravitronVisuals.DIAL_Y / 16.0 - 0.5,
-            GravitronVisuals.DIAL_Z / 16.0 - 0.5)
-        ms.mulPose(Axis.XN.rotationDegrees(22.5f))
-        ms.mulPose(Axis.ZN.rotationDegrees(angle - 170f))
-        ms.translate(0.5, 0.5, 0.5)
-        renderer.render(ClockworkPartials.GRAV_DIAL_HAND.get(), light)
+        // Keep the original exported mesh position and rest pose; only turn it about the hub.
+        pivot(ms, GravitronVisuals.DIAL_X, GravitronVisuals.DIAL_Y, GravitronVisuals.DIAL_Z) {
+            ms.mulPose(GravitronVisuals.dialRotation(angle))
+        }
+        renderer.renderSolid(ClockworkPartials.GRAV_DIAL_HAND.get(), light)
         ms.popPose()
     }
 }
