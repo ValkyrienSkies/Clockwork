@@ -107,6 +107,7 @@ object ClockworkModClient {
 
         ClientTickEvent.CLIENT_POST.register(ClientTickEvent.Client {
             org.valkyrienskies.clockwork.content.curiosities.tools.gravitron.GravitronEffects.tick()
+            org.valkyrienskies.clockwork.content.curiosities.tools.wanderwand.WanderwandHandEffects.tick()
             DualLinkRenderer.tick()
             ClockworkSoundScapes.tick()
             SecondScrollValueRenderer.tickSecond()

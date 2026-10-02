@@ -37,20 +37,24 @@ class WanderwandItem(properties: Properties) : CWItem(properties) {
     }
 
     override fun appendHoverText(stack: ItemStack, level: Level?, tooltipComponents: MutableList<Component>, isAdvanced: TooltipFlag) {
-        tooltipComponents.add(Component.translatable("vs_clockwork.wanderwand.warning").withStyle(ChatFormatting.RED))
+        tooltipComponents.add(Component.translatable("vs_clockwork.wanderwand.controls").withStyle(ChatFormatting.LIGHT_PURPLE))
         super.appendHoverText(stack, level, tooltipComponents, isAdvanced)
     }
 
     override fun inventoryTick(stack: ItemStack, level: Level, entity: Entity, slotId: Int, isSelected: Boolean) {
         if (!level.isClientSide && entity is ServerPlayer) {
             val tag = stack.orCreateTag
+            if (isSelected && tag.contains("selectionDimension") && tag.getString("selectionDimension") != level.dimension().location().toString()) {
+                tag.remove("selectedBlocks")
+                tag.putString("selectionDimension", level.dimension().location().toString())
+                tag.putBoolean("hasLoaded", false)
+            }
             if (!isSelected) {
                 tag.putBoolean("hasLoaded", false)
             } else if (!tag.getBoolean("hasLoaded")) {
                 tag.putBoolean("hasLoaded", true)
-                if (tag.contains("selectedBlocks")) {
-                    sendTo(WanderwandRenderUpdatePacket(BlockPos.ZERO, ToolType.SELECT, blocks = tag.get("selectedBlocks") as CompoundTag), entity)
-                }
+                WanderwandServer.syncSelection(entity)
+                ClockworkSounds.WAND_EQUIP.playOnServer(level, entity.blockPosition(), 0.6f, 1f)
             }
         }
         super.inventoryTick(stack, level, entity, slotId, isSelected)
@@ -58,108 +62,6 @@ class WanderwandItem(properties: Properties) : CWItem(properties) {
 
     companion object {
 
-        @JvmStatic
-        fun select(sLevel: ServerLevel, sPlayer: ServerPlayer, firstPos: BlockPos, secondPos: BlockPos, isSecond: Boolean, deselect: Boolean, leftClick: Boolean) {
-            if (!isSecond) {
-                if (leftClick && sPlayer.mainHandItem.item is WanderwandItem) {
-                    val existingSelection = sPlayer.mainHandItem.tag?.get("selectedBlocks") as? CompoundTag?
-                    if (existingSelection != null) {
-                        val existingSelectionDeser = readAABBSetFromNBT(existingSelection)
-                        val existingAABB = existingSelectionDeser.find { it.containsPoint(firstPos.toJOML())}
-                        if (existingAABB != null) {
-                            existingSelectionDeser.remove(existingAABB)
-                            sPlayer.mainHandItem.tag?.remove("selectedBlocks")
-                            sPlayer.mainHandItem.tag?.put("selectedBlocks", writeAABBSetToNBT(existingSelectionDeser))
-                        }
-                    }
-                }
-                return
-            }
-
-            val minX = min(firstPos.x, secondPos.x)
-            val minY = min(firstPos.y, secondPos.y)
-            val minZ = min(firstPos.z, secondPos.z)
-
-            val maxX = max(firstPos.x, secondPos.x)
-            val maxY = max(firstPos.y, secondPos.y)
-            val maxZ = max(firstPos.z, secondPos.z)
-
-            val selection = AABBi(minX, minY, minZ, (maxX + 1), (maxY + 1), (maxZ + 1))
-
-            if (sPlayer.mainHandItem.item is WanderwandItem) {
-                val wand = sPlayer.mainHandItem
-
-                if (!deselect) {
-                    val existingSelection = wand.tag?.get("selectedBlocks") as CompoundTag?
-                    var toWrite: List<AABBic> = arrayListOf(selection)
-                    if (existingSelection != null) {
-                        val existingGroups = readAABBSetFromNBT(existingSelection)
-                        existingGroups.add(selection)
-                        toWrite = mergeAdjacentFast(existingGroups)
-                    }
-                    wand.tag?.remove("selectedBlocks")
-                    wand.tag?.put("selectedBlocks", writeAABBSetToNBT(toWrite))
-                } else {
-                    val existingSelection = wand.tag?.get("selectedBlocks") as CompoundTag?
-                    if (existingSelection != null) {
-                        val existingSelectionDeser = readAABBSetFromNBT(existingSelection)
-                        val out = existingSelectionDeser.subtractWithAABB(selection)
-                        wand.tag?.remove("selectedBlocks")
-                        val optimizedOut = mergeAdjacentFast(out)
-                        wand.tag?.put("selectedBlocks", writeAABBSetToNBT(optimizedOut))
-                    }
-                }
-                sendTo(WanderwandRenderUpdatePacket(firstPos, if (deselect) ToolType.DESELECT else ToolType.SELECT, blocks = wand.tag?.get("selectedBlocks") as? CompoundTag?), sPlayer)
-            }
-        }
-
-        @JvmStatic
-        fun startWeld(sLevel: ServerLevel, sPlayer: ServerPlayer, clickedPos: BlockPos, clickedFace: Int) {
-            val ship = sLevel.getLoadedShipManagingPos(clickedPos) ?: return
-            val wand = sPlayer.mainHandItem
-            wand.tag?.putBoolean("isWelding", true)
-            wand.tag?.putLong("weldingShipId", ship.id)
-            val blocks = HashSet<BlockPos>()
-            val clickedDir = Direction.values().get(clickedFace)
-            blocks.add(clickedPos)
-            for (dir in Direction.values()) {
-                if (dir == clickedDir) continue
-                val neighbor = clickedPos.relative(dir)
-                if (sLevel.getBlockState(neighbor).isAir) continue
-                blocks.add(neighbor)
-            }
-            sLevel.playSound(null, sPlayer.blockPosition(), ClockworkSounds.WAND_START.mainEvent!!, sPlayer.soundSource, 1.0f, 1.0f)
-            sendTo(WanderwandRenderUpdatePacket(clickedPos, ToolType.WELD, blocks = wand.tag?.get("selectedBlocks") as CompoundTag?, selDir = clickedDir, shipId = ship.id, onOff = true), sPlayer)
-        }
-
-        @JvmStatic
-        fun weld(sLevel: ServerLevel, sPlayer: ServerPlayer, clickedPos: BlockPos, clickedFace: Int) {
-            val ship = sLevel.getLoadedShipManagingPos(clickedPos) ?: return
-            val wand = sPlayer.mainHandItem
-            wand.tag?.putBoolean("isWelding", true)
-            wand.tag?.putLong("weldingShipId", ship.id)
-            val blocks = HashSet<BlockPos>()
-            val clickedDir = Direction.values().get(clickedFace)
-            sLevel.playSound(null, sPlayer.blockPosition(), ClockworkSounds.WAND_WELD.mainEvent!!, sPlayer.soundSource, 1.0f, 1.0f)
-            sendTo(WanderwandRenderUpdatePacket(clickedPos, ToolType.WELD, blocks = wand.tag?.get("selectedBlocks") as CompoundTag?, selDir = clickedDir, shipId = ship.id, onOff = false), sPlayer)
-        }
-
-        @JvmStatic
-        fun attach(sLevel: ServerLevel, sPlayer: ServerPlayer, clickedPos: BlockPos) {
-
-        }
-
-        @JvmStatic
-        fun startBind(sLevel: ServerLevel, sPlayer: ServerPlayer, clickedPos: BlockPos) {
-            //TODO
-        }
-
-        @JvmStatic
-        fun bind(sLevel: ServerLevel, sPlayer: ServerPlayer, clickedPos: BlockPos) {
-            //TODO
-        }
-
-        // Method to write a set of BlockPos to NBT
         @JvmStatic
         fun writeBlockPosSetToNBT(blockPosSet: Set<BlockPos>): CompoundTag {
             // Create the main compound tag
@@ -197,7 +99,7 @@ class WanderwandItem(properties: Properties) : CWItem(properties) {
             val listTag = mainTag.getList("BlockSet", 10) // 10 stands for CompoundTag type
 
             // Iterate over the list tag and convert each entry back to a BlockPos
-            for (i in listTag.indices) {
+            for (i in 0 until minOf(listTag.size, 100000)) {
                 val posTag = listTag.getCompound(i)
                 val x = posTag.getInt("x")
                 val y = posTag.getInt("y")
@@ -229,7 +131,7 @@ class WanderwandItem(properties: Properties) : CWItem(properties) {
             val aabbSet: ArrayList<AABBic> = ArrayList()
             val listTag = mainTag.getList("AABBSet", 10) // 10 stands for CompoundTag type
 
-            for (i in listTag.indices) {
+            for (i in 0 until minOf(listTag.size, 512)) {
                 val aabbTag = listTag.getCompound(i)
                 val lowerCornerLong = aabbTag.getLong("lowerCorner")
                 val upperCornerLong = aabbTag.getLong("upperCorner")
@@ -243,7 +145,7 @@ class WanderwandItem(properties: Properties) : CWItem(properties) {
                     upperPos.y,
                     upperPos.z
                 )
-                aabbSet.add(aabb)
+                if (WandSelectionMath.volume(aabb) in 1..100000) aabbSet.add(aabb)
             }
             return aabbSet
         }

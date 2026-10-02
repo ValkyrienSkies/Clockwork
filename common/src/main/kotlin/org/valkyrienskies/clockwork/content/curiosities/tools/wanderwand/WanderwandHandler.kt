@@ -10,6 +10,9 @@ import net.minecraft.world.entity.player.Player
 import net.minecraft.world.item.ItemStack
 import net.minecraft.world.level.GameType
 import org.valkyrienskies.clockwork.ClockworkItems
+import org.valkyrienskies.clockwork.ClockworkPackets
+import net.minecraft.core.BlockPos
+import org.valkyrienskies.clockwork.ClockworkModClient
 import org.valkyrienskies.clockwork.content.curiosities.tools.wanderwand.tool.ToolType
 import org.valkyrienskies.clockwork.util.ClockworkHotbarSlotOverlays
 
@@ -75,6 +78,12 @@ open class WanderwandHandler {
 
         currentTool!!.tool.renderOverlay(poseStack, partialTicks, width, height)
         selectionScreen!!.renderPassive(poseStack, partialTicks)
+        ClockworkModClient.WANDERWAND_EFFECT_RENDERER.ropeLength()?.let { length ->
+            val mc = Minecraft.getInstance()
+            poseStack.drawCenteredString(mc.font, net.minecraft.network.chat.Component.translatable(
+                "vs_clockwork.wanderwand.rope_length", String.format(java.util.Locale.ROOT, "%.1f", length)),
+                mc.window.guiScaledWidth / 2, mc.window.guiScaledHeight - 65, 0xC3A0E3)
+        }
     }
 
     private fun itemLost(player: Player): Boolean {
@@ -91,6 +100,8 @@ open class WanderwandHandler {
     fun equip(tool: ToolType?) {
         this.currentTool = tool
         currentTool!!.tool.init()
+        if (active && Minecraft.getInstance().player != null)
+            ClockworkPackets.sendToServer(WandSelectionPacket(BlockPos.ZERO, null, currentTool!!, false, -2))
     }
 
     fun findWandInHand(player: Player?): ItemStack? {
@@ -113,8 +124,13 @@ open class WanderwandHandler {
         if (!active) return false
         else if (!pressed || (button != 1 && button != 0)) return false
         val mc = Minecraft.getInstance()
-        if (mc.player!!.isShiftKeyDown && currentTool != ToolType.DESELECT) return false
-        else if (button == 0) return currentTool!!.tool.handleLeftClick()
+        if (mc.screen != null || mc.player == null) return false
+        if (button == 0) return currentTool!!.tool.handleLeftClick()
+        if (currentTool == ToolType.SELECT || currentTool == ToolType.DESELECT) {
+            val hit = mc.hitResult as? net.minecraft.world.phys.BlockHitResult
+            if (mc.player!!.isShiftKeyDown || (hit != null && mc.level?.getBlockEntity(hit.blockPos) is
+                    org.valkyrienskies.clockwork.content.contraptions.phys.infuser.PhysicsInfuserBlockEntity)) return false
+        }
 
 
         return currentTool!!.tool.handleRightClick(mc.player!!.isCrouching)
@@ -148,6 +164,10 @@ open class WanderwandHandler {
         }
         if (AllKeys.ctrlDown()) {
             return currentTool!!.tool.handleMouseWheel(delta)
+        }
+        if (Minecraft.getInstance().player?.isShiftKeyDown == true && ClockworkModClient.WANDERWAND_EFFECT_RENDERER.holdingRope()) {
+            ClockworkPackets.sendToServer(WanderwandReelPacket(if (delta > 0) 1 else -1))
+            return true
         }
         return false
     }

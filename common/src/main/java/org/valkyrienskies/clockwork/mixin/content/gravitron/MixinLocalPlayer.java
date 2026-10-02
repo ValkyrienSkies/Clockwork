@@ -26,7 +26,7 @@ public class MixinLocalPlayer extends AbstractClientPlayer {
     private void vs_clockwork$preSwing(final InteractionHand hand, final CallbackInfo ci) {
         final ItemStack itemStack = getItemInHand(hand);
         final Item item = itemStack.getItem();
-        if (item == ClockworkItems.GRAVITRON.get() || item == ClockworkItems.CREATIVE_GRAVITRON.get()) {
+        if (item == ClockworkItems.GRAVITRON.get() || item == ClockworkItems.CREATIVE_GRAVITRON.get() || item == ClockworkItems.WANDERWAND.get()) {
             ((MinecraftAccessor) Minecraft.getInstance()).setMissTime(10);
             // Successful server actions drive recoil; vanilla attack swings fight that motion.
             ci.cancel();

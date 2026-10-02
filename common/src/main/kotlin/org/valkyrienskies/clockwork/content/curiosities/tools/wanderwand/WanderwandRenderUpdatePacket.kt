@@ -69,7 +69,7 @@ class WanderwandRenderUpdatePacket : S2CCWPacket {
         context.enqueueWork {
             ClockworkModClient.WANDERWAND_EFFECT_RENDERER.handlePacket(this)
         }
-        context.handled()
+        context.setPacketHandled(true)
     }
 
     override fun write(buffer: FriendlyByteBuf) {

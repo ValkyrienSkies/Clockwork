@@ -1,4 +1,3 @@
 package org.valkyrienskies.clockwork.content.curiosities.tools.wanderwand.tool
 
-class BindTool(): WanderwandToolBase() {
-}
+class BindTool : WanderwandToolBase()

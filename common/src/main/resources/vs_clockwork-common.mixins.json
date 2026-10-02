@@ -29,6 +29,7 @@
     "content.sugar_rocket.MixinFireCharge",
     "content.universal_joint.MixinRotationPropagator",
     "content.wanderlite_crystal.MixinItemEntity",
+    "content.wanderwand.MixinServerGamePacketListener",
     "content.wing.MixinAbstractCauldronBlock"
   ],
   "client": [

@@ -8,6 +8,8 @@ import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.ItemDisplayContext;
 import org.valkyrienskies.clockwork.content.curiosities.tools.gravitron.GravitronEffects;
+import org.valkyrienskies.clockwork.content.curiosities.tools.wanderwand.WanderwandHandEffects;
+import org.valkyrienskies.clockwork.content.curiosities.tools.wanderwand.WanderwandItem;
 import com.llamalad7.mixinextras.injector.wrapmethod.WrapMethod;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import org.spongepowered.asm.mixin.Final;
@@ -36,10 +38,12 @@ public class MixinItemInHandRenderer {
                                                boolean leftHand, PoseStack matrices, MultiBufferSource buffers,
                                                int light, Operation<Void> original) {
         GravitronEffects.beginItem(entity, stack, context);
+        WanderwandHandEffects.beginItem(entity, stack, context);
         try {
             original.call(entity, stack, context, leftHand, matrices, buffers, light);
         } finally {
             GravitronEffects.endItem();
+            WanderwandHandEffects.endItem();
         }
     }
 
@@ -47,7 +51,7 @@ public class MixinItemInHandRenderer {
     private void clockwork$gravitonCancelNbtUpdateAnim(CallbackInfo ci) {
         ItemStack newMainStack = minecraft.player.getMainHandItem();
         if (mainHandItem.getItem() == newMainStack.getItem()) {
-            if (GravitronEffects.isGravitron(newMainStack)) {
+            if (GravitronEffects.isGravitron(newMainStack) || newMainStack.getItem() instanceof WanderwandItem) {
                 mainHandItem = newMainStack;
             }
         }

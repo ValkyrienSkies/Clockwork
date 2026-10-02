@@ -215,7 +215,8 @@
   "block.vs_clockwork.spinoff_bearing": "Spinoff Bearing",
   "item.vs_clockwork.spinoff_bearing": "Spinoff Bearing",
 
-  "vs_clockwork.wanderwand.warning": "BETA WARNING : Currently, only SELECT and DESELECT function.",
+  "vs_clockwork.wanderwand.controls": "Right-click to cast. Left-click to cancel or release.",
+  "vs_clockwork.wanderwand.rope_length": "Rope: %s m  |  Shift + Scroll to reel",
 
   "vs_clockwork.wanderwand.tool.select": "Select",
   "vs_clockwork.wanderwand.tool.select.description.0": "Adds an area to the wand's selection memory.",
@@ -227,7 +228,7 @@
   "vs_clockwork.wanderwand.tool.deselect.description.0": "Removes an area from the wand's selection memory.",
   "vs_clockwork.wanderwand.tool.deselect.description.1": "[Right-click] to deselect a corner.",
   "vs_clockwork.wanderwand.tool.deselect.description.2": "The selection will subtract from selected groups.",
-  "vs_clockwork.wanderwand.tool.deselect.description.3": "",
+  "vs_clockwork.wanderwand.tool.deselect.description.3": "[Left-click] cancels a corner or removes a region.",
 
   "vs_clockwork.wanderwand.tool.attach": "Attach",
   "vs_clockwork.wanderwand.tool.attach.description.0": "Magically attaches two vessels together.",
@@ -236,13 +237,13 @@
   "vs_clockwork.wanderwand.tool.attach.description.3": "[Left-click] near an attachment to remove it.",
 
   "vs_clockwork.wanderwand.tool.bind": "Bind",
-  "vs_clockwork.wanderwand.tool.bind.description.0": "Creates a magical rope between two vessels.",
-  "vs_clockwork.wanderwand.tool.bind.description.1": "[Right-click] on block faces to select.",
-  "vs_clockwork.wanderwand.tool.bind.description.2": "While connecting, the rope will attach to you.",
-  "vs_clockwork.wanderwand.tool.bind.description.3": "[Left-click] near a binding to remove it.",
+  "vs_clockwork.wanderwand.tool.bind.description.0": "Cast a rope up to 64 blocks away and swing from it.",
+  "vs_clockwork.wanderwand.tool.bind.description.1": "[Shift + Scroll] to reel in or out.",
+  "vs_clockwork.wanderwand.tool.bind.description.2": "[Right-click] a nearby block to secure the free end.",
+  "vs_clockwork.wanderwand.tool.bind.description.3": "[Left-click] releases your rope. Attach removes secured ends.",
 
   "vs_clockwork.wanderwand.tool.weld": "Weld",
-  "vs_clockwork.wanderwand.tool.weld.description.0": "Welds two vessels together permanently.",
+  "vs_clockwork.wanderwand.tool.weld.description.0": "Moves a ship's blocks onto another ship or the world.",
   "vs_clockwork.wanderwand.tool.weld.description.1": "[Right-click] on block faces to select.",
   "vs_clockwork.wanderwand.tool.weld.description.2": "A hologram will indicate the orientation of the welded blocks.",
   "vs_clockwork.wanderwand.tool.weld.description.3": "Welding vessels will fuse them into one.",

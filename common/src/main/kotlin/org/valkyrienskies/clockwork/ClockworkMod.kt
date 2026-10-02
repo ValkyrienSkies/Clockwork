@@ -153,6 +153,7 @@ object ClockworkMod {
         }
 
         TickEvent.SERVER_LEVEL_POST.register {
+            org.valkyrienskies.clockwork.content.curiosities.tools.wanderwand.WanderwandServer.tick(it)
             for (ship in it.shipObjectWorld.loadedShips) {
                 GravitronFrozenShip.tick(it, ship)
                 //TODO: UNCOMMENT WHEN POCKET FORCES IS FIXED
