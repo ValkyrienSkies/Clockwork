@@ -8,8 +8,6 @@ import net.minecraft.nbt.Tag
 import net.minecraft.network.chat.Component
 import net.minecraft.network.chat.Style
 import net.minecraft.server.level.ServerLevel
-import net.minecraft.server.level.ServerPlayer
-import net.minecraft.sounds.SoundSource
 import net.minecraft.world.entity.Entity
 import net.minecraft.world.entity.player.Player
 import net.minecraft.world.phys.Vec3
@@ -19,23 +17,19 @@ import org.joml.Vector3d
 import org.joml.Vector3dc
 import org.valkyrienskies.clockwork.ClockworkConfig
 import org.valkyrienskies.clockwork.ClockworkItems
-import org.valkyrienskies.clockwork.ClockworkPackets
 import org.valkyrienskies.clockwork.ClockworkPackets.Companion.sendToServer
 import org.valkyrienskies.clockwork.ClockworkSounds
-import org.valkyrienskies.clockwork.content.curiosities.tools.gravitron.GravitronDialPacket
+import org.valkyrienskies.clockwork.content.curiosities.tools.gravitron.GravitronAction
+import org.valkyrienskies.clockwork.content.curiosities.tools.gravitron.GravitronAnimationPacket
 import org.valkyrienskies.clockwork.content.forces.GravitronController.Companion.getOrCreate
 import org.valkyrienskies.clockwork.content.curiosities.tools.gravitron.GravitronForceInducerData
 import org.valkyrienskies.clockwork.content.curiosities.tools.gravitron.GravitronGrabPacket
 import org.valkyrienskies.clockwork.content.curiosities.tools.gravitron.GravitronLeftClickPacket
 import org.valkyrienskies.clockwork.content.curiosities.tools.gravitron.GravitronState
 import org.valkyrienskies.clockwork.content.curiosities.tools.gravitron.GravitronState.Companion.getState
-import org.valkyrienskies.clockwork.content.curiosities.tools.gravitron.GravitronState.Companion.mapValueToAngle
-import org.valkyrienskies.clockwork.platform.SharedValues
 import org.valkyrienskies.clockwork.util.ClockworkUtils.readVec3
 import org.valkyrienskies.core.api.ships.LoadedServerShip
 import org.valkyrienskies.core.api.ships.ServerShip
-import org.valkyrienskies.mod.common.ValkyrienSkiesMod
-import org.valkyrienskies.mod.common.dimensionId
 import org.valkyrienskies.mod.common.getShipManagingPos
 import org.valkyrienskies.mod.common.isBlockInShipyard
 import org.valkyrienskies.mod.common.shipObjectWorld
@@ -60,9 +54,8 @@ class GrabTool : GravitronToolBase() {
         isRegular: Boolean
     ): Boolean {
         updateTargetPos(isRegular)
-        if (clickedPos != null && clickedLocation != null) {
-            sendToServer(GravitronLeftClickPacket(clickedPos!!))
-        }
+        // The server can launch the held ship even when it has moved off the crosshair.
+        sendToServer(GravitronLeftClickPacket(clickedPos ?: BlockPos.ZERO))
 
         return true
     }
@@ -79,23 +72,19 @@ class GrabTool : GravitronToolBase() {
         /**
          * Will nullify the force inducer and effectively returning the ship to its regular physics, a success will return true
          */
-        fun dropShip(player: Player) : Boolean{
-            if (getState(player).shipID != null && player.level() is ServerLevel) {
-                val serverLevel = player.level() as ServerLevel
-                val ship = serverLevel.shipObjectWorld.loadedShips.getById(getState(player).shipID!!)
-                if (ship != null) {
-                    // Make sure we don't bother "dropping" the ship if its static,
-                    // we continue the rest of grab code so it un-static's first try
-                    if (ship.isStatic) return false
-
-                    val gravitronForceInducer = getOrCreate(ship)
-                    gravitronForceInducer.data = null
-                    getState(player).shipID = null
-                    ClockworkPackets.sendTo(GravitronDialPacket(0f), player as ServerPlayer)
-                    return true
-                }
-            }
-            return false
+        fun dropShip(player: Player, notify: Boolean = true): Boolean {
+            val level = player.level() as? ServerLevel ?: return false
+            val state = getState(player)
+            val id = state.shipID ?: return false
+            level.shipObjectWorld.loadedShips.getById(id)?.let { getOrCreate(it).data = null }
+            if (notify) GravitronAnimationPacket.send(player, GravitronAction.RELEASE, id, state.shipGrabbedPos)
+            state.shipID = null
+            state.shipGrabbedPos = null
+            state.heldBlockPos = null
+            state.shipGrabbedRot = null
+            state.shipGrabbedDistance = null
+            state.playerGrabbedRotation = null
+            return true
         }
 
         /**
@@ -142,6 +131,32 @@ class GrabTool : GravitronToolBase() {
             updateShipCommon(s, level, entity, lockedCurrentRotation)
         }
 
+        /** Observe equipment before handling packets too: a click can arrive before the next player tick. */
+        fun updateEquipment(player: Player): Boolean {
+            val level = player.level() as? ServerLevel ?: return false
+            val state = getState(player)
+            val item = player.mainHandItem.item
+            val equipped = item.takeIf {
+                (it == ClockworkItems.GRAVITRON.get() || it == ClockworkItems.CREATIVE_GRAVITRON.get()) &&
+                    player.isAlive && !player.isSpectator
+            }
+            if (state.equippedItem != equipped || state.equippedSlot != player.inventory.selected) {
+                dropShip(player)
+                if (equipped != null) {
+                    GravitronAnimationPacket.send(player, GravitronAction.DRAW)
+                    level.playSound(null, player.blockPosition(), ClockworkSounds.GRAVITRON_START.mainEvent!!,
+                        player.soundSource, 0.3f, 1f)
+                } else if (state.equippedItem != null) {
+                    level.playSound(null, player.blockPosition(), ClockworkSounds.GRAVITRON_SHUTDOWN.mainEvent!!,
+                        player.soundSource, 0.5f, 1f)
+                }
+                state.equippedItem = equipped
+                state.equippedSlot = player.inventory.selected
+            }
+            if (equipped == null) dropShip(player)
+            return equipped != null
+        }
+
         /**
          * Handles updating the ship with updateShipDirection and updateShip if there is a stored shipId.
          * Handles the queued grab from Grabssemble, is the Gravitron has nbt for it
@@ -153,10 +168,25 @@ class GrabTool : GravitronToolBase() {
                 val graviton = player.mainHandItem
                 val serverLevel = player.level() as ServerLevel
 
-                var bl = graviton.`is`(ClockworkItems.GRAVITRON.get().asItem())
-                var bl2 = graviton.`is`(ClockworkItems.CREATIVE_GRAVITRON.get().asItem())
-                if (s.shipID != null && (bl || bl2)) {
+                if (!updateEquipment(player)) return
+                val bl = graviton.`is`(ClockworkItems.GRAVITRON.get().asItem())
+                val heldShip = s.shipID?.let { serverLevel.shipObjectWorld.loadedShips.getById(it) }
+                if (s.shipID != null && (heldShip == null || heldShip.isStatic)) dropShip(player)
+                if (heldShip != null && bl && heldShip.inertiaData.mass > ClockworkConfig.SERVER.maxGravitronMass * 1000.0) {
+                    val anchor = s.shipGrabbedPos
+                    dropShip(player, false)
+                    overload(player, heldShip, anchor)
+                }
+                if (s.shipID != null) {
                     updateShip(s, serverLevel, player)
+                }
+                if (player.tickCount % 10 == 0) {
+                    if (s.shipID != null && heldShip != null) {
+                        GravitronAnimationPacket.send(player, GravitronAction.HOLD, heldShip.id, s.shipGrabbedPos,
+                            loadOf(heldShip))
+                    } else {
+                        GravitronAnimationPacket.send(player, GravitronAction.IDLE)
+                    }
                 }
 
                 if (graviton.hasTag() && graviton.tag!!.contains("GrabbedPosInShip") && !player.cooldowns.isOnCooldown(graviton.item)) {
@@ -212,11 +242,6 @@ class GrabTool : GravitronToolBase() {
             if (!isCreative) {
 
                 val mass = ship.inertiaData.mass
-                if (player is ServerPlayer) {
-                    val q = mass.toFloat() / (ClockworkConfig.SERVER.maxGravitronMass * 1000f)
-                    val angle = mapValueToAngle(q * 100)
-                    ClockworkPackets.sendTo(GravitronDialPacket(angle), player)
-                }
 
                 if (mass > ClockworkConfig.SERVER.maxGravitronMass * 1000 * 0.9) {
                     player.displayClientMessage(
@@ -228,6 +253,7 @@ class GrabTool : GravitronToolBase() {
                     )
                 }
                 if (mass > ClockworkConfig.SERVER.maxGravitronMass * 1000) {
+                    overload(player, ship, grabPosInShip)
                     player.displayClientMessage(
                         Component.literal("Ship too heavy! ${mass.toInt()} / ${ClockworkConfig.SERVER.maxGravitronMass * 1000}").withStyle(
                             Style.EMPTY.withColor(
@@ -267,6 +293,17 @@ class GrabTool : GravitronToolBase() {
             s.shipGrabbedRot = ship.transform.shipToWorldRotation
             s.shipGrabbedDistance = player.eyePosition.toJOML().distance(heldPosInWorld)
             ship.isStatic = false
+            GravitronAnimationPacket.send(player, GravitronAction.GRAB, ship.id, grabPosInShip, loadOf(ship))
+        }
+
+        fun loadOf(ship: ServerShip): Float =
+            (ship.inertiaData.mass / (ClockworkConfig.SERVER.maxGravitronMass * 1000.0).coerceAtLeast(1.0)).toFloat()
+
+        fun overload(player: Player, ship: ServerShip, anchor: Vector3dc?) {
+            GravitronAnimationPacket.send(player, GravitronAction.OVERLOAD, ship.id, anchor, loadOf(ship))
+            player.level().playSound(null, player.blockPosition(), ClockworkSounds.GRAVITRON_SHUTDOWN.mainEvent!!,
+                player.soundSource, 0.9f, 0.65f)
+            player.cooldowns.addCooldown(player.mainHandItem.item, 32)
         }
     }
 

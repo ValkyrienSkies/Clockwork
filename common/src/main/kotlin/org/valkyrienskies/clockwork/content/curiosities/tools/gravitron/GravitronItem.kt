@@ -51,10 +51,7 @@ class GravitronItem(properties: Properties) : CWItem(properties), CustomArmPoseI
     }
 
     override fun getArmPose(stack: ItemStack?, player: AbstractClientPlayer, hand: InteractionHand?): HumanoidModel.ArmPose? {
-        if (!player.swinging) {
-            return HumanoidModel.ArmPose.CROSSBOW_HOLD
-        }
-        return null
+        return HumanoidModel.ArmPose.CROSSBOW_HOLD
     }
 
     override fun canAttackBlock(state: BlockState, world: Level, pos: BlockPos, player: Player): Boolean {

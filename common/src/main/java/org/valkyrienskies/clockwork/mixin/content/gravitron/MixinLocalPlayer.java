@@ -22,13 +22,14 @@ public class MixinLocalPlayer extends AbstractClientPlayer {
         super(clientLevel, gameProfile);
     }
 
-    @Inject(method = "swing", at = @At("HEAD"))
+    @Inject(method = "swing", at = @At("HEAD"), cancellable = true)
     private void vs_clockwork$preSwing(final InteractionHand hand, final CallbackInfo ci) {
         final ItemStack itemStack = getItemInHand(hand);
         final Item item = itemStack.getItem();
-        if (item == ClockworkItems.GRAVITRON.get()) {
-            // TODO: Maybe play a sound here as well?
+        if (item == ClockworkItems.GRAVITRON.get() || item == ClockworkItems.CREATIVE_GRAVITRON.get()) {
             ((MinecraftAccessor) Minecraft.getInstance()).setMissTime(10);
+            // Successful server actions drive recoil; vanilla attack swings fight that motion.
+            ci.cancel();
         }
     }
 }

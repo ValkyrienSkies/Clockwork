@@ -5,189 +5,137 @@ import com.mojang.math.Axis
 import com.simibubi.create.foundation.item.render.CustomRenderedItemModel
 import com.simibubi.create.foundation.item.render.CustomRenderedItemModelRenderer
 import com.simibubi.create.foundation.item.render.PartialItemModelRenderer
+import dev.engine_room.flywheel.lib.model.baked.PartialModel
 import net.createmod.catnip.animation.AnimationTickHolder
-import net.createmod.catnip.math.AngleHelper
 import net.minecraft.client.Minecraft
 import net.minecraft.client.renderer.MultiBufferSource
-import net.minecraft.client.renderer.block.model.ItemTransforms
-import net.minecraft.util.Mth
-import net.minecraft.world.entity.HumanoidArm
 import net.minecraft.world.item.ItemDisplayContext
 import net.minecraft.world.item.ItemStack
-import org.joml.AxisAngle4f
 import org.joml.Quaternionf
-import org.joml.AxisAngle4d
-import org.joml.Quaterniond
-import org.joml.Vector3d
 import org.joml.Vector3f
 import org.valkyrienskies.clockwork.ClockworkPartials
-import org.valkyrienskies.clockwork.mixinduck.MixinPlayerDuck
-import org.valkyrienskies.clockwork.util.EaseHelper
-import org.valkyrienskies.mod.api.vsApi
+import org.valkyrienskies.clockwork.ClockworkRenderTypes
+import kotlin.math.PI
 import kotlin.math.cos
-import kotlin.math.min
 import kotlin.math.sin
 
-open class GravitronItemRenderer : CustomRenderedItemModelRenderer() {
+class GravitronItemRenderer : CustomRenderedItemModelRenderer() {
+    private data class Joint(val model: PartialModel, val x: Float, val y: Float, val z: Float)
+    private data class Arm(val axisX: Float, val axisY: Float, val joints: List<Joint>)
 
-    var tempAngle: Float = 0f
-    var overloadAngle: Float = 0f
+    // Actual Blockbench pivots, in pixels. Child joints inherit the parent's motion.
+    private val arms = listOf(
+        Arm(1f, 0f, listOf(
+            Joint(ClockworkPartials.GRAV_PRONG_TOP_ONE, 7.70161f, 8.35355f, 1.69781f),
+            Joint(ClockworkPartials.GRAV_PRONG_TOP_TWO, 7.69435f, 8.49629f, -0.98055f),
+            Joint(ClockworkPartials.GRAV_PRONG_TOP_THREE, 7.69435f, 8.49629f, -3.98055f))),
+        Arm(-0.707107f, 0.707107f, listOf(
+            Joint(ClockworkPartials.GRAV_PRONG_LEFT_ONE, 6.24412f, 4.5858f, 1.71192f),
+            Joint(ClockworkPartials.GRAV_PRONG_LEFT_TWO, 6.38686f, 4.72854f, -0.96644f),
+            Joint(ClockworkPartials.GRAV_PRONG_LEFT_THREE, 6.38686f, 4.72854f, -3.96644f))),
+        Arm(-0.707107f, -0.707107f, listOf(
+            Joint(ClockworkPartials.GRAV_PRONG_RIGHT_ONE, 9.25588f, 4.5858f, 1.71192f),
+            Joint(ClockworkPartials.GRAV_PRONG_RIGHT_TWO, 9.11314f, 4.72854f, -0.96644f),
+            Joint(ClockworkPartials.GRAV_PRONG_RIGHT_THREE, 9.11314f, 4.72854f, -3.96644f)))
+    )
 
-    override fun render(
-        stack: ItemStack,
-        model: CustomRenderedItemModel,
-        renderer: PartialItemModelRenderer,
-        transformType: ItemDisplayContext,
-        ms: PoseStack,
-        buffer: MultiBufferSource,
-        light: Int,
-        overlay: Int,
-    ) {
-        vsApi
-        val player = Minecraft.getInstance().player!!
-        val partialTicks = AnimationTickHolder.getPartialTicks()
-
-        val prevAngle = GravitronState.getPrevDialAngle(player)
-        val angle = GravitronState.getDialAngle(player)
-        val needsRefresh = GravitronState.getNeedRefresh(player)
-
-        if (needsRefresh) {
-            this.tempAngle = 0f
-            val duckPlayer = player as MixinPlayerDuck
-            duckPlayer.needsRefresh = false
-        }
-        var targetAngle = (((angle - prevAngle) * 1f) % 360f) + prevAngle
-
-        if (this.tempAngle < 1) {
-            // Increment prevAngle by the step increment
-            this.tempAngle = min(1f, this.tempAngle + (partialTicks / 32f))
-            //TODO maybe easing
-            val amount = EaseHelper.easeOutOvershoot(tempAngle)
-//            if (Mth.abs(angle - tempAngle) < 0.05f) {
-//                tempAngle = angle
-//            }
-            targetAngle = (((angle - prevAngle) * amount) % 360f) + prevAngle
-        }
-
-        targetAngle %= 360f
-
-        if (targetAngle >= 270f) {
-            ms.translate(sin(partialTicks/2f) / 32f, cos(partialTicks/2f + 7f) / 64f, 0f)
+    override fun render(stack: ItemStack, model: CustomRenderedItemModel, renderer: PartialItemModelRenderer,
+                        transformType: ItemDisplayContext, ms: PoseStack, buffer: MultiBufferSource, light: Int, overlay: Int) {
+        val mc = Minecraft.getInstance()
+        val player = GravitronEffects.renderedPlayer()
+        val state = GravitronEffects.state(player)
+        val now = mc.level?.gameTime ?: 0L
+        val pt = AnimationTickHolder.getPartialTicks()
+        val time = (now % 24000).toFloat() + pt
+        val pose = state?.animation?.sample(now, pt) ?: GravitronAnimation.Pose(dial = 10f)
+        val creative = stack.item is CreativeGravitronItem
+        ms.pushPose()
+        if (state != null) {
+            val flip = if (transformType == ItemDisplayContext.FIRST_PERSON_LEFT_HAND ||
+                transformType == ItemDisplayContext.THIRD_PERSON_LEFT_HAND) -1f else 1f
+            ms.translate(0.0, (-pose.lowering * 0.38f).toDouble(), (pose.recoil * 0.24f + pose.lowering * 0.2f).toDouble())
+            pivot(ms, 7.75f, 5f, 12f) {
+                ms.mulPose(Axis.XP.rotationDegrees(pose.recoil * 19f - pose.lowering * 28f))
+                ms.mulPose(Axis.ZP.rotationDegrees(pose.roll * flip))
+            }
         }
         renderer.renderSolid(model.originalModel, light)
-
-        renderDial(targetAngle, ms, renderer, light)
-        renderer.render(ClockworkPartials.GRAV_PRONG_TOP_ONE.get(), light)
-        renderer.render(ClockworkPartials.GRAV_PRONG_TOP_TWO.get(), light)
-        renderer.render(ClockworkPartials.GRAV_PRONG_TOP_THREE.get(), light)
-        renderer.render(ClockworkPartials.GRAV_PRONG_LEFT_ONE.get(), light)
-        renderer.render(ClockworkPartials.GRAV_PRONG_LEFT_TWO.get(), light)
-        renderer.render(ClockworkPartials.GRAV_PRONG_LEFT_THREE.get(), light)
-        renderer.render(ClockworkPartials.GRAV_PRONG_RIGHT_ONE.get(), light)
-        renderer.render(ClockworkPartials.GRAV_PRONG_RIGHT_TWO.get(), light)
-        renderer.render(ClockworkPartials.GRAV_PRONG_RIGHT_THREE.get(), light)
-
-        if (stack.item is CreativeGravitronItem) {
-            overloadAngle = ((player.tickCount + partialTicks) * 5f) % 360f
+        renderDial(pose.dial, ms, renderer, light)
+        arms.forEachIndexed { index, arm ->
             ms.pushPose()
-
-            ms.translate(0.0, -0.1, 0.0)
-            ms.mulPose(Quaternionf(AxisAngle4f(AngleHelper.rad(overloadAngle.toDouble()), 0f, 0f, 1f)))
-            ms.translate(8.0/16.0, 8/16.0, 0.0)
-            //ms.translate(7.75/16.0, 6.0/16.0, 7.75/16.0)
-
-            renderer.render(ClockworkPartials.OVERLOAD_FX.get(), light)
+            val holding = state?.animation?.holding == true
+            val twitch = if (holding || pose.strain > 0) {
+                // Each actuator moves independently, with faster chatter as the load approaches its limit.
+                (sin(time * 0.31f + index * 2.4f) + 0.35f * sin(time * 1.7f + index)) *
+                    (0.65f + pose.strain * 3.5f)
+            } else 0f
+            val opening = pose.opening + twitch
+            arm.joints.forEachIndexed { jointIndex, joint ->
+                val angle = when (jointIndex) {
+                    0 -> opening
+                    1 -> -opening * 0.42f + twitch * 0.35f
+                    else -> -opening * 0.2f
+                }
+                pivot(ms, joint.x, joint.y, joint.z) {
+                    ms.mulPose(Quaternionf().rotationAxis(angle * (PI / 180).toFloat(), arm.axisX, arm.axisY, 0f))
+                }
+                renderer.renderSolid(joint.model.get(), light)
+                if (jointIndex == 2 && player != null) {
+                    GravitronEffects.captureTip(player, transformType, ms, index,
+                        Vector3f(joint.x / 16f - 0.5f, joint.y / 16f - 0.5f, (joint.z - 1.5f) / 16f - 0.5f))
+                }
+            }
             ms.popPose()
         }
-
-
-
-
-////        ms.pushPose()
-////        ms.translate(1.7441/16f, 4.0858/16f, 0.0)
-////        ms.mulPose(Vector3f.ZP.rotationDegrees(135f))
-////        ms.mulPose(Vector3f.XP.rotationDegrees(45f))
-////        //ms.mulPose(Vector3f.YP.rotationDegrees(120f))
-////        ms.translate(0.0, -0.300, 0.125)
-////        renderer.render(ClockworkPartials.GRAV_PRONG_TOP_ONE.get(), light)
-////
-////        //ms.mulPose(Vector3f.ZP.rotationDegrees(-120f))
-////        ms.mulPose(Vector3f.XP.rotationDegrees(-15f))
-////        //ms.mulPose(Vector3f.YP.rotationDegrees(120f))
-////        ms.translate(0.0, 0.125, 0.025)
-////        renderer.render(ClockworkPartials.GRAV_PRONG_TOP_TWO.get(), light)
-////
-////        renderer.render(ClockworkPartials.GRAV_PRONG_TOP_THREE.get(), light)
-////        //ms.mulPose(Vector3f.YP.rotation(120f))
-////        ms.popPose()
-//
-//        //ms.translate(8.7559/16f, 4.0858/16f, 0.0)
-//        ms.translate(-7.7016/16f,-8.3536/16f,-1.6978/16f)
-//        ms.mulPose(Axis.ZN.rotationDegrees(135f))
-//        ms.pushPose()
-//        //ms.translate(7.7016/16f, 8.3536/16f, -1.6978/16f)
-//        //val rotatedVector2: Vector3d = Vector3d(7.7016/16f, 8.3536/16f, 1.6978/16f).rotate(Quaterniond(AxisAngle4d(Math.toRadians(135.0) ,0.0, 0.0, -1.0)))
-//        //ms.translate(rotatedVector2.x, rotatedVector2.y, rotatedVector2.z)
-//        ms.mulPose(Axis.XP.rotationDegrees(45f))
-//        //ms.mulPose(Vector3f.ZP.rotationDegrees(-240f))
-//        ms.translate(0.0, -0.300, 0.125)
-//        renderer.render(ClockworkPartials.GRAV_PRONG_TOP_ONE.get(), light)
-//
-//        //ms.mulPose(Vector3f.ZP.rotationDegrees(240f))
-//        ms.mulPose(Axis.XP.rotationDegrees(-15f))
-//        ms.translate(0.0, 0.125, 0.025)
-//        renderer.render(ClockworkPartials.GRAV_PRONG_TOP_TWO.get(), light)
-//
-//        renderer.render(ClockworkPartials.GRAV_PRONG_TOP_THREE.get(), light)
-//        //ms.mulPose(Vector3f.YP.rotation(240f))
-//        ms.popPose()
-//        ms.translate(7.7016/16f,8.3536/16f,1.6978/16f)
-//        ms.popPose()
-//        ms.pushPose()
-//        ms.pushPose()
-//        ms.translate(-7.7016/16f,-8.3536/16f,-1.6978/16f)
-//        ms.mulPose(Axis.XP.rotationDegrees(45f))
-//        ms.translate(7.7016/16f,8.3536/16f,1.6978/16f)
-//        //ms.translate(0.0, -0.300, 0.125)
-//        renderer.render(ClockworkPartials.GRAV_PRONG_TOP_ONE.get(), light)
-//        ms.popPose()
-//        ms.pushPose()
-//        ms.translate(-7.6944, -8.4963, 0.9806)
-//        ms.mulPose(Axis.XP.rotationDegrees(-15f))
-//        ms.translate(7.6944, 8.4963, -0.9806)
-//        //ms.translate(0.0, 0.125, 0.025)
-//        renderer.render(ClockworkPartials.GRAV_PRONG_TOP_TWO.get(), light)
-//        ms.popPose()
-//        renderer.render(ClockworkPartials.GRAV_PRONG_TOP_THREE.get(), light)
-//        ms.popPose()
-//        if (targetAngle >= 270f) {
-//            ms.popPose()
-//        }
+        if (creative) {
+            ms.pushPose()
+            ms.translate(0.0, -0.1, 0.0)
+            ms.mulPose(Axis.ZP.rotationDegrees(time * (5f + pose.energy * 7f)))
+            ms.translate(0.5, 0.5, 0.0)
+            renderer.renderGlowing(ClockworkPartials.OVERLOAD_FX.get(), 0xF000F0)
+            ms.popPose()
+        }
+        if (state != null) renderCore(ms, buffer, pose, time, creative)
+        ms.popPose()
     }
 
-    private fun renderDial(angle: Float, matrices: PoseStack, renderer: PartialItemModelRenderer, light: Int) {
+    private fun renderCore(ms: PoseStack, buffer: MultiBufferSource, pose: GravitronAnimation.Pose, time: Float, creative: Boolean) {
+        val energy = 0.12f + pose.energy * 0.65f
+        val rgb = if (pose.strain > 0.9f) 0xFF4930 else if (creative) 0x91DFFF else 0xFFB34F
+        val vc = buffer.getBuffer(ClockworkRenderTypes.GRAVITRON_ENERGY)
+        val matrix = ms.last().pose()
+        val radius = 0.045f + pose.energy * 0.025f
+        // Narrow rotating arcs around the emitter, rather than an opaque muzzle flash.
+        for (i in 0 until 32) {
+            if ((i / 6) % 2 == 0) continue
+            for ((angle, r) in listOf(
+                i * PI / 16 to radius, (i + 1) * PI / 16 to radius,
+                (i + 1) * PI / 16 to radius + 0.015f, i * PI / 16 to radius + 0.015f)) {
+                val a = angle + time * 0.12
+                vc.vertex(matrix, -0.016f + cos(a).toFloat() * r, -0.125f + sin(a).toFloat() * r, -0.41f)
+                    .color((rgb shr 16 and 255) / 255f, (rgb shr 8 and 255) / 255f, (rgb and 255) / 255f, energy)
+                    .uv(0.5f, 0.5f).endVertex()
+            }
+        }
+    }
 
-        matrices.pushPose()
+    private inline fun pivot(ms: PoseStack, x: Float, y: Float, z: Float, rotate: () -> Unit) {
+        val px = x / 16.0 - 0.5
+        val py = y / 16.0 - 0.5
+        val pz = z / 16.0 - 0.5
+        ms.translate(px, py, pz)
+        rotate()
+        ms.translate(-px, -py, -pz)
+    }
 
-        matrices.mulPose(Quaternionf(AxisAngle4f(AngleHelper.rad(22.5), -1f, 0f, 0f)))
-        matrices.translate(0.275,0.2275,-0.115)
-        matrices.pushPose()
-        val x = -7.9/16
-        val y = -7.3/16
-        val z = -22.0/16
-
-        matrices.translate(x,y,z)
-        matrices.mulPose(Quaternionf(AxisAngle4f(AngleHelper.rad(angle - 180.0 + 10.0), 0f, 0f, -1f)))
-        matrices.translate(-x,-y,-z)
-
-        matrices.pushPose()
-
+    private fun renderDial(angle: Float, ms: PoseStack, renderer: PartialItemModelRenderer, light: Int) {
+        ms.pushPose()
+        ms.mulPose(Axis.XN.rotationDegrees(22.5f))
+        ms.translate(0.275, 0.2275, -0.115)
+        ms.translate(-7.9 / 16, -7.3 / 16, -22.0 / 16)
+        ms.mulPose(Axis.ZN.rotationDegrees(angle - 170f))
+        ms.translate(7.9 / 16, 7.3 / 16, 22.0 / 16)
         renderer.render(ClockworkPartials.GRAV_DIAL_HAND.get(), light)
-        matrices.popPose()
-        matrices.popPose()
-        matrices.popPose()
-
+        ms.popPose()
     }
-
-    protected fun renderProngs() {}
 }

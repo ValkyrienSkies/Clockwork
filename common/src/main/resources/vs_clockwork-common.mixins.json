@@ -38,6 +38,8 @@
     "client.MixinFogRenderer",
     "client.MixinItemInHandRenderer",
     "content.gravitron.MinecraftAccessor",
+    "content.gravitron.GameRendererAccessor",
+    "content.gravitron.MixinHumanoidModel",
     "content.gravitron.MixinLocalPlayer"
   ],
   "injectors": {

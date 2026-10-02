@@ -12,6 +12,7 @@ import org.valkyrienskies.clockwork.content.curiosities.altmeter.UpdateAltMeterP
 import org.valkyrienskies.clockwork.content.contraptions.phys.infuser.PhysicsInfuserSyncPacket
 import org.valkyrienskies.clockwork.content.contraptions.phys.slicker.SlickerAttachmentSyncPacket
 import org.valkyrienskies.clockwork.content.curiosities.tools.gravitron.GravitronDisassemblyPacket
+import org.valkyrienskies.clockwork.content.curiosities.tools.gravitron.GravitronAnimationPacket
 import org.valkyrienskies.clockwork.content.curiosities.tools.gravitron.GravitronDialPacket
 import org.valkyrienskies.clockwork.content.curiosities.tools.gravitron.GravitronGrabPacket
 import org.valkyrienskies.clockwork.content.curiosities.tools.gravitron.GravitronLeftClickPacket
@@ -82,6 +83,7 @@ enum class ClockworkPackets(
     AIRPOCKET_SYNC_PACKET(AirpocketSyncPacket::class.java, ::AirpocketSyncPacket),
 
     FLAP_LINKED_CONTROLLER_BIND_PACKET(FlapLinkedControllerBindPacket::class.java, ::FlapLinkedControllerBindPacket),
+    GRAVITRON_ANIMATION_PACKET(GravitronAnimationPacket::class.java, ::GravitronAnimationPacket),
 
     ;
 

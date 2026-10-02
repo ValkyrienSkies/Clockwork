@@ -110,6 +110,20 @@ class ClockworkRenderTypes(
                 .createCompositeState(true)
         )
 
+        // Reuses the ribbon vertex format and vanilla shader; soft energy never occludes later strands.
+        val GRAVITRON_ENERGY: RenderType = create(
+            "gravitron_energy", DefaultVertexFormat.POSITION_COLOR_TEX, VertexFormat.Mode.QUADS,
+            4096, false, true,
+            CompositeState.builder()
+                .setShaderState(POSITION_COLOR_TEX_SHADER)
+                .setTextureState(TextureStateShard(TEX, false, false))
+                .setTransparencyState(ADDITIVE_TRANSPARENCY)
+                .setCullState(NO_CULL)
+                .setWriteMaskState(COLOR_WRITE)
+                .setDepthTestState(LEQUAL_DEPTH_TEST)
+                .createCompositeState(false)
+        )
+
         val BEAM: RenderType = RenderType.create(
             "beam_depthed",
             DefaultVertexFormat.POSITION_COLOR_TEX_LIGHTMAP,

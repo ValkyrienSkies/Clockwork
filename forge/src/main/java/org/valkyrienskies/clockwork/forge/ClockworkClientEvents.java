@@ -55,6 +55,7 @@ public class ClockworkClientEvents {
 
         ClockworkModClient.getWANDERWAND_EFFECT_RENDERER().render(ms, DefaultSuperRenderTypeBuffer.getInstance(), camera, partialTicks);
         LightningRenderer.INSTANCE.onRenderLevelStage(ms, partialTicks);
+        org.valkyrienskies.clockwork.content.curiosities.tools.gravitron.GravitronEffects.render(ms, partialTicks);
 
         buffer.draw();
         RenderSystem.enableCull();

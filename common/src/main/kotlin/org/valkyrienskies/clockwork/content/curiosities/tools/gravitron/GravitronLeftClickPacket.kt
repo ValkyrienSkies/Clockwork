@@ -4,28 +4,19 @@ import net.minecraft.core.BlockPos
 import net.minecraft.network.FriendlyByteBuf
 import net.minecraft.server.level.ServerLevel
 import net.minecraft.sounds.SoundSource
-import net.minecraft.world.InteractionHand
-import net.minecraft.world.phys.Vec3
 import org.joml.Vector3d
-import org.joml.Vector3dc
 import org.valkyrienskies.clockwork.ClockworkConfig
 import org.valkyrienskies.clockwork.ClockworkItems
 import org.valkyrienskies.clockwork.ClockworkSounds
-import org.valkyrienskies.clockwork.content.curiosities.tools.gravitron.CreativeGravitronItem.Companion.grabssemble
 import org.valkyrienskies.clockwork.content.curiosities.tools.gravitron.tool.GrabTool
-import org.valkyrienskies.clockwork.content.curiosities.tools.gravitron.tool.GravitronToolBase
-import org.valkyrienskies.clockwork.platform.SharedValues
 import org.valkyrienskies.clockwork.platform.api.network.C2SCWPacket
 import org.valkyrienskies.clockwork.platform.api.network.ServerNetworkContext
-import org.valkyrienskies.core.api.ships.LoadedServerShip
 import org.valkyrienskies.mod.common.ValkyrienSkiesMod
 import org.valkyrienskies.mod.common.dimensionId
 import org.valkyrienskies.mod.common.getLoadedShipManagingPos
-import org.valkyrienskies.mod.common.isBlockInShipyard
 import org.valkyrienskies.mod.common.shipObjectWorld
 import org.valkyrienskies.mod.common.util.toJOML
 import org.valkyrienskies.mod.common.util.toJOMLD
-import org.valkyrienskies.mod.common.util.toMinecraft
 
 class GravitronLeftClickPacket : C2SCWPacket {
     var clickedPos: BlockPos? = null
@@ -42,28 +33,37 @@ class GravitronLeftClickPacket : C2SCWPacket {
         context.enqueueWork {
             val serverPlayer = context.sender
             val level = serverPlayer.level()
+            val stack = serverPlayer.mainHandItem
+            val isRegular = stack.`is`(ClockworkItems.GRAVITRON.get())
+            val isCreative = stack.`is`(ClockworkItems.CREATIVE_GRAVITRON.get())
+            if ((!isRegular && !isCreative) || !serverPlayer.isAlive || serverPlayer.isSpectator) return@enqueueWork
+            if (serverPlayer.cooldowns.isOnCooldown(stack.item)) return@enqueueWork
+            if (!GrabTool.updateEquipment(serverPlayer)) return@enqueueWork
             if (level is ServerLevel) {
-                // We don't get ship from GravitronState, because then people can't static a ship thats not being grabbed
-                val ship: LoadedServerShip? = level.getLoadedShipManagingPos(clickedPos!!)
+                val state = GravitronState.getState(serverPlayer)
+                val heldShip = state.shipID?.let { level.shipObjectWorld.loadedShips.getById(it) }
+                val ship = if (isRegular) heldShip ?: level.getLoadedShipManagingPos(clickedPos!!)
+                    else level.getLoadedShipManagingPos(clickedPos!!) ?: heldShip
                 if (ship != null) {
-                    val state = GravitronState.getState(serverPlayer)
-
-                    val isRegular = serverPlayer.getItemInHand(InteractionHand.MAIN_HAND).`is`(ClockworkItems.GRAVITRON.get().asItem())
+                    val anchor = if (state.shipID == ship.id) state.shipGrabbedPos ?: clickedPos!!.toJOMLD()
+                        else clickedPos!!.toJOMLD().add(0.5, 0.5, 0.5)
+                    val worldAnchor = ship.shipToWorld.transformPosition(anchor, Vector3d())
+                    val range = if (isRegular) ClockworkConfig.SERVER.survivalGravitronMaxRange else 1000.0
+                    if (worldAnchor.distanceSquared(serverPlayer.eyePosition.toJOML()) > range * range) return@enqueueWork
                     if (isRegular) {
-
-                        // Only do cooldown for survival gravitron
-                        val stack = serverPlayer.mainHandItem
-
-                        if (serverPlayer.cooldowns.isOnCooldown(stack.item)) return@enqueueWork
-
+                        if (ship.inertiaData.mass > ClockworkConfig.SERVER.maxGravitronMass * 1000.0) {
+                            GrabTool.dropShip(serverPlayer, false)
+                            GrabTool.overload(serverPlayer, ship, anchor)
+                            return@enqueueWork
+                        }
                         serverPlayer.cooldowns.addCooldown(stack.item, 20)
 
                         val lookDir = serverPlayer.lookAngle.normalize().toJOML()
                         val magnitude = ClockworkConfig.SERVER.survivalGravitronYeetForce * ship.inertiaData.mass
                         val launchVec = lookDir.mul(magnitude)
-                        val launchPos: Vector3dc = if (level.isBlockInShipyard(state.shipGrabbedPos!!.toMinecraft()) && level.getLoadedShipManagingPos(state.shipGrabbedPos!!)?.id == ship.id) state.shipGrabbedPos!! else clickedPos!!.toJOMLD()
-                        ValkyrienSkiesMod.getOrCreateGTPA(level.dimensionId).applyWorldForceToModelPos(ship.id, launchVec, launchPos)
-                        GrabTool.dropShip(serverPlayer)
+                        ValkyrienSkiesMod.getOrCreateGTPA(level.dimensionId).applyWorldForceToModelPos(ship.id, launchVec, anchor)
+                        GrabTool.dropShip(serverPlayer, false)
+                        GravitronAnimationPacket.send(serverPlayer, GravitronAction.LAUNCH, ship.id, anchor)
                         level.playSound(
                             null,
                             serverPlayer.blockPosition(),
@@ -75,17 +75,19 @@ class GravitronLeftClickPacket : C2SCWPacket {
                     } else {
                         // To make sure when un-static-ing, it doesn't go back to actively grabbing
                         if (state.shipID != null) {
-                            GrabTool.dropShip(serverPlayer)
+                            GrabTool.dropShip(serverPlayer, false)
                         }
 
                         ship.isStatic = !ship.isStatic
+                        GravitronAnimationPacket.send(serverPlayer,
+                            if (ship.isStatic) GravitronAction.FREEZE else GravitronAction.UNFREEZE, ship.id, anchor)
                         level.playSound(
                             null,
                             serverPlayer.blockPosition(),
                             ClockworkSounds.GRAVITRON_FREEZE.mainEvent!!,
                             SoundSource.PLAYERS,
                             1f,
-                            1f
+                            if (ship.isStatic) 1f else 0.75f
                         )
                     }
                 }

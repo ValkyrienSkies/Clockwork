@@ -3,6 +3,13 @@ package org.valkyrienskies.clockwork.mixin.client;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.ItemInHandRenderer;
 import net.minecraft.world.item.ItemStack;
+import com.mojang.blaze3d.vertex.PoseStack;
+import net.minecraft.client.renderer.MultiBufferSource;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.item.ItemDisplayContext;
+import org.valkyrienskies.clockwork.content.curiosities.tools.gravitron.GravitronEffects;
+import com.llamalad7.mixinextras.injector.wrapmethod.WrapMethod;
+import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -24,11 +31,23 @@ public class MixinItemInHandRenderer {
     @Shadow
     private ItemStack offHandItem;
 
+    @WrapMethod(method = "renderItem")
+    private void clockwork$gravitronRenderOwner(LivingEntity entity, ItemStack stack, ItemDisplayContext context,
+                                               boolean leftHand, PoseStack matrices, MultiBufferSource buffers,
+                                               int light, Operation<Void> original) {
+        GravitronEffects.beginItem(entity, stack, context);
+        try {
+            original.call(entity, stack, context, leftHand, matrices, buffers, light);
+        } finally {
+            GravitronEffects.endItem();
+        }
+    }
+
     @Inject(method = "tick", at = @At("HEAD"))
     private void clockwork$gravitonCancelNbtUpdateAnim(CallbackInfo ci) {
         ItemStack newMainStack = minecraft.player.getMainHandItem();
         if (mainHandItem.getItem() == newMainStack.getItem()) {
-            if (newMainStack.is(ClockworkItems.GRAVITRON.get().asItem())) {
+            if (GravitronEffects.isGravitron(newMainStack)) {
                 mainHandItem = newMainStack;
             }
         }
@@ -36,7 +55,7 @@ public class MixinItemInHandRenderer {
         ItemStack newOffStack = minecraft.player.getOffhandItem();
 
         if (offHandItem.getItem() == newOffStack.getItem()) {
-            if (newOffStack.is(ClockworkItems.GRAVITRON.get().asItem())) {
+            if (GravitronEffects.isGravitron(newOffStack)) {
                 offHandItem = newOffStack;
             }
         }
