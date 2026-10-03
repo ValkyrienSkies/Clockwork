@@ -12,6 +12,15 @@ internal object BalloonThermodynamics {
     fun specificCapacity(gas: GasType) = gas.specificHeatCapacity * 1000.0 / gas.adiabaticIndex
     fun capacity(masses: Map<GasType, Double>) = masses.entries.sumOf { (gas, mass) -> mass * specificCapacity(gas) }
 
+    fun isValidState(masses: Map<GasType, Double>, energy: Double): Boolean {
+        if (!energy.isFinite() || energy <= 0.0 || masses.values.any { !it.isFinite() || it < 0.0 }) return false
+        val mass = masses.values.sum()
+        val capacity = capacity(masses)
+        if (!mass.isFinite() || mass < 1e-9 || !capacity.isFinite() || capacity <= 1e-9) return false
+        val temperature = energy / capacity
+        return temperature.isFinite() && temperature > 0.0
+    }
+
     fun step(
         masses: MutableMap<GasType, Double>, energy: Double, volume: Double,
         air: GasType, ambientPressure: Double, ambientTemperature: Double,

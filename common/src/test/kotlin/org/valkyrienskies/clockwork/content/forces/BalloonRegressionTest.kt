@@ -437,4 +437,77 @@ class BalloonRegressionTest {
         val pressure = masses.entries.sumOf { (gas,mass) -> gas.massToMoles(mass) }*DuctNetwork.idealGasConstant*temperature/27.0
         assertEquals(101325.0,pressure,1e-7)
     }
+
+    @Test fun `invalid thermal states recover before forces without rereading geometry`() {
+        val w = World(true).apply { box() }
+        val c = BalloonController(); val ship = serverShip(w,c)
+        val air = gas()
+        val oldAir = GasTypeRegistry.GAS_TYPES.put(air.resourceLocation,air)
+        try {
+            val b = balloon(AABBi(1,1,1,4,5,4))
+            b.validate(w.level); c.addBalloon(b)
+            val geometry = b.geometry
+            val states = listOf(
+                10.0 to Double.NaN,
+                10.0 to Double.POSITIVE_INFINITY,
+                10.0 to Double.NEGATIVE_INFINITY,
+                10.0 to -1.0,
+                Double.NaN to 1000000.0,
+                Double.POSITIVE_INFINITY to 1000000.0,
+                -1.0 to 1000000.0,
+                1e308 to 1000000.0,
+                1e-9 to Double.MAX_VALUE
+            )
+            for ((mass,energy) in states) {
+                b.gasMasses[air.resourceLocation.toString()] = mass
+                b.currentEnergy = energy
+                w.reads = 0
+                c.gameTick(w.level as ServerLevel,ship)
+                assertEquals(1.225*36,b.gasMasses.values.sum(),1e-12)
+                assertEquals(288.15,b.currentEnergy/BalloonThermodynamics.capacity(b.resolvedMasses()),1e-9)
+                assertTrue(c.forcefulBalloons.isEmpty())
+                assertSame(geometry,b.geometry); assertEquals(0,w.reads)
+                assertTrue(b.tick(w.level,ship))
+                assertTrue(BalloonThermodynamics.isValidState(b.resolvedMasses(),b.currentEnergy))
+            }
+        } finally {
+            if (oldAir == null) GasTypeRegistry.GAS_TYPES.remove(air.resourceLocation)
+            else GasTypeRegistry.GAS_TYPES[air.resourceLocation] = oldAir
+        }
+    }
+
+    @Test fun `invalid gas capacity and invalid simulation results recover in the same tick`() {
+        val w = World(true).apply { box() }
+        val c = BalloonController(); val ship = serverShip(w,c)
+        val air = gas()
+        val oldAir = GasTypeRegistry.GAS_TYPES.put(air.resourceLocation,air)
+        val badId = ResourceLocation("audit","invalid_thermal_state")
+        val oldBad = GasTypeRegistry.GAS_TYPES[badId]
+        try {
+            val b = balloon(AABBi(1,1,1,4,5,4))
+            b.validate(w.level)
+            val gases = listOf(
+                air.copy(resourceLocation=badId,specificHeatCapacity=Double.POSITIVE_INFINITY),
+                air.copy(resourceLocation=badId,specificHeatCapacity=Double.NaN),
+                air.copy(resourceLocation=badId,specificHeatCapacity=0.0),
+                air.copy(resourceLocation=badId,density=Double.MIN_VALUE)
+            )
+            for (gas in gases) {
+                GasTypeRegistry.GAS_TYPES[badId] = gas
+                b.gasMasses.clear(); b.gasMasses[badId.toString()] = 1.0
+                b.currentEnergy = 1000000.0
+                assertFalse(b.tick(w.level as ServerLevel,ship))
+                assertEquals(setOf(air.resourceLocation.toString()),b.gasMasses.keys)
+                assertEquals(1.225*36,b.gasMasses.values.sum(),1e-12)
+                assertEquals(288.15,b.currentEnergy/BalloonThermodynamics.capacity(b.resolvedMasses()),1e-9)
+                assertTrue(b.tick(w.level,ship))
+            }
+        } finally {
+            if (oldAir == null) GasTypeRegistry.GAS_TYPES.remove(air.resourceLocation)
+            else GasTypeRegistry.GAS_TYPES[air.resourceLocation] = oldAir
+            if (oldBad == null) GasTypeRegistry.GAS_TYPES.remove(badId)
+            else GasTypeRegistry.GAS_TYPES[badId] = oldBad
+        }
+    }
+
 }

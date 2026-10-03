@@ -206,19 +206,33 @@ class BalloonData {
         val temperature = atmosphere.getAirTemperatureForY(y, level.dimensionId)
         val masses = resolvedMasses()
         val air = GasTypeRegistry.getGasType("kelvin", "air") ?: return false
-        if (!currentEnergy.isFinite() || currentEnergy <= 0.0 || gasMasses.values.any { !it.isFinite() || it < 0.0 } || masses.values.sum() < 1e-9) {
-            gasMasses.clear()
-            gasMasses[air.resourceLocation.toString()] = max(0.0, density * currentVolume)
-            currentEnergy = temperature * gasMasses.values.sum() * BalloonThermodynamics.specificCapacity(air)
+        if (gasMasses.values.any { !it.isFinite() || it < 0.0 } || !BalloonThermodynamics.isValidState(masses, currentEnergy)) {
+            resetGas(air, density, temperature)
             return false
         }
         val config = ClockworkConfig.SERVER
-        currentEnergy = BalloonThermodynamics.step(masses, currentEnergy, currentVolume, air,
+        val energy = BalloonThermodynamics.step(masses, currentEnergy, currentVolume, air,
             pressure, temperature, config.permeabilityConstant, config.heatTransferCoefficient,
             config.leakHeatTransferMultiplier, missingExternalPositions)
+        if (!BalloonThermodynamics.isValidState(masses, energy)) {
+            resetGas(air, density, temperature)
+            return false
+        }
+        currentEnergy = energy
         gasMasses.clear()
         masses.forEach { (gas, mass) -> gasMasses[gas.resourceLocation.toString()] = mass }
-        return currentEnergy.isFinite() && masses.values.all { it.isFinite() && it >= 0.0 }
+        return true
+    }
+
+    private fun resetGas(air: GasType, density: Double, temperature: Double) {
+        val mass = max(0.0, density * currentVolume)
+        val energy = temperature * mass * BalloonThermodynamics.specificCapacity(air)
+        gasMasses.clear()
+        currentEnergy = 0.0
+        if (mass.isFinite() && energy.isFinite() && energy >= 0.0) {
+            gasMasses[air.resourceLocation.toString()] = mass
+            currentEnergy = energy
+        }
     }
 
     fun makeForceData(level: ServerLevel, ship: LoadedServerShip): PhysBalloonData {

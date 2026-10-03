@@ -309,7 +309,7 @@ class GasNozzleBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: Block
 
     private fun heatBalloon() {
         val balloon = this.balloon ?: return
-        if (this.pointer.value <= 0) return
+        if (!this.pointer.value.isFinite() || this.pointer.value <= 0) return
         if (balloon.isLeaking || balloon.shouldValidate || balloon.shouldReScan || balloon.shouldRemove) return
 
         var pocketGasMass: HashMap<GasType, Double> = HashMap()
@@ -318,14 +318,15 @@ class GasNozzleBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: Block
             pocketGasMass[gasType] = value
         }
         val pocketHeatEnergy = balloon.currentEnergy
+        if (!BalloonThermodynamics.isValidState(pocketGasMass, pocketHeatEnergy)) return
 
         val gasMass = ClockworkMod.getKelvin(level).getGasMassAt(getDuctNodePosition())
         val gasMassTotal = gasMass.values.sum()
-        if (gasMassTotal <= 1e-9) return
+        if (!gasMassTotal.isFinite() || gasMassTotal <= 1e-9 || gasMass.values.any { !it.isFinite() || it < 0.0 }) return
         val heatEnergy = temporaryHeatEnergyCalc(ClockworkMod.getKelvin(level), getDuctNodePosition())
 
         val pocketCapacity = BalloonThermodynamics.capacity(pocketGasMass)
-        if (pocketCapacity <= 1e-9 || !pocketCapacity.isFinite() || !heatEnergy.isFinite()) return
+        if (!heatEnergy.isFinite() || heatEnergy <= 0.0) return
         val currentPocketTemperature = (pocketHeatEnergy) / pocketCapacity
         val targetTemperature = ClockworkConfig.SERVER.balloons.gasNozzleMaxTemp * pointer.value.toDouble()
         if (currentPocketTemperature >= targetTemperature) return
@@ -334,6 +335,7 @@ class GasNozzleBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: Block
 
         val usedUpMass = gasMassTotal * pointer.value
         val usedEnergy = min(heatEnergy, energyToAdd) * pointer.value
+        if (!usedUpMass.isFinite() || !usedEnergy.isFinite() || usedEnergy <= 0.0 || !(pocketHeatEnergy + usedEnergy).isFinite()) return
 
 //        pocketTemperature = (pocketHeatEnergy + usedEnergy) / pocketCapacity
 //        balloonVolume = balloon.currentVolume
