@@ -14,36 +14,21 @@ import org.joml.Vector3f
 import org.joml.Vector3i
 import org.joml.Vector3ic
 import org.joml.primitives.AABBic
-import org.valkyrienskies.clockwork.ClockworkAugmentations
 import org.valkyrienskies.clockwork.ClockworkConfig
-import org.valkyrienskies.clockwork.ClockworkMod
 import org.valkyrienskies.clockwork.ClockworkSounds
-import org.valkyrienskies.clockwork.content.curiosities.tools.wanderwand.WanderwandItem
 import org.valkyrienskies.clockwork.content.forces.BalloonController.Companion.isValidBalloonEnclosure
+import org.valkyrienskies.clockwork.content.forces.BalloonGeometry
+import org.valkyrienskies.clockwork.content.forces.BalloonThermodynamics
 import org.valkyrienskies.clockwork.content.logistics.gas.pockets.nozzle.LeakParticleData
-import org.valkyrienskies.clockwork.util.AABBHelper.mergeAdjacentFast
-import org.valkyrienskies.clockwork.util.ClockworkUtils.retrieveGasInfoFromPocket
 import org.valkyrienskies.core.api.ships.LoadedServerShip
-import org.valkyrienskies.kelvin.KelvinMod
-import org.valkyrienskies.kelvin.api.DuctNetwork
-import org.valkyrienskies.kelvin.api.DuctNodePos
 import org.valkyrienskies.kelvin.api.GasType
-import org.valkyrienskies.kelvin.impl.DuctNetworkServer
-import org.valkyrienskies.kelvin.impl.client.particle.DefaultGasParticle
-import org.valkyrienskies.kelvin.impl.registry.GasParticlePickerRegistry
 import org.valkyrienskies.kelvin.impl.registry.GasTypeRegistry
-import org.valkyrienskies.kelvin.util.GasPhysics.mixtureCapacity
 import org.valkyrienskies.mod.api.positionToWorld
 import org.valkyrienskies.mod.common.dimensionId
 import org.valkyrienskies.mod.common.getLoadedShipManagingPos
 import org.valkyrienskies.mod.common.shipObjectWorld
-import kotlin.collections.set
-import kotlin.math.absoluteValue
+import kotlin.math.abs
 import kotlin.math.max
-import kotlin.math.min
-import kotlin.math.pow
-import kotlin.math.roundToInt
-import kotlin.math.sqrt
 
 @JsonAutoDetect(fieldVisibility = JsonAutoDetect.Visibility.ANY)
 class BalloonData {
@@ -52,38 +37,27 @@ class BalloonData {
     var currentEnergy: Double
     var currentVolume: Double
     var isLeaking: Boolean
-    @JsonIgnore
-    var missingExternalPositions: Int
-    @JsonIgnore
-    var leakPositions: HashSet<Vector3ic> = hashSetOf()
-    @JsonIgnore
-    var lastSentLeaks: HashSet<Vector3ic> = hashSetOf()
+    @JsonIgnore var missingExternalPositions = 0
+    @JsonIgnore var leakPositions: HashSet<Vector3ic> = hashSetOf()
+    @JsonIgnore var lastSentLeaks: HashSet<Vector3ic> = hashSetOf()
+    @JsonIgnore var currentMaxLeaks = 1
+    @JsonIgnore var shouldRemove = false
+    @JsonIgnore var shouldReScan = false
+    // Revalidate after loading.
+    @JsonIgnore var shouldValidate = true
+    @JsonIgnore var timeSinceLeakSound = 0
+    @JsonIgnore var validationRetryTicks = 0
+    @JsonIgnore var geometryVersion = 0
+        private set
+    @JsonIgnore var enclosureStatus = EnclosureStatus.UNKNOWN
+        private set
+    @JsonIgnore private var geometryCache: BalloonGeometry? = null
+    @JsonIgnore private var validatedGeometry = false
+    @JsonIgnore private val dirtyBoundary = HashSet<BlockPos>()
+    @JsonIgnore private var waitingForChunk: BlockPos? = null
 
-    @JsonIgnore
-    var currentMaxLeaks = 1
-
-    @JsonIgnore
-    var shouldRemove = false
-
-    @JsonIgnore
-    var shouldReScan = false
-
-    @JsonIgnore
-    var shouldValidate = false
-
-    @JsonIgnore
-    var timeSinceLeakSound = 0
-
-    // Default constructor for Jackson, should never be invoked manually
-    @Deprecated("")
-    constructor() {
-        this.regions = ArrayList()
-        this.gasMasses = HashMap()
-        this.currentEnergy = 0.0
-        this.currentVolume = 0.0
-        this.isLeaking = false
-        this.missingExternalPositions = 0
-    }
+    @Deprecated("For Jackson")
+    constructor() : this(arrayListOf(), hashMapOf(), 0.0, 0.0, false)
 
     constructor(regions: ArrayList<AABBic>, gasMasses: HashMap<String, Double>, currentEnergy: Double, currentVolume: Double, isLeaking: Boolean) {
         this.regions = regions
@@ -91,494 +65,275 @@ class BalloonData {
         this.currentEnergy = currentEnergy
         this.currentVolume = currentVolume
         this.isLeaking = isLeaking
-        this.missingExternalPositions = 0
+    }
+
+    @get:JsonIgnore
+    internal val geometry: BalloonGeometry
+        get() = geometryCache ?: BalloonGeometry(regions).also {
+            geometryCache = it
+            currentVolume = it.cells.size.toDouble()
+        }
+
+    fun recalculateVolume(): Double {
+        geometryCache = null
+        validatedGeometry = false
+        waitingForChunk = null
+        shouldValidate = true
+        validationRetryTicks = 0
+        geometryVersion++
+        return geometry.cells.size.toDouble()
+    }
+
+    fun getCenter(): Vector3dc = geometry.center
+    fun containsPosition(pos: BlockPos) = pos in geometry.cells
+    fun getExternalPositions(): Set<BlockPos> = geometry.enclosure
+    fun touchesPosition(pos: BlockPos) = pos in geometry.cells || pos in geometry.boundary
+
+    fun markBoundaryDirty(pos: BlockPos) {
+        if (pos in geometry.enclosure) {
+            dirtyBoundary.add(pos.immutable())
+            shouldValidate = true
+            validationRetryTicks = 0
+        }
+    }
+
+    internal fun waitForChunk(pos: BlockPos) {
+        waitingForChunk = pos.immutable()
+        shouldValidate = true
+        enclosureStatus = EnclosureStatus.UNKNOWN
+        validationRetryTicks = 20
+    }
+
+    internal fun chunksReady(level: Level): Boolean {
+        val pos = waitingForChunk ?: return true
+        if (!level.isLoaded(pos)) {
+            validationRetryTicks = 20
+            return false
+        }
+        waitingForChunk = null
+        return true
+    }
+
+    fun getFirstValidExternalPosition(level: Level): BlockPos? = geometry.enclosure.firstOrNull {
+        level.isLoaded(it) && level.getBlockState(it).isValidBalloonEnclosure(level, it)
+    }
+
+    fun interiorSeed(level: Level): BlockPos? = geometry.cells.asSequence().filter {
+        level.isLoaded(it) && !level.getBlockState(it).isValidBalloonEnclosure(level, it)
+    }.maxByOrNull { it.y }
+
+    fun validate(level: Level): EnclosureStatus {
+        if (!chunksReady(level)) return EnclosureStatus.UNKNOWN
+        val exterior = geometry.enclosure
+        if (exterior.isEmpty()) {
+            enclosureStatus = EnclosureStatus.INVALID
+            shouldValidate = false
+            return enclosureStatus
+        }
+        val incremental = validatedGeometry && dirtyBoundary.isNotEmpty()
+        val targets = if (incremental) dirtyBoundary else exterior
+        val unloaded = targets.firstOrNull { !level.isLoaded(it) }
+        if (unloaded != null) {
+            waitForChunk(unloaded)
+            return enclosureStatus
+        }
+        val leaks = if (incremental) HashSet(leakPositions) else hashSetOf()
+        for (pos in targets) {
+            val key = Vector3i(pos.x, pos.y, pos.z)
+            if (level.getBlockState(pos).isValidBalloonEnclosure(level, pos)) leaks.remove(key) else leaks.add(key)
+        }
+        val oldLeaks = leakPositions
+        lastSentLeaks = HashSet(oldLeaks)
+        leakPositions = leaks
+        missingExternalPositions = leaks.size
+        currentMaxLeaks = max(1, exterior.size / 4)
+        isLeaking = leaks.isNotEmpty()
+        enclosureStatus = when {
+            !isLeaking -> EnclosureStatus.VALID
+            leaks.size < currentMaxLeaks -> EnclosureStatus.LEAKING
+            else -> EnclosureStatus.INVALID
+        }
+        if (validatedGeometry && level is ServerLevel) {
+            for (pos in leaks - oldLeaks) {
+                val blockPos = BlockPos(pos.x(), pos.y(), pos.z())
+                announceLeak(level, blockPos)
+            }
+        }
+        validatedGeometry = true
+        dirtyBoundary.clear()
+        shouldValidate = false
+        validationRetryTicks = 0
+        return enclosureStatus
+    }
+
+    internal fun announceLeak(level: ServerLevel, pos: BlockPos) {
+        level.playSound(null, pos, ClockworkSounds.BALLOON_RUPTURE.mainEvent!!, SoundSource.BLOCKS, 1f, 0.9f + level.random.nextFloat() * 0.2f)
+        sendInitialLeakParticleBurst(level, pos, Direction.UP)
+    }
+
+    internal fun resolvedMasses(): HashMap<GasType, Double> {
+        val result = HashMap<GasType, Double>()
+        for ((key, mass) in gasMasses) {
+            val location = ResourceLocation.tryParse(key) ?: continue
+            val gas = GasTypeRegistry.getGasType(location) ?: continue
+            if (mass.isFinite() && mass >= 0.0) result[gas] = mass
+        }
+        return result
     }
 
     fun tick(level: ServerLevel, ship: LoadedServerShip): Boolean {
-        if (level.dimensionId != ship.chunkClaimDimension) {
-            return false
-        }
-        if (this.isLeaking && missingExternalPositions > 0) {
-            var averageLeakPos = Vector3i(0,0,0)
+        if (level.dimensionId != ship.chunkClaimDimension || enclosureStatus == EnclosureStatus.UNKNOWN) return false
+        if (isLeaking && leakPositions.isNotEmpty()) {
+            val average = Vector3d()
             for (pos in leakPositions) {
                 val blockPos = BlockPos(pos.x(), pos.y(), pos.z())
-                if (level.isLoaded(blockPos)) {
-                    sendLeakParticles(level, blockPos, Direction.UP)
-                }
-                averageLeakPos.add(pos)
+                if (level.isLoaded(blockPos)) sendLeakParticles(level, blockPos, Direction.UP)
+                average.add(pos.x().toDouble(), pos.y().toDouble(), pos.z().toDouble())
             }
-            averageLeakPos.div(leakPositions.size)
+            average.div(leakPositions.size.toDouble())
             if (timeSinceLeakSound <= 0) {
-
-                //HEAVY leak if over half max leaks, light otherwise
-                level.playSound(
-                    null,
-                    averageLeakPos.x.toDouble(),
-                    averageLeakPos.y.toDouble(),
-                    averageLeakPos.z.toDouble(),
-                    if (missingExternalPositions >= currentMaxLeaks / 2) ClockworkSounds.BALLOON_LEAKING_HEAVY.mainEvent!! else ClockworkSounds.BALLOON_LEAKING_LIGHT.mainEvent!!,
-                    SoundSource.BLOCKS,
-                    0.5f,
-                    1f
-                )
+                level.playSound(null, average.x, average.y, average.z,
+                    if (missingExternalPositions * 2 >= currentMaxLeaks) ClockworkSounds.BALLOON_LEAKING_HEAVY.mainEvent!! else ClockworkSounds.BALLOON_LEAKING_LIGHT.mainEvent!!,
+                    SoundSource.BLOCKS, 0.5f, 1f)
                 timeSinceLeakSound = 120
             }
         }
-
-        if (timeSinceLeakSound > 0) {
-            timeSinceLeakSound --
-        }
-
-        //copy pasted from pocket forces
-        // Just so we can have x,y,z instead of first,second,third
-        val root = this.getCenter()
-        val rootYInWorld = ship.transform.positionToWorld(Vector3d(root.x().toDouble(), root.y().toDouble(), root.z().toDouble())).y
-        val atmoDensity = level.shipObjectWorld.aerodynamicUtils.getAirDensityForY(rootYInWorld, level.dimensionId)
-        val atmoPressure = level.shipObjectWorld.aerodynamicUtils.getAirPressureForY(rootYInWorld, level.dimensionId) //level.shipObjectWorld.aerodynamicUtils.getAirPressureForY(rootYInWorld, level.dimensionId)
-        val atmoTemperature = level.shipObjectWorld.aerodynamicUtils.getAirTemperatureForY(rootYInWorld, level.dimensionId)
-
-        //println(atmoTemperature)
-
-        val volume = this.currentVolume
-
-        var currentHeatEnergy = this.currentEnergy
-        //map, with gasses as GasType instead of the string of their resource location
-        var currentGasMasses: HashMap<GasType, Double> = HashMap()
-        for ((key, value) in gasMasses) {
-            val gasType = GasTypeRegistry.getGasType(ResourceLocation(key)) ?: continue
-            currentGasMasses[gasType] = value
-        }
-        //println("mass: ${gasMasses.values.sum()};  energy: $currentHeatEnergy;  temperature: ${currentHeatEnergy/(KelvinMod.getKelvin() as DuctNetworkServer).mixtureCapacity(gasMasses)}")
-
-        val totalMass = currentGasMasses.values.sum()
-        if (currentHeatEnergy.isNaN() || currentHeatEnergy <= 1e-9 || totalMass.isNaN() || totalMass < 1e-9) {
-
-            val air = GasTypeRegistry.getGasType("kelvin","air")!!
-            gasMasses[air.resourceLocation.toString()] = atmoDensity * volume
-
-            val capacity = 1000 * air.specificHeatCapacity / air.adiabaticIndex
-            currentHeatEnergy = atmoTemperature * volume*atmoDensity * capacity
-            currentEnergy = currentHeatEnergy
+        if (timeSinceLeakSound > 0) timeSinceLeakSound--
+        val y = ship.transform.positionToWorld(Vector3d(getCenter())).y
+        val atmosphere = level.shipObjectWorld.aerodynamicUtils
+        val density = atmosphere.getAirDensityForY(y, level.dimensionId)
+        val pressure = atmosphere.getAirPressureForY(y, level.dimensionId)
+        val temperature = atmosphere.getAirTemperatureForY(y, level.dimensionId)
+        val masses = resolvedMasses()
+        val air = GasTypeRegistry.getGasType("kelvin", "air") ?: return false
+        if (gasMasses.values.any { !it.isFinite() || it < 0.0 } || !BalloonThermodynamics.isValidState(masses, currentEnergy)) {
+            resetGas(air, density, temperature)
             return false
         }
-
-
-        val moles = currentGasMasses.entries.sumOf { it.key.massToMoles(it.value) }
-        val capacity = mixtureCapacity(currentGasMasses)
-        var currentTemperature = currentHeatEnergy / capacity
-        val currentPressure = moles * DuctNetwork.idealGasConstant * currentTemperature / volume
-        val molarMass = currentGasMasses.entries.sumOf { it.key.density * 0.0224 * it.value } / totalMass
-        val estimatedSurfaceArea = 4.84 * volume.pow(2.0/3.0)
-
-        // Gas leak exiting
-        val gasExitRate = max(0.0, (currentPressure - atmoPressure)) * estimatedSurfaceArea * ClockworkConfig.SERVER.permeabilityConstant / sqrt(currentTemperature * DuctNetwork.idealGasConstant / molarMass) * max(1.0, missingExternalPositions.toDouble() + 1.0)
-        val exitGas = gasExitRate * 0.01
-        val exitGasMasses = HashMap<GasType, Double>()
-        currentGasMasses.forEach {
-            currentGasMasses[it.key] = currentGasMasses[it.key]!! - exitGas * it.value / totalMass
-            exitGasMasses[it.key] = exitGas * it.value / totalMass}
-        val exitHeat =  currentTemperature * mixtureCapacity(exitGasMasses)
-
-        currentHeatEnergy -= exitHeat
-        val newCapacity = mixtureCapacity(currentGasMasses)
-        currentTemperature = currentHeatEnergy / newCapacity
-
-        // Gas leak heat transfer
-        val leakRateFraction = (exitGas / totalMass).coerceIn(0.0, 1.0)
-        val heatFlow = ClockworkConfig.SERVER.heatTransferCoefficient * estimatedSurfaceArea * (atmoTemperature - currentTemperature) * max(1.0, missingExternalPositions.toDouble() * 2.0 + 1.0) * (1.0 + leakRateFraction * ClockworkConfig.SERVER.leakHeatTransferMultiplier)
-        var newHeatEnergy = currentHeatEnergy + heatFlow //* 0.05
-
-        var newTemperature = newHeatEnergy / newCapacity
-
-        // Gas leak entering
-        val air = GasTypeRegistry.GAS_TYPES[ResourceLocation("kelvin","air")]!!
-        val newMoles = currentGasMasses.entries.sumOf { it.key.massToMoles(it.value) }
-        val newPressure = newMoles * DuctNetwork.idealGasConstant * newTemperature / volume
-        val inPressureDelta = (atmoPressure - newPressure).coerceAtLeast(0.0)
-        if (inPressureDelta > 0.0) {
-            val leakScale = max(1.0, missingExternalPositions.toDouble() * 2.0 + 1.0)
-            val speedScale = sqrt(atmoTemperature * DuctNetwork.idealGasConstant / molarMass)
-
-            val gasEnterRate =
-                inPressureDelta * estimatedSurfaceArea *
-                        ClockworkConfig.SERVER.permeabilityConstant / speedScale *
-                        leakScale
-
-            val enterMass = gasEnterRate * 0.01
-
-            currentGasMasses[air] = (currentGasMasses[air] ?: 0.0) + enterMass
-
-            val airCpEff = air.specificHeatCapacity * 1000.0 / air.adiabaticIndex
-            newHeatEnergy += enterMass * atmoTemperature * airCpEff
+        val config = ClockworkConfig.SERVER
+        val energy = BalloonThermodynamics.step(masses, currentEnergy, currentVolume, air,
+            pressure, temperature, config.permeabilityConstant, config.heatTransferCoefficient,
+            config.leakHeatTransferMultiplier, missingExternalPositions)
+        if (!BalloonThermodynamics.isValidState(masses, energy)) {
+            resetGas(air, density, temperature)
+            return false
         }
-
-        // Set Values
-        this.gasMasses.clear()
-        currentGasMasses.forEach { this.gasMasses[it.key.resourceLocation.toString()] = it.value }
-        this.currentEnergy = newHeatEnergy
-
+        currentEnergy = energy
+        gasMasses.clear()
+        masses.forEach { (gas, mass) -> gasMasses[gas.resourceLocation.toString()] = mass }
         return true
+    }
+
+    private fun resetGas(air: GasType, density: Double, temperature: Double) {
+        val mass = max(0.0, density * currentVolume)
+        val energy = temperature * mass * BalloonThermodynamics.specificCapacity(air)
+        gasMasses.clear()
+        currentEnergy = 0.0
+        if (mass.isFinite() && energy.isFinite() && energy >= 0.0) {
+            gasMasses[air.resourceLocation.toString()] = mass
+            currentEnergy = energy
+        }
     }
 
     fun makeForceData(level: ServerLevel, ship: LoadedServerShip): PhysBalloonData {
         val center = getCenter()
-        val rootYInWorld = ship.transform.positionToWorld(Vector3d(center.x(), center.y(), center.z())).y
-        val atmoDensity = level.shipObjectWorld.aerodynamicUtils.getAirDensityForY(rootYInWorld, level.dimensionId)
-
-        val internalMass = gasMasses.values.sum()
-        val atmosphericMassAtVolume = atmoDensity * currentVolume
-        val hotAir = max(0.0, atmosphericMassAtVolume - internalMass)
-
-        return PhysBalloonData(
-            center = center,
-            hotAir = hotAir,
-            volume = currentVolume
-        )
+        val y = ship.transform.positionToWorld(Vector3d(center)).y
+        val density = level.shipObjectWorld.aerodynamicUtils.getAirDensityForY(y, level.dimensionId)
+        return PhysBalloonData(Vector3d(center), max(0.0, density * currentVolume - gasMasses.values.sum()), currentVolume)
     }
 
-    fun recalculateVolume(): Double {
-        var totalVolume = 0.0
-        for (region in regions) {
-            totalVolume += region.volume()
-        }
-        this.currentVolume = totalVolume
-        return totalVolume
-    }
-
-    fun getCenter(): Vector3dc {
-        val center = Vector3d()
-        if (regions.isEmpty()) {
-            return center
-        }
-        var sumX = 0.0
-        var sumY = 0.0
-        var sumZ = 0.0
-        for (region in regions) {
-            sumX += (region.minX() + region.maxX()) / 2.0
-            sumY += (region.minY() + region.maxY()) / 2.0
-            sumZ += (region.minZ() + region.maxZ()) / 2.0
-        }
-        val count = regions.size
-        center.x = sumX / count.toDouble()
-        center.y = sumY / count.toDouble()
-        center.z = sumZ / count.toDouble()
-        return center
-    }
-
-    fun containsPosition(pos: BlockPos): Boolean {
-        for (region in regions) {
-            if (pos.x >= region.minX() && pos.x < region.maxX() &&
-                pos.y >= region.minY() && pos.y < region.maxY() &&
-                pos.z >= region.minZ() && pos.z < region.maxZ()) {
-                return true
-            }
-        }
-        return false
-    }
-
-    fun getFirstValidExternalPosition(level: Level): BlockPos? {
-        return getExternalPositions().firstOrNull { pos ->
-            level.isLoaded(pos) && level.getBlockState(pos).isValidBalloonEnclosure(level, pos)
-        }
-    }
-
-    fun getExternalPositions(): Set<BlockPos> {
-        val externalPositions = mutableSetOf<BlockPos>()
-        val directions = arrayOf(
-            Vector3d(1.0, 0.0, 0.0),
-            Vector3d(-1.0, 0.0, 0.0),
-            Vector3d(0.0, 1.0, 0.0),
-            //Vector3d(0.0, -1.0, 0.0),
-            Vector3d(0.0, 0.0, 1.0),
-            Vector3d(0.0, 0.0, -1.0)
-        )
-
-        for (region in regions) {
-            for (x in region.minX() until region.maxX()) {
-                for (y in region.minY() until region.maxY()) {
-                    for (z in region.minZ() until region.maxZ()) {
-                        val currentPos = BlockPos(x, y, z)
-                        for (dir in directions) {
-                            val neighborPos = currentPos.offset(dir.x.toInt(), dir.y.toInt(), dir.z.toInt())
-                            if (!containsPosition(neighborPos)) {
-                                externalPositions.add(neighborPos)
-                            }
-                        }
-                    }
-                }
-            }
-        }
-        return externalPositions
-    }
-
-    fun canLeak(externalSize: Int): Boolean {
-        currentMaxLeaks = max(1, externalSize / 4)
-        return gasMasses.values.sum() > 1e-9 && missingExternalPositions < currentMaxLeaks
-    }
-
+    /** Hot gas can already be at ambient pressure. */
     fun isNearlyAtmospheric(level: ServerLevel): Boolean {
-        val root = this.getCenter()
-        val ship = level.getLoadedShipManagingPos(BlockPos(root.x().toInt(), root.y().toInt(), root.z().toInt())) ?: return false
-
-        val rootYInWorld = ship.transform.positionToWorld(Vector3d(root.x().toDouble(), root.y().toDouble(), root.z().toDouble())).y
-        val atmoPressure = level.shipObjectWorld.aerodynamicUtils.getAirPressureForY(rootYInWorld, level.dimensionId)
-        val internalPressure = run {
-            val moles = gasMasses.entries.sumOf { GasTypeRegistry.getGasType(ResourceLocation(it.key))!!.massToMoles(it.value) }
-            val capacity = mixtureCapacity(gasMasses.mapKeys { GasTypeRegistry.getGasType(ResourceLocation(it.key))!! })
-            val temperature = currentEnergy / capacity
-            moles * DuctNetwork.idealGasConstant * temperature / currentVolume
-        }
-
-        return (internalPressure - atmoPressure).absoluteValue <= 1e-4
-
+        val center = getCenter()
+        val ship = level.getLoadedShipManagingPos(BlockPos.containing(center.x(), center.y(), center.z())) ?: return false
+        val y = ship.transform.positionToWorld(Vector3d(center)).y
+        val atmosphere = level.shipObjectWorld.aerodynamicUtils
+        val ambientMass = atmosphere.getAirDensityForY(y, level.dimensionId) * currentVolume
+        val ambientTemperature = atmosphere.getAirTemperatureForY(y, level.dimensionId)
+        val masses = resolvedMasses()
+        val capacity = BalloonThermodynamics.capacity(masses)
+        if (capacity <= 1e-9) return true
+        return abs(masses.values.sum() - ambientMass) <= max(1e-6, ambientMass * 0.001) &&
+            abs(currentEnergy / capacity - ambientTemperature) <= max(0.1, ambientTemperature * 0.001)
     }
 
-    fun validate(level: Level): EnclosureStatus {
-        if (regions.isEmpty()) {
-            return EnclosureStatus.INVALID
-        }
-        val externals = getExternalPositions()
-        if (externals.isEmpty()) {
-            return EnclosureStatus.INVALID
-        }
-        var currentStatus = EnclosureStatus.VALID
-        //in hindsight, this is not really efficient anyways, so i wont bother
-//        if (leakPositions.isNotEmpty()) {
-//            val sealed = hashSetOf<Vector3ic>()
-//            for (pos in leakPositions) {
-//                val blockPos = BlockPos(pos.x(), pos.y(), pos.z())
-//                if (level.isLoaded(blockPos)) {
-//                    val blockState = level.getBlockState(blockPos)
-//                    if (blockState.isValidBalloonEnclosure(level, blockPos)) {
-//                        sealed.add(pos)
-//                    }
-//                }
-//            }
-//            leakPositions.removeAll(sealed)
-//            if (leakPositions.isEmpty()) {
-//                this.isLeaking = false
-//                missingExternalPositions = 0
-//                currentStatus = EnclosureStatus.VALID
-//            } else {
-//                currentStatus = EnclosureStatus.LEAKING
-//            }
-//        }
-        lastSentLeaks.clear()
-        lastSentLeaks = HashSet(leakPositions)
-        missingExternalPositions = 0
-        leakPositions.clear()
-        for (pos in externals) {
-            if (!level.isLoaded(pos)) {
-                return EnclosureStatus.UNKNOWN
-            }
-            val blockState = level.getBlockState(pos)
-            if (!blockState.isValidBalloonEnclosure(level, pos)) {
-                missingExternalPositions ++
-                leakPositions.add(Vector3i(pos.x, pos.y, pos.z))
-                currentStatus = if (canLeak(externals.size) && !isNearlyAtmospheric(level as ServerLevel)) {
-                    EnclosureStatus.LEAKING
-                } else {
-                    EnclosureStatus.INVALID
-                }
-                if (level is ServerLevel) {
-                    val isNew = !lastSentLeaks.contains(Vector3i(pos.x, pos.y, pos.z))
-                    if (isNew) {
-                        level.playSound(
-                            null,
-                            pos.x.toDouble(),
-                            pos.y.toDouble(),
-                            pos.z.toDouble(),
-                            ClockworkSounds.BALLOON_RUPTURE.mainEvent!!,
-                            SoundSource.BLOCKS,
-                            1f,
-                            0.9f + level.random.nextFloat() * 0.2f
-                        )
-                        sendInitialLeakParticleBurst(level, pos, Direction.UP)
-                    }
-                }
-            }
-        }
-        this.isLeaking = currentStatus == EnclosureStatus.LEAKING
-        return currentStatus
-    }
-
-    fun findDirectionToOutside(level: ServerLevel, pos: BlockPos, externals: Set<BlockPos>): Direction {
-        for (dir in Direction.values()) {
-            val check = pos.relative(dir)
-            if (!this.containsPosition(check) && !externals.contains(check) && !level.getBlockState(check).isValidBalloonEnclosure(level, check)) {
-                //println(dir)
-                return dir
-            }
-        }
-        return Direction.UP
+    private fun leakDirection(position: BlockPos, fallback: Direction): Vector3f {
+        // Keep shipyard precision until after subtraction.
+        val offset = Vector3d(position.x + 0.5, position.y + 0.5, position.z + 0.5).sub(getCenter())
+        if (offset.lengthSquared() < 1e-12) return fallback.step()
+        offset.normalize()
+        return Vector3f(offset.x.toFloat(), offset.y.toFloat(), offset.z.toFloat())
     }
 
     fun sendInitialLeakParticleBurst(level: ServerLevel, position: BlockPos, dir: Direction) {
-        val thisShip = level.getLoadedShipManagingPos(position) ?: return
-        val center = getCenter().sub(0.5, 0.5, 0.5, Vector3d())
-        val realDir = Vector3f(position.x.toFloat(), position.y.toFloat(), position.z.toFloat()).sub(Vector3f(center.x().toFloat(), center.y().toFloat(), center.z().toFloat())).normalize()
-        val worldDirection = thisShip.transform.shipToWorldRotation.transform(Vector3f(realDir.x.toFloat(), realDir.y.toFloat(), realDir.z.toFloat()))
-        val leakParticle = LeakParticleData(worldDirection, 0.1f + level.random.nextFloat() * 0.2f)
-        level.sendParticles(
-            leakParticle,
-            position.x.toDouble(),
-            position.y.toDouble(),
-            position.z.toDouble(),
-            level.random.nextInt(50, 100),
-            0.5,
-            0.5,
-            0.5,
-            1.0
-        )
+        val ship = level.getLoadedShipManagingPos(position) ?: return
+        val direction = ship.transform.shipToWorldRotation.transform(leakDirection(position, dir))
+        level.sendParticles(LeakParticleData(direction, 0.1f + level.random.nextFloat() * 0.2f),
+            position.x + 0.5, position.y + 0.5, position.z + 0.5, level.random.nextInt(50, 100), 0.5, 0.5, 0.5, 1.0)
     }
 
     fun sendLeakParticles(level: ServerLevel, position: BlockPos, dir: Direction) {
-        val thisShip = level.getLoadedShipManagingPos(position) ?: return
-        val center = getCenter().sub(0.5, 0.5, 0.5, Vector3d())
-        val realDir = Vector3f(position.x.toFloat(), position.y.toFloat(), position.z.toFloat()).sub(Vector3f(center.x().toFloat(), center.y().toFloat(), center.z().toFloat())).normalize()
-        val worldDirection = thisShip.transform.shipToWorldRotation.transform(Vector3f(realDir.x.toFloat(), realDir.y.toFloat(), realDir.z.toFloat()))
+        val ship = level.getLoadedShipManagingPos(position) ?: return
+        val direction = ship.transform.shipToWorldRotation.transform(leakDirection(position, dir))
         for (i in 1..missingExternalPositions.coerceAtMost(4)) {
-            val leakParticle = LeakParticleData(worldDirection, 0.05f + level.random.nextFloat() * 0.5f)
-            level.sendParticles(
-                leakParticle,
-                position.x.toDouble() + 0.5,
-                position.y.toDouble() + 0.5,
-                position.z.toDouble() + 0.5,
-                if (missingExternalPositions >= currentMaxLeaks / 2) 2 else 1,
-                0.5,
-                0.5,
-                0.5,
-                1.0
-            )
+            level.sendParticles(LeakParticleData(direction, 0.05f + level.random.nextFloat() * 0.5f),
+                position.x + 0.5, position.y + 0.5, position.z + 0.5,
+                if (missingExternalPositions * 2 >= currentMaxLeaks) 2 else 1, 0.5, 0.5, 0.5, 1.0)
         }
     }
 
-    /**
-     * Updates the regions of the balloon and validates its enclosure status.
-     *
-     * Returns true if the balloon is valid or leaking, false if it should be removed.
-     */
     fun updateRegions(newRegions: List<AABBic>, level: Level): Boolean {
-        regions.clear()
-        regions.addAll(newRegions)
-        recalculateVolume()
-        val result = validate(level)
-        isLeaking = result == EnclosureStatus.LEAKING
-        shouldRemove = result == EnclosureStatus.INVALID
-        return result.isAtLeast(EnclosureStatus.UNKNOWN)
+        updateRegionsNoValidation(newRegions, level)
+        shouldRemove = validate(level) == EnclosureStatus.INVALID
+        return !shouldRemove
     }
 
     fun updateRegionsNoValidation(newRegions: List<AABBic>, level: Level) {
+        val copy = newRegions.toList()
         regions.clear()
-        regions.addAll(newRegions)
+        regions.addAll(copy)
         recalculateVolume()
     }
 
+    /** Caller removes the source balloon. */
     fun mergeWith(other: BalloonData, level: Level): EnclosureStatus {
-        this.regions.addAll(other.regions)
-        val merged = mergeAdjacentFast(this.regions)
-        this.regions.clear()
-        this.regions.addAll(merged) // this is scuffed af
-        for ((gasType, mass) in other.gasMasses) {
-            this.gasMasses[gasType] = this.gasMasses.getOrDefault(gasType, 0.0) + mass
-        }
-        this.currentEnergy += other.currentEnergy
-        recalculateVolume()
-        return validate(level)
+        if (other === this) return enclosureStatus
+        val cells = HashSet(geometry.cells).apply { addAll(other.geometry.cells) }
+        updateRegionsNoValidation(BalloonGeometry.regions(cells), level)
+        for ((gas, mass) in other.gasMasses) gasMasses[gas] = gasMasses.getOrDefault(gas, 0.0) + mass
+        currentEnergy += other.currentEnergy
+        return EnclosureStatus.UNKNOWN
     }
 
     fun trySplit(level: Level): Pair<Boolean, ArrayList<BalloonData>> {
-        val result = WanderwandItem.findIsolatedAABBComponents(this.regions, level)
-        if (result.size == 1) {
-            return Pair(false, arrayListOf())
-        } else if (result.size == 0) {
-            // this bloon is cooked...
-            this.shouldRemove = true
-            return Pair(true, arrayListOf())
+        val components = geometry.airComponents(level) ?: return false to arrayListOf()
+        if (components.isEmpty()) {
+            shouldRemove = true
+            return true to arrayListOf()
         }
-        val newBalloons = ArrayList<BalloonData>()
-        val totalVolume = this.currentVolume
-        result.sortByDescending( { it.volume() })
-
-        val thisBecomes = result[0]
-        var newThis: BalloonData? = null
-
-        for (component in result) {
-            val newBalloon = BalloonData(
-                regions = component as ArrayList<AABBic>, //sussy cast but oh well
-                gasMasses = HashMap(),
-                currentEnergy = 0.0,
-                currentVolume = 0.0,
-                isLeaking = false
-            )
-            newBalloon.recalculateVolume()
-            val volumeFraction = newBalloon.currentVolume / totalVolume
-            for ((gasType, mass) in this.gasMasses) {
-                newBalloon.gasMasses[gasType] = mass * volumeFraction
-            }
-            newBalloon.currentEnergy = this.currentEnergy * volumeFraction
-            val status = newBalloon.validate(level)
-            if (status.isAtLeast(EnclosureStatus.LEAKING)) {
-                newBalloons.add(newBalloon)
-                if (component == thisBecomes) {
-                    newThis = newBalloon
-                }
-            }
+        if (components.size == 1 && components[0].size == geometry.cells.size) return false to arrayListOf()
+        val masses = HashMap(gasMasses)
+        val energy = currentEnergy
+        val remainingVolume = components.sumOf { it.size }.toDouble()
+        val additional = arrayListOf<BalloonData>()
+        for ((index, component) in components.withIndex()) {
+            val fraction = component.size / remainingVolume
+            val target = if (index == 0) this else BalloonData(arrayListOf(), hashMapOf(), 0.0, 0.0, false)
+            target.updateRegionsNoValidation(BalloonGeometry.regions(component), level)
+            target.gasMasses.clear()
+            masses.forEach { (gas, mass) -> target.gasMasses[gas] = mass * fraction }
+            target.currentEnergy = energy * fraction
+            target.shouldRemove = target.validate(level) == EnclosureStatus.INVALID
+            if (index > 0 && !target.shouldRemove) additional.add(target)
         }
-        this.clear()
-        if (newThis != null) {
-            this.regions.addAll(newThis.regions)
-            this.gasMasses.putAll(newThis.gasMasses)
-            this.currentEnergy = newThis.currentEnergy
-            this.isLeaking = newThis.isLeaking
-            result.remove(thisBecomes)
-        }
-        this.recalculateVolume()
-        return Pair(true, newBalloons)
-    }
-
-    private fun clear() {
-        regions.clear()
-        gasMasses.clear()
-        currentEnergy = 0.0
-        currentVolume = 0.0
-        isLeaking = false
-        missingExternalPositions = 0
-    }
-
-    private fun AABBic.volume(): Long {
-        val dx = (maxX() - minX()).toLong()
-        val dy = (maxY() - minY()).toLong()
-        val dz = (maxZ() - minZ()).toLong()
-        return dx * dy * dz
-    }
-
-    private fun List<AABBic>.volume(): Long {
-        var total = 0L
-        for (aabb in this) {
-            total += aabb.volume()
-        }
-        return total
+        return true to additional
     }
 
     enum class EnclosureStatus {
-        VALID,
-        LEAKING,
-        UNKNOWN,
-        INVALID;
-
-        fun isAtLeast(status: EnclosureStatus): Boolean {
-            return this.ordinal >= status.ordinal
-        }
-
-        fun weakestOf(other: EnclosureStatus): EnclosureStatus {
-            return if (this.ordinal < other.ordinal) this else other
-        }
+        VALID, LEAKING, UNKNOWN, INVALID;
+        fun isAtLeast(status: EnclosureStatus) = ordinal <= status.ordinal
+        fun weakestOf(other: EnclosureStatus) = if (ordinal >= other.ordinal) this else other
     }
 
-    data class PhysBalloonData(
-        val center : Vector3dc,
-        val hotAir : Double,
-        val volume : Double
-    )
+    data class PhysBalloonData(val center: Vector3dc, val hotAir: Double, val volume: Double)
 }

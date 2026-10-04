@@ -26,6 +26,7 @@ import org.valkyrienskies.clockwork.ClockworkMod
 import org.valkyrienskies.clockwork.ClockworkModClient
 import org.valkyrienskies.clockwork.ClockworkSounds
 import org.valkyrienskies.clockwork.content.forces.BalloonController
+import org.valkyrienskies.clockwork.content.forces.BalloonThermodynamics
 import org.valkyrienskies.clockwork.content.forces.data.BalloonData
 import org.valkyrienskies.kelvin.api.DuctNodePos
 import org.valkyrienskies.clockwork.util.ClockworkUtils.retrieveGasInfoFromPocket
@@ -74,6 +75,7 @@ class GasNozzleBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: Block
     var balloonFullness: Double = 0.0
 
     var balloon: BalloonData? = null
+    private var balloonGeometryVersion = -1
 
     var shouldFetchNextTick = false
 
@@ -148,7 +150,7 @@ class GasNozzleBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: Block
                     facing.normal.toJOMLD().mul(Mth.clamp(0.0025 * pressure.pow(0.4), 0.1,5.0 )))
             }
 
-            if (soundInstance == null) {
+            if (soundInstance == null || soundInstance!!.isStopped) {
                 soundInstance = GasNozzleSoundInstance(this, random)
                 Minecraft.getInstance().soundManager.play(soundInstance)
             }
@@ -206,6 +208,10 @@ class GasNozzleBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: Block
         }
 
         if (hasPocket) {
+            if (balloon != null && balloonGeometryVersion != balloon!!.geometryVersion && !balloon!!.shouldRemove) {
+                // Splits can move this nozzle to another chamber.
+                fetchBloon()
+            }
             if (balloon?.shouldRemove == true || balloon == null) {
                 shouldFetchNextTick = true
                 hasPocket = false
@@ -225,8 +231,8 @@ class GasNozzleBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: Block
                     pocketGasMass[gasType] = value
                 }
                 val pocketHeatEnergy = balloon!!.currentEnergy
-                val pocketCapacity = mixtureCapacity(pocketGasMass)
-                val currentPocketTemperature = (pocketHeatEnergy) / pocketCapacity
+                val pocketCapacity = BalloonThermodynamics.capacity(pocketGasMass)
+                val currentPocketTemperature = if (pocketCapacity > 1e-9) pocketHeatEnergy / pocketCapacity else 0.0
                 pocketTemperature = currentPocketTemperature
                 balloonVolume = balloon!!.currentVolume
                 currentIdealOutput = balloon!!.missingExternalPositions.toDouble() // this is cursed but i made it without reloading the game so variable reuse lesgo
@@ -271,7 +277,8 @@ class GasNozzleBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: Block
 
         val internalMass = pocketGasMass.values.sum()
         val hotAir = max(0.0, atmoDensity * volume - internalMass)
-        val fullness = hotAir / volume
+        val atmosphericMass = atmoDensity * volume
+        val fullness = if (atmosphericMass > 1e-9) (hotAir / atmosphericMass).coerceIn(0.0, 1.0) else 0.0
         return hotAir to fullness
     }
 
@@ -281,6 +288,7 @@ class GasNozzleBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: Block
         val controller = BalloonController.getOrCreate(ship)
         val balloonId = controller.tryGetOrCreateBalloon(blockPos.above(), serverLevel)
         this.balloon = controller.getBalloonById(balloonId)
+        this.balloonGeometryVersion = this.balloon?.geometryVersion ?: -1
         this.hasPocket = this.balloon != null
         this.balloonVolume = this.balloon?.currentVolume ?: 0.0
         this.scanCooldown = 60
@@ -301,8 +309,8 @@ class GasNozzleBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: Block
 
     private fun heatBalloon() {
         val balloon = this.balloon ?: return
-        if (this.pointer.value <= 0) return
-        if (balloon.isLeaking) return
+        if (!this.pointer.value.isFinite() || this.pointer.value <= 0) return
+        if (balloon.isLeaking || balloon.shouldValidate || balloon.shouldReScan || balloon.shouldRemove) return
 
         var pocketGasMass: HashMap<GasType, Double> = HashMap()
         for ((key, value) in balloon.gasMasses) {
@@ -310,13 +318,15 @@ class GasNozzleBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: Block
             pocketGasMass[gasType] = value
         }
         val pocketHeatEnergy = balloon.currentEnergy
+        if (!BalloonThermodynamics.isValidState(pocketGasMass, pocketHeatEnergy)) return
 
         val gasMass = ClockworkMod.getKelvin(level).getGasMassAt(getDuctNodePosition())
         val gasMassTotal = gasMass.values.sum()
-        if (gasMassTotal <= 1e-9) return
+        if (!gasMassTotal.isFinite() || gasMassTotal <= 1e-9 || gasMass.values.any { !it.isFinite() || it < 0.0 }) return
         val heatEnergy = temporaryHeatEnergyCalc(ClockworkMod.getKelvin(level), getDuctNodePosition())
 
-        val pocketCapacity = mixtureCapacity(pocketGasMass)
+        val pocketCapacity = BalloonThermodynamics.capacity(pocketGasMass)
+        if (!heatEnergy.isFinite() || heatEnergy <= 0.0) return
         val currentPocketTemperature = (pocketHeatEnergy) / pocketCapacity
         val targetTemperature = ClockworkConfig.SERVER.balloons.gasNozzleMaxTemp * pointer.value.toDouble()
         if (currentPocketTemperature >= targetTemperature) return
@@ -325,6 +335,7 @@ class GasNozzleBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: Block
 
         val usedUpMass = gasMassTotal * pointer.value
         val usedEnergy = min(heatEnergy, energyToAdd) * pointer.value
+        if (!usedUpMass.isFinite() || !usedEnergy.isFinite() || usedEnergy <= 0.0 || !(pocketHeatEnergy + usedEnergy).isFinite()) return
 
 //        pocketTemperature = (pocketHeatEnergy + usedEnergy) / pocketCapacity
 //        balloonVolume = balloon.currentVolume
@@ -341,7 +352,7 @@ class GasNozzleBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: Block
 
     private fun temporaryHeatEnergyCalc(kelvin: DuctNetwork<*>, pos: DuctNodePos): Double {
         val gasses = kelvin.getGasMassAt(pos)
-        val capacity = mixtureCapacity(gasses)
+        val capacity = BalloonThermodynamics.capacity(gasses)
         val energy = kelvin.getTemperatureAt(pos)
         return capacity * energy
     }
