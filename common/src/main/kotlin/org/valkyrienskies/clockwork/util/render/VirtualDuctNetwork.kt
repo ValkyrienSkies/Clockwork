@@ -129,7 +129,7 @@ class VirtualDuctNetwork(
     }
 
     override fun addNode(pos: DuctNodePos, node: DuctNode) {
-        if (nodes.containsKey(pos) && nodes[pos]!!.behavior == node.behavior && !unloadedNodes.contains(pos)) {
+        if (nodes[pos]?.javaClass == node.javaClass && !unloadedNodes.contains(pos)) {
             KELVINLOGGER.debug("Node already exists at {}", pos)
             return
         } else if (unloadedNodes.contains(pos)) {
@@ -138,7 +138,7 @@ class VirtualDuctNetwork(
         nodes[pos] = node
         // Seed wall thermal energy at ambient (273.15K) so a fresh node doesn't act as a
         // 0K cold sink for the first gas to enter. Combined energy = wallCap * T_ambient.
-        nodeInfo[pos] = DuctNodeInfo(node.behavior, 273.15, 0.0, Object2DoubleOpenHashMap(), node.volume, currentEnergy = node.heatCapacity * 273.15)
+        nodeInfo[pos] = DuctNodeInfo(273.15, 0.0, Object2DoubleOpenHashMap(), node.volume, currentEnergy = node.heatCapacity * 273.15)
         if (nodesInDimension[pos.dimensionId] == null) {
             nodesInDimension[pos.dimensionId] = hashSetOf()
         }

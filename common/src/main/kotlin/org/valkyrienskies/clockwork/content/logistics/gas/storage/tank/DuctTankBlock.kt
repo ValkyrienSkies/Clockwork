@@ -21,7 +21,6 @@ import org.valkyrienskies.core.util.squared
 import org.valkyrienskies.kelvin.KelvinMod.KELVINLOGGER
 import org.valkyrienskies.kelvin.api.DuctNode
 import org.valkyrienskies.kelvin.api.DuctNodePos
-import org.valkyrienskies.kelvin.api.NodeBehaviorType
 import org.valkyrienskies.kelvin.api.nodes.TankDuctNode
 import org.valkyrienskies.kelvin.util.INodeBlock
 import org.valkyrienskies.kelvin.util.KelvinExtensions.toDuctNodePos
@@ -69,7 +68,7 @@ class DuctTankBlock(properties: Properties) : Block(properties), INodeBlock, IBE
     }
 
     fun createTankNode(pos: DuctNodePos, size: Double): DuctNode {
-        return TankDuctNode(pos, NodeBehaviorType.TANK, volume = size, maxPressure = 16375049.0, maxTemperature = 1478.0, heatCapacity = 44.9)
+        return TankDuctNode(pos, volume = size, maxPressure = 16375049.0, maxTemperature = 1478.0, heatCapacity = 44.9)
     }
 
     override fun onPlace(state: BlockState, level: Level, pos: BlockPos, oldState: BlockState, isMoving: Boolean) {

@@ -19,17 +19,13 @@ import net.minecraft.world.phys.shapes.CollisionContext
 import net.minecraft.world.phys.shapes.VoxelShape
 import org.valkyrienskies.clockwork.ClockworkBlockEntities
 import org.valkyrienskies.clockwork.ClockworkConfig
-import org.valkyrienskies.clockwork.content.logistics.gas.duct.DuctPipeNode
 import org.valkyrienskies.clockwork.util.gui.IHaveDuctStats
 import org.valkyrienskies.kelvin.api.DuctNode
 import org.valkyrienskies.kelvin.api.DuctNodePos
-import org.valkyrienskies.kelvin.api.edges.ApertureDuctEdge
+import org.valkyrienskies.kelvin.api.nodes.ValveDuctNode
 import org.valkyrienskies.kelvin.util.INodeBlock
 
 class ValveDuctBlock(properties: Properties?) : DirectionalAxisKineticBlock(properties), INodeBlock, IBE<ValveDuctBlockEntity>, IHaveDuctStats {
-
-    var edge: ApertureDuctEdge? = null
-
 
     override fun getShape(state: BlockState, p_220053_2_: BlockGetter, p_220053_3_: BlockPos, p_220053_4_: CollisionContext): VoxelShape {
         return AllShapes.FLUID_VALVE[getDuctAxis(state)]
@@ -78,7 +74,14 @@ class ValveDuctBlock(properties: Properties?) : DirectionalAxisKineticBlock(prop
     }
 
     override fun createNode(pos: DuctNodePos): DuctNode {
-        return  DuctPipeNode(pos = pos, volume = getInternalVolume(), maxPressure = 16375049.0, maxTemperature = 1478.0)
+        return ValveDuctNode(
+            pos = pos,
+            volume = getInternalVolume(),
+            maxPressure = 16375049.0,
+            maxTemperature = 1478.0,
+            heatCapacity = 44.9,
+            radius = 0.0,
+        )
     }
 
     override fun getInternalVolume(): Double {
@@ -98,6 +101,8 @@ class ValveDuctBlock(properties: Properties?) : DirectionalAxisKineticBlock(prop
     }
 
     companion object {
+        const val MAX_FLOW_RADIUS = 0.3125
+
         fun getDuctAxis(state: BlockState): Axis {
             check(state.block is ValveDuctBlock) { "Provided BlockState is for a different block." }
             val facing = state.getValue(FACING)
