@@ -10,6 +10,29 @@ test {
     useJUnitPlatform()
 }
 
+def commonMixinRefmap = tasks.named("compileJava", JavaCompile).flatMap {
+    it.destinationDirectory.file("clockwork-common-refmap.json")
+}
+
+tasks.register("verifyMixinRefmap") {
+    group = "verification"
+    description = "Checks that the held-item wrapper has a production method mapping."
+    dependsOn tasks.named("compileJava")
+    inputs.file(commonMixinRefmap)
+    doLast {
+        def refmap = new groovy.json.JsonSlurper().parse(commonMixinRefmap.get().asFile)
+        def target = refmap.mappings["org/valkyrienskies/clockwork/mixin/client/MixinItemInHandRenderer"]?.get("renderItem")
+        if (!(target instanceof String) || !target.contains("(") || target.contains(";renderItem(")) {
+            throw new GradleException("Missing production mapping for MixinItemInHandRenderer @WrapMethod(renderItem). " +
+                    "Keep the MixinExtras annotation processor and runtime versions aligned.")
+        }
+    }
+}
+
+tasks.named("check") {
+    dependsOn tasks.named("verifyMixinRefmap")
+}
+
 repositories {
     maven { url = "https://maven.terraformersmc.com/releases/" } // Mod Menu
     maven { url = "https://mvn.devos.one/snapshots/" }
@@ -24,8 +47,6 @@ sourceSets {
 dependencies {
     modImplementation("net.fabricmc:fabric-loader:${fabric_loader_version}")
     implementation(annotationProcessor("com.github.bawnorton.mixinsquared:mixinsquared-fabric:0.3.7-beta.1"))
-
-    implementation(("io.github.llamalad7:mixinextras-common:0.4.1"))
 
     modApi("dev.architectury:architectury:${rootProject.architectury_version}")
 
