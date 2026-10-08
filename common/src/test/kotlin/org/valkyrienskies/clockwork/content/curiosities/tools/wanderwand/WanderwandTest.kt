@@ -154,6 +154,38 @@ class WanderwandTest {
         val v = WandRopePhysics.constrain(Vec3(5.0, 0.0, 0.0), Vec3(1.0, 0.0, 0.7), Vec3.ZERO, Vec3.ZERO, 5.0)!!
         assertEquals(0.0, v.x, 1e-8); assertEquals(0.7, v.z, 1e-8)
     }
+    @Test fun `swing input accelerates along the arc without increasing rope tension`() {
+        val position = Vec3(3.0, -4.0, 0.0)
+        val initial = Vec3(0.1, 0.075, 0.2)
+        val accelerated = WandRopePhysics.accelerateSwing(position, initial, Vec3.ZERO, Vec3.ZERO, Vec3(1.0, 0.0, 0.0))
+        val extra = accelerated.subtract(initial)
+        assertTrue(extra.x > 0)
+        assertTrue(extra.y > 0)
+        assertEquals(0.0, extra.dot(position.normalize()), 1e-8)
+        assertEquals(initial.z, accelerated.z, 1e-8)
+        assertEquals(initial, WandRopePhysics.accelerateSwing(position, initial, Vec3.ZERO, Vec3.ZERO, Vec3.ZERO))
+    }
+    @Test fun `swing assist is bounded relative to the anchor and can brake existing momentum`() {
+        val position = Vec3(0.0, -5.0, 0.0)
+        val anchorVelocity = Vec3(0.5, 0.0, 0.0)
+        var velocity = anchorVelocity
+        repeat(200) {
+            velocity = WandRopePhysics.accelerateSwing(position, velocity, Vec3.ZERO, anchorVelocity, Vec3(1.0, 0.0, 0.0))
+        }
+        assertTrue(velocity.x > anchorVelocity.x + 0.5)
+        assertTrue(velocity.x <= anchorVelocity.x + 1.2 + 1e-8)
+        val fast = Vec3(3.0, 0.0, 0.0)
+        assertEquals(fast, WandRopePhysics.accelerateSwing(position, fast, Vec3.ZERO, anchorVelocity, Vec3(1.0, 0.0, 0.0)))
+        assertTrue(WandRopePhysics.accelerateSwing(position, fast, Vec3.ZERO, anchorVelocity, Vec3(-1.0, 0.0, 0.0)).x < fast.x)
+    }
+    @Test fun `diagonal swing input is normalized and radial input cannot pull through the anchor`() {
+        val position = Vec3(0.0, -5.0, 0.0)
+        val straight = WandRopePhysics.accelerateSwing(position, Vec3.ZERO, Vec3.ZERO, Vec3.ZERO, Vec3(1.0, 0.0, 0.0))
+        val diagonal = WandRopePhysics.accelerateSwing(position, Vec3.ZERO, Vec3.ZERO, Vec3.ZERO, Vec3(1.0, 0.0, 1.0))
+        assertEquals(straight.length(), diagonal.length(), 1e-8)
+        assertEquals(Vec3.ZERO, WandRopePhysics.accelerateSwing(Vec3(5.0, 0.0, 0.0), Vec3.ZERO,
+            Vec3.ZERO, Vec3.ZERO, Vec3(1.0, 0.0, 0.0)))
+    }
     @Test fun `slack rope does not pull`() {
         assertNull(WandRopePhysics.constrain(Vec3(2.0, 0.0, 0.0), Vec3(1.0, 0.0, 0.0), Vec3.ZERO, Vec3.ZERO, 5.0))
     }

@@ -21,6 +21,7 @@ import org.valkyrienskies.clockwork.content.curiosities.tools.wanderwand.WandSel
 import org.valkyrienskies.clockwork.content.curiosities.tools.wanderwand.WanderwandRenderUpdatePacket
 import org.valkyrienskies.clockwork.content.curiosities.tools.wanderwand.WanderwandStatePacket
 import org.valkyrienskies.clockwork.content.curiosities.tools.wanderwand.WanderwandReelPacket
+import org.valkyrienskies.clockwork.content.curiosities.tools.wanderwand.WandRopeRidePacket
 import org.valkyrienskies.clockwork.content.kinetics.sequenced_seat.SequencedSeatDrivingPacket
 import org.valkyrienskies.clockwork.content.kinetics.sequenced_seat.UpdateSeatRulesPacket
 import org.valkyrienskies.clockwork.content.logistics.gas.duct.DuctEdgeSyncPacket
@@ -90,6 +91,7 @@ enum class ClockworkPackets(
     GRAVITRON_FREEZE_PACKET(GravitronFreezePacket::class.java, ::GravitronFreezePacket),
     WAND_STATE_PACKET(WanderwandStatePacket::class.java, ::WanderwandStatePacket),
     WAND_REEL_PACKET(WanderwandReelPacket::class.java, ::WanderwandReelPacket),
+    WAND_ROPE_RIDE_PACKET(WandRopeRidePacket::class.java, ::WandRopeRidePacket),
 
     ;
 

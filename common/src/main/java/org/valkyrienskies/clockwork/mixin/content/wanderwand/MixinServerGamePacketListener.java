@@ -8,6 +8,7 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.valkyrienskies.clockwork.content.curiosities.tools.wanderwand.WanderwandServer;
+import org.valkyrienskies.clockwork.content.curiosities.tools.wanderwand.WandRopeRiding;
 
 @Mixin(ServerGamePacketListenerImpl.class)
 public class MixinServerGamePacketListener {
@@ -17,6 +18,6 @@ public class MixinServerGamePacketListener {
     @Inject(method = "tick", at = @At("HEAD"))
     private void clockwork$allowRopeSuspension(CallbackInfo ci) {
         // A server-confirmed rope can legitimately suspend a non-flying player indefinitely.
-        if (WanderwandServer.isGrappling(player)) aboveGroundTickCount = 0;
+        if (WanderwandServer.isGrappling(player) || WandRopeRiding.isRiding(player)) aboveGroundTickCount = 0;
     }
 }

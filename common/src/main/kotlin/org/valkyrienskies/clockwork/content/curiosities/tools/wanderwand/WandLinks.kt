@@ -37,6 +37,8 @@ class WandLinks : SavedData() {
 
     val links = linkedMapOf<UUID, Link>()
     val sessions = mutableMapOf<UUID, WanderwandServer.Session>()
+    // Riding is transient; only the rope itself is saved.
+    val riders = mutableMapOf<UUID, WandRopeRiding.Ride>()
 
     override fun save(tag: CompoundTag): CompoundTag {
         tag.put("links", ListTag().also { list -> links.values.forEach { list.add(it.save()) } })
@@ -45,6 +47,7 @@ class WandLinks : SavedData() {
 
     fun add(level: ServerLevel, a: WandAnchor, b: WandAnchor, rope: Boolean, length: Double): Link? {
         if (links.size >= 2048 || a == b) return null
+        if (!rope && !WandLinkPhysics.canAttach(a, b)) return null
         if (links.values.any { it.rope == rope && ((it.a == a && it.b == b) || (it.a == b && it.b == a)) }) return null
         a.world(level) ?: return null
         b.world(level) ?: return null

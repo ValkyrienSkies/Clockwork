@@ -72,6 +72,7 @@ class WanderwandEffectRenderer {
                 }
             }
             "links" -> {
+                WandRopeRidingClient.accept(data)
                 links.clear()
                 for (entry in data.getList("links", Tag.TAG_COMPOUND.toInt()).take(256)) {
                     val t = entry as CompoundTag
@@ -87,6 +88,7 @@ class WanderwandEffectRenderer {
                 if (pulse.action.startsWith("select") || pulse.action.startsWith("deselect")) blocks.pulseOrigin = pulse.anchor.local()
                 if (pulse.action == "weld_end") blocks.weldPulse(pulse.anchor, level.gameTime)
             }
+            "ride" -> WandRopeRidingClient.accept(data)
         }
     }
     fun handlePacket(packet: WanderwandRenderUpdatePacket) {
@@ -116,8 +118,13 @@ class WanderwandEffectRenderer {
         val velocity = anchor.subtract(state.previousAnchor ?: anchor)
         state.previousAnchor = anchor
         if (!player.abilities.flying && !player.isPassenger) {
-            WandRopePhysics.constrain(player.position().add(0.0, 1.0, 0.0), player.deltaMovement, anchor, velocity, state.length)?.let {
-                player.deltaMovement = it
+            val position = player.position().add(0.0, 1.0, 0.0)
+            WandRopePhysics.constrain(position, player.deltaMovement, anchor, velocity, state.length)?.let { constrained ->
+                // Like vanilla walking, input acceleration runs locally; the server constrains the observed motion.
+                val input = Vec3(player.input.leftImpulse.toDouble(), 0.0, player.input.forwardImpulse.toDouble())
+                    .yRot(-player.yRot * (PI / 180).toFloat())
+                player.deltaMovement = if (!player.onGround() && !player.isFallFlying)
+                    WandRopePhysics.accelerateSwing(position, constrained, anchor, velocity, input) else constrained
                 player.fallDistance = 0f
             }
         }
@@ -146,6 +153,10 @@ class WanderwandEffectRenderer {
         val matrix = ms.last().pose()
         val inverse = Matrix4f(matrix).invert()
         var vc = buffers.getBuffer(ClockworkRenderTypes.GRAVITRON_ENERGY)
+        WandRopeRidingClient.target?.let {
+            val point = it.subtract(camera)
+            ring(vc, matrix, point, player.lookAngle, 0.16, time, 0.9f)
+        }
         for (link in links.sortedBy { min(it.a.world(level, true)?.distanceToSqr(camera) ?: Double.MAX_VALUE,
             it.b.world(level, true)?.distanceToSqr(camera) ?: Double.MAX_VALUE) }.take(64)) {
             val a = link.a.world(level, true)?.subtract(camera) ?: continue
@@ -216,7 +227,7 @@ class WanderwandEffectRenderer {
                 blocks.renderPreview(level, state.first, hit, ms, buffers, camera, time)
             if (hit != null && tool in listOf(ToolType.BIND, ToolType.ATTACH, ToolType.WELD)) {
                 val valid = when (tool) {
-                    ToolType.ATTACH -> hit.shipId >= 0 && hit.shipId != state?.first?.shipId
+                    ToolType.ATTACH -> state?.first == null || WandLinkPhysics.canAttach(state.first, hit)
                     ToolType.WELD -> if (state?.first == null) hit.shipId >= 0 else hit.shipId != state.first.shipId
                     else -> state?.rope == null || state.rope.pos != hit.pos || state.rope.shipId != hit.shipId
                 }
@@ -298,7 +309,7 @@ class WanderwandEffectRenderer {
         val distance = delta.length()
         if (distance < 0.001) return
         val (u, v) = basis(delta)
-        val sag = if (rope) min(4.0, sqrt(max(0.0, length * length - distance * distance)) * 0.25) else 0.0
+        val curve = WandRopeCurve(a, b, if (rope) length else distance)
         val count = (distance * 2).toInt().coerceIn(12, 48)
         val strands = if (rope) 2 else 5
         for (strand in 0 until strands) {
@@ -307,8 +318,7 @@ class WanderwandEffectRenderer {
                 val t = i.toDouble() / count
                 val radius = sin(t * PI) * (if (rope) 0.025 else 0.13 + 0.04 * sin(time * 0.08))
                 val phase = t * PI * (if (rope) 6 else 2) + strand * PI * 2 / strands + time * 0.06
-                val p = a.lerp(b, t).add(u.scale(cos(phase) * radius)).add(v.scale(sin(phase) * radius))
-                    .add(0.0, -sin(t * PI) * sag, 0.0)
+                val p = curve.point(t).add(u.scale(cos(phase) * radius)).add(v.scale(sin(phase) * radius))
                 val width = if (rope) 0.012f else (0.025 + sin(t * PI) * 0.035).toFloat()
                 addRibbonSegment(vc, matrix, previous, p, width * 2.5f, 0.55f, 0.27f, 0.8f, alpha * 0.16f)
                 addRibbonSegment(vc, matrix, previous, p, width, 0.765f, 0.627f, 0.89f, alpha * if (rope) 0.8f else 0.35f)

@@ -22,6 +22,10 @@ internal object WandLinkPhysics {
     const val GLUE_MAX_STRETCH = 6.0
     const val GRAPPLE_BREAK_FORCE = 48000.0
 
+    /** The world is a valid fixed body, but glue must connect two different bodies. */
+    fun canAttach(a: WandAnchor, b: WandAnchor): Boolean =
+        (a.shipId >= 0 || b.shipId >= 0) && a.shipId != b.shipId
+
     fun ramp(ticks: Int): Double {
         val t = (ticks.toDouble() / GLUE_RAMP_TICKS).coerceIn(0.0, 1.0)
         return t * t * (3 - 2 * t)

@@ -231,16 +231,16 @@
   "vs_clockwork.wanderwand.tool.deselect.description.3": "[Left-click] cancels a corner or removes a region.",
 
   "vs_clockwork.wanderwand.tool.attach": "Attach",
-  "vs_clockwork.wanderwand.tool.attach.description.0": "Magically attaches two vessels together.",
+  "vs_clockwork.wanderwand.tool.attach.description.0": "Magically attaches a vessel to another vessel or the world.",
   "vs_clockwork.wanderwand.tool.attach.description.1": "[Right-click] on block faces to select.",
   "vs_clockwork.wanderwand.tool.attach.description.2": "Attached vessels will be jointed together.",
-  "vs_clockwork.wanderwand.tool.attach.description.3": "[Left-click] near an attachment to remove it.",
+  "vs_clockwork.wanderwand.tool.attach.description.3": "[Left-click] a rope, attachment, or its anchor to remove it.",
 
   "vs_clockwork.wanderwand.tool.bind": "Bind",
   "vs_clockwork.wanderwand.tool.bind.description.0": "Cast a rope up to 64 blocks away and swing from it.",
   "vs_clockwork.wanderwand.tool.bind.description.1": "[Shift + Scroll] to reel in or out.",
   "vs_clockwork.wanderwand.tool.bind.description.2": "[Right-click] a nearby block to secure the free end.",
-  "vs_clockwork.wanderwand.tool.bind.description.3": "[Left-click] releases your rope. Attach removes secured ends.",
+  "vs_clockwork.wanderwand.tool.bind.description.3": "[Left-click] releases your rope or removes a targeted bind.",
 
   "vs_clockwork.wanderwand.tool.weld": "Weld",
   "vs_clockwork.wanderwand.tool.weld.description.0": "Moves a ship's blocks onto another ship or the world.",

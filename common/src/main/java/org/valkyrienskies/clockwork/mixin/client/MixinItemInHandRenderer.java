@@ -10,6 +10,10 @@ import net.minecraft.world.item.ItemDisplayContext;
 import org.valkyrienskies.clockwork.content.curiosities.tools.gravitron.GravitronEffects;
 import org.valkyrienskies.clockwork.content.curiosities.tools.wanderwand.WanderwandHandEffects;
 import org.valkyrienskies.clockwork.content.curiosities.tools.wanderwand.WanderwandItem;
+import org.valkyrienskies.clockwork.content.curiosities.tools.wanderwand.WandRopeRidingClient;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.InteractionHand;
+import com.mojang.math.Axis;
 import com.llamalad7.mixinextras.injector.wrapmethod.WrapMethod;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import org.spongepowered.asm.mixin.Final;
@@ -39,9 +43,17 @@ public class MixinItemInHandRenderer {
                                                int light, Operation<Void> original) {
         GravitronEffects.beginItem(entity, stack, context);
         WanderwandHandEffects.beginItem(entity, stack, context);
+        InteractionHand ridingHand = entity instanceof Player player ? WandRopeRidingClient.ridingHand(player) : null;
+        boolean raisedWrench = context.firstPerson() && ridingHand != null && entity.getItemInHand(ridingHand) == stack;
+        if (raisedWrench) {
+            matrices.pushPose();
+            matrices.translate(0, 0.35, -0.08);
+            matrices.mulPose(Axis.XP.rotationDegrees(-35));
+        }
         try {
             original.call(entity, stack, context, leftHand, matrices, buffers, light);
         } finally {
+            if (raisedWrench) matrices.popPose();
             GravitronEffects.endItem();
             WanderwandHandEffects.endItem();
         }

@@ -59,6 +59,7 @@ object WanderwandServer {
         }
         val selection = state.tool == ToolType.SELECT || state.tool == ToolType.DESELECT
         val range = when {
+            packet.leftClick -> 15.0
             state.tool == ToolType.BIND && state.rope == null -> 64.0
             state.tool == ToolType.BIND -> if (player.isCreative) 5.0 else 4.5
             else -> 15.0
@@ -74,15 +75,13 @@ object WanderwandServer {
             if (state.first != null) {
                 effect(level, player.uuid, "cancel", state.first!!); state.first = null
             } else if (selection && target != null) editSelection(player, target.pos, null, true)
-            else if (state.tool == ToolType.ATTACH) {
+            else if (state.tool == ToolType.ATTACH || state.tool == ToolType.BIND) {
                 val data = WandLinks.get(level)
-                val link = data.links.values.filter {
-                    it.a.pos == target?.pos || it.b.pos == target?.pos || (!it.rope &&
-                        WandLinkTargeting.intersects(eye, player.lookAngle, min(range, target?.world(level)?.distanceTo(eye) ?: range),
-                            it.a.world(level), it.b.world(level)))
-                }
-                    .minByOrNull { min(it.a.world(level)?.distanceToSqr(eye) ?: Double.MAX_VALUE,
-                        it.b.world(level)?.distanceToSqr(eye) ?: Double.MAX_VALUE) }
+                val visibleRange = min(range, hit.location.distanceTo(eye))
+                val link = data.links.values.asSequence().filter { state.tool == ToolType.ATTACH || it.rope }.mapNotNull { link ->
+                    WandLinkTargeting.removalDistance(link, eye, player.lookAngle, visibleRange, target,
+                        link.a.world(level), link.b.world(level))?.let { distance -> link to distance }
+                }.minByOrNull { it.second }?.first
                 if (link != null) { data.remove(level, link); breakEffect(level, link, player.uuid); syncLinks(level) }
             }
             sync(player, state); return
@@ -104,14 +103,13 @@ object WanderwandServer {
                 }
             }
             ToolType.ATTACH -> {
-                if (target.shipId < 0) { message(player, "Attach needs two separate ships."); return }
                 val first = state.first
                 if (first == null) { state.first = target; effect(level, player.uuid, "attach_start", target) }
-                else if (first.shipId != target.shipId && first.world(level) != null && !level.getBlockState(first.pos).isAir) {
+                else if (WandLinkPhysics.canAttach(first, target) && first.world(level) != null && !level.getBlockState(first.pos).isAir) {
                     if (WandLinks.get(level).add(level, first, target, false, 1.0) != null) {
                         effect(level, player.uuid, "attach_end", target, first); state.first = null
                     }
-                } else message(player, "Choose a block on a different ship.")
+                } else message(player, "Attach a ship to another ship or the world.")
             }
             ToolType.BIND -> {
                 val first = state.rope
@@ -236,6 +234,7 @@ object WanderwandServer {
             if (level.gameTime % 10L == 0L) sync(player, s)
         }
         val linksChanged = data.tick(level)
+        WandRopeRiding.tick(level, data)
         if (linksChanged || level.gameTime % 20L == 0L) syncLinks(level)
     }
 

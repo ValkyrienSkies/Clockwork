@@ -10,6 +10,8 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.valkyrienskies.clockwork.ClockworkModClient;
+import net.minecraft.world.InteractionHand;
+import org.valkyrienskies.clockwork.content.curiosities.tools.wanderwand.WandRopeRidingClient;
 
 @Mixin(value = PlayerSkyhookRenderer.class, remap = false)
 public abstract class MixinPlayerSkyhookRenderer {
@@ -17,7 +19,10 @@ public abstract class MixinPlayerSkyhookRenderer {
 
     @Inject(method = "afterSetupAnim", at = @At("TAIL"))
     private static void clockwork$bindSwing(Player player, HumanoidModel<?> model, CallbackInfo ci) {
-        if (ClockworkModClient.getWANDERWAND_EFFECT_RENDERER().isSwinging(player))
+        InteractionHand hand = WandRopeRidingClient.ridingHand(player);
+        if (hand != null)
+            setHangingPose((player.getMainArm() == HumanoidArm.LEFT) ^ (hand == InteractionHand.OFF_HAND), model);
+        else if (ClockworkModClient.getWANDERWAND_EFFECT_RENDERER().isSwinging(player))
             setHangingPose(player.getMainArm() == HumanoidArm.LEFT, model);
     }
 }
