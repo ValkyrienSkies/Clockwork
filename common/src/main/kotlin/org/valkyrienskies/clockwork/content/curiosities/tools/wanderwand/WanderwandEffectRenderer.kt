@@ -16,6 +16,8 @@ import net.minecraft.world.phys.HitResult
 import net.minecraft.world.phys.Vec3
 import org.joml.Matrix4f
 import org.valkyrienskies.clockwork.ClockworkMod
+import org.valkyrienskies.clockwork.util.render.ShaderPackCompat
+import org.valkyrienskies.clockwork.util.render.SurfaceEffectPass
 import org.valkyrienskies.clockwork.ClockworkRenderTypes
 import org.valkyrienskies.clockwork.content.curiosities.tools.wanderwand.tool.ToolType
 import org.valkyrienskies.clockwork.platform.SharedValues
@@ -39,6 +41,8 @@ class WanderwandEffectRenderer {
     private var selectionStack: net.minecraft.world.item.ItemStack? = null
     private val markerType = RenderType.entityTranslucentEmissive(ClockworkMod.asResource("textures/gui/wand_targeting.png"), false)
 
+    fun reload() = blocks.invalidateMeshes()
+
     private fun checkWorld(): ClientLevel? {
         val level = Minecraft.getInstance().level
         if (world !== level) {
@@ -51,6 +55,17 @@ class WanderwandEffectRenderer {
         return states[Minecraft.getInstance().player?.uuid]?.rope != null
     }
     fun ropeLength(): Double? = states[Minecraft.getInstance().player?.uuid]?.takeIf { it.rope != null }?.length
+
+    // Called at vanilla's air-friction step and again after travel, before applying our constraint.
+    fun usesSwingDrag(player: net.minecraft.world.entity.player.Player): Boolean {
+        if (player !== Minecraft.getInstance().player || player.onGround() || player.abilities.flying ||
+            player.isPassenger || player.isFallFlying || player.isInWater || player.isInLava ||
+            player.onClimbable() || player.horizontalCollision || player.verticalCollision ||
+            player.shouldDiscardFriction() || player.mainHandItem.item !is WanderwandItem) return false
+        val state = states[player.uuid] ?: return false
+        val anchor = state.rope?.world(player.level()) ?: return false
+        return WandRopePhysics.isTaut(player.position().add(0.0, 1.0, 0.0), anchor, state.length)
+    }
     fun isSwinging(player: net.minecraft.world.entity.player.Player): Boolean {
         if (player.onGround() || player.abilities.flying || player.isPassenger || player.isFallFlying ||
             player.mainHandItem.item !is WanderwandItem) return false
@@ -119,7 +134,9 @@ class WanderwandEffectRenderer {
         state.previousAnchor = anchor
         if (!player.abilities.flying && !player.isPassenger) {
             val position = player.position().add(0.0, 1.0, 0.0)
-            WandRopePhysics.constrain(position, player.deltaMovement, anchor, velocity, state.length)?.let { constrained ->
+            val movement = if (usesSwingDrag(player))
+                WandRopePhysics.swingDrag(position, player.deltaMovement, anchor, velocity) else player.deltaMovement
+            WandRopePhysics.constrain(position, movement, anchor, velocity, state.length)?.let { constrained ->
                 // Like vanilla walking, input acceleration runs locally; the server constrains the observed motion.
                 val input = Vec3(player.input.leftImpulse.toDouble(), 0.0, player.input.forwardImpulse.toDouble())
                     .yRot(-player.yRot * (PI / 180).toFloat())
@@ -145,6 +162,7 @@ class WanderwandEffectRenderer {
     }
 
     fun render(ms: PoseStack, buffer: SuperRenderTypeBuffer, camera: Vec3, partialTicks: Float) {
+        if (ShaderPackCompat.shadowPass()) return
         val level = checkWorld() ?: return
         val mc = Minecraft.getInstance()
         val player = mc.player ?: return
@@ -152,7 +170,7 @@ class WanderwandEffectRenderer {
         val buffers = mc.renderBuffers().bufferSource()
         val matrix = ms.last().pose()
         val inverse = Matrix4f(matrix).invert()
-        var vc = buffers.getBuffer(ClockworkRenderTypes.GRAVITRON_ENERGY)
+        var vc = ClockworkRenderTypes.energyBuffer(buffers)
         WandRopeRidingClient.target?.let {
             val point = it.subtract(camera)
             ring(vc, matrix, point, player.lookAngle, 0.16, time, 0.9f)
@@ -212,7 +230,7 @@ class WanderwandEffectRenderer {
                     org.joml.primitives.AABBi(min(first.x, hit.pos.x), min(first.y, hit.pos.y), min(first.z, hit.pos.z),
                         max(first.x, hit.pos.x) + 1, max(first.y, hit.pos.y) + 1, max(first.z, hit.pos.z) + 1) else null
                 blocks.renderSelection(level, ms, buffers, camera, time, deselect)
-                vc = buffers.getBuffer(ClockworkRenderTypes.GRAVITRON_ENERGY)
+                vc = ClockworkRenderTypes.energyBuffer(buffers)
                 // Keep the region borders visible after completing a selection, including empty space.
                 for (box in blocks.boxes) {
                     if (camera.x < box.minX() - 64.0 || camera.x > box.maxX() + 64.0 ||
@@ -235,8 +253,8 @@ class WanderwandEffectRenderer {
             }
             state?.first?.let { marker(ms, buffers.getBuffer(markerType), it, camera, -time, true) }
         }
-        buffers.endBatch(ClockworkRenderTypes.GRAVITRON_SURFACE)
-        buffers.endBatch(ClockworkRenderTypes.GRAVITRON_ENERGY)
+        SurfaceEffectPass.endBatch(buffers)
+        buffers.endBatch(ClockworkRenderTypes.energyType())
         buffers.endBatch(markerType)
     }
 

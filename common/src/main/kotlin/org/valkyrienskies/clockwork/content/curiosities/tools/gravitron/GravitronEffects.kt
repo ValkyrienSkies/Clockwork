@@ -15,6 +15,8 @@ import org.joml.Vector3d
 import org.joml.Vector3f
 import org.valkyrienskies.clockwork.ClockworkConfig
 import org.valkyrienskies.clockwork.ClockworkRenderTypes
+import org.valkyrienskies.clockwork.util.render.ShaderPackCompat
+import org.valkyrienskies.clockwork.util.render.SurfaceEffectPass
 import org.valkyrienskies.clockwork.mixin.content.gravitron.GameRendererAccessor
 import org.valkyrienskies.clockwork.util.render.RenderUtil.addRibbonSegment
 import org.valkyrienskies.core.api.ships.ClientShip
@@ -211,6 +213,7 @@ object GravitronEffects {
 
     @JvmStatic
     fun render(ms: PoseStack, partialTick: Float) {
+        if (ShaderPackCompat.shadowPass()) return
         val level = checkWorld() ?: return
         val mc = Minecraft.getInstance()
         val camera = mc.gameRenderer.mainCamera.position
@@ -220,8 +223,8 @@ object GravitronEffects {
         val surfaces = mutableListOf<SurfacePass>()
         val legacy = ClockworkConfig.CLIENT.gravitronLegacyShipContours
         GravitronSurfaceEffects.beginFrame()
-        val type = ClockworkRenderTypes.GRAVITRON_ENERGY
-        val vc = buffers.getBuffer(type)
+        val type = ClockworkRenderTypes.energyType()
+        val vc = ClockworkRenderTypes.energyBuffer(buffers)
         val pose = ms.last().pose()
         val inverseView = Matrix4f(pose).invert()
         for (player in level.players()) {
@@ -294,7 +297,7 @@ object GravitronEffects {
             GravitronSurfaceEffects.render(level, surface.ship, surface.anchor, surface.action,
                 surface.age, ms, buffers, camera, surface.frozenAge)
         }
-        buffers.endBatch(ClockworkRenderTypes.GRAVITRON_SURFACE)
+        SurfaceEffectPass.endBatch(buffers)
     }
 
     /** A single impulse from the body, including when no grab preceded the launch. */

@@ -15,6 +15,7 @@ import net.minecraft.world.item.ItemStack
 import org.joml.Quaternionf
 import org.joml.Vector3f
 import org.valkyrienskies.clockwork.ClockworkPartials
+import org.valkyrienskies.clockwork.util.render.ShaderPackCompat
 import org.valkyrienskies.clockwork.ClockworkRenderTypes
 import kotlin.math.PI
 import kotlin.math.cos
@@ -109,9 +110,10 @@ class GravitronItemRenderer : CustomRenderedItemModelRenderer() {
     }
 
     private fun renderCore(ms: PoseStack, buffer: MultiBufferSource, pose: GravitronAnimation.Pose, time: Float) {
+        if (ShaderPackCompat.shadowPass()) return
         val energy = 0.12f + pose.energy * 0.65f
         val rgb = GravitronVisuals.WANDERLITE
-        val vc = buffer.getBuffer(ClockworkRenderTypes.GRAVITRON_ENERGY)
+        val vc = ClockworkRenderTypes.energyBuffer(buffer)
         val matrix = ms.last().pose()
         val radius = 0.045f + pose.energy * 0.025f
         // Narrow rotating arcs around the emitter, rather than an opaque muzzle flash.

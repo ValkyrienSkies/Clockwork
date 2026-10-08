@@ -35,6 +35,8 @@ object ClockworkShaders {
                 ) { inst ->
                     gravitronSurface = inst
                     org.valkyrienskies.clockwork.content.curiosities.tools.gravitron.GravitronSurfaceEffects.clear()
+                    ClockworkModClient.WANDERWAND_EFFECT_RENDERER.reload()
+                    org.valkyrienskies.clockwork.util.render.SurfaceEffectAtlas.clear()
                 }
                 shadersSink.registerShader(
                     ShaderInstance(

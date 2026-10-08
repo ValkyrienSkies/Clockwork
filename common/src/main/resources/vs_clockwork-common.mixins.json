@@ -38,10 +38,12 @@
     "client.MixinCamera",
     "client.MixinFogRenderer",
     "client.MixinItemInHandRenderer",
+    "client.SpriteContentsAccessor",
     "content.gravitron.MinecraftAccessor",
     "content.gravitron.GameRendererAccessor",
     "content.gravitron.MixinHumanoidModel",
     "content.wanderwand.MixinPlayerSkyhookRenderer",
+    "content.wanderwand.MixinLivingEntity",
     "content.wanderwand.MixinMinecraft",
     "content.gravitron.MixinLocalPlayer"
   ],

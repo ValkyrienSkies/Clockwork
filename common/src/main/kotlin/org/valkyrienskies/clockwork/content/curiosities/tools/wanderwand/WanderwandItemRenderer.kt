@@ -16,6 +16,7 @@ import net.minecraft.world.phys.Vec3
 import org.joml.Vector3f
 import org.valkyrienskies.clockwork.ClockworkItems
 import org.valkyrienskies.clockwork.ClockworkPartials
+import org.valkyrienskies.clockwork.util.render.ShaderPackCompat
 import org.valkyrienskies.clockwork.ClockworkRenderTypes
 import org.valkyrienskies.clockwork.util.render.RenderUtil
 import kotlin.math.sin
@@ -54,11 +55,17 @@ class WanderwandItemRenderer : CustomRenderedItemModelRenderer() {
         ms.scale(size, size, size)
         ms.translate(0.0, -centerY.toDouble(), 0.0)
         renderer.render(ClockworkPartials.CRYSTAL_INNER.get(), RenderType.endPortal(), 0xF000F0)
-        renderer.render(ClockworkPartials.CRYSTAL.get(), ClockworkRenderTypes.CRYSTAL.apply(RenderUtil.CRYSTAL_MATRIX), 0xF000F0)
+        val crystalType = if (ShaderPackCompat.enabled()) RenderType.entityTranslucentEmissive(RenderUtil.PURPLE_HUE)
+            else ClockworkRenderTypes.CRYSTAL.apply(RenderUtil.CRYSTAL_MATRIX)
+        renderer.render(ClockworkPartials.CRYSTAL.get(), crystalType, 0xF000F0)
         renderer.render(ClockworkPartials.CRYSTAL_OUTER.get(), RenderType.entityTranslucentEmissive(RenderUtil.PURPLE_HUE), 0xF000F0)
         ms.popPose()
 
-        val vc = buffer.getBuffer(ClockworkRenderTypes.GRAVITRON_ENERGY)
+        if (ShaderPackCompat.shadowPass()) {
+            ms.popPose()
+            return
+        }
+        val vc = ClockworkRenderTypes.energyBuffer(buffer)
         for (strand in 0..2) {
             var previous: Vec3? = null
             for (i in 0..8) {

@@ -1,7 +1,6 @@
 package org.valkyrienskies.clockwork.content.curiosities.tools.wanderwand
 
 import com.mojang.blaze3d.vertex.PoseStack
-import com.mojang.blaze3d.vertex.VertexConsumer
 import net.minecraft.client.Minecraft
 import net.minecraft.client.multiplayer.ClientLevel
 import net.minecraft.client.renderer.MultiBufferSource
@@ -18,7 +17,7 @@ import org.joml.Matrix4d
 import org.joml.Matrix4f
 import org.joml.Quaterniond
 import org.joml.primitives.AABBic
-import org.valkyrienskies.clockwork.ClockworkRenderTypes
+import org.valkyrienskies.clockwork.util.render.SurfaceEffectPass
 import org.valkyrienskies.mod.common.shipObjectWorld
 import kotlin.math.*
 
@@ -42,6 +41,11 @@ class WandBlockEffects {
         boxes.firstOrNull()?.let { pulseOrigin = Vec3(it.minX().toDouble(), it.minY().toDouble(), it.minZ().toDouble()) }
     }
     fun clear() { update(CompoundTag()); weldPulses.clear() }
+
+    fun invalidateMeshes() {
+        visible.clear(); building.clear(); scan = null; builtAt = -100
+        weldPulses.clear()
+    }
 
     fun tick(level: ClientLevel) {
         val player = Minecraft.getInstance().player ?: return
@@ -85,12 +89,12 @@ class WandBlockEffects {
 
     fun renderSelection(level: ClientLevel, ms: PoseStack, buffers: MultiBufferSource, camera: Vec3, time: Float,
                         deselect: AABBic? = null) {
-        val vc = buffers.getBuffer(ClockworkRenderTypes.GRAVITRON_SURFACE)
+        val pass = SurfaceEffectPass(buffers, time)
         for (surface in visible) {
             if (level.getBlockState(surface.pos) != surface.state) continue
             val origin = Vec3.atLowerCornerOf(surface.pos).subtract(camera)
             val red = deselect?.let { WandSelectionMath.contains(it, surface.pos.x, surface.pos.y, surface.pos.z) } == true
-            for (quad in surface.quads) emit(vc, ms.last().pose(), quad, origin, 0.65f, 0f, red,
+            for (quad in surface.quads) emit(pass, ms.last().pose(), quad, origin, 0.65f, 0f, red,
                 mode = 3, pulseCenter = pulseOrigin.subtract(camera))
         }
     }
@@ -122,7 +126,7 @@ class WandBlockEffects {
         }
     }
     fun renderPulses(level: ClientLevel, ms: PoseStack, buffers: MultiBufferSource, camera: Vec3, partial: Float) {
-        val vc = buffers.getBuffer(ClockworkRenderTypes.GRAVITRON_SURFACE)
+        val pass = SurfaceEffectPass(buffers, (level.gameTime % 24000).toFloat() + partial)
         for (pulse in weldPulses) {
             val age = (level.gameTime - pulse.born).toFloat() + partial
             val ship = level.shipObjectWorld.loadedShips.getById(pulse.anchor.shipId)
@@ -136,7 +140,7 @@ class WandBlockEffects {
             for (surface in pulse.surfaces) {
                 if (level.getBlockState(surface.pos) != surface.state) continue
                 val offset = Vec3.atLowerCornerOf(surface.pos.subtract(pulse.anchor.pos))
-                for (quad in surface.quads) emit(vc, ms.last().pose(), quad, offset,
+                for (quad in surface.quads) emit(pass, ms.last().pose(), quad, offset,
                     (1 - age / 22f).coerceIn(0f, 1f), -age * 0.65f, false, mode = 4, pulseCenter = center)
             }
             ms.popPose()
@@ -154,7 +158,7 @@ class WandBlockEffects {
             .translate(destination.x.toDouble(), destination.y.toDouble(), destination.z.toDouble())
         transform.m30(transform.m30() - camera.x); transform.m31(transform.m31() - camera.y); transform.m32(transform.m32() - camera.z)
         ms.pushPose(); ms.mulPoseMatrix(Matrix4f(transform))
-        val vc = buffers.getBuffer(ClockworkRenderTypes.GRAVITRON_SURFACE)
+        val pass = SurfaceEffectPass(buffers, time)
         var budget = 1536
         for (x in -2..2) for (y in -2..2) for (z in -2..2) {
             val pos = from.pos.offset(x, y, z)
@@ -166,24 +170,24 @@ class WandBlockEffects {
             val blocked = !level.getBlockState(destination.offset(offset)).isAir
             for (quad in quads(level, pos, transformed, false)) {
                 if (budget-- <= 0) break
-                emit(vc, ms.last().pose(), quad, Vec3.atLowerCornerOf(offset),
+                emit(pass, ms.last().pose(), quad, Vec3.atLowerCornerOf(offset),
                     0.65f + sin(time * 0.12f) * 0.15f, (x + y + z).toFloat(), blocked)
             }
         }
         ms.popPose()
     }
 
-    private fun emit(vc: VertexConsumer, matrix: Matrix4f, quad: BakedQuad, offset: Vec3, alpha: Float, distance: Float, red: Boolean,
+    private fun emit(pass: SurfaceEffectPass, matrix: Matrix4f, quad: BakedQuad, offset: Vec3, alpha: Float, distance: Float, red: Boolean,
                      mode: Int = 0, pulseCenter: Vec3? = null) {
+        pass.quad(quad, matrix, mode)
         val data = quad.vertices; val stride = data.size / 4
         for (i in 0..3) {
             val j = i * stride
             val p = offset.add(Float.fromBits(data[j]).toDouble(), Float.fromBits(data[j + 1]).toDouble(), Float.fromBits(data[j + 2]).toDouble())
             val phase = if (pulseCenter != null) p.distanceTo(pulseCenter).toFloat() + distance else distance
-            vc.vertex(matrix, p.x.toFloat(), p.y.toFloat(), p.z.toFloat())
-                .color(if (red) 1f else 0.765f, if (red) 0.2f else 0.627f, if (red) 0.3f else 0.89f, alpha)
-                .uv(Float.fromBits(data[j + 4]), Float.fromBits(data[j + 5])).overlayCoords((phase.coerceIn(-127f, 127f) * 256).toInt(), mode)
-                .uv2(0xF000F0).normal(quad.direction.stepX.toFloat(), quad.direction.stepY.toFloat(), quad.direction.stepZ.toFloat()).endVertex()
+            pass.vertex(matrix, p.x.toFloat(), p.y.toFloat(), p.z.toFloat(),
+                if (red) 1f else 0.765f, if (red) 0.2f else 0.627f, if (red) 0.3f else 0.89f, alpha,
+                Float.fromBits(data[j + 4]), Float.fromBits(data[j + 5]), phase, 0xF000F0)
         }
     }
 

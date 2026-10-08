@@ -31,6 +31,7 @@ object WanderwandServer {
         var length = 0.0
         var previousAnchor: Vec3? = null
         var previousPlayer: Vec3? = null
+        var lastRopeCorrection = -100L
         var lastClick = Long.MIN_VALUE
         var lastReel = Long.MIN_VALUE
     }
@@ -118,6 +119,7 @@ object WanderwandServer {
                     state.length = target.world(level)!!.distanceTo(player.position().add(0.0, 1.0, 0.0)).coerceIn(2.0, 64.0)
                     state.previousAnchor = target.world(level)
                     state.previousPlayer = player.position()
+                    state.lastRopeCorrection = -100L
                     effect(level, player.uuid, "bind_start", target)
                 } else if (first.pos != target.pos || first.shipId != target.shipId) {
                     val distance = first.world(level)?.distanceTo(target.world(level)!!) ?: return
@@ -212,8 +214,8 @@ object WanderwandServer {
                 } else {
                     val anchorVelocity = anchor.subtract(s.previousAnchor ?: anchor)
                     s.previousAnchor = anchor
-                    // Movement packets carry positions, not the client's velocity. Preserve the observed
-                    // tangential motion instead of repeatedly sending the server's stale deltaMovement.
+                    // Movement packets carry positions, not current client velocity. Use them for
+                    // rope validation, without continually overwriting the locally predicted swing.
                     val movement = s.previousPlayer?.let { player.position().subtract(it) } ?: player.deltaMovement
                     s.previousPlayer = player.position()
                     if (WandLinkPhysics.grappleOverloaded(player.position().add(0.0, 1.0, 0.0), movement,
@@ -225,9 +227,13 @@ object WanderwandServer {
                     val result = WandRopePhysics.constrain(player.position().add(0.0, 1.0, 0.0),
                         if (movement.lengthSqr() < 100) movement else player.deltaMovement, anchor, anchorVelocity, s.length)
                     if (result != null && !player.abilities.flying && !player.isPassenger) {
-                        player.deltaMovement = result
-                        player.hurtMarked = true
                         player.fallDistance = 0f
+                        if (WandRopePhysics.needsServerCorrection(player.position().add(0.0, 1.0, 0.0),
+                                anchor, s.length, level.gameTime, s.lastRopeCorrection)) {
+                            player.deltaMovement = result
+                            player.hurtMarked = true
+                            s.lastRopeCorrection = level.gameTime
+                        }
                     }
                 }
             }

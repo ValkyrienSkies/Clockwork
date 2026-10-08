@@ -15,7 +15,7 @@ import net.minecraft.world.level.block.state.BlockState
 import net.minecraft.world.phys.Vec3
 import org.joml.Matrix4d
 import org.joml.Matrix4f
-import org.valkyrienskies.clockwork.ClockworkRenderTypes
+import org.valkyrienskies.clockwork.util.render.SurfaceEffectPass
 import org.valkyrienskies.core.api.ships.ClientShip
 import org.valkyrienskies.mod.common.shipObjectWorld
 import kotlin.math.sqrt
@@ -112,7 +112,7 @@ object GravitronSurfaceEffects {
         if (mesh.surfaces.isEmpty() || frameQuads >= FRAME_QUAD_BUDGET) return
         val mc = Minecraft.getInstance()
         val freeze = action == GravitronAction.FREEZE || action == GravitronAction.UNFREEZE
-        val vc = buffers.getBuffer(ClockworkRenderTypes.GRAVITRON_SURFACE)
+        val pass = SurfaceEffectPass(buffers, (level.gameTime % 24000).toFloat() + Minecraft.getInstance().frameTime)
         // Keep shipyard coordinates in doubles until the small camera-relative matrix is formed.
         val transform = Matrix4d(ship.renderTransform.shipToWorld)
             .translate(key.origin.x.toDouble(), key.origin.y.toDouble(), key.origin.z.toDouble())
@@ -149,22 +149,19 @@ object GravitronSurfaceEffects {
                 if (strengths.all { it < 0.005f }) continue
                 val tint = if (freeze && quad.isTinted) mc.blockColors.getColor(surface.state, level, surface.pos, quad.tintIndex)
                     else if (freeze) 0xFFFFFF else GravitronVisuals.WANDERLITE
-                val shade = if (freeze) level.getShade(quad.direction, true) else 1f
+                // The compatible lit entity shader supplies directional lighting itself.
+                val shade = if (freeze && !pass.compatible) level.getShade(quad.direction, true) else 1f
+                pass.quad(quad, matrix, when {
+                    freeze -> 1
+                    action == GravitronAction.LAUNCH -> 2
+                    else -> 0
+                })
                 for (i in 0..3) {
                     val j = i * stride
-                    vc.vertex(matrix, Float.fromBits(data[j]) + ox, Float.fromBits(data[j + 1]) + oy, Float.fromBits(data[j + 2]) + oz)
-                        .color((tint shr 16 and 255) / 255f * shade, (tint shr 8 and 255) / 255f * shade,
-                            (tint and 255) / 255f * shade, strengths[i])
-                        .uv(Float.fromBits(data[j + 4]), Float.fromBits(data[j + 5]))
-                        // The dedicated shader uses overlay coordinates for distance and mode.
-                        .overlayCoords((distances[i] * 256).toInt(), when {
-                            freeze -> 1
-                            action == GravitronAction.LAUNCH -> 2
-                            else -> 0
-                        })
-                        .uv2(light)
-                        .normal(quad.direction.stepX.toFloat(), quad.direction.stepY.toFloat(), quad.direction.stepZ.toFloat())
-                        .endVertex()
+                    pass.vertex(matrix, Float.fromBits(data[j]) + ox, Float.fromBits(data[j + 1]) + oy, Float.fromBits(data[j + 2]) + oz,
+                        (tint shr 16 and 255) / 255f * shade, (tint shr 8 and 255) / 255f * shade,
+                        (tint and 255) / 255f * shade, strengths[i], Float.fromBits(data[j + 4]), Float.fromBits(data[j + 5]),
+                        distances[i], light)
                 }
                 frameQuads++
             }

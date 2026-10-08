@@ -7,6 +7,30 @@ import kotlin.math.min
 object WandRopePhysics {
     private const val SWING_ACCELERATION = 0.012
     private const val SWING_ASSIST_SPEED = 1.2
+    private const val SWING_DRAG = 0.995
+    private const val SERVER_STRETCH_TOLERANCE = 1.5
+    private const val SERVER_CORRECTION_INTERVAL = 10L
+
+    fun isTaut(position: Vec3, anchor: Vec3, length: Double): Boolean {
+        val distance = position.distanceTo(anchor)
+        return distance >= 0.001 && distance >= length - 0.15
+    }
+
+    /** Replace walking's strong, axis-dependent air drag with light drag along the swing arc. */
+    fun swingDrag(position: Vec3, velocity: Vec3, anchor: Vec3, anchorVelocity: Vec3): Vec3 {
+        val delta = position.subtract(anchor)
+        if (delta.lengthSqr() < 1e-8) return velocity
+        val normal = delta.normalize()
+        val relative = velocity.subtract(anchorVelocity)
+        val radial = normal.scale(relative.dot(normal))
+        val tangent = relative.subtract(radial)
+        return anchorVelocity.add(tangent.scale(SWING_DRAG)).add(radial.scale(0.98))
+    }
+
+    /** Normal swings are predicted locally; stale server velocity must not replace every tick. */
+    fun needsServerCorrection(position: Vec3, anchor: Vec3, length: Double, now: Long, lastCorrection: Long): Boolean =
+        position.distanceTo(anchor) > length + SERVER_STRETCH_TOLERANCE &&
+            now - lastCorrection >= SERVER_CORRECTION_INTERVAL
 
     /** Extra air control along the swing arc, without pushing outward against the rope. */
     fun accelerateSwing(position: Vec3, velocity: Vec3, anchor: Vec3, anchorVelocity: Vec3, input: Vec3): Vec3 {

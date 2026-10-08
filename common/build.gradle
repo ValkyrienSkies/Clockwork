@@ -16,7 +16,7 @@ def commonMixinRefmap = tasks.named("compileJava", JavaCompile).flatMap {
 
 tasks.register("verifyMixinRefmap") {
     group = "verification"
-    description = "Checks that the held-item wrapper has a production method mapping."
+    description = "Checks production mappings for tool rendering and rope movement injections."
     dependsOn tasks.named("compileJava")
     inputs.file(commonMixinRefmap)
     doLast {
@@ -25,6 +25,18 @@ tasks.register("verifyMixinRefmap") {
         if (!(target instanceof String) || !target.contains("(") || target.contains(";renderItem(")) {
             throw new GradleException("Missing production mapping for MixinItemInHandRenderer @WrapMethod(renderItem). " +
                     "Keep the MixinExtras annotation processor and runtime versions aligned.")
+        }
+        def spriteImage = refmap.mappings["org/valkyrienskies/clockwork/mixin/client/SpriteContentsAccessor"]?.get("originalImage")
+        if (!(spriteImage instanceof String) || !spriteImage.contains(":") || spriteImage.startsWith("originalImage:")) {
+            throw new GradleException("Missing production mapping for SpriteContentsAccessor originalImage.")
+        }
+        def ropeMixin = refmap.mappings["org/valkyrienskies/clockwork/mixin/content/wanderwand/MixinLivingEntity"]
+        for (def selector : ["travel", "Lnet/minecraft/world/entity/LivingEntity;shouldDiscardFriction()Z"]) {
+            def mapped = ropeMixin?.get(selector)
+            if (!(mapped instanceof String) || !mapped.contains("(") || mapped == selector ||
+                    mapped.contains(";travel(") || mapped.contains(";shouldDiscardFriction(")) {
+                throw new GradleException("Missing production mapping for bind swing injection: " + selector)
+            }
         }
     }
 }

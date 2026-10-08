@@ -12,6 +12,11 @@ import org.valkyrienskies.clockwork.ClockworkShaders.crystal
 import org.valkyrienskies.clockwork.ClockworkShaders.haze
 import org.valkyrienskies.clockwork.ClockworkShaders.heat
 import org.valkyrienskies.clockwork.platform.PlatformUtils
+import net.minecraft.client.renderer.MultiBufferSource
+import com.mojang.blaze3d.vertex.VertexConsumer
+import org.valkyrienskies.clockwork.util.render.EmissiveEnergyVertexConsumer
+import org.valkyrienskies.clockwork.util.render.ShaderPackCompat
+import org.valkyrienskies.clockwork.util.render.SurfaceEffectAtlas
 
 class ClockworkRenderTypes(
     name: String,
@@ -128,6 +133,36 @@ class ClockworkRenderTypes(
         // Vanilla's emissive translucent pass blends texture alpha and only writes color.
         // Transparent areas of the energy model must not occlude the body or articulated prongs.
         val GRAVITRON_OVERCHARGE: RenderType = RenderType.entityTranslucentEmissive(TextureAtlas.LOCATION_BLOCKS, false)
+
+        // These vanilla shader getters are intercepted by both Iris and Oculus and write the
+        // shader pack's expected outputs. Custom core shaders cannot write its deferred buffers.
+        private val TOOL_ENERGY_COMPAT = RenderType.entityTranslucentEmissive(TEX, false)
+        val TOOL_SURFACE_COMPAT = toolSurface(false)
+        val TOOL_FROZEN_COMPAT = toolSurface(true)
+
+        fun energyType(): RenderType = if (ShaderPackCompat.enabled()) TOOL_ENERGY_COMPAT else GRAVITRON_ENERGY
+
+        fun energyBuffer(buffers: MultiBufferSource): VertexConsumer {
+            val type = energyType()
+            val consumer = buffers.getBuffer(type)
+            return if (type === TOOL_ENERGY_COMPAT) EmissiveEnergyVertexConsumer(consumer) else consumer
+        }
+
+        private fun toolSurface(frozen: Boolean): RenderType = create(
+            if (frozen) "tool_frozen_compat" else "tool_surface_compat",
+            DefaultVertexFormat.NEW_ENTITY, VertexFormat.Mode.QUADS, 262144, false, true,
+            CompositeState.builder()
+                .setShaderState(if (frozen) RENDERTYPE_ENTITY_TRANSLUCENT_SHADER else RENDERTYPE_ENTITY_TRANSLUCENT_EMISSIVE_SHADER)
+                .setTextureState(TextureStateShard(SurfaceEffectAtlas.LOCATION, false, false))
+                .setTransparencyState(TRANSLUCENT_TRANSPARENCY)
+                .setLightmapState(LIGHTMAP)
+                .setOverlayState(OVERLAY)
+                .setCullState(NO_CULL)
+                .setLayeringState(VIEW_OFFSET_Z_LAYERING)
+                .setWriteMaskState(COLOR_WRITE)
+                .setDepthTestState(LEQUAL_DEPTH_TEST)
+                .createCompositeState(false)
+        )
 
         val GRAVITRON_SURFACE: RenderType = create(
             "gravitron_surface", DefaultVertexFormat.NEW_ENTITY, VertexFormat.Mode.QUADS,
