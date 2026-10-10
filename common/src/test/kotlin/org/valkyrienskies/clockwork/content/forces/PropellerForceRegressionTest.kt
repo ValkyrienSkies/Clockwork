@@ -31,15 +31,18 @@ class PropellerForceRegressionTest {
         every { aerodynamicUtils.getAirTemperatureForY(any(), any()) } returns 288.15
     }
     private var savedMultiplier = 0.0
+    private var savedSailMultiplier = 0.0
     private var savedMaxForce = 0.0
     private var savedMaxTorque = 0.0
 
     @BeforeEach
     fun configureForces() {
         savedMultiplier = ClockworkConfig.SERVER.forceMulPerSailInPropeller
+        savedSailMultiplier = ClockworkConfig.SERVER.sailPropellerForceMultiplier
         savedMaxForce = ClockworkConfig.SERVER.propellerMaxForce
         savedMaxTorque = ClockworkConfig.SERVER.propellerMaxTorque
         ClockworkConfig.SERVER.forceMulPerSailInPropeller = 12.0
+        ClockworkConfig.SERVER.sailPropellerForceMultiplier = 1.0
         // Check the equations below the limits; coupled force/moment limiting is tested separately.
         ClockworkConfig.SERVER.propellerMaxForce = 1e12
         ClockworkConfig.SERVER.propellerMaxTorque = 1e12
@@ -48,6 +51,7 @@ class PropellerForceRegressionTest {
     @AfterEach
     fun restoreConfig() {
         ClockworkConfig.SERVER.forceMulPerSailInPropeller = savedMultiplier
+        ClockworkConfig.SERVER.sailPropellerForceMultiplier = savedSailMultiplier
         ClockworkConfig.SERVER.propellerMaxForce = savedMaxForce
         ClockworkConfig.SERVER.propellerMaxTorque = savedMaxTorque
     }
@@ -63,6 +67,7 @@ class PropellerForceRegressionTest {
     fun `default tuning rewards higher RPM beyond the old force ceiling`() {
         val defaults = ClockworkConfig.Server()
         ClockworkConfig.SERVER.forceMulPerSailInPropeller = defaults.forceMulPerSailInPropeller
+        ClockworkConfig.SERVER.sailPropellerForceMultiplier = defaults.sailPropellerForceMultiplier
         ClockworkConfig.SERVER.propellerMaxForce = defaults.propellerMaxForce
         ClockworkConfig.SERVER.propellerMaxTorque = defaults.propellerMaxTorque
         for (sails in listOf(false, true)) {
@@ -80,6 +85,69 @@ class PropellerForceRegressionTest {
             assertVectorEquals(Vector3d(medium.first).mul(4.0), high.first)
             assertVectorEquals(Vector3d(low.second).mul(16.0), high.second)
         }
+    }
+
+    @Test
+    fun `sail boost scales force and moment in moving air without changing blades or collective`() {
+        val physicsShip = ship(velocity = Vector3d(1.0, -2.0, 3.0),
+            wind = Vector3d(-0.5, 1.0, -2.0), omega = Vector3d(0.3, -0.8, 0.2))
+        for (sails in listOf(true, false)) for (rpm in listOf(-64.0, 64.0, 128.0)) {
+            val baseProp = propeller(sails, rpm, position = Vector3i(3, -2, 1))
+            val boostedProp = propeller(sails, rpm, position = Vector3i(3, -2, 1))
+            ClockworkConfig.SERVER.sailPropellerForceMultiplier = 1.0
+            val base = forces(baseProp, physicsShip)
+            ClockworkConfig.SERVER.sailPropellerForceMultiplier = 4.0
+            val boosted = forces(boostedProp, physicsShip)
+            val gain = if (sails) 4.0 else 1.0
+            assertTrue(base.first.length() > 0.0 && base.second.length() > 0.0)
+            assertVectorEquals(Vector3d(base.first).mul(gain), boosted.first)
+            assertVectorEquals(Vector3d(base.second).mul(gain), boosted.second)
+            assertEquals(baseProp.currentBladePitch, boostedProp.currentBladePitch, 0.0)
+        }
+    }
+
+    @Test
+    fun `default radius three sail cross matches previous full RPM thrust at half RPM`() {
+        val defaults = ClockworkConfig.Server()
+        ClockworkConfig.SERVER.forceMulPerSailInPropeller = defaults.forceMulPerSailInPropeller
+        fun cross(rpm: Double) = PropData(
+            Vector3i(), Vector3d(0.0, 0.0, 1.0), 0.0, rpm * 0.3,
+            (1..3).flatMap { r -> listOf(Vector3i(r, 0, 0), Vector3i(-r, 0, 0), Vector3i(0, r, 0), Vector3i(0, -r, 0)) },
+            false, true, true, emptyList()
+        ).apply { currentBladePitch = Math.toRadians(4.0) }
+        val previous = forces(cross(256.0), ship())
+        ClockworkConfig.SERVER.sailPropellerForceMultiplier = defaults.sailPropellerForceMultiplier
+        val boosted = forces(cross(128.0), ship())
+        assertTrue(previous.first.z() > 0.0)
+        assertVectorEquals(previous.first, boosted.first)
+        assertVectorEquals(previous.second, boosted.second)
+    }
+
+    @Test
+    fun `disabled or invalid sail boost gives finite zero sail forces without disabling blades`() {
+        val physicsShip = ship()
+        val blade = forces(propeller(false), physicsShip)
+        for (gain in listOf(0.0, -1.0, Double.NaN, Double.POSITIVE_INFINITY)) {
+            ClockworkConfig.SERVER.sailPropellerForceMultiplier = gain
+            val sail = forces(propeller(true), physicsShip)
+            assertVectorEquals(Vector3d(), sail.first)
+            assertVectorEquals(Vector3d(), sail.second)
+            val unchangedBlade = forces(propeller(false), physicsShip)
+            assertVectorEquals(blade.first, unchangedBlade.first)
+            assertVectorEquals(blade.second, unchangedBlade.second)
+        }
+    }
+
+    @Test
+    fun `sail boost remains subject to the coupled force and torque limits`() {
+        ClockworkConfig.SERVER.sailPropellerForceMultiplier = 4.0
+        val physicsShip = ship()
+        val raw = forces(propeller(true), physicsShip)
+        ClockworkConfig.SERVER.propellerMaxForce = raw.first.length() / 2.0
+        ClockworkConfig.SERVER.propellerMaxTorque = raw.second.length() / 4.0
+        val limited = forces(propeller(true), physicsShip)
+        assertVectorEquals(Vector3d(raw.first).mul(0.25), limited.first)
+        assertVectorEquals(Vector3d(raw.second).mul(0.25), limited.second)
     }
 
     @Test

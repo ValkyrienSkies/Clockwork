@@ -64,9 +64,11 @@ class ClockworkForgeGameTests {
             // GameTest ticks run faster than wall time; give each one its corresponding physics steps.
             VSCoreConfig.SERVER.pt.synchronizePhysics = true
             savedPropellerConfig = doubleArrayOf(ClockworkConfig.SERVER.forceMulPerSailInPropeller,
-                ClockworkConfig.SERVER.propellerMaxForce, ClockworkConfig.SERVER.propellerMaxTorque)
+                ClockworkConfig.SERVER.propellerMaxForce, ClockworkConfig.SERVER.propellerMaxTorque,
+                ClockworkConfig.SERVER.sailPropellerForceMultiplier)
             val defaults = ClockworkConfig.Server()
             ClockworkConfig.SERVER.forceMulPerSailInPropeller = defaults.forceMulPerSailInPropeller
+            ClockworkConfig.SERVER.sailPropellerForceMultiplier = defaults.sailPropellerForceMultiplier
             ClockworkConfig.SERVER.propellerMaxForce = defaults.propellerMaxForce
             ClockworkConfig.SERVER.propellerMaxTorque = defaults.propellerMaxTorque
         }
@@ -88,6 +90,7 @@ class ClockworkForgeGameTests {
             ClockworkConfig.SERVER.forceMulPerSailInPropeller = savedPropellerConfig[0]
             ClockworkConfig.SERVER.propellerMaxForce = savedPropellerConfig[1]
             ClockworkConfig.SERVER.propellerMaxTorque = savedPropellerConfig[2]
+            ClockworkConfig.SERVER.sailPropellerForceMultiplier = savedPropellerConfig[3]
         }
 
         @JvmStatic

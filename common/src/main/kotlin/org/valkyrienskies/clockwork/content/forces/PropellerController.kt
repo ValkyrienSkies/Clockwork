@@ -77,8 +77,11 @@ class PropellerController(
             (ship as VsiPhysShip).dragController?.getWindVector() ?: Vector3d()
         ) { y -> level.aerodynamicUtils.getAirDensityForY(y, dimensionId) }
         val estimatedAngle = (prop.bearingAngle + prop.bearingSpeed / 3.0 * ticksSinceLastUpdate) % 360.0
+        // `brass` selects sail aerodynamics; item blades on a brass bearing still use the blade model.
+        val forceMultiplier = ClockworkConfig.SERVER.forceMulPerSailInPropeller *
+            if (prop.brass) ClockworkConfig.SERVER.sailPropellerForceMultiplier else 1.0
         return PropellerAerodynamics.compute(
-            prop, flow, estimatedAngle, ClockworkConfig.SERVER.forceMulPerSailInPropeller,
+            prop, flow, estimatedAngle, forceMultiplier,
             ClockworkConfig.SERVER.propellerMaxForce, ClockworkConfig.SERVER.propellerMaxTorque
         )
     }
