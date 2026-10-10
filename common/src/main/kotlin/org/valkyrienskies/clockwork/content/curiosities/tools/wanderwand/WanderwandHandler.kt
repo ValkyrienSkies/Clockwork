@@ -154,7 +154,7 @@ open class WanderwandHandler {
     }
 
     fun mouseScrolled(delta: Double): Boolean {
-        if (!active) {
+        if (!active || delta == 0.0) {
             return false
         }
 
@@ -162,12 +162,13 @@ open class WanderwandHandler {
             selectionScreen!!.cycle(delta.toInt())
             return true
         }
+        if (ClockworkModClient.WANDERWAND_EFFECT_RENDERER.holdingRope()) {
+            ClockworkPackets.sendToServer(WanderwandReelPacket(if (delta > 0) 1 else -1))
+            // Both loaders cancel hotbar scrolling when this event is consumed, even at the rope's limits.
+            return true
+        }
         if (AllKeys.ctrlDown()) {
             return currentTool!!.tool.handleMouseWheel(delta)
-        }
-        if (Minecraft.getInstance().player?.isShiftKeyDown == true && ClockworkModClient.WANDERWAND_EFFECT_RENDERER.holdingRope()) {
-            ClockworkPackets.sendToServer(WanderwandReelPacket(if (delta > 0) 1 else -1))
-            return true
         }
         return false
     }

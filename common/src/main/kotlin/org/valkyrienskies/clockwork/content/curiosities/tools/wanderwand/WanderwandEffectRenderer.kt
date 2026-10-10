@@ -2,9 +2,9 @@ package org.valkyrienskies.clockwork.content.curiosities.tools.wanderwand
 
 import com.mojang.blaze3d.vertex.PoseStack
 import com.mojang.blaze3d.vertex.VertexConsumer
-import net.createmod.catnip.render.SuperRenderTypeBuffer
 import net.minecraft.client.Minecraft
 import net.minecraft.client.multiplayer.ClientLevel
+import net.minecraft.client.renderer.MultiBufferSource
 import net.minecraft.client.renderer.RenderType
 import net.minecraft.client.renderer.texture.OverlayTexture
 import net.minecraft.core.BlockPos
@@ -161,13 +161,12 @@ class WanderwandEffectRenderer {
             WandAnchor(BlockPos.containing(eye.add(player.lookAngle.scale(4.0))), Direction.UP) else null
     }
 
-    fun render(ms: PoseStack, buffer: SuperRenderTypeBuffer, camera: Vec3, partialTicks: Float) {
+    fun render(ms: PoseStack, buffers: MultiBufferSource.BufferSource, camera: Vec3, partialTicks: Float) {
         if (ShaderPackCompat.shadowPass()) return
         val level = checkWorld() ?: return
         val mc = Minecraft.getInstance()
         val player = mc.player ?: return
         val time = (level.gameTime % 24000).toFloat() + partialTicks
-        val buffers = mc.renderBuffers().bufferSource()
         val matrix = ms.last().pose()
         val inverse = Matrix4f(matrix).invert()
         var vc = ClockworkRenderTypes.energyBuffer(buffers)

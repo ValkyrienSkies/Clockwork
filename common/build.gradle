@@ -30,6 +30,14 @@ tasks.register("verifyMixinRefmap") {
         if (!(spriteImage instanceof String) || !spriteImage.contains(":") || spriteImage.startsWith("originalImage:")) {
             throw new GradleException("Missing production mapping for SpriteContentsAccessor originalImage.")
         }
+        def toolRenderMixin = refmap.mappings["org/valkyrienskies/clockwork/mixin/MixinLevelRenderer"]
+        for (def selector : ["renderLevel", "Lnet/minecraft/client/renderer/LevelRenderer;renderDebug(Lcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/MultiBufferSource;Lnet/minecraft/client/Camera;)V"]) {
+            def mapped = toolRenderMixin?.get(selector)
+            if (!(mapped instanceof String) || !mapped.contains("(") || mapped == selector ||
+                    mapped.contains(";renderLevel(") || mapped.contains(";renderDebug(")) {
+                throw new GradleException("Missing production mapping for late tool effects: " + selector)
+            }
+        }
         def ropeMixin = refmap.mappings["org/valkyrienskies/clockwork/mixin/content/wanderwand/MixinLivingEntity"]
         for (def selector : ["travel", "Lnet/minecraft/world/entity/LivingEntity;shouldDiscardFriction()Z"]) {
             def mapped = ropeMixin?.get(selector)

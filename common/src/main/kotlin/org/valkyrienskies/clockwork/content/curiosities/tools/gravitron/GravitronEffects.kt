@@ -4,6 +4,7 @@ import com.mojang.blaze3d.vertex.PoseStack
 import com.mojang.blaze3d.vertex.VertexConsumer
 import net.minecraft.client.Minecraft
 import net.minecraft.client.multiplayer.ClientLevel
+import net.minecraft.client.renderer.MultiBufferSource
 import net.minecraft.world.entity.LivingEntity
 import net.minecraft.world.entity.HumanoidArm
 import net.minecraft.world.entity.player.Player
@@ -212,14 +213,13 @@ object GravitronEffects {
     }
 
     @JvmStatic
-    fun render(ms: PoseStack, partialTick: Float) {
+    fun render(ms: PoseStack, buffers: MultiBufferSource.BufferSource, partialTick: Float) {
         if (ShaderPackCompat.shadowPass()) return
         val level = checkWorld() ?: return
         val mc = Minecraft.getInstance()
         val camera = mc.gameRenderer.mainCamera.position
         val now = level.gameTime
         val time = (now % 24000).toFloat() + partialTick
-        val buffers = mc.renderBuffers().bufferSource()
         val surfaces = mutableListOf<SurfacePass>()
         val legacy = ClockworkConfig.CLIENT.gravitronLegacyShipContours
         GravitronSurfaceEffects.beginFrame()

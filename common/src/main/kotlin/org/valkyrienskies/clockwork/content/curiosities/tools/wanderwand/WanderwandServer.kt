@@ -186,7 +186,7 @@ object WanderwandServer {
     }
 
     fun reel(player: ServerPlayer, direction: Int) {
-        if (!equipped(player) || !player.isShiftKeyDown || direction == 0) return
+        if (!equipped(player) || direction == 0) return
         val state = session(player)
         if (state.rope == null || state.lastReel == player.level().gameTime) return
         state.lastReel = player.level().gameTime
