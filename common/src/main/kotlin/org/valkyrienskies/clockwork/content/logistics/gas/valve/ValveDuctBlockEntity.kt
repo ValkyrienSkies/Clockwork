@@ -10,12 +10,12 @@ import net.minecraft.world.level.block.entity.BlockEntityType
 import net.minecraft.world.level.block.state.BlockState
 import org.valkyrienskies.clockwork.ClockworkMod
 import org.valkyrienskies.clockwork.content.logistics.gas.IConnectable
-import org.valkyrienskies.clockwork.util.ClockworkUtils
 import org.valkyrienskies.clockwork.util.kelvin.KNodeKineticBlockEntity
 import org.valkyrienskies.kelvin.api.ConnectionType
 import org.valkyrienskies.kelvin.api.DuctEdge
 import org.valkyrienskies.kelvin.api.DuctNodePos
-import org.valkyrienskies.kelvin.api.edges.ApertureDuctEdge
+import org.valkyrienskies.kelvin.api.edges.PipeDuctEdge
+import org.valkyrienskies.kelvin.api.nodes.ValveDuctNode
 import kotlin.math.abs
 
 class ValveDuctBlockEntity(typeIn: BlockEntityType<*>, pos: BlockPos, state: BlockState) : KNodeKineticBlockEntity(typeIn, pos, state), IConnectable {
@@ -47,16 +47,8 @@ class ValveDuctBlockEntity(typeIn: BlockEntityType<*>, pos: BlockPos, state: Blo
 
         if (level == null || level!!.isClientSide || blockState.block !is ValveDuctBlock) return
 
-        val axis = ValveDuctBlock.getDuctAxis(blockState)
-
-        val front = blockPos.relative(axis, -1)
-        val back = blockPos.relative(axis, 1)
-        if (level == null) return
-        val backEdge = ClockworkMod.getKelvin(level).getEdgeBetween(getDuctNodePosition(), ClockworkUtils.getDuctNodePos(back, level))
-        val frontEdge = ClockworkMod.getKelvin(level).getEdgeBetween(getDuctNodePosition(), ClockworkUtils.getDuctNodePos(front, level))
-
-        (backEdge as? ApertureDuctEdge)?.aperture = pointer.value.toDouble()-backEdge.radius
-        (frontEdge as? ApertureDuctEdge)?.aperture = pointer.value.toDouble()-frontEdge.radius
+        val valveNode = ClockworkMod.getKelvin(level).getNodeAt(getDuctNodePosition()) as? ValveDuctNode ?: return
+        valveNode.radius = pointer.value.toDouble().coerceIn(0.0, 1.0) * ValveDuctBlock.MAX_FLOW_RADIUS
     }
 
     override fun onSpeedChanged(previousSpeed: Float) {
@@ -92,7 +84,12 @@ class ValveDuctBlockEntity(typeIn: BlockEntityType<*>, pos: BlockPos, state: Blo
     }
 
     override fun getEdge(nodeA: DuctNodePos, nodeB: DuctNodePos, level: Level, blockPos: BlockPos, direction: Direction): DuctEdge {
-        return ApertureDuctEdge(ConnectionType.APERTURE, nodeA, nodeB, radius = 0.3125, length = 0.375, aperture = pointer.value.toDouble() - 0.125)
+        return PipeDuctEdge(ConnectionType.PIPE, nodeA, nodeB, radius = 0.3125, length = 0.375)
+    }
+
+    override fun setEdge(nodeA: DuctNodePos, nodeB: DuctNodePos, level: Level, blockPos: BlockPos, direction: Direction) {
+        if (ClockworkMod.getKelvin(level).getEdgeBetween(nodeA, nodeB) != null) return
+        super<IConnectable>.setEdge(nodeA, nodeB, level, blockPos, direction)
     }
 
 }
