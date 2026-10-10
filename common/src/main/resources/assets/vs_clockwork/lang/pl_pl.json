@@ -7,8 +7,8 @@
   "itemGroup.vs_clockwork.vs_clockwork": "VS: Clockwork",
   "block.vs_clockwork.brass_propeller_bearing": "Mosiężne łożysko śmigła",
   "item.vs_clockwork.brass_propeller_bearing": "Mosiężne łożysko śmigła",
-  "block.vs_clockwork.copter_bearing": "Helikopterowe łożysko",
-  "item.vs_clockwork.copter_bearing": "Helikopterowe łożysko",
+  "block.vs_clockwork.copter_bearing": "Łożysko helikopterowe",
+  "item.vs_clockwork.copter_bearing": "Łożysko helikopterowe",
   "item.vs_clockwork.bluuguu": "Bluu Guu",
   "item.vs_clockwork.bluperglue": "Bluperklej",
   "item.vs_clockwork.gravitron": "Grawitron",
@@ -44,7 +44,7 @@
   "item.vs_clockwork.balloon_encased_shaft": "Balonowy obudowany wał",
   "block.vs_clockwork.combustion_engine": "Silnik spalinowy",
   "item.vs_clockwork.combustion_engine": "Silnik spalinowy",
-  "item.vs_clockwork.pastrymaker": "Pastrymaker",
+  "item.vs_clockwork.pastrymaker": "Ciastkarka",
   "block.vs_clockwork.ballooner": "Napełniacz balonów",
   "item.vs_clockwork.ballooner": "Napełniacz balonów",
   "block.vs_clockwork.alt_meter": "Wysokościomierz",
@@ -77,10 +77,10 @@
   "vs_clockwork.duct_stats.is_producer": "Produkuje gaz",
   "vs_clockwork.duct_stats.produces_heat": "Produkuje ciepło",
 
-  "vs_clockwork.production_method.rpm" : "Przy obrotach",
-  "vs_clockwork.production_method.passive" : "Stale",
-  "vs_clockwork.production_method.boiler" : "Po podłączeniu do bojlera",
-  "vs_clockwork.production_method.other" : "Podczas pracy",
+  "vs_clockwork.production_method.rpm": "Przy obrotach",
+  "vs_clockwork.production_method.passive": "Stale",
+  "vs_clockwork.production_method.boiler": "Po podłączeniu do bojlera",
+  "vs_clockwork.production_method.other": "Podczas pracy",
 
   "vs_clockwork.production_context.always": "Zawsze",
   "vs_clockwork.production_context.conditional": "",
@@ -114,7 +114,6 @@
   "vs_clockwork.duct.function2": "Odłączaj połączenia za pomocą klucza.",
   "vs_clockwork.hose_port.function1": "Łączy się wężem z innym portem,",
   "vs_clockwork.hose_port.function2": "umożliwiając przepływ gazu między zbiornikami.",
-
 
   "vs_clockwork.hose_port.connected": "Połączono!",
   "vs_clockwork.hose_port.connected_to": "Podłączono do: %s",
@@ -215,7 +214,8 @@
   "block.vs_clockwork.spinoff_bearing": "Łożysko sprzęgające",
   "item.vs_clockwork.spinoff_bearing": "Łożysko sprzęgające",
 
-  "vs_clockwork.wanderwand.warning": "OSTRZEŻENIE BETA: Obecnie działają tylko funkcje ZAZNACZ i ODZNACZ.",
+  "vs_clockwork.wanderwand.controls": "Kliknij PPM, aby użyć. Kliknij LPM, aby anulować lub zwolnić.",
+  "vs_clockwork.wanderwand.rope_length": "Lina: %s m  |  Przewiń kółkiem myszy, aby zwinąć",
 
   "vs_clockwork.wanderwand.tool.select": "Zaznacz",
   "vs_clockwork.wanderwand.tool.select.description.0": "Dodaje obszar do pamięci zaznaczania różdżki.",
@@ -227,25 +227,26 @@
   "vs_clockwork.wanderwand.tool.deselect.description.0": "Usuwa obszar z pamięci zaznaczania różdżki.",
   "vs_clockwork.wanderwand.tool.deselect.description.1": "[PPM], aby odznaczyć narożnik.",
   "vs_clockwork.wanderwand.tool.deselect.description.2": "Zaznaczenie zostanie odjęte od wybranych grup.",
-  "vs_clockwork.wanderwand.tool.deselect.description.3": "",
+  "vs_clockwork.wanderwand.tool.deselect.description.3": "[LPM] anuluje narożnik lub usuwa region.",
 
   "vs_clockwork.wanderwand.tool.attach": "Połącz",
-  "vs_clockwork.wanderwand.tool.attach.description.0": "Magicznie łączy dwa statki ze sobą.",
+  "vs_clockwork.wanderwand.tool.attach.description.0": "Magicznie łączy statek z innym statkiem lub światem.",
   "vs_clockwork.wanderwand.tool.attach.description.1": "[PPM] na ściany bloków, aby wybrać.",
-  "vs_clockwork.wanderwand.tool.attach.description.2": "Połączone statki zostaną ze sobą przegubione.",
-  "vs_clockwork.wanderwand.tool.attach.description.3": "[LPM] blisko połączenia, aby je usunąć.",
+  "vs_clockwork.wanderwand.tool.attach.description.2": "Połączone statki zostaną do siebie przyczepione.",
+  "vs_clockwork.wanderwand.tool.attach.description.3": "[LPM] na linę, połączenie lub jego kotwicę, aby je usunąć.",
 
   "vs_clockwork.wanderwand.tool.bind": "Uwiąż",
-  "vs_clockwork.wanderwand.tool.bind.description.0": "Tworzy magiczną linę między dwoma statkami.",
-  "vs_clockwork.wanderwand.tool.bind.description.1": "[PPM] na ściany bloków, aby wybrać.",
-  "vs_clockwork.wanderwand.tool.bind.description.2": "Podczas łączenia lina przyczepi się do Ciebie.",
-  "vs_clockwork.wanderwand.tool.bind.description.3": "[LPM] blisko więzi, aby ją usunąć.",
+  "vs_clockwork.wanderwand.tool.bind.description.0": "Rzuć linę na odległość do 64 bloków i bujaj się na niej.",
+  "vs_clockwork.wanderwand.tool.bind.description.1": "[Scroll], aby zwinąć lub rozwinąć linę podczas uwiązania.",
+  "vs_clockwork.wanderwand.tool.bind.description.2": "[PPM] na pobliski blok, aby zabezpieczyć wolny koniec.",
+  "vs_clockwork.wanderwand.tool.bind.description.3": "[LPM] zwalnia linę lub usuwa wybraną więź.",
 
-  "vs_clockwork.wanderwand.tool.weld": "Zespajaj",
-  "vs_clockwork.wanderwand.tool.weld.description.0": "Trwale zespaja ze sobą dwa statki.",
+  "vs_clockwork.wanderwand.tool.weld": "Zespól",
+  "vs_clockwork.wanderwand.tool.weld.description.0": "Przenosi bloki statku na inny statek lub świat.",
   "vs_clockwork.wanderwand.tool.weld.description.1": "[PPM] na ściany bloków, aby wybrać.",
   "vs_clockwork.wanderwand.tool.weld.description.2": "Hologram wskaże orientację zespalanych bloków.",
   "vs_clockwork.wanderwand.tool.weld.description.3": "Zespolenie statków połączy je w jeden.",
+
 
   "block.vs_clockwork.duct": "Przewód gazowy",
   "item.vs_clockwork.duct": "Przewód gazowy",
@@ -264,7 +265,6 @@
 
   "block.vs_clockwork.gas_heater": "Podgrzewacz gazu",
   "item.vs_clockwork.gas_heater": "Podgrzewacz gazu",
-
 
   "block.vs_clockwork.creative_gas_generator": "Kreatywny generator gazu",
   "item.vs_clockwork.creative_gas_generator": "Kreatywny generator gazu",
@@ -366,7 +366,6 @@
   "fluid.vs_clockwork.chocolate_frosting_bucket": "Czekoladowy lukier",
   "fluid.vs_clockwork.strawberry_frosting_bucket": "Truskawkowy lukier",
 
-
   "block.vs_clockwork.phys_bearing": "Łożysko fizyczne",
   "item.vs_clockwork.phys_bearing": "Łożysko fizyczne",
   "vs_clockwork.phys_bearing.rotation_mode": "Tryb obrotu",
@@ -436,6 +435,9 @@
   "vs_clockwork.unit.mass.imperial_ton": "ton",
   "vs_clockwork.unit.mass.ounce": "oz",
 
+  "vs_clockwork.delivery_cannon.distribution_mode": "Tryb dystrybucji",
+  "vs_clockwork.delivery_cannon.distribution_mode.round_robin": "Sekwencyjny (Round Robin)",
+  "vs_clockwork.delivery_cannon.distribution_mode.always_closest": "Zawsze najbliższy",
   "vs_clockwork.gui.delivery_cannon.info.obstructed.title": "Działo nie może się aktywować",
   "vs_clockwork.gui.delivery_cannon.info.obstructed": "Wygląda na to, że docelowy zsyp jest pełny. Działo nie może strzelać, dopóki zsyp nie zostanie opróżniony.",
   "vs_clockwork.gui.delivery_chute.info.obstructed.title": "Zsyp zawiera nadmiar przedmiotów",
@@ -491,9 +493,9 @@
   "vs_clockwork.gui.ductInfo.title.contents": "Zawartość kanału:",
   "vs_clockwork.gui.ductInfo.mass_total": "Łącznie %s",
 
-  "vs_clockwork.display_source.gas_nozzle.temp":  "Temperatura w Kelwinach",
-  "vs_clockwork.display_source.gas_nozzle.leaks":  "Liczba przecieków",
-  "vs_clockwork.display_source.gas_nozzle.volume":  "Objętość balonu w m³",
+  "vs_clockwork.display_source.gas_nozzle.temp": "Temperatura w Kelwinach",
+  "vs_clockwork.display_source.gas_nozzle.leaks": "Liczba przecieków",
+  "vs_clockwork.display_source.gas_nozzle.volume": "Objętość balonu w m³",
 
   "vs_clockwork.display_source.copter_bearing.current": "Aktualny wektor",
   "vs_clockwork.display_source.copter_bearing.target": "Docelowy wektor",
@@ -565,7 +567,6 @@
   "vs_clockwork.ponder.solid_delivery.text_8": "Zsypach,",
   "vs_clockwork.ponder.solid_delivery.text_9": "i taśmach",
 
-
   "vs_clockwork.ponder.wings.header": "Skrzydła",
   "vs_clockwork.ponder.wings.text_1": "W Valkyrien Skies wszystkie bloki podlegają aerodynamice",
   "vs_clockwork.ponder.wings.text_2": "Kształt bloku może wpływać na jego zachowanie aerodynamiczne",
@@ -606,6 +607,7 @@
   "vs_clockwork.ponder.duct.text_10": "Kliknięcie PPM kluczem na przecieku uszczelni go z powrotem.",
 
   "vs_clockwork.recipe.gas_crafting": "Wytwarzanie gazowe",
+  "vs_clockwork.subtitle.wand_weld": "Wędroróżdżka zespaja",
 
   "death.attack.gas_burn": "%s spłonął na chrupko",
   "death.attack.gas_explosion": "%s nie wytrzymał ciśnienia"
