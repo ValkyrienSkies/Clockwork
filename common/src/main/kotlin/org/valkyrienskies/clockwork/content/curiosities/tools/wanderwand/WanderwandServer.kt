@@ -44,6 +44,25 @@ object WanderwandServer {
         else Session(player.mainHandItem).also { data.sessions[player.uuid] = it }
     }
 
+    fun jump(player: ServerPlayer) {
+        val state = session(player)
+        state.rope ?: return
+
+        if (player.onGround()) return // client already checks this but we don't want any filthy cheaters
+        if (player.abilities.flying) return // already in creative mode flight
+
+        // Only allow jump when rope is above player
+        if (state.rope!!.pos.center.subtract(player.position()).normalize().y < 0.8) return
+
+        // To lazy to write custom break-rope code here so we fake a packet instead
+        click(player, WandSelectionPacket(BlockPos(0,0,0), null, ToolType.BIND, true))
+
+        val velocity = player.deltaMovement
+        player.deltaMovement = Vec3(velocity.x, 1.0, velocity.z)
+        player.hurtMarked = true
+
+    }
+
     fun click(player: ServerPlayer, packet: WandSelectionPacket) {
         if (!equipped(player)) return
         val level = player.serverLevel()

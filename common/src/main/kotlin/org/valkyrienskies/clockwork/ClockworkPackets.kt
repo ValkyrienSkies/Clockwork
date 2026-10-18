@@ -17,6 +17,7 @@ import org.valkyrienskies.clockwork.content.curiosities.tools.gravitron.Gravitro
 import org.valkyrienskies.clockwork.content.curiosities.tools.gravitron.GravitronDialPacket
 import org.valkyrienskies.clockwork.content.curiosities.tools.gravitron.GravitronGrabPacket
 import org.valkyrienskies.clockwork.content.curiosities.tools.gravitron.GravitronLeftClickPacket
+import org.valkyrienskies.clockwork.content.curiosities.tools.wanderwand.WandJumpPacket
 import org.valkyrienskies.clockwork.content.curiosities.tools.wanderwand.WandSelectionPacket
 import org.valkyrienskies.clockwork.content.curiosities.tools.wanderwand.WanderwandRenderUpdatePacket
 import org.valkyrienskies.clockwork.content.curiosities.tools.wanderwand.WanderwandStatePacket
@@ -92,6 +93,7 @@ enum class ClockworkPackets(
     WAND_STATE_PACKET(WanderwandStatePacket::class.java, ::WanderwandStatePacket),
     WAND_REEL_PACKET(WanderwandReelPacket::class.java, ::WanderwandReelPacket),
     WAND_ROPE_RIDE_PACKET(WandRopeRidePacket::class.java, ::WandRopeRidePacket),
+    WAND_ROPE_RIDE_JUMP_PACKET(WandJumpPacket::class.java, ::WandJumpPacket),
 
     ;
 

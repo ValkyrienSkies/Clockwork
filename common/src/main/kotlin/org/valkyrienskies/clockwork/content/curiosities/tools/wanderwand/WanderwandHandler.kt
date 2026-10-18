@@ -1,6 +1,5 @@
 package org.valkyrienskies.clockwork.content.curiosities.tools.wanderwand
 
-import com.mojang.blaze3d.vertex.PoseStack
 import com.simibubi.create.AllKeys
 import net.minecraft.client.Minecraft
 import net.minecraft.client.gui.GuiGraphics
@@ -12,6 +11,7 @@ import net.minecraft.world.level.GameType
 import org.valkyrienskies.clockwork.ClockworkItems
 import org.valkyrienskies.clockwork.ClockworkPackets
 import net.minecraft.core.BlockPos
+import org.lwjgl.glfw.GLFW
 import org.valkyrienskies.clockwork.ClockworkModClient
 import org.valkyrienskies.clockwork.content.curiosities.tools.wanderwand.tool.ToolType
 import org.valkyrienskies.clockwork.util.ClockworkHotbarSlotOverlays
@@ -140,6 +140,14 @@ open class WanderwandHandler {
         if (!active) {
             return
         }
+
+        if (currentTool == ToolType.BIND && key == GLFW.GLFW_KEY_SPACE && pressed) {
+            val mc = Minecraft.getInstance()
+            if (!(mc.player?.onGround() ?: true)) {
+                ClockworkPackets.sendToServer(WandJumpPacket())
+            }
+        }
+
         if (!AllKeys.TOOL_MENU.doesModifierAndCodeMatch(key)) {
             return
         }
