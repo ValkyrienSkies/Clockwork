@@ -10,11 +10,12 @@ import net.minecraft.world.item.ItemStack
 import net.minecraft.world.level.block.entity.BlockEntity
 import net.minecraft.world.level.block.entity.BlockEntityType
 import net.minecraft.world.level.block.state.BlockState
+import net.minecraft.world.level.block.state.properties.BlockStateProperties
 import org.valkyrienskies.clockwork.ClockworkConfig
 import org.valkyrienskies.clockwork.ClockworkItems
 import org.valkyrienskies.clockwork.ClockworkSounds
-import org.valkyrienskies.clockwork.content.physicalities.extendon.ExtendonBlockEntity
 import org.valkyrienskies.clockwork.util.universal_joint.IUniversalJoint
+import org.valkyrienskies.mod.common.getShipManagingPos
 import org.valkyrienskies.mod.common.toWorldCoordinates
 
 class UniversalShaftBlockEntity(typeIn: BlockEntityType<*>?, pos: BlockPos?, state: BlockState?) : KineticBlockEntity(typeIn, pos, state), IUniversalJoint {
@@ -28,18 +29,19 @@ class UniversalShaftBlockEntity(typeIn: BlockEntityType<*>?, pos: BlockPos?, sta
     override val maxCreationDistance: Double
         get() = ClockworkConfig.SERVER.maxUniversalJointDistance
 
-    override fun onSpeedChanged(previousSpeed: Float) {
-        super.onSpeedChanged(previousSpeed)
-    }
-
     // Custom Propagation
     override fun propagateRotationTo(
         target: KineticBlockEntity, stateFrom: BlockState, stateTo: BlockState, diff: BlockPos,
         connectedViaAxes: Boolean, connectedViaCogs: Boolean
     ): Float {
-
         if (connectedJoint == null || target.blockPos != connectedPos) return 0f
-        return 1f
+
+        // Output must be negated whenever the two shafts share an axis sign
+        // (e.g. both directions are positive axis or both are negative axis)
+        // Why? Idk it's probably create's fault.
+        val facingFrom = stateFrom.getValue(BlockStateProperties.FACING)
+        val facingTo = stateTo.getValue(BlockStateProperties.FACING)
+        return -facingFrom.axisDirection.step.toFloat() * facingTo.axisDirection.step.toFloat()
     }
 
     override fun addPropagationLocations(
@@ -138,6 +140,12 @@ class UniversalShaftBlockEntity(typeIn: BlockEntityType<*>?, pos: BlockPos?, sta
             compound.putInt("otherPosY",connectedPos!!.y)
             compound.putInt("otherPosZ",connectedPos!!.z)
             compound.putBoolean("main", main)
+
+            // Used for onPaste
+            val ship = level.getShipManagingPos(connectedPos!!)
+            if (ship != null) {
+                compound.putLong("otherShipId", ship.id)
+            }
         }
 
         super.write(compound, clientPacket)

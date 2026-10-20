@@ -115,10 +115,12 @@ class SpinoffBearingBlock(properties: Properties) : DirectionalBlock(properties)
             val partnerId = tag.getInt("partnerShipId").toLong()
             val centerMigrate = centerPositions[partnerId] ?: return null
             vectorPartner = vectorPartner.sub(centerMigrate.first).add(centerMigrate.second)
-            val bp = vectorPartner.toMinecraft()
+            val bp = vectorPartner.floor().toMinecraft()
             tag.putInt("partnerX", bp.x)
             tag.putInt("partnerY", bp.y)
             tag.putInt("partnerZ", bp.z)
+
+            tag.putBoolean("overrideStatic", true)
 
             tag.putInt("jointId", -1)
             return tag

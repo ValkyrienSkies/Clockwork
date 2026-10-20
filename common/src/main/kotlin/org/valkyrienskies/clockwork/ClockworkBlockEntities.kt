@@ -3,7 +3,6 @@ package org.valkyrienskies.clockwork
 import com.simibubi.create.AllPartialModels
 import com.simibubi.create.content.contraptions.bearing.BearingRenderer
 import com.simibubi.create.content.contraptions.bearing.BearingVisual
-import com.simibubi.create.content.fluids.pump.PumpRenderer
 import com.simibubi.create.content.kinetics.base.KineticBlockEntity
 import com.simibubi.create.content.kinetics.base.ShaftRenderer
 import com.simibubi.create.content.kinetics.base.ShaftVisual
@@ -11,7 +10,6 @@ import com.simibubi.create.content.kinetics.base.SingleAxisRotatingVisual
 import com.tterrag.registrate.util.entry.BlockEntityEntry
 import com.tterrag.registrate.util.nullness.NonNullFunction
 import dev.engine_room.flywheel.lib.model.Models
-import net.minecraft.client.renderer.blockentity.BlockEntityRenderer
 import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider
 import net.minecraft.core.BlockPos
 import net.minecraft.core.Direction
@@ -209,7 +207,6 @@ object ClockworkBlockEntities {
             }
         }
         .register()
-
 
     @JvmField
     val GIMBAL_BEARING: BlockEntityEntry<GimbalBearingBlockEntity> = ClockworkMod.REGISTRATE

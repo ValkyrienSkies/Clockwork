@@ -120,6 +120,19 @@ class VirtualDuctNetwork(
         return nodeInfo[node]?.currentGasMasses ?: emptyMap()
     }
 
+    override fun getNodeState(nodePos: DuctNodePos): DuctNodeState? {
+        val info = nodeInfo[nodePos] ?: return null
+        val volume = (nodes[nodePos]?.volume ?: info.totalVolume) + info.volumeChange
+        return DuctNodeState(
+            nodePos,
+            getTemperatureAt(nodePos),
+            getPressureAt(nodePos),
+            HashMap<GasType, Double>(info.currentGasMasses),
+            info.currentEnergy,
+            volume
+        )
+    }
+
     override fun getEdgeBetween(from: DuctNodePos, to: DuctNodePos): DuctEdge? {
         return edges[Pair(from, to)] ?: edges[Pair(to, from)]
     }
@@ -352,11 +365,13 @@ class VirtualDuctNetwork(
         // Process recipes
         for (node in dimensionNodes) {
             val gasMasses = getGasMassAt(node)
-            if (gasMasses.size == 0) continue
+            if (gasMasses.isEmpty()) continue
+
+            val state = getNodeState(node) ?: continue
 
             for (reaction in reactions.values) {
                 var con = false
-                reaction.requirements.forEach {if (!it.key.apply_requirement(level, node, this, it.value)) { con = true; return@forEach }}
+                reaction.requirements.forEach {if (!it.key.apply_requirement(level, state, it.value)) { con = true; return@forEach }}
                 if (con) continue
 
                 calcReaction(node, gasMasses, reaction.gasses, reaction.result, reaction.energy)

@@ -2,10 +2,13 @@ package org.valkyrienskies.clockwork.forge;
 
 import com.simibubi.create.AllParticleTypes;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.resources.model.ModelResourceLocation;
 import net.minecraft.client.renderer.entity.EntityRenderDispatcher;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.packs.resources.ResourceProvider;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.client.event.EntityRenderersEvent;
+import net.minecraftforge.client.event.ModelEvent;
 import net.minecraftforge.client.event.RegisterGuiOverlaysEvent;
 import net.minecraftforge.client.event.RenderLevelStageEvent;
 import net.minecraftforge.client.gui.overlay.VanillaGuiOverlay;
@@ -22,6 +25,7 @@ import org.valkyrienskies.clockwork.forge.content.curiosities.tools.wanderwand.F
 import org.valkyrienskies.clockwork.forge.content.logistics.gas.backtank.ForgeGasBacktankArmorLayer;
 
 import java.io.IOException;
+import java.util.Objects;
 
 @Mod.EventBusSubscriber(modid = ClockworkMod.MOD_ID, value = Dist.CLIENT, bus = Mod.EventBusSubscriber.Bus.MOD)
 public class ClockworkModForgeClient {
@@ -45,6 +49,18 @@ public class ClockworkModForgeClient {
                 .getEntityRenderDispatcher();
         ForgeGasBacktankArmorLayer.registerOnAll(dispatcher);
         ForgeAeronautArmorLayer.registerOnAll(dispatcher);
+    }
+
+    @SubscribeEvent
+    public static void registerAdditionalModels(ModelEvent.RegisterAdditional event) {
+        event.register(new ModelResourceLocation(
+                Objects.requireNonNull(ResourceLocation.tryBuild(ClockworkMod.MOD_ID, "misc/heat_shield")),
+                ""
+        ));
+        event.register(new ModelResourceLocation(
+                Objects.requireNonNull(ResourceLocation.tryBuild(ClockworkMod.MOD_ID, "misc/meteor_trail")),
+                ""
+        ));
     }
 
     @SubscribeEvent

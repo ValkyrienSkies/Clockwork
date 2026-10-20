@@ -37,6 +37,7 @@ class GravitronGrabPacket : C2SCWPacket {
                 val bl = stack.`is`(ClockworkItems.CREATIVE_GRAVITRON.get().asItem())
                 val bl2 = stack.`is`(ClockworkItems.GRAVITRON.get().asItem())
                 if (bl2 || bl) {
+                    if (!GrabTool.updateEquipment(serverPlayer)) return@enqueueWork
                     if (!serverPlayer.cooldowns.isOnCooldown(stack.item)) {
 
                         // Only do cooldown for survival gravitron

@@ -1,0 +1,115 @@
+package org.valkyrienskies.clockwork.content.contraptions.phys.gimbal.quad_link
+
+import com.mojang.blaze3d.vertex.PoseStack
+import com.mojang.datafixers.util.Pair
+import com.simibubi.create.CreateClient
+import com.simibubi.create.foundation.blockEntity.SmartBlockEntity
+import com.simibubi.create.foundation.blockEntity.behaviour.BehaviourType
+import com.simibubi.create.foundation.blockEntity.behaviour.BlockEntityBehaviour
+import com.simibubi.create.foundation.blockEntity.behaviour.ValueBox
+import com.simibubi.create.foundation.blockEntity.behaviour.ValueBoxRenderer
+import com.simibubi.create.foundation.utility.CreateLang
+import com.simibubi.create.infrastructure.config.AllConfigs
+import net.createmod.catnip.data.Iterate
+import net.createmod.catnip.math.VecHelper
+import net.createmod.catnip.outliner.Outliner
+import net.minecraft.client.Minecraft
+import net.minecraft.client.multiplayer.ClientLevel
+import net.minecraft.client.renderer.MultiBufferSource
+import net.minecraft.network.chat.Component
+import net.minecraft.network.chat.MutableComponent
+import net.minecraft.world.phys.AABB
+import net.minecraft.world.phys.BlockHitResult
+import net.minecraft.world.phys.Vec3
+import org.valkyrienskies.clockwork.content.contraptions.phys.gimbal.GimbalBearingBlock
+import org.valkyrienskies.clockwork.content.contraptions.phys.gimbal.quad_link.QuadLinkHandler.getBehaviourType
+import org.valkyrienskies.core.api.ships.ClientShip
+import org.valkyrienskies.mod.api.getShipManagingBlock
+import org.valkyrienskies.mod.common.util.toJOML
+import org.valkyrienskies.mod.common.util.toMinecraft
+
+object QuadLinkRenderer {
+
+    @JvmStatic
+    fun tick() {
+        val mc = Minecraft.getInstance()
+        val world = mc.level ?: return
+        val target = mc.hitResult
+        if (target == null || target !is BlockHitResult) return
+
+        val result = target
+        val pos = result.blockPos
+
+        val state = world.getBlockState(result.blockPos)
+
+        if (state.block !is GimbalBearingBlock) return
+
+        val type: BehaviourType<QuadLinkBehaviour> = getBehaviourType(state, result.direction)
+
+
+
+        val behaviour = BlockEntityBehaviour.get(world, pos, type) ?: return
+
+        val freq1: Component = CreateLang.translateDirect("logistics.firstFrequency")
+        val freq2: Component = CreateLang.translateDirect("logistics.secondFrequency")
+
+        for (first in Iterate.trueAndFalse) {
+            val bb = AABB(Vec3.ZERO, Vec3.ZERO).inflate(.25)
+            val label = if (first) freq1 else freq2
+            val hit = behaviour.testHit(first, target.getLocation())
+            val transform = if (first) behaviour.firstSlot else behaviour.secondSlot
+
+            val box = ValueBox(label, bb, pos).passive(!hit)
+            val empty = behaviour.networkKey[first].stack.isEmpty
+
+            if (!empty) box.wideOutline()
+
+            Outliner.getInstance().showOutline(Pair.of(first, pos), box.transform(transform))
+                .highlightFace(result.direction)
+
+            if (!hit) continue
+
+            val tip: MutableList<MutableComponent> = ArrayList()
+            tip.add(label.copy())
+            tip.add(CreateLang.translateDirect(if (empty) "logistics.filter.click_to_set" else "logistics.filter.click_to_replace"))
+            CreateClient.VALUE_SETTINGS_HANDLER.showHoverTip(tip)
+        }
+
+    }
+
+    @JvmStatic
+    fun renderOnBlockEntity(
+        be: SmartBlockEntity?, partialTicks: Float, ms: PoseStack,
+        buffer: MultiBufferSource?, light: Int, overlay: Int
+    ) {
+        if (be == null || be.isRemoved) return
+
+        val cameraEntity = Minecraft.getInstance().cameraEntity
+        var bePos = VecHelper.getCenterOf(be.blockPos)
+
+        val ship = (be.level as ClientLevel).getShipManagingBlock(be.blockPos)
+        if (ship != null) bePos = (ship as ClientShip).renderTransform.shipToWorld.transformPosition(bePos.toJOML()).toMinecraft()
+
+        val max = AllConfigs.client().filterItemRenderDistance.f
+        if (!be.isVirtual && cameraEntity != null && cameraEntity.position()
+                .distanceToSqr(bePos) > (max * max)) return
+
+        for (type in mutableListOf(QuadLinkBehaviour.TYPE1, QuadLinkBehaviour.TYPE2, QuadLinkBehaviour.TYPE3, QuadLinkBehaviour.TYPE4)) {
+            val behaviour = be.getBehaviour(type) ?: continue
+
+
+            for (first in Iterate.trueAndFalse) {
+                val transform = if (first) behaviour.firstSlot else behaviour.secondSlot
+                val stack = if (first) behaviour.networkKey.first.stack else behaviour.networkKey.second.stack
+
+
+
+                ms.pushPose()
+                transform.transform(be.level, be.blockPos, be.blockState, ms)
+                ValueBoxRenderer.renderItemIntoValueBox(stack, ms, buffer, light, overlay)
+                ms.popPose()
+            }
+        }
+    }
+
+}

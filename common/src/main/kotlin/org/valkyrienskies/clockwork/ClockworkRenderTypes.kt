@@ -7,10 +7,20 @@ import net.minecraft.client.renderer.GameRenderer
 import net.minecraft.client.renderer.RenderStateShard
 import net.minecraft.client.renderer.RenderType
 import net.minecraft.resources.ResourceLocation
+import net.minecraft.client.renderer.texture.TextureAtlas
 import org.valkyrienskies.clockwork.ClockworkShaders.crystal
 import org.valkyrienskies.clockwork.ClockworkShaders.haze
 import org.valkyrienskies.clockwork.ClockworkShaders.heat
+import org.valkyrienskies.clockwork.ClockworkShaders.meteorGlow
+import org.valkyrienskies.clockwork.ClockworkShaders.meteorHeatShield
+import org.valkyrienskies.clockwork.ClockworkShaders.meteorShieldDepth
+import org.valkyrienskies.clockwork.ClockworkShaders.meteorTrail
 import org.valkyrienskies.clockwork.platform.PlatformUtils
+import net.minecraft.client.renderer.MultiBufferSource
+import com.mojang.blaze3d.vertex.VertexConsumer
+import org.valkyrienskies.clockwork.util.render.EmissiveEnergyVertexConsumer
+import org.valkyrienskies.clockwork.util.render.ShaderPackCompat
+import org.valkyrienskies.clockwork.util.render.SurfaceEffectAtlas
 
 class ClockworkRenderTypes(
     name: String,
@@ -66,8 +76,9 @@ class ClockworkRenderTypes(
             true,
             CompositeState.builder()
                 .setShaderState(ShaderStateShard(::heat))
-                .setTransparencyState(NO_TRANSPARENCY)
-                .setCullState(CULL)
+                .setTextureState(TextureStateShard(TEX, false, false))
+                .setTransparencyState(ADDITIVE_TRANSPARENCY)
+                .setCullState(NO_CULL)
                 .setLightmapState(LIGHTMAP)
                 .setOverlayState(OVERLAY)
                 .setOutputState(TRANSLUCENT_TARGET)
@@ -83,10 +94,88 @@ class ClockworkRenderTypes(
             true,
             CompositeState.builder()
                 .setShaderState(ShaderStateShard(::haze))
+                .setTextureState(TextureStateShard(TEX, false, false))
                 .setTransparencyState(ADDITIVE_TRANSPARENCY)
-                .setCullState(CULL)
+                .setCullState(NO_CULL)
                 .setLightmapState(LIGHTMAP)
                 .setOverlayState(OVERLAY)
+                .setOutputState(TRANSLUCENT_TARGET)
+                .createCompositeState(true)
+        )
+
+        val METEOR_GLOW = create(
+            ClockworkMod.MOD_ID + "meteor_glow",
+            DefaultVertexFormat.NEW_ENTITY,
+            VertexFormat.Mode.QUADS,
+            BUFFER_SIZE,
+            true,
+            true,
+            CompositeState.builder()
+                .setShaderState(ShaderStateShard(::meteorGlow))
+                .setTextureState(TextureStateShard(TextureAtlas.LOCATION_BLOCKS, false, false))
+                .setTransparencyState(ADDITIVE_TRANSPARENCY)
+                .setCullState(NO_CULL)
+                .setLightmapState(LIGHTMAP)
+                .setOverlayState(NO_OVERLAY)
+                .setWriteMaskState(COLOR_WRITE)
+                .setDepthTestState(LEQUAL_DEPTH_TEST)
+                .setOutputState(MAIN_TARGET)
+                .createCompositeState(true)
+        )
+
+        val METEOR_SHIELD_DEPTH = create(
+            ClockworkMod.MOD_ID + "meteor_shield_depth",
+            DefaultVertexFormat.NEW_ENTITY,
+            VertexFormat.Mode.QUADS,
+            BUFFER_SIZE,
+            true,
+            false,
+            CompositeState.builder()
+                .setShaderState(ShaderStateShard(::meteorShieldDepth))
+                .setTextureState(TextureStateShard(TextureAtlas.LOCATION_BLOCKS, false, false))
+                .setTransparencyState(NO_TRANSPARENCY)
+                .setCullState(NO_CULL)
+                .setLightmapState(LIGHTMAP)
+                .setOverlayState(NO_OVERLAY)
+                .setWriteMaskState(DEPTH_WRITE)
+                .setDepthTestState(LEQUAL_DEPTH_TEST)
+                .createCompositeState(true)
+        )
+
+        val METEOR_HEAT_SHIELD = create(
+            ClockworkMod.MOD_ID + "meteor_heat_shield",
+            DefaultVertexFormat.NEW_ENTITY,
+            VertexFormat.Mode.QUADS,
+            BUFFER_SIZE,
+            true,
+            true,
+            CompositeState.builder()
+                .setShaderState(ShaderStateShard(::meteorHeatShield))
+                .setTextureState(TextureStateShard(TextureAtlas.LOCATION_BLOCKS, false, false))
+                .setTransparencyState(TRANSLUCENT_TRANSPARENCY)
+                .setCullState(NO_CULL)
+                .setLightmapState(NO_LIGHTMAP)
+                .setOverlayState(NO_OVERLAY)
+                .setWriteMaskState(COLOR_WRITE)
+                .createCompositeState(true)
+        )
+
+        val METEOR_PLUME = create(
+            ClockworkMod.MOD_ID + "meteor_plume",
+            DefaultVertexFormat.NEW_ENTITY,
+            VertexFormat.Mode.QUADS,
+            BUFFER_SIZE,
+            true,
+            true,
+            CompositeState.builder()
+                .setShaderState(ShaderStateShard(::meteorTrail))
+                .setTextureState(TextureStateShard(ResourceLocation("minecraft", "textures/atlas/blocks.png"), false, false))
+                .setTransparencyState(TRANSLUCENT_TRANSPARENCY)
+                .setCullState(NO_CULL)
+                .setLightmapState(NO_LIGHTMAP)
+                .setOverlayState(NO_OVERLAY)
+                .setWriteMaskState(COLOR_WRITE)
+                .setDepthTestState(LEQUAL_DEPTH_TEST)
                 .setOutputState(TRANSLUCENT_TARGET)
                 .createCompositeState(true)
         )
@@ -108,6 +197,70 @@ class ClockworkRenderTypes(
                 .setWriteMaskState(RenderStateShard.COLOR_DEPTH_WRITE) // don't write depth (optional)
                 .setDepthTestState(RenderStateShard.LEQUAL_DEPTH_TEST) // depth test ON
                 .createCompositeState(true)
+        )
+
+        // Reuses the ribbon vertex format and vanilla shader; soft energy never occludes later strands.
+        val GRAVITRON_ENERGY: RenderType = create(
+            "gravitron_energy", DefaultVertexFormat.POSITION_COLOR_TEX, VertexFormat.Mode.QUADS,
+            4096, false, true,
+            CompositeState.builder()
+                .setShaderState(POSITION_COLOR_TEX_SHADER)
+                .setTextureState(TextureStateShard(TEX, false, false))
+                .setTransparencyState(ADDITIVE_TRANSPARENCY)
+                .setCullState(NO_CULL)
+                .setWriteMaskState(COLOR_WRITE)
+                .setDepthTestState(LEQUAL_DEPTH_TEST)
+                .createCompositeState(false)
+        )
+
+        // Vanilla's emissive translucent pass blends texture alpha and only writes color.
+        // Transparent areas of the energy model must not occlude the body or articulated prongs.
+        val GRAVITRON_OVERCHARGE: RenderType = RenderType.entityTranslucentEmissive(TextureAtlas.LOCATION_BLOCKS, false)
+
+        // These vanilla shader getters are intercepted by both Iris and Oculus and write the
+        // shader pack's expected outputs. Custom core shaders cannot write its deferred buffers.
+        private val TOOL_ENERGY_COMPAT = RenderType.entityTranslucentEmissive(TEX, false)
+        val TOOL_SURFACE_COMPAT = toolSurface(false)
+        val TOOL_FROZEN_COMPAT = toolSurface(true)
+
+        fun energyType(): RenderType = if (ShaderPackCompat.enabled()) TOOL_ENERGY_COMPAT else GRAVITRON_ENERGY
+
+        fun energyBuffer(buffers: MultiBufferSource): VertexConsumer {
+            val type = energyType()
+            val consumer = buffers.getBuffer(type)
+            return if (type === TOOL_ENERGY_COMPAT) EmissiveEnergyVertexConsumer(consumer) else consumer
+        }
+
+        private fun toolSurface(frozen: Boolean): RenderType = create(
+            if (frozen) "tool_frozen_compat" else "tool_surface_compat",
+            DefaultVertexFormat.NEW_ENTITY, VertexFormat.Mode.QUADS, 262144, false, true,
+            CompositeState.builder()
+                .setShaderState(if (frozen) RENDERTYPE_ENTITY_TRANSLUCENT_SHADER else RENDERTYPE_ENTITY_TRANSLUCENT_EMISSIVE_SHADER)
+                .setTextureState(TextureStateShard(SurfaceEffectAtlas.LOCATION, false, false))
+                .setTransparencyState(TRANSLUCENT_TRANSPARENCY)
+                .setLightmapState(LIGHTMAP)
+                .setOverlayState(OVERLAY)
+                .setCullState(NO_CULL)
+                .setLayeringState(VIEW_OFFSET_Z_LAYERING)
+                .setWriteMaskState(COLOR_WRITE)
+                .setDepthTestState(LEQUAL_DEPTH_TEST)
+                .createCompositeState(false)
+        )
+
+        val GRAVITRON_SURFACE: RenderType = create(
+            "gravitron_surface", DefaultVertexFormat.NEW_ENTITY, VertexFormat.Mode.QUADS,
+            262144, false, true,
+            CompositeState.builder()
+                .setShaderState(ShaderStateShard(ClockworkShaders::gravitronSurface))
+                .setTextureState(TextureStateShard(TextureAtlas.LOCATION_BLOCKS, false, false))
+                .setTransparencyState(TRANSLUCENT_TRANSPARENCY)
+                .setLightmapState(LIGHTMAP)
+                .setOverlayState(NO_OVERLAY)
+                .setCullState(NO_CULL)
+                .setLayeringState(VIEW_OFFSET_Z_LAYERING)
+                .setWriteMaskState(COLOR_WRITE)
+                .setDepthTestState(LEQUAL_DEPTH_TEST)
+                .createCompositeState(false)
         )
 
         val BEAM: RenderType = RenderType.create(

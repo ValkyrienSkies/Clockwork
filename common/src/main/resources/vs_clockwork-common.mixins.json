@@ -20,6 +20,8 @@
     "content.exhaust.MixinAirCurrent",
     "content.flap_bearing.MixinLinkedControllerClientHandler",
     "content.flap_bearing.MixinLinkedControllerItem",
+    "content.gimbal_bearing.MixinGimbalLinkedControllerClientHandler",
+    "content.gimbal_bearing.MixinGimbalLinkedControllerItem",
     "content.gas.MixinBacktankUtil",
     "content.gas.MixinComposterBlock",
     "content.gas_engine.MixinSteamEngineBlock",
@@ -29,6 +31,7 @@
     "content.sugar_rocket.MixinFireCharge",
     "content.universal_joint.MixinRotationPropagator",
     "content.wanderlite_crystal.MixinItemEntity",
+    "content.wanderwand.MixinServerGamePacketListener",
     "content.wing.MixinAbstractCauldronBlock"
   ],
   "client": [
@@ -37,7 +40,13 @@
     "client.MixinCamera",
     "client.MixinFogRenderer",
     "client.MixinItemInHandRenderer",
+    "client.SpriteContentsAccessor",
     "content.gravitron.MinecraftAccessor",
+    "content.gravitron.GameRendererAccessor",
+    "content.gravitron.MixinHumanoidModel",
+    "content.wanderwand.MixinPlayerSkyhookRenderer",
+    "content.wanderwand.MixinLivingEntity",
+    "content.wanderwand.MixinMinecraft",
     "content.gravitron.MixinLocalPlayer"
   ],
   "injectors": {

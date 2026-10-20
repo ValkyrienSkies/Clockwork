@@ -1,25 +1,16 @@
 package org.valkyrienskies.clockwork.content.curiosities.tools.gravitron
 
-import net.minecraft.server.level.ServerLevel
-import net.minecraft.sounds.SoundSource
 import net.minecraft.world.entity.player.Player
 import org.joml.Quaterniondc
 import org.joml.Vector2dc
 import org.joml.Vector3dc
-import org.valkyrienskies.clockwork.ClockworkSounds
-import org.valkyrienskies.clockwork.content.curiosities.tools.gravitron.tool.GrabTool
 import org.valkyrienskies.clockwork.mixinduck.MixinPlayerDuck
-import org.valkyrienskies.clockwork.platform.SharedValues
-import org.valkyrienskies.core.api.ships.LoadedServerShip
 import org.valkyrienskies.core.api.ships.properties.ShipId
-import org.valkyrienskies.mod.api.toJOML
-import org.valkyrienskies.mod.common.ValkyrienSkiesMod
-import org.valkyrienskies.mod.common.dimensionId
-import org.valkyrienskies.mod.common.shipObjectWorld
-import kotlin.math.max
 import kotlin.math.min
 
 class GravitronState {
+    var equippedItem: net.minecraft.world.item.Item? = null
+    var equippedSlot: Int = -1
     var heldBlockPos: Vector3dc? = null
     var playerGrabbedRotation: Vector2dc? = null // Pitch , Yaw
     var shipGrabbedPos: Vector3dc? = null

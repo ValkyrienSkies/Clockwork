@@ -1,6 +1,5 @@
 package org.valkyrienskies.clockwork.content.curiosities.tools.wanderwand
 
-import com.mojang.blaze3d.vertex.PoseStack
 import com.simibubi.create.AllKeys
 import net.minecraft.client.Minecraft
 import net.minecraft.client.gui.GuiGraphics
@@ -10,6 +9,10 @@ import net.minecraft.world.entity.player.Player
 import net.minecraft.world.item.ItemStack
 import net.minecraft.world.level.GameType
 import org.valkyrienskies.clockwork.ClockworkItems
+import org.valkyrienskies.clockwork.ClockworkPackets
+import net.minecraft.core.BlockPos
+import org.lwjgl.glfw.GLFW
+import org.valkyrienskies.clockwork.ClockworkModClient
 import org.valkyrienskies.clockwork.content.curiosities.tools.wanderwand.tool.ToolType
 import org.valkyrienskies.clockwork.util.ClockworkHotbarSlotOverlays
 
@@ -75,6 +78,12 @@ open class WanderwandHandler {
 
         currentTool!!.tool.renderOverlay(poseStack, partialTicks, width, height)
         selectionScreen!!.renderPassive(poseStack, partialTicks)
+        ClockworkModClient.WANDERWAND_EFFECT_RENDERER.ropeLength()?.let { length ->
+            val mc = Minecraft.getInstance()
+            poseStack.drawCenteredString(mc.font, net.minecraft.network.chat.Component.translatable(
+                "vs_clockwork.wanderwand.rope_length", String.format(java.util.Locale.ROOT, "%.1f", length)),
+                mc.window.guiScaledWidth / 2, mc.window.guiScaledHeight - 65, 0xC3A0E3)
+        }
     }
 
     private fun itemLost(player: Player): Boolean {
@@ -91,6 +100,8 @@ open class WanderwandHandler {
     fun equip(tool: ToolType?) {
         this.currentTool = tool
         currentTool!!.tool.init()
+        if (active && Minecraft.getInstance().player != null)
+            ClockworkPackets.sendToServer(WandSelectionPacket(BlockPos.ZERO, null, currentTool!!, false, -2))
     }
 
     fun findWandInHand(player: Player?): ItemStack? {
@@ -113,8 +124,13 @@ open class WanderwandHandler {
         if (!active) return false
         else if (!pressed || (button != 1 && button != 0)) return false
         val mc = Minecraft.getInstance()
-        if (mc.player!!.isShiftKeyDown && currentTool != ToolType.DESELECT) return false
-        else if (button == 0) return currentTool!!.tool.handleLeftClick()
+        if (mc.screen != null || mc.player == null) return false
+        if (button == 0) return currentTool!!.tool.handleLeftClick()
+        if (currentTool == ToolType.SELECT || currentTool == ToolType.DESELECT) {
+            val hit = mc.hitResult as? net.minecraft.world.phys.BlockHitResult
+            if (mc.player!!.isShiftKeyDown || (hit != null && mc.level?.getBlockEntity(hit.blockPos) is
+                    org.valkyrienskies.clockwork.content.contraptions.phys.infuser.PhysicsInfuserBlockEntity)) return false
+        }
 
 
         return currentTool!!.tool.handleRightClick(mc.player!!.isCrouching)
@@ -124,6 +140,14 @@ open class WanderwandHandler {
         if (!active) {
             return
         }
+
+        if (currentTool == ToolType.BIND && key == GLFW.GLFW_KEY_SPACE && pressed) {
+            val mc = Minecraft.getInstance()
+            if (!(mc.player?.onGround() ?: true)) {
+                ClockworkPackets.sendToServer(WandJumpPacket())
+            }
+        }
+
         if (!AllKeys.TOOL_MENU.doesModifierAndCodeMatch(key)) {
             return
         }
@@ -138,12 +162,17 @@ open class WanderwandHandler {
     }
 
     fun mouseScrolled(delta: Double): Boolean {
-        if (!active) {
+        if (!active || delta == 0.0) {
             return false
         }
 
         if (selectionScreen!!.focus) {
             selectionScreen!!.cycle(delta.toInt())
+            return true
+        }
+        if (ClockworkModClient.WANDERWAND_EFFECT_RENDERER.holdingRope()) {
+            ClockworkPackets.sendToServer(WanderwandReelPacket(if (delta > 0) 1 else -1))
+            // Both loaders cancel hotbar scrolling when this event is consumed, even at the rope's limits.
             return true
         }
         if (AllKeys.ctrlDown()) {

@@ -8,15 +8,23 @@ import net.minecraft.world.level.Level
 import org.valkyrienskies.clockwork.client.render.BladeAngleSyncPacket
 import org.valkyrienskies.clockwork.client.render.airpocket.AirpocketSyncPacket
 import org.valkyrienskies.clockwork.content.contraptions.flap.smart_flap.FlapLinkedControllerBindPacket
+import org.valkyrienskies.clockwork.content.contraptions.phys.gimbal.quad_link.GimbalLinkedControllerBindPacket
 import org.valkyrienskies.clockwork.content.curiosities.altmeter.UpdateAltMeterPacket
+import org.valkyrienskies.clockwork.content.curiosities.meteor.MeteorShipSyncPacket
 import org.valkyrienskies.clockwork.content.contraptions.phys.infuser.PhysicsInfuserSyncPacket
 import org.valkyrienskies.clockwork.content.contraptions.phys.slicker.SlickerAttachmentSyncPacket
 import org.valkyrienskies.clockwork.content.curiosities.tools.gravitron.GravitronDisassemblyPacket
+import org.valkyrienskies.clockwork.content.curiosities.tools.gravitron.GravitronAnimationPacket
+import org.valkyrienskies.clockwork.content.curiosities.tools.gravitron.GravitronFreezePacket
 import org.valkyrienskies.clockwork.content.curiosities.tools.gravitron.GravitronDialPacket
 import org.valkyrienskies.clockwork.content.curiosities.tools.gravitron.GravitronGrabPacket
 import org.valkyrienskies.clockwork.content.curiosities.tools.gravitron.GravitronLeftClickPacket
+import org.valkyrienskies.clockwork.content.curiosities.tools.wanderwand.WandJumpPacket
 import org.valkyrienskies.clockwork.content.curiosities.tools.wanderwand.WandSelectionPacket
 import org.valkyrienskies.clockwork.content.curiosities.tools.wanderwand.WanderwandRenderUpdatePacket
+import org.valkyrienskies.clockwork.content.curiosities.tools.wanderwand.WanderwandStatePacket
+import org.valkyrienskies.clockwork.content.curiosities.tools.wanderwand.WanderwandReelPacket
+import org.valkyrienskies.clockwork.content.curiosities.tools.wanderwand.WandRopeRidePacket
 import org.valkyrienskies.clockwork.content.kinetics.sequenced_seat.SequencedSeatDrivingPacket
 import org.valkyrienskies.clockwork.content.kinetics.sequenced_seat.UpdateSeatRulesPacket
 import org.valkyrienskies.clockwork.content.logistics.gas.duct.DuctEdgeSyncPacket
@@ -82,6 +90,14 @@ enum class ClockworkPackets(
     AIRPOCKET_SYNC_PACKET(AirpocketSyncPacket::class.java, ::AirpocketSyncPacket),
 
     FLAP_LINKED_CONTROLLER_BIND_PACKET(FlapLinkedControllerBindPacket::class.java, ::FlapLinkedControllerBindPacket),
+    GIMBAL_LINKED_CONTROLLER_BIND_PACKET(GimbalLinkedControllerBindPacket::class.java, ::GimbalLinkedControllerBindPacket),
+    METEOR_SHIP_SYNC(MeteorShipSyncPacket::class.java, ::MeteorShipSyncPacket),
+    GRAVITRON_ANIMATION_PACKET(GravitronAnimationPacket::class.java, ::GravitronAnimationPacket),
+    GRAVITRON_FREEZE_PACKET(GravitronFreezePacket::class.java, ::GravitronFreezePacket),
+    WAND_STATE_PACKET(WanderwandStatePacket::class.java, ::WanderwandStatePacket),
+    WAND_REEL_PACKET(WanderwandReelPacket::class.java, ::WanderwandReelPacket),
+    WAND_ROPE_RIDE_PACKET(WandRopeRidePacket::class.java, ::WandRopeRidePacket),
+    WAND_ROPE_RIDE_JUMP_PACKET(WandJumpPacket::class.java, ::WandJumpPacket),
 
     ;
 

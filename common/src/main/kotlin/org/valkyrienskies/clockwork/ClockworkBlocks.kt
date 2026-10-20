@@ -8,6 +8,7 @@ import com.simibubi.create.api.stress.BlockStressValues
 import com.simibubi.create.content.decoration.encasing.CasingBlock
 import com.simibubi.create.content.decoration.encasing.EncasingRegistry
 import com.simibubi.create.content.fluids.PipeAttachmentModel
+import com.simibubi.create.content.kinetics.simpleRelays.ShaftBlock
 import com.simibubi.create.foundation.data.AssetLookup
 import com.simibubi.create.foundation.data.CreateRegistrate
 import com.simibubi.create.foundation.data.ModelGen.customItemModel
@@ -17,6 +18,7 @@ import com.tterrag.registrate.providers.DataGenContext
 import com.tterrag.registrate.providers.RegistrateBlockstateProvider
 import com.tterrag.registrate.util.entry.BlockEntry
 import com.tterrag.registrate.util.nullness.NonNullFunction
+import dev.architectury.event.events.common.LifecycleEvent
 import net.minecraft.client.renderer.RenderType
 import net.minecraft.client.resources.model.BakedModel
 import net.minecraft.world.item.CreativeModeTabs
@@ -169,39 +171,23 @@ object ClockworkBlocks {
             .register()
 
     @JvmField
-    val PHYS_BEARING: BlockEntry<PhysBearingBlock> =
-        REGISTRATE.block("phys_bearing") { properties: BlockBehaviour.Properties? ->
-            PhysBearingBlock(properties!!)
+    val GIMBAL_BEARING: BlockEntry<GimbalBearingBlock> =
+        REGISTRATE.block("gimbal_bearing") { properties: BlockBehaviour.Properties? ->
+            GimbalBearingBlock(properties!!)
         }
             .initialProperties { SharedProperties.stone() }
             .transform(axeOrPickaxe())
-            .transform(displaySource(ClockworkDisplaySources.PHYS_BEARING))
             .properties {
                 it.lightLevel { state: BlockState? -> PhysBearingBlock.getLight(state) }
             }
             .addLayer { Supplier { RenderType.cutout() } }
-            .blockstate { c: DataGenContext<Block?, PhysBearingBlock>, p: RegistrateBlockstateProvider ->
+            .blockstate { c: DataGenContext<Block?, GimbalBearingBlock>, p: RegistrateBlockstateProvider ->
                 p.directionalBlock(c.entry, AssetLookup.partialBaseModel(c, p))
             }
             .tag(AllTags.AllBlockTags.SAFE_NBT.tag)
             .item()
             .tab(ClockworkMod.PHYSICAL_CREATIVE_TABINFO)
-            .model(AssetLookup.customBlockItemModel("phys_bearing"))
-            .build()
-            .register()
-
-    @JvmField
-    val GIMBAL_BEARING: BlockEntry<GimbalBearingBlock> =
-        REGISTRATE.block<GimbalBearingBlock>("gimbal_bearing") { properties: BlockBehaviour.Properties? ->
-            GimbalBearingBlock(properties!!)
-        }
-            .initialProperties { SharedProperties.stone() }
-            .transform(axeOrPickaxe())
-            .properties { it.noOcclusion() }
-            .addLayer { Supplier { RenderType.cutout() } }
-            .tag(AllTags.AllBlockTags.SAFE_NBT.tag)
-            .item()
-            .tab(ClockworkMod.PHYSICAL_CREATIVE_TABINFO)
+            .model(AssetLookup.customBlockItemModel("gimbal_bearing"))
             .build()
             .register()
 
@@ -424,15 +410,36 @@ object ClockworkBlocks {
         .register()
 
     @JvmField
+    val PHYS_BEARING: BlockEntry<PhysBearingBlock> =
+        REGISTRATE.block("phys_bearing") { properties: BlockBehaviour.Properties? ->
+            PhysBearingBlock(properties!!)
+        }
+            .initialProperties { SharedProperties.stone() }
+            .transform(axeOrPickaxe())
+            .transform(displaySource(ClockworkDisplaySources.PHYS_BEARING))
+            .properties {
+                it.lightLevel { state: BlockState? -> PhysBearingBlock.getLight(state) }
+            }
+            .addLayer { Supplier { RenderType.cutout() } }
+            .blockstate { c: DataGenContext<Block?, PhysBearingBlock>, p: RegistrateBlockstateProvider ->
+                p.directionalBlock(c.entry, AssetLookup.partialBaseModel(c, p))
+            }
+            .tag(AllTags.AllBlockTags.SAFE_NBT.tag)
+            .item()
+            .tab(ClockworkMod.PHYSICAL_CREATIVE_TABINFO)
+            .model(AssetLookup.customBlockItemModel("phys_bearing"))
+            .build()
+            .register()
+
+
+    @JvmField
     val PHYSICS_INFUSER: BlockEntry<PhysicsInfuserBlock> =
         REGISTRATE.block("physics_infuser") { properties: BlockBehaviour.Properties? ->
             PhysicsInfuserBlock(properties!!)
         }
-            .transform(
-                axeOrPickaxe()
-            )
-
-            .addLayer { Supplier { RenderType.cutout() } }
+            .initialProperties { SharedProperties.stone() }
+            .transform(axeOrPickaxe())
+            .addLayer { Supplier { RenderType.translucent() } }
             .tag(AllTags.AllBlockTags.SAFE_NBT.tag)
             .item()
             .tab(ClockworkMod.PHYSICAL_CREATIVE_TABINFO)
@@ -1027,7 +1034,6 @@ object ClockworkBlocks {
         .initialProperties { SharedProperties.wooden() }
         .transform(axeOrPickaxe())
         .transform(BuilderTransformersClockwork.encasedShaft("balloon") { ClockworkSpriteShifts.BALLOON_CASING })
-        .transform(EncasingRegistry.addVariantTo { AllBlocks.SHAFT.get() })
         .item()
         .build()
         .register()
@@ -1154,7 +1160,12 @@ object ClockworkBlocks {
 
     @JvmStatic
     fun register() {
-
+        // This needs to be deferred because fabric idk
+        LifecycleEvent.SETUP.register {
+            EncasingRegistry.addVariant<ShaftBlock, ExtendedEncasedShaftBlock, Any>(
+                AllBlocks.SHAFT.get(), BALLOON_ENCASED_SHAFT.get()
+            )
+        }
     }
 
 }
