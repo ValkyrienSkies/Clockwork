@@ -11,6 +11,21 @@ class PropellerImpulseSolverTest {
     private val com = Vector3d(.5, .5, 1.5)
 
     @Test
+    fun `reported rotor forces sum to the applied impulse without changing physics`() {
+        val flow = flow(Vector3d(4.0, -2.0, 12.0), Vector3d(.2, -.3, .1))
+        val loads = listOf(prepare(rotor(128.0), flow), prepare(rotor(64.0, position = Vector3i(3, 0, 0)), flow))
+        val inertia = Matrix3d().scale(40000.0)
+        for (limit in listOf(0.0, 200.0)) {
+            val expected = PropellerImpulseSolver.solve(loads, 10000.0, inertia, limit, limit)
+            val reported = Vector3d()
+            val actual = PropellerImpulseSolver.solve(loads, 10000.0, inertia, limit, limit) { _, force -> reported.add(force) }
+            assertVector(expected.first, actual.first)
+            assertVector(expected.second, actual.second)
+            assertVector(actual.first, reported)
+        }
+    }
+
+    @Test
     fun `stopped rotors cannot add kinetic energy over a full physics tick`() {
         for (sails in listOf(false, true)) for (mass in listOf(1.0, 100.0, 10000.0))
             for (speed in listOf(10.0, 100.0, 1e6)) {

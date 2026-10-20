@@ -1,11 +1,11 @@
 package org.valkyrienskies.clockwork.content.curiosities.aeronaut
 
 import net.minecraft.world.entity.player.Player
+import net.minecraft.world.entity.LivingEntity
 import org.valkyrienskies.clockwork.mixinduck.MixinPlayerDuck
 
 class AeronautGogglesState {
 
-    var gogglesDown = false
     var flapAngle = 0f
     var prevFlapAngle = 0f
 
@@ -38,10 +38,8 @@ class AeronautGogglesState {
         }
 
         @JvmStatic
-        fun getGogglesAreDown(player: Player): Boolean {
-            val p = player as MixinPlayerDuck
-            val down = p.gogglesDown
-            return down
+        fun getGogglesAreDown(entity: LivingEntity): Boolean {
+            return (entity as? MixinPlayerDuck)?.gogglesDown ?: false
         }
     }
 }

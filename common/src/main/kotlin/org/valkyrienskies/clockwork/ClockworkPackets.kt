@@ -10,6 +10,9 @@ import org.valkyrienskies.clockwork.client.render.airpocket.AirpocketSyncPacket
 import org.valkyrienskies.clockwork.content.contraptions.flap.smart_flap.FlapLinkedControllerBindPacket
 import org.valkyrienskies.clockwork.content.contraptions.phys.gimbal.quad_link.GimbalLinkedControllerBindPacket
 import org.valkyrienskies.clockwork.content.curiosities.altmeter.UpdateAltMeterPacket
+import org.valkyrienskies.clockwork.content.curiosities.aeronaut.AeronautGogglesTogglePacket
+import org.valkyrienskies.clockwork.content.curiosities.aeronaut.AeronautShipRequestPacket
+import org.valkyrienskies.clockwork.content.curiosities.aeronaut.AeronautShipReadoutPacket
 import org.valkyrienskies.clockwork.content.curiosities.meteor.MeteorShipSyncPacket
 import org.valkyrienskies.clockwork.content.contraptions.phys.infuser.PhysicsInfuserSyncPacket
 import org.valkyrienskies.clockwork.content.contraptions.phys.slicker.SlickerAttachmentSyncPacket
@@ -98,6 +101,9 @@ enum class ClockworkPackets(
     WAND_REEL_PACKET(WanderwandReelPacket::class.java, ::WanderwandReelPacket),
     WAND_ROPE_RIDE_PACKET(WandRopeRidePacket::class.java, ::WandRopeRidePacket),
     WAND_ROPE_RIDE_JUMP_PACKET(WandJumpPacket::class.java, ::WandJumpPacket),
+    AERONAUT_GOGGLES_TOGGLE_PACKET(AeronautGogglesTogglePacket::class.java, ::AeronautGogglesTogglePacket),
+    AERONAUT_SHIP_REQUEST_PACKET(AeronautShipRequestPacket::class.java, ::AeronautShipRequestPacket),
+    AERONAUT_SHIP_READOUT_PACKET(AeronautShipReadoutPacket::class.java, ::AeronautShipReadoutPacket),
 
     ;
 

@@ -6,6 +6,8 @@ import org.joml.Matrix3d
 import org.joml.Vector3d
 import org.joml.Vector3dc
 import org.valkyrienskies.clockwork.ClockworkConfig
+import org.valkyrienskies.clockwork.content.curiosities.aeronaut.AeronautForceTelemetry
+import org.valkyrienskies.clockwork.content.curiosities.aeronaut.AeronautPropellerReadout
 import org.valkyrienskies.clockwork.content.contraptions.propeller.data.PropCreateData
 import org.valkyrienskies.clockwork.content.contraptions.propeller.data.PropData
 import org.valkyrienskies.clockwork.content.contraptions.propeller.data.PropUpdateData
@@ -35,7 +37,9 @@ class PropellerController(
         if (applierUpdateData.isNotEmpty()) ticksSinceLastUpdate = 0
         super.physTick(physShip, physLevel)
 
-        val rotors = appliers.values.filter { it.active }.map {
+        val readout = AeronautForceTelemetry.begin(physShip.id, "propellers")
+        val activeProps = appliers.values.filter { it.active }
+        val rotors = activeProps.map {
             prepareAerodynamics(physShip.transform, it, physShip.velocity, physShip.angularVelocity, physShip, physLevel)
         }
         if (rotors.isNotEmpty()) {
@@ -43,11 +47,16 @@ class PropellerController(
             val rotation = Matrix3d().rotation(physShip.transform.shipToWorldRotation)
             val inertiaWorld = Matrix3d(rotation).mul(physShip.momentOfInertia).mul(rotation.transpose(Matrix3d()))
             val (force, torque) = PropellerImpulseSolver.solve(rotors, physShip.mass, inertiaWorld,
-                ClockworkConfig.SERVER.propellerMaxForce, ClockworkConfig.SERVER.propellerMaxTorque)
+                ClockworkConfig.SERVER.propellerMaxForce, ClockworkConfig.SERVER.propellerMaxTorque,
+                if (readout == null) null else { index, applied ->
+                    readout.add(AeronautPropellerReadout.hub(activeProps[index]),
+                        physShip.transform.shipToWorldRotation.transformInverse(applied, Vector3d()))
+                })
             // One coupled impulse, with its complete world-space moment about the COM.
             physShip.applyWorldForceToBodyPos(force)
             physShip.applyWorldTorque(torque)
         }
+        AeronautForceTelemetry.publish(physShip.id, "propellers", readout)
 
         // Propeller Pushing
         ticksSinceLastUpdate++

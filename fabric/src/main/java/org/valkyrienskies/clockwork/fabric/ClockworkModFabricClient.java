@@ -81,6 +81,7 @@ public class ClockworkModFabricClient implements ClientModInitializer {
         ClientTickEvents.START_CLIENT_TICK.register(FabricClockworkClientEvents::onTickStart);
         WorldRenderEvents.AFTER_TRANSLUCENT.register(FabricClockworkClientEvents::onRenderWorld);
         HudRenderCallback.EVENT.register((graphics, partialTicks) -> {
+            org.valkyrienskies.clockwork.client.render.goggles.AeronautGoggleOverlayRenderer.render(graphics);
             Window window = Minecraft.getInstance().getWindow();
             GRAVITRON_HANDLER.render(graphics, partialTicks, window.getWidth(), window.getHeight());
             WANDERWAND_HANDLER.render(graphics, partialTicks, window.getWidth(), window.getHeight());

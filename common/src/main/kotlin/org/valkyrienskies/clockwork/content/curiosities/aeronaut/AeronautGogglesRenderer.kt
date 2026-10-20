@@ -4,14 +4,11 @@ import com.mojang.blaze3d.vertex.PoseStack
 import com.simibubi.create.foundation.item.render.CustomRenderedItemModel
 import com.simibubi.create.foundation.item.render.CustomRenderedItemModelRenderer
 import com.simibubi.create.foundation.item.render.PartialItemModelRenderer
-import net.createmod.catnip.animation.AnimationTickHolder
-import net.minecraft.client.Minecraft
 import net.minecraft.client.renderer.MultiBufferSource
 import net.minecraft.world.item.ItemDisplayContext
 import net.minecraft.world.item.ItemStack
 import org.joml.Vector3d
 import org.joml.Vector3dc
-import org.valkyrienskies.clockwork.ClockworkPartials
 
 class AeronautGogglesRenderer: CustomRenderedItemModelRenderer() {
     override fun render(
@@ -24,51 +21,9 @@ class AeronautGogglesRenderer: CustomRenderedItemModelRenderer() {
         light: Int,
         overlay: Int
     ) {
-        val player = Minecraft.getInstance().player!!
-        val partialTicks = AnimationTickHolder.getPartialTicks()
-
-        if (transformType == ItemDisplayContext.HEAD) {
-            ms.pushPose()
-
-            renderer.renderSolid(ClockworkPartials.HAT_BASE.get(), light)
-
-            val flapAngle = AeronautGogglesState.getFlapsAngle(player)
-            val prevFlapAngle = AeronautGogglesState.getPrevFlapsAngle(player)
-            val interpolatedFlapAngle = prevFlapAngle + (flapAngle - prevFlapAngle) * partialTicks
-            ms.pushPose()
-            val originLeft = fromModelSpace(2.725, 10.0, 8.0)
-            ms.translate(-originLeft.x(), -originLeft.y(), -originLeft.z())
-            ms.mulPose(org.joml.Quaternionf().setAngleAxis(interpolatedFlapAngle.toFloat(), 1f, 0f, 0f))
-            ms.translate(originLeft.x(), originLeft.y(), originLeft.z())
-            ms.pushPose()
-            renderer.renderSolid(ClockworkPartials.HAT_FLAP_LEFT.get(), light)
-            ms.popPose()
-            ms.popPose()
-            ms.pushPose()
-            val originRight = fromModelSpace(13.275, 10.0, 8.0)
-            ms.translate(-originRight.x(), -originRight.y(), -originRight.z())
-            ms.mulPose(org.joml.Quaternionf().setAngleAxis(-interpolatedFlapAngle.toFloat(), 1f, 0f, 0f))
-            ms.translate(originRight.x(), originRight.y(), originRight.z())
-            ms.pushPose()
-            renderer.renderSolid(ClockworkPartials.HAT_FLAP_RIGHT.get(), light)
-            ms.popPose()
-            ms.popPose()
-
-            val wearingGoggles = AeronautGogglesState.getGogglesAreDown(player)
-            ms.pushPose()
-            ms.pushPose()
-            if (!wearingGoggles) {
-                //rotate so goggles are facing up
-                ms.mulPose(org.joml.Quaternionf().setAngleAxis(-90f, 0f, 0f, 1f))
-            }
-            ms.popPose()
-            renderer.render(ClockworkPartials.HAT_GOGGLES.get(), light)
-            ms.popPose()
-
-            ms.popPose()
-        } else {
-            renderer.render(model.originalModel, light)
-        }
+        // Item rendering has no wearer context. Equipped goggles are rendered by
+        // AeronautArmorLayer using that entity's synchronized state.
+        renderer.render(model.originalModel, light)
     }
 
     companion object {

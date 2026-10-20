@@ -7,6 +7,7 @@ import net.minecraft.core.Direction
 import org.joml.Vector3d
 import org.joml.Vector3i
 import org.valkyrienskies.clockwork.content.propulsion.sugar_rocket.SugarRocketData
+import org.valkyrienskies.clockwork.content.curiosities.aeronaut.AeronautForceTelemetry
 import org.valkyrienskies.core.api.ships.LoadedServerShip
 import org.valkyrienskies.core.api.ships.PhysShip
 import org.valkyrienskies.core.api.ships.ShipPhysicsListener
@@ -33,10 +34,13 @@ class SugarRocketController : ShipPhysicsListener {
             burningRockets.removeIf {data -> data.position == rocket}
             //println("removed rocket at $rocket")
         }
+        val readout = AeronautForceTelemetry.begin(physShip.id, "rockets")
         burningRockets.forEach { data ->
             val shipPos = Vector3d(data.position).add(0.5, 0.5, 0.5, Vector3d())
             physShip.applyModelForce(data.force!!, shipPos)
+            readout?.add(shipPos, data.force!!)
         }
+        AeronautForceTelemetry.publish(physShip.id, "rockets", readout)
     }
 
     fun addRocket(pos: BlockPos, force: Double, direction: Direction) {

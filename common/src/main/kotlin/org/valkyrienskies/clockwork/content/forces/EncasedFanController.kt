@@ -5,6 +5,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore
 import org.joml.Vector3d
 import org.joml.Vector3dc
 import org.valkyrienskies.clockwork.ClockworkConfig
+import org.valkyrienskies.clockwork.content.curiosities.aeronaut.AeronautForceTelemetry
 import org.valkyrienskies.clockwork.content.propulsion.singleton.fan.EncasedFanCreateData
 import org.valkyrienskies.clockwork.content.propulsion.singleton.fan.EncasedFanData
 import org.valkyrienskies.clockwork.content.propulsion.singleton.fan.EncasedFanUpdateData
@@ -28,13 +29,16 @@ class EncasedFanController(
 
     override fun physTick(physShip: PhysShip, physLevel: PhysLevel) {
         super.physTick(physShip, physLevel)
+        val readout = AeronautForceTelemetry.begin(physShip.id, "fans")
 
         for (physData in appliers.values) {
             val force = computeForce(physData, physShip, physLevel)
             val fanVector: Vector3dc =
                 Vector3d(physData.position).add(0.5, 0.5, 0.5, Vector3d())
             physShip.applyModelForce(force, fanVector)
+            readout?.add(fanVector, force)
         }
+        AeronautForceTelemetry.publish(physShip.id, "fans", readout)
     }
 
     private fun computeForce(

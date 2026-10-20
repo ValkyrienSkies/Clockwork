@@ -56,7 +56,7 @@ object ClockworkMod {
 
     // versioning
     const val BUILD_VERSION = 1
-    const val NETWORK_VERSION = 1
+    const val NETWORK_VERSION = 2
     const val NETWORK_VERSION_STR = NETWORK_VERSION.toString()
 
     val NETWORK_CHANNEL: ResourceLocation = asResource("main")
@@ -100,6 +100,7 @@ object ClockworkMod {
     @JvmStatic
     fun init() {
         ClockworkPackets.init()
+        LifecycleEvent.SERVER_STOPPED.register { org.valkyrienskies.clockwork.content.curiosities.aeronaut.AeronautShipReadout.clear() }
         ClockworkTags.init()
         ClockworkRecipes.init()
         TAB_REGISTRY.register()

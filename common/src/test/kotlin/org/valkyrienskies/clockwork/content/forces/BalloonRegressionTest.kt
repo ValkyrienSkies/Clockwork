@@ -53,10 +53,14 @@ class BalloonRegressionTest {
         var reads = 0
         var loadChecks = 0
         val solid = mockk<BlockState> {
+            every { block } returns mockk()
             every { isAir } returns false
             every { isCollisionShapeFullBlock(any(), any()) } returns true
         }
-        val air = mockk<BlockState> { every { isAir } returns true }
+        val air = mockk<BlockState> {
+            every { block } returns mockk()
+            every { isAir } returns true
+        }
         val level: Level = if (server) mockk<ServerLevel>(relaxed = true, moreInterfaces = arrayOf(DimensionIdProvider::class)) else mockk<Level>()
         init {
             every { level.isLoaded(any()) } answers { loadChecks++; firstArg<BlockPos>() !in unloaded }

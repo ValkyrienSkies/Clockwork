@@ -1,11 +1,10 @@
 package org.valkyrienskies.clockwork.content.curiosities.aeronaut
 
 import com.mojang.blaze3d.vertex.PoseStack
-import net.createmod.catnip.animation.AnimationTickHolder
 import net.createmod.catnip.render.CachedBuffers
 import net.createmod.catnip.render.SuperByteBuffer
 import net.fabricmc.fabric.api.client.rendering.v1.LivingEntityFeatureRendererRegistrationCallback
-import net.minecraft.client.Minecraft
+import net.minecraft.client.multiplayer.ClientLevel
 import net.minecraft.client.model.EntityModel
 import net.minecraft.client.model.HumanoidModel
 import net.minecraft.client.renderer.MultiBufferSource
@@ -16,6 +15,7 @@ import net.minecraft.client.renderer.entity.RenderLayerParent
 import net.minecraft.client.renderer.entity.layers.RenderLayer
 import net.minecraft.world.entity.EquipmentSlot
 import net.minecraft.world.entity.LivingEntity
+import net.minecraft.world.entity.player.Player
 import net.minecraft.world.level.block.Blocks
 import org.joml.Quaternionf
 import org.joml.Vector3d
@@ -25,12 +25,10 @@ import org.valkyrienskies.clockwork.content.curiosities.aeronaut.IAeronautEquipm
 import org.valkyrienskies.clockwork.content.curiosities.aeronaut.IAeronautEquipment.Companion.wearingAeronautInSlot
 import org.valkyrienskies.mod.api.getShipManagingEntity
 import org.valkyrienskies.mod.api.toJOML
-import org.valkyrienskies.mod.api.transformPosition
 import org.valkyrienskies.mod.api.vsApi
 import org.valkyrienskies.mod.common.shipObjectWorld
 import org.valkyrienskies.mod.common.util.IEntityDraggingInformationProvider
 import kotlin.math.min
-import kotlin.math.sin
 
 open class AeronautArmorLayer<T : LivingEntity, M : EntityModel<T>?>(renderer: RenderLayerParent<T, M>?) : RenderLayer<T, M>(renderer!!) {
 
@@ -53,28 +51,24 @@ open class AeronautArmorLayer<T : LivingEntity, M : EntityModel<T>?>(renderer: R
         val model = entityModel as HumanoidModel<*>
         val renderType = Sheets.cutoutBlockSheet()
 
-        val player = Minecraft.getInstance().player!!
-        val partialTicks = AnimationTickHolder.getPartialTicks()
+        val player = entity as? Player
+        val goggleState = player?.let { AeronautGogglesState.getState(it) }
 
-        val goggleState = AeronautGogglesState.getState(player)
-
-        //goggleState.prevFlapAngle = goggleState.flapAngle
-        val maxFlapAngle = Math.toRadians(75.0).toFloat()
-        val shipOn = (player as IEntityDraggingInformationProvider).draggingInformation.lastShipStoodOn ?: vsApi.getShipMountedTo(player)?.id ?: player.getShipManagingEntity()?.id
-        val velocity = player.deltaMovement.toJOML().mul(20.0)
-        if (shipOn != null) {
-            val ship = player.clientLevel.shipObjectWorld!!.loadedShips.getById(shipOn)
-            if (ship != null) {
-                val playerPosInShip = (player.position().toJOML()).sub(ship.renderTransform.positionInWorld)
-                val velAtPlayerPos = ship.angularVelocity.cross(playerPosInShip, Vector3d()).add(ship.velocity)
-                    //val dragDecay = (player as IEntityDraggingInformationProvider).draggingInformation.ticksSinceStoodOnShip /
-                velocity.set(velAtPlayerPos)
+        if (player != null && goggleState != null) {
+            val maxFlapAngle = Math.toRadians(75.0).toFloat()
+            val shipOn = (player as IEntityDraggingInformationProvider).draggingInformation.lastShipStoodOn ?: vsApi.getShipMountedTo(player)?.id ?: player.getShipManagingEntity()?.id
+            val velocity = player.deltaMovement.toJOML().mul(20.0)
+            if (shipOn != null) {
+                val ship = (player.level() as ClientLevel).shipObjectWorld?.loadedShips?.getById(shipOn)
+                if (ship != null) {
+                    val playerPosInShip = player.position().toJOML().sub(ship.renderTransform.positionInWorld)
+                    val velAtPlayerPos = ship.angularVelocity.cross(playerPosInShip, Vector3d()).add(ship.velocity)
+                    velocity.set(velAtPlayerPos)
+                }
             }
+            val speed = velocity.length()
+            goggleState.flapAngle = -min(maxFlapAngle, (speed.toFloat() / 200f) * maxFlapAngle)
         }
-        val speed = velocity.length()
-        goggleState.flapAngle = -min(maxFlapAngle, (speed.toFloat() /200f) * maxFlapAngle) //+ sin(partialTicks * 0.05f) * (speed.toFloat() / 20000f)
-        //if (goggleState.flapAngle > 1) println("am i even real bro")
-        //println(goggleState.flapAngle)
         if (entity.wearingAeronautInSlot(EquipmentSlot.HEAD)) {
             ms.pushPose()
 
@@ -111,10 +105,10 @@ open class AeronautArmorLayer<T : LivingEntity, M : EntityModel<T>?>(renderer: R
                 .light<SuperByteBuffer?>(light)
                 .renderInto(ms, buffer.getBuffer(renderType))
 
-            val flapAngle = goggleState.flapAngle
-            val prevFlapAngle = goggleState.prevFlapAngle
-            val interpolatedFlapAngle = prevFlapAngle + (flapAngle - prevFlapAngle) * partialTicks
-            goggleState.prevFlapAngle = interpolatedFlapAngle
+            val flapAngle = goggleState?.flapAngle ?: 0f
+            val prevFlapAngle = goggleState?.prevFlapAngle ?: 0f
+            val interpolatedFlapAngle = prevFlapAngle + (flapAngle - prevFlapAngle) * partialTick
+            goggleState?.prevFlapAngle = interpolatedFlapAngle
             ms.pushPose()
             val originLeft = fromModelSpace(2.725, 10.0, 8.0)
             //ms.translate(-originLeft.x(), -originLeft.y(), -originLeft.z())
@@ -144,7 +138,7 @@ open class AeronautArmorLayer<T : LivingEntity, M : EntityModel<T>?>(renderer: R
                 .renderInto(ms, buffer.getBuffer(renderType))
             ms.popPose()
 
-            val wearingGoggles = AeronautGogglesState.getState(player).gogglesDown
+            val wearingGoggles = AeronautGogglesState.getGogglesAreDown(entity)
             ms.pushPose()
             ms.pushPose()
             if (!wearingGoggles) {

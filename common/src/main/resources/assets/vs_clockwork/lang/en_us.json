@@ -618,6 +618,14 @@
   "vs_clockwork.recipe.gas_crafting": "Gas Crafting",
   "vs_clockwork.subtitle.wand_weld": "Wanderwand welds",
 
+  "vs_clockwork.aeronaut.title": "AERONAUT / SHIP BALANCE",
+  "vs_clockwork.aeronaut.legend": "M  Mass    T  Thrust    L  Lift",
+  "vs_clockwork.aeronaut.modes": "Hollow: potential   Solid + arrow: live",
+  "vs_clockwork.aeronaut.reference": "Design: 128 RPM / 10 m/s   Wing lift: estimate",
+  "vs_clockwork.aeronaut.loading": "Reading ship…",
+  "vs_clockwork.aeronaut.mass": "Mass      %s",
+  "vs_clockwork.aeronaut.speed": "Speed     %s",
+  "vs_clockwork.aeronaut.velocity": "XYZ       %s",
   "death.attack.gas_burn": "%s was singed to a crisp",
   "death.attack.gas_explosion": "%s couldn't handle the pressure"
 }

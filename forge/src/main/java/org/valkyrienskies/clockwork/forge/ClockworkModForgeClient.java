@@ -65,6 +65,8 @@ public class ClockworkModForgeClient {
 
     @SubscribeEvent
     public static void onRegisterGuiOverlays(RegisterGuiOverlaysEvent event) {
+        event.registerAboveAll("aeronaut_goggles", (gui, graphics, partialTick, width, height) ->
+                org.valkyrienskies.clockwork.client.render.goggles.AeronautGoggleOverlayRenderer.render(graphics));
         event.registerAbove(VanillaGuiOverlay.HOTBAR.id(), "gravitron",
                 ClockworkModForgeClient.GRAVITRON_HANDLER.getOverlayRenderer());
         event.registerAbove(VanillaGuiOverlay.HOTBAR.id(), "wanderwand",
