@@ -23,6 +23,7 @@ import org.valkyrienskies.clockwork.ClockworkBlockEntities
 import org.valkyrienskies.clockwork.ClockworkConfig
 import org.valkyrienskies.clockwork.ClockworkMod
 import org.valkyrienskies.clockwork.content.logistics.gas.IConnectable
+import org.valkyrienskies.clockwork.content.logistics.gas.duct.IDuct
 import org.valkyrienskies.clockwork.util.gui.IHaveDuctStats
 import org.valkyrienskies.kelvin.KelvinMod
 import org.valkyrienskies.kelvin.api.DuctNode
@@ -30,7 +31,7 @@ import org.valkyrienskies.kelvin.api.DuctNodePos
 import org.valkyrienskies.kelvin.api.nodes.PumpDuctNode
 import org.valkyrienskies.kelvin.util.INodeBlock
 
-class PumpDuctBlock(properties: Properties): DirectionalKineticBlock(properties), IBE<PumpDuctBlockEntity>, ICogWheel, IHaveDuctStats, INodeBlock {
+class PumpDuctBlock(properties: Properties): DirectionalKineticBlock(properties), IBE<PumpDuctBlockEntity>, ICogWheel, IHaveDuctStats, IDuct  {
 
     override fun createBlockStateDefinition(builder: StateDefinition.Builder<Block, BlockState>) {
         builder.add(BlockStateProperties.WATERLOGGED)

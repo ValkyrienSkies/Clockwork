@@ -15,10 +15,11 @@ import net.minecraft.world.level.block.RotatedPillarBlock
 import net.minecraft.world.level.block.entity.BlockEntityType
 import net.minecraft.world.level.block.state.BlockState
 import org.valkyrienskies.clockwork.ClockworkBlockEntities
+import org.valkyrienskies.clockwork.content.logistics.gas.duct.IDuct
 import org.valkyrienskies.clockwork.util.gui.IHaveDuctStats
 import org.valkyrienskies.kelvin.util.INodeBlock
 
-class GasEngineBlock(properties: Properties) : RotatedPillarBlock(properties), INodeBlock, IBE<GasEngineBlockEntity>, IHaveDuctStats {
+class GasEngineBlock(properties: Properties) : RotatedPillarBlock(properties), IDuct, IBE<GasEngineBlockEntity>, IHaveDuctStats {
     override fun getBlockEntityClass(): Class<GasEngineBlockEntity> {
         return GasEngineBlockEntity::class.java
     }

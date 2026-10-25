@@ -615,6 +615,22 @@
   "vs_clockwork.ponder.duct.text_9": "If a duct is caught in an explosion, it will become a leak and gas will violently escape!",
   "vs_clockwork.ponder.duct.text_10": "Right-Clicking a leak with a Wrench will seal it back up.",
 
+  "vs_clockwork.gui.smart_duct.title": "Smart Duct",
+  "vs_clockwork.gui.smart_duct.measurement": "Measurement",
+  "vs_clockwork.gui.smart_duct.pressure": "Pressure",
+  "vs_clockwork.gui.smart_duct.temperature": "Temperature",
+  "vs_clockwork.gui.smart_duct.heat_energy": "Heat Energy",
+  "vs_clockwork.gui.smart_duct.mass": "Mass",
+  "vs_clockwork.gui.smart_duct.comparison": "Comparison",
+  "vs_clockwork.gui.smart_duct.more_than": "More Than",
+  "vs_clockwork.gui.smart_duct.less_than": "Less Than",
+  "vs_clockwork.gui.smart_duct.threshold": "Destination Threshold",
+  "vs_clockwork.gui.smart_duct.scroll_hint": "Shift: 10x step; Ctrl: 100x step",
+  "vs_clockwork.gui.smart_duct.destination": "Checks the destination",
+  "vs_clockwork.gui.smart_duct.gas_filter": "Measurement Gas Filter",
+  "vs_clockwork.gui.smart_duct.allow_list_hint": "Allow-list: count only selected gases",
+  "vs_clockwork.gui.smart_duct.deny_list_hint": "Deny-list: count all except selected gases",
+
   "vs_clockwork.recipe.gas_crafting": "Gas Crafting",
   "vs_clockwork.subtitle.wand_weld": "Wanderwand welds",
 
