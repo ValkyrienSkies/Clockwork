@@ -19,13 +19,14 @@ import net.minecraft.world.phys.shapes.CollisionContext
 import net.minecraft.world.phys.shapes.VoxelShape
 import org.valkyrienskies.clockwork.ClockworkBlockEntities
 import org.valkyrienskies.clockwork.ClockworkConfig
+import org.valkyrienskies.clockwork.content.logistics.gas.duct.IDuct
 import org.valkyrienskies.clockwork.util.gui.IHaveDuctStats
 import org.valkyrienskies.kelvin.api.DuctNode
 import org.valkyrienskies.kelvin.api.DuctNodePos
 import org.valkyrienskies.kelvin.api.nodes.ValveDuctNode
 import org.valkyrienskies.kelvin.util.INodeBlock
 
-class ValveDuctBlock(properties: Properties?) : DirectionalAxisKineticBlock(properties), INodeBlock, IBE<ValveDuctBlockEntity>, IHaveDuctStats {
+class ValveDuctBlock(properties: Properties?) : DirectionalAxisKineticBlock(properties), IDuct, IBE<ValveDuctBlockEntity>, IHaveDuctStats  {
 
     override fun getShape(state: BlockState, p_220053_2_: BlockGetter, p_220053_3_: BlockPos, p_220053_4_: CollisionContext): VoxelShape {
         return AllShapes.FLUID_VALVE[getDuctAxis(state)]

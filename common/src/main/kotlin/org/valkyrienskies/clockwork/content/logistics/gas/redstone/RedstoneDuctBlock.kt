@@ -20,9 +20,10 @@ import net.minecraft.world.level.block.state.properties.BlockStateProperties
 import net.minecraft.world.phys.BlockHitResult
 import org.valkyrienskies.clockwork.ClockworkBlockEntities
 import org.valkyrienskies.clockwork.content.curiosities.sensor.ISensorBlock
+import org.valkyrienskies.clockwork.content.logistics.gas.duct.IDuct
 import org.valkyrienskies.kelvin.util.INodeBlock
 
-class RedstoneDuctBlock(properties: Properties) : RotatedPillarBlock(properties), INodeBlock, IBE<RedstoneDuctBlockEntity> {
+class RedstoneDuctBlock(properties: Properties) : RotatedPillarBlock(properties), IDuct, IBE<RedstoneDuctBlockEntity> {
 
     init {
         registerDefaultState(defaultBlockState().setValue(POWER, 0))
