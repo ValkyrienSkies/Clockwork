@@ -1,0 +1,27 @@
+{
+  "type": "vs_clockwork:gas_crafting",
+  "heatRequirement": "heated",
+  "ingredients": [
+    {
+      "tag": "minecraft:coals"
+    }
+  ],
+  "input_gasses": { },
+  "result_gasses": {
+    "vs_clockwork:bog": {
+      "amount": 35,
+      "unit": "g"
+    },
+    "vs_clockwork:exhaust": {
+      "amount": 20,
+      "unit": "g"
+    }
+  },
+  "results": [],
+  "requirements": {
+    "kelvin:inhibited_by": {
+      "gas": "kelvin:air",
+      "ratio": 0.1
+    }
+  }
+}
