@@ -615,6 +615,10 @@
   "vs_clockwork.ponder.duct.text_9": "If a duct is caught in an explosion, it will become a leak and gas will violently escape!",
   "vs_clockwork.ponder.duct.text_10": "Right-Clicking a leak with a Wrench will seal it back up.",
 
+  "vs_clockwork.gui.gas_filter.title": "Gas Filter",
+  "vs_clockwork.gui.gas_filter.allow_list_hint": "Allow-list: allow only selected gases",
+  "vs_clockwork.gui.gas_filter.deny_list_hint": "Deny-list: block selected gases",
+
   "vs_clockwork.gui.smart_duct.title": "Smart Duct",
   "vs_clockwork.gui.smart_duct.measurement": "Measurement",
   "vs_clockwork.gui.smart_duct.pressure": "Pressure",
