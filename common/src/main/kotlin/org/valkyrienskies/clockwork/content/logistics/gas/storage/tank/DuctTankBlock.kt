@@ -74,7 +74,7 @@ class DuctTankBlock(properties: Properties) : Block(properties), INodeBlock, IBE
     }
 
     fun createTankNode(pos: DuctNodePos, size: Double): DuctNode {
-        return TankDuctNode(pos, volume = size, maxPressure = 16375049.0, maxTemperature = 1478.0, heatCapacity = 44.9)
+        return TankDuctNode(pos, volume = size, maxPressure = 16375049.0, maxTemperature = 1478.0, heatCapacity = 44.9 * size)
     }
 
     override fun onPlace(state: BlockState, level: Level, pos: BlockPos, oldState: BlockState, isMoving: Boolean) {

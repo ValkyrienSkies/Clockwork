@@ -14,6 +14,7 @@ import org.valkyrienskies.clockwork.ClockworkMod
 import org.valkyrienskies.clockwork.content.logistics.gas.duct.DuctBlockEntity
 import org.valkyrienskies.clockwork.util.kelvin.KNodeBlockEntity
 import org.valkyrienskies.clockwork.util.kelvin.KNodeKineticBlockEntity
+import org.valkyrienskies.kelvin.api.DuctNetwork
 import org.valkyrienskies.kelvin.api.DuctNodePos
 import org.valkyrienskies.kelvin.util.KelvinExtensions.toDuctNodePos
 
@@ -89,13 +90,18 @@ class DuctTankBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: BlockS
             update()
             return
         }
+        preserveContents(ClockworkMod.getKelvin(level), update)
+    }
+
+    internal fun preserveContents(network: DuctNetwork<*>, update: () -> Unit) {
+        val level = level ?: return
         if (contentTransfer.get() != null) {
             captureContents()
             update()
             return
         }
 
-        val transfer = DuctTankContentTransfer(ClockworkMod.getKelvin(level))
+        val transfer = DuctTankContentTransfer(network)
         contentTransfer.set(transfer)
         try {
             captureContents()
@@ -133,6 +139,9 @@ class DuctTankBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: BlockS
     }
 
     override fun notifyMultiUpdated() {
+        // Create can elect a different singleton as controller without calling
+        // setController/removeController on it. Capture it before replacing its node.
+        captureContents()
         var state = blockState
         if (state.block is DuctTankBlock) { // safety
             state = state.setValue(DuctTankBlock.BOTTOM, controller!!.y == blockPos.y)
