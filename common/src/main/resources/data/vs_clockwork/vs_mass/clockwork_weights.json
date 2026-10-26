@@ -19,7 +19,7 @@
   },
   {
     "block": "vs_clockwork:gyro",
-    "mass": 155,
+    "mass": 160,
     "friction": 0.4
   },
   {
