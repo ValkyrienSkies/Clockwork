@@ -15,6 +15,8 @@ import org.valkyrienskies.core.util.datastructures.DenseBlockPosSet
 import org.valkyrienskies.mod.common.assembly.ICopyableBlock
 import org.valkyrienskies.mod.common.assembly.ShipAssembler
 import org.valkyrienskies.mod.common.assembly.VSAssemblyEvents
+import org.valkyrienskies.mod.common.fluid.FractionalFluidLifecycle
+import org.valkyrienskies.mod.common.fluid.FractionalFluidTransferScope
 import org.valkyrienskies.mod.common.inAssemblyBlacklist
 import org.valkyrienskies.mod.common.util.toBlockPos
 import org.valkyrienskies.mod.common.util.toJOMLD
@@ -66,30 +68,40 @@ object PhysBearingAssembler {
             centers.first, originShip, moves.keys, eventData))
         VSAssemblyEvents.onPasteBeforeBlocksAreLoaded.emit(VSAssemblyEvents.OnPasteBeforeBlocksAreLoaded(
             level, originShip, toShip, centers, eventData))
+        val fluidTransfers = ArrayList<FractionalFluidTransferScope>()
         try {
-            // Keep every original intact until all destination block entities have been copied successfully.
-            for ((from, to) in moves) copyBlock(level, from, to, originShip, toShip, centers, transforms)
-        } catch (exception: Exception) {
-            org.valkyrienskies.clockwork.ClockworkMod.LOGGER.error("Unable to copy blocks for a weld", exception)
-            for (to in moves.values) {
-                level.removeBlockEntity(to)
-                level.getChunk(to).setBlockState(to, Blocks.AIR.defaultBlockState(), false)
+            try {
+                for ((from, to) in moves) {
+                    FractionalFluidLifecycle.beginBlockMove(level.getChunkAt(from), from, level.getChunkAt(to), to, toShip)
+                        ?.let(fluidTransfers::add)
+                }
+                // Keep every original intact until all destination block entities have been copied successfully.
+                for ((from, to) in moves) copyBlock(level, from, to, originShip, toShip, centers, transforms)
+            } catch (exception: Exception) {
+                org.valkyrienskies.clockwork.ClockworkMod.LOGGER.error("Unable to copy blocks for a weld", exception)
+                for (to in moves.values) {
+                    level.removeBlockEntity(to)
+                    level.getChunk(to).setBlockState(to, Blocks.AIR.defaultBlockState(), false)
+                    level.chunkSource.blockChanged(to)
+                }
+                return false
+            }
+            for (from in moves.keys) {
+                level.removeBlockEntity(from)
+                level.getChunk(from).setBlockState(from, Blocks.AIR.defaultBlockState(), false)
+            }
+            fluidTransfers.forEach { it.complete() }
+            for ((from, to) in moves) {
+                updateBlock(level, from, to, level.getBlockState(to))
+                level.chunkSource.blockChanged(from)
                 level.chunkSource.blockChanged(to)
             }
-            return false
+            VSAssemblyEvents.onPasteAfterBlocksAreLoaded.emit(VSAssemblyEvents.OnPasteAfterBlocksAreLoaded(
+                level, originShip, toShip, centers, eventData))
+            return true
+        } finally {
+            fluidTransfers.asReversed().forEach { it.close() }
         }
-        for (from in moves.keys) {
-            level.removeBlockEntity(from)
-            level.getChunk(from).setBlockState(from, Blocks.AIR.defaultBlockState(), false)
-        }
-        for ((from, to) in moves) {
-            updateBlock(level, from, to, level.getBlockState(to))
-            level.chunkSource.blockChanged(from)
-            level.chunkSource.blockChanged(to)
-        }
-        VSAssemblyEvents.onPasteAfterBlocksAreLoaded.emit(VSAssemblyEvents.OnPasteAfterBlocksAreLoaded(
-            level, originShip, toShip, centers, eventData))
-        return true
     }
 
     @JvmStatic

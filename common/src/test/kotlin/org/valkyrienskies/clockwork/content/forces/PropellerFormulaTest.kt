@@ -9,13 +9,20 @@ import org.valkyrienskies.clockwork.content.contraptions.propeller.data.PropData
 import org.valkyrienskies.core.api.ships.PhysShip
 import org.valkyrienskies.core.api.util.AerodynamicUtils
 import org.valkyrienskies.core.impl.game.ships.ShipTransformImpl
-import org.valkyrienskies.core.impl.shadow.DL
+import org.valkyrienskies.core.internal.VsiCoreFactory
 import org.valkyrienskies.mod.common.util.toJOMLD
 import org.valkyrienskies.mod.common.vsCore
 import java.lang.Math
 import kotlin.math.*
 
 class PropellerFormulaTest {
+
+    private val pipeline = VsiCoreFactory.instance.newVsCoreServer(io.mockk.mockk(relaxed = true))
+        .also { it.registerBlockStates(emptyList()) }
+        .newPipeline()
+    private val atmosphere = pipeline.shipWorld.aerodynamicUtils
+
+    @org.junit.jupiter.api.AfterEach fun closePipeline() { pipeline.deleteResources = true }
 
     val sailPositions = listOf(
         Vector3i(1, 0, 0),
@@ -105,7 +112,7 @@ class PropellerFormulaTest {
             val angleOfAttack = physProp.currentBladePitch - inflowAngle
             val thrustCoefficient = (angleOfAttack * cos(inflowAngle)) - (0.1 * sin(inflowAngle))
 
-            val q = 0.5 * DL().getAirDensityForY(sailPosWorld.y(), dimensionId) * ((axialVelocity).pow(2.0) + (sailVel.length()).pow(2.0))
+            val q = 0.5 * atmosphere.getAirDensityForY(sailPosWorld.y(), dimensionId) * ((axialVelocity).pow(2.0) + (sailVel.length()).pow(2.0))
 
             val thrust = q * thrustCoefficient
 
@@ -182,9 +189,8 @@ class PropellerFormulaTest {
         val bladeCount = blades.size
         val angleBetweenBlades = 2 * Math.PI / bladeCount
 
-        // Wow constructing a proguarded class is hella sus, but I think this is the best way
-        val airDensityAtY = DL().getAirDensityForY(transform.positionInWorld.y(), dimensionId)
-        val airTemperatureAtY = DL().getAirTemperatureForY(transform.positionInWorld.y(), dimensionId)
+        val airDensityAtY = atmosphere.getAirDensityForY(transform.positionInWorld.y(), dimensionId)
+        val airTemperatureAtY = atmosphere.getAirTemperatureForY(transform.positionInWorld.y(), dimensionId)
 
         val clockwiseAxis: Vector3dc = if (physProp.bearingAxis == Direction.UP.normal.toJOMLD()) {
             Direction.NORTH.normal.toJOMLD()

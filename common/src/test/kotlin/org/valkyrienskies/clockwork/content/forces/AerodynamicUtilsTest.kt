@@ -1,10 +1,17 @@
 package org.valkyrienskies.clockwork.content.forces
 
 import org.junit.jupiter.api.Test
-import org.valkyrienskies.core.impl.shadow.DL
+import org.valkyrienskies.core.internal.VsiCoreFactory
 import org.valkyrienskies.mod.common.ValkyrienSkiesMod.vsCore
 
 class AerodynamicUtilsTest {
+
+    private val pipeline = VsiCoreFactory.instance.newVsCoreServer(io.mockk.mockk(relaxed = true))
+        .also { it.registerBlockStates(emptyList()) }
+        .newPipeline()
+    private val atmosphere = pipeline.shipWorld.aerodynamicUtils
+
+    @org.junit.jupiter.api.AfterEach fun closePipeline() { pipeline.deleteResources = true }
 
     val dimensions = arrayOf("minecraft:overworld", "minecraft:the_nether", "minecraft:the_end")
     val stringArray: Array<String> = arrayOf("Sea Level", "10 Blocks Higher", "Much Higher", "Nearing Limit", "Limit", "Above Limit")
@@ -16,7 +23,7 @@ class AerodynamicUtilsTest {
         for (dimension in dimensions) {
             println("In: $dimension")
             for (i in stringArray.indices) {
-                println("${stringArray[i]}: ${DL().getAirDensityForY(altitudes[i], dimension)}")
+                println("${stringArray[i]}: ${atmosphere.getAirDensityForY(altitudes[i], dimension)}")
             }
         }
 
@@ -29,7 +36,7 @@ class AerodynamicUtilsTest {
         for (dimension in dimensions) {
             println("In: $dimension")
             for (i in stringArray.indices) {
-                println("${stringArray[i]}: ${DL().getAirPressureForY(altitudes[i], dimension)}")
+                println("${stringArray[i]}: ${atmosphere.getAirPressureForY(altitudes[i], dimension)}")
             }
         }
         println("----")
