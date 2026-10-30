@@ -30,10 +30,13 @@ import net.minecraft.world.phys.AABB
 import net.minecraft.world.phys.Vec3
 import org.joml.AxisAngle4d
 import org.joml.Quaterniond
+import org.joml.Quaterniondc
 import org.joml.Vector3d
 import org.joml.Vector3dc
+import org.joml.Vector3f
 import org.valkyrienskies.clockwork.ClockworkConfig
 import org.valkyrienskies.clockwork.ClockworkMod.MOD_ID
+import org.valkyrienskies.clockwork.content.forces.contraption.BearingDriveSupport
 import org.valkyrienskies.clockwork.content.contraptions.phys.bearing.PhysBearingAssembler
 import org.valkyrienskies.clockwork.content.contraptions.phys.gimbal.quad_link.QuadLinkBehaviour
 import org.valkyrienskies.clockwork.util.*
@@ -52,6 +55,7 @@ import org.valkyrienskies.core.internal.joints.VSD6Joint.D6Motion
 import org.valkyrienskies.core.internal.joints.VSJoint
 import org.valkyrienskies.core.internal.joints.VSJointPose
 import org.valkyrienskies.core.internal.joints.VSSphericalJoint
+import org.valkyrienskies.core.internal.world.VsiPhysLevel
 import org.valkyrienskies.core.util.datastructures.DenseBlockPosSet
 import org.valkyrienskies.kelvin.util.KelvinExtensions.toMinecraft
 import org.valkyrienskies.mod.api.BlockEntityPhysicsListener
@@ -749,7 +753,10 @@ class GimbalBearingBlockEntity(type: net.minecraft.world.level.block.entity.Bloc
             return
         }
         clearGimbalDebugSnapshot()
-        if (subShip.isStatic) return
+        if (subShip.isStatic) {
+            clearDrive(physLevel)
+            return
+        }
 
         val rsLocal = redstoneVecLocal
         val rsLen = min(rsLocal.length(), 1.0)
@@ -759,7 +766,10 @@ class GimbalBearingBlockEntity(type: net.minecraft.world.level.block.entity.Bloc
         val mass = subShip.mass
         if (mass <= 0.0) return
         val rpmAbs = abs(getSpeed()).toDouble()
-        if (rpmAbs < 1e-3) return
+        if (rpmAbs < 1e-3) {
+            clearDrive(physLevel)
+            return
+        }
 
         val hostRot = physShip?.transform?.shipToWorldRotation?.let { Quaterniond(it) } ?: Quaterniond()
         val refRot = if (mode == GimbalMode.GYROSCOPIC) Quaterniond(assemblyHostRotation) else hostRot
@@ -774,6 +784,7 @@ class GimbalBearingBlockEntity(type: net.minecraft.world.level.block.entity.Bloc
         val hostAnchorVelocity = physShip?.let { getPointVelocityWorld(it, hostAnchorWorld) } ?: Vector3d()
 
         if (mode == GimbalMode.UNLOCKED) {
+            clearDrive(physLevel)
             val forceApplicationLocal = centerOfMassLocal
             val forceApplicationWorld = subShip.transform.shipToWorld.transformPosition(forceApplicationLocal, Vector3d())
             if (rsLen < 1e-6) return
@@ -870,7 +881,57 @@ class GimbalBearingBlockEntity(type: net.minecraft.world.level.block.entity.Bloc
             hostAnchorVelocityWorld = hostAnchorVelocity,
             anchorRelativeVelocityWorld = subAnchorVelocity.sub(hostAnchorVelocity, Vector3d())
         )
-        applyForcePair(subShip, physShip, force, forceApplicationLocal, hostAnchorLocal)
+        if (updateDrive(physLevel, hostRot, targetRot, rpmAbs,
+                subShip.transform.shipToWorldRotation,
+                if (mode == GimbalMode.GYROSCOPIC) physShip?.angularVelocity ?: Vector3d() else Vector3d(),
+                swingAxisWorld =
+                subShip.transform.shipToWorldRotation.transform(
+                    getSwingAxisLocal(subShip, rsLocal, rsLen, currentAxisWorld, targetAxisWorld), Vector3d()))) {
+            debugForceWorld = Vector3d()
+            debugOppositeForceWorld = Vector3d()
+            debugMaxForce = 0.0
+        } else {
+            applyForcePair(subShip, physShip, force, forceApplicationLocal, hostAnchorLocal)
+        }
+    }
+
+    private fun clearDrive(level: PhysLevel) {
+        val physics = level as? VsiPhysLevel ?: return
+        if (BearingDriveSupport.clearDrive(physics, jointID))
+            joint = physics.getJointById(jointID) ?: joint
+    }
+
+    private fun updateDrive(level: PhysLevel, hostRotation: Quaterniond,
+                            targetRotation: Quaterniond, rpm: Double, subRotation: Quaterniondc,
+                            targetRelativeVelocity: Vector3dc, swingAxisWorld: Vector3dc): Boolean {
+        val physics = level as? VsiPhysLevel ?: return false
+        val current = physics.getJointById(jointID) as? VSD6Joint ?: return false
+        if (!BearingDriveSupport.supportsAngularDrives())
+            return !BearingDriveSupport.clearDrive(physics, jointID)
+        val inertia = BearingDriveSupport.effectiveInertia(physics, jointID, current, swingAxisWorld)
+        if (inertia <= 0.0) {
+            clearDrive(level)
+            return true
+        }
+        val target = BearingDriveSupport.gimbalTarget(current, hostRotation, targetRotation)
+        val drives = EnumMap<VSD6Joint.D6Drive, VSD6Joint.D6JointDrive>(VSD6Joint.D6Drive::class.java)
+        drives[VSD6Joint.D6Drive.SWING] = VSD6Joint.D6JointDrive(
+            BearingDriveSupport.finiteGain(inertia * ClockworkConfig.SERVER.gimbal.gimbalPositionErrorMultiplier),
+            BearingDriveSupport.finiteGain(inertia * ClockworkConfig.SERVER.gimbal.gimbalVelocityErrorMultiplier),
+            if (ClockworkConfig.SERVER.gimbal.gimbalMaxForcePerRpmPerKg > 0.0)
+                BearingDriveSupport.finiteGain(inertia * ClockworkConfig.SERVER.gimbal.gimbalMaxForcePerRpmPerKg * rpm)
+            else Float.POSITIVE_INFINITY)
+        val velocity = Quaterniond(subRotation).mul(current.pose0.rot)
+            .transformInverse(targetRelativeVelocity, Vector3d())
+        val updated = current.copy(drives = drives,
+            drivePosition = VSD6Joint.DrivePosition(VSJointPose(Vector3d(), target)),
+            driveVelocity = VSD6Joint.DriveVelocity(Vector3f(),
+                Vector3f(velocity.x.toFloat(), velocity.y.toFloat(), velocity.z.toFloat())))
+        updated.shouldBeSerialized = current.shouldBeSerialized
+        if (current == updated) return true
+        if (!physics.updateJoint(jointID, updated)) return true
+        joint = updated
+        return true
     }
 
     private fun getOwnerJointAnchorLocal(): Vector3d =
