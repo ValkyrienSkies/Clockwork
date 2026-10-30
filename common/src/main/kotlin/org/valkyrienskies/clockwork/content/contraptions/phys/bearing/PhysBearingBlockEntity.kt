@@ -590,6 +590,7 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
         val serverLevel = level as? ServerLevel ?: return
         val controller = BearingController.getOrCreate(serverLevel.getLoadedShipManagingPos(partnerPos ?: return) ?: return)
 
+        data.jointId = jointId
         controller.setData(partnerPos!!, data)
     }
 
