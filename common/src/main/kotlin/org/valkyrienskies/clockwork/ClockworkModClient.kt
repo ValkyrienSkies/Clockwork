@@ -24,8 +24,10 @@ import net.minecraft.sounds.SoundSource
 import net.minecraft.world.entity.EntityType
 import net.minecraft.world.entity.EquipmentSlot
 import net.minecraft.world.entity.LivingEntity
+import org.valkyrienskies.core.api.ships.ClientShip
 import org.joml.Vector3ic
 import org.valkyrienskies.clockwork.content.contraptions.flap.dual_link.DualLinkRenderer
+import org.valkyrienskies.clockwork.content.contraptions.phys.gimbal.quad_link.QuadLinkRenderer
 import org.valkyrienskies.clockwork.content.contraptions.propeller.blades.SecondScrollValueRenderer
 import org.valkyrienskies.clockwork.content.curiosities.IArcConnector
 import org.valkyrienskies.clockwork.content.curiosities.aeronaut.AeronautGogglesState
@@ -106,14 +108,19 @@ object ClockworkModClient {
         }
 
         ClientTickEvent.CLIENT_POST.register(ClientTickEvent.Client {
+            org.valkyrienskies.clockwork.content.curiosities.tools.wanderwand.WandRopeRidingClient.tick()
+            org.valkyrienskies.clockwork.content.curiosities.tools.gravitron.GravitronEffects.tick()
+            org.valkyrienskies.clockwork.content.curiosities.tools.wanderwand.WanderwandHandEffects.tick()
             DualLinkRenderer.tick()
+            QuadLinkRenderer.tick()
             ClockworkSoundScapes.tick()
             SecondScrollValueRenderer.tickSecond()
             ClockworkModClient.tickDebugLightningNodes(it)
-            val ships = Minecraft.getInstance().level.shipWorldNullable?.loadedShips ?: return@Client
-            ships.forEach { it ->
-                //MeteorRenderer.updateMeteorStateWorld(it, MeteorRenderer.meteorList[it.id] ?: return@forEach)
-            }
+            val level = it.level ?: return@Client
+            val clientShips = level.shipWorldNullable?.loadedShips
+                ?.filterIsInstance<ClientShip>()
+                ?: return@Client
+            MeteorRenderer.clientTick(level, clientShips)
             ponderNetworks.forEach { (level, network) -> network.tick(level, 10) }
         })
 //        VSGameEvents.postRenderShip.on {

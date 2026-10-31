@@ -1,0 +1,34 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    " T ",
+    "DCD",
+    "KPK"
+  ],
+  "key": {
+    "P": {
+      "item": "gtceu:aluminium_rotor"
+    },
+    "T": {
+      "item": "create:electron_tube"
+    },
+    "K": {
+      "tag": "forge:leather"
+    },
+	"C": {
+      "item": "create:industrial_iron_block"
+    },
+	"D": {
+      "item": "vs_clockwork:duct"
+    }
+  },
+  "result": {
+    "item": "vs_clockwork:gas_crafter"
+  },
+  "conditions": [
+    {
+      "type": "forge:mod_loaded",
+      "modid": "tfg"
+    }
+  ]
+}

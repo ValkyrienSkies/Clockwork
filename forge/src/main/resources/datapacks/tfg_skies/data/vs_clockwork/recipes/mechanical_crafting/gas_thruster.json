@@ -1,0 +1,36 @@
+{
+  "type": "create:mechanical_crafting",
+  "acceptMirrored": false,
+  "key": {
+    "D": {
+      "item": "vs_clockwork:duct"
+    },
+    "B": {
+      "item": "minecraft:iron_bars"
+    },
+    "S": {
+      "tag": "forge:sheets/iron"
+    },
+	"C": {
+      "tag": "forge:ingots/iron"
+    },
+	"P": {
+      "item": "gtceu:iron_rotor"
+    }
+  },
+  "pattern": [
+    "DBSS",
+    "CPP ",
+    "DBSS"
+  ],
+  "result": {
+    "count": 1,
+    "item": "vs_clockwork:gas_thruster"
+  },
+  "conditions": [
+    {
+      "type": "forge:mod_loaded",
+      "modid": "tfg"
+    }
+  ]
+}

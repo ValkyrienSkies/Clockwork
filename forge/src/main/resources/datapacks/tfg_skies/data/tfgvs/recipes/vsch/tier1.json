@@ -1,0 +1,32 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "@#@",
+    "#H#",
+    "@#@"
+  ],
+  "key": {
+    "@": {
+      "item": "gtceu:dense_rocket_alloy_t1_plate"
+    },
+    "#": {
+      "tag": "forge:insulation_t1"
+    },
+    "H": {
+      "tag": "gtceu:circuits/hv"
+    }
+  },
+  "conditions": [
+    {
+      "type": "forge:mod_loaded",
+      "modid": "vsch"
+    },
+    {
+      "type": "forge:mod_loaded",
+      "modid": "tfg"
+    }
+  ],
+  "result": {
+    "item": "vsch:tier_1"
+  }
+}

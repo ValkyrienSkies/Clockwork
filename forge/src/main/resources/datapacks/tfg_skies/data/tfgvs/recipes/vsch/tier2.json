@@ -1,0 +1,32 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "@#@",
+    "#H#",
+    "@#@"
+  ],
+  "key": {
+    "@": {
+      "item": "gtceu:dense_rocket_alloy_t2_plate"
+    },
+    "#": {
+      "item": "tfg:aes_insulation_roll"
+    },
+    "H": {
+      "tag": "gtceu:circuits/ev"
+    }
+  },
+  "conditions": [
+    {
+      "type": "forge:mod_loaded",
+      "modid": "vsch"
+    },
+    {
+      "type": "forge:mod_loaded",
+      "modid": "tfg"
+    }
+  ],
+  "result": {
+    "item": "vsch:tier_2"
+  }
+}

@@ -1,0 +1,115 @@
+{
+  "type": "create:sequenced_assembly",
+  "ingredient": {
+    "item": "create:shaft"
+  },
+  "loops": 5,
+  "results": [
+    {
+      "chance": 120.0,
+      "item": "vs_clockwork:universal_shaft_item"
+    },
+    {
+      "chance": 8.0,
+      "item": "vs_clockwork:duct"
+    },
+    {
+      "chance": 8.0,
+      "item": "tfc:food/dried_kelp"
+    },
+    {
+      "chance": 5.0,
+      "item": "vintageimprovements:cast_iron_sheet"
+    },
+    {
+      "chance": 3.0,
+      "item": "minecraft:iron_block"
+    },
+    {
+      "chance": 2.0,
+      "item": "create:shaft"
+    },
+    {
+      "chance": 2.0,
+      "item": "create:chute"
+    },
+    {
+      "item": "minecraft:iron_ingot"
+    },
+    {
+      "item": "create:industrial_iron_block"
+    }
+  ],
+  "sequence": [
+    {
+      "type": "create:deploying",
+      "ingredients": [
+        {
+          "item": "vs_clockwork:incomplete_telescoping_mechanism"
+        },
+        {
+          "item": "tfc:food/dried_kelp"
+        }
+      ],
+      "results": [
+        {
+          "item": "vs_clockwork:incomplete_telescoping_mechanism"
+        }
+      ]
+    },
+    {
+      "type": "create:deploying",
+      "ingredients": [
+        {
+          "item": "vs_clockwork:incomplete_telescoping_mechanism"
+        },
+        {
+          "item": "tfc:food/dried_kelp"
+        }
+      ],
+      "results": [
+        {
+          "item": "vs_clockwork:incomplete_telescoping_mechanism"
+        }
+      ]
+    },
+    {
+      "type": "create:deploying",
+      "ingredients": [
+        {
+          "item": "vs_clockwork:incomplete_telescoping_mechanism"
+        },
+        {
+          "item": "vintageimprovements:cast_iron_sheet"
+        }
+      ],
+      "results": [
+        {
+          "item": "vs_clockwork:incomplete_telescoping_mechanism"
+        }
+      ]
+    },
+	{
+      "type": "create:cutting",
+      "ingredients": [
+        {
+          "item": "vs_clockwork:incomplete_telescoping_mechanism"
+        }
+      ],
+      "results": [
+        {
+          "item": "vs_clockwork:incomplete_telescoping_mechanism"
+        }
+      ]
+    }
+  ],
+  "transitionalItem": {
+    "item": "vs_clockwork:incomplete_telescoping_mechanism"
+  },
+  "conditions": [
+    {
+      "type": "forge:mod_loaded",
+      "modid": "tfg"
+    }
+  ]
+}

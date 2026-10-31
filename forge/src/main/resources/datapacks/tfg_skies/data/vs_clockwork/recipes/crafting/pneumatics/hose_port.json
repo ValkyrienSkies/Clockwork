@@ -1,0 +1,36 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "P": {
+      "tag": "forge:sheets/iron"
+    },
+    "N": {
+      "tag": "forge:nuggets/iron"
+    },
+	  "K": {
+      "tag": "forge:leather"
+    },
+	  "C": {
+      "item": "create:industrial_iron_block"
+    },
+	  "D": {
+      "item": "vs_clockwork:duct"
+    }
+  },
+  "pattern": [
+    " K ",
+    "NPN",
+	  "DC "
+  ],
+  "result": {
+    "item": "vs_clockwork:hose_port"
+  },
+  "conditions": [
+    {
+      "type": "forge:mod_loaded",
+      "modid": "tfg"
+    }
+  ],
+  "show_notification": true
+}

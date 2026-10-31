@@ -29,6 +29,9 @@
     ],
     "client": [
       "org.valkyrienskies.clockwork.fabric.ClockworkModFabricClient"
+    ],
+    "jei_mod_plugin": [
+      "org.valkyrienskies.clockwork.compat.jei.ClockworkJEI"
     ]
   },
   "mixins": [

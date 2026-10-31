@@ -8,6 +8,9 @@ import net.minecraft.world.level.levelgen.SingleThreadedRandomSource
 import net.minecraft.world.level.levelgen.synth.PerlinNoise
 import org.valkyrienskies.clockwork.ClockworkBlocks
 import org.valkyrienskies.clockwork.ClockworkConfig
+import java.lang.Math.pow
+import kotlin.math.abs
+import kotlin.math.pow
 import kotlin.random.Random
 import kotlin.random.nextInt
 
@@ -15,11 +18,13 @@ import kotlin.random.nextInt
 object MeteorGenerator {
 
     val resolution = 0.25
+    val w_resolution = 10
 
 
     fun generate(level: ServerLevel, center: BlockPos, threshold: Double, maxDistance: Int, metaBallsCount: Int) {
 
         val noise = PerlinNoise.create(SingleThreadedRandomSource(level.seed), mutableListOf(1,1))
+        val wanderlite = PerlinNoise.create(SingleThreadedRandomSource(level.seed), mutableListOf(5, 5))
 
         val balls = mutableListOf<BlockPos>()
 
@@ -33,11 +38,35 @@ object MeteorGenerator {
         iterate(balls, threshold) { x:Int, y:Int, z:Int ->
 
             val t = threshold  - noise.getValue(x.toDouble()*resolution,y.toDouble()*resolution,z.toDouble()*resolution)/500
+            val w = wanderlite.getValue(x.toDouble()*w_resolution,y.toDouble()*w_resolution, z.toDouble()*w_resolution)
             val mb = metaBall(balls, BlockPos(x,y,z))
-            val state: BlockState
-            if (mb > ClockworkConfig.SERVER.meteor_density*t) state = ClockworkBlocks.WANDERLITE_NYX_ORE.defaultState
-            else if (mb > t) state = ClockworkBlocks.NYX.defaultState
+            //(mb > 2*t)
+            fun stretchNoise(value: Double): Double {
+                // 1. Temporarily bring the noise from [-1, 1] into a standard [0, 1] range
+                val zeroToOne = (value + 1.0) / 2.0
+
+                // 2. Apply the smoothstep formula: 3x^2 - 2x^3
+                val smoothed = zeroToOne * zeroToOne * (3.0 - 2.0 * zeroToOne)
+
+                // 3. Shift it back to the [-1, 1] range
+                return (smoothed * 2.0) - 1.0
+            }
+
+            var state: BlockState
+            if (mb > t) {
+                if (mb > t * 1.25 && abs(w) < ClockworkConfig.SERVER.meteorDensity)
+                    state = ClockworkBlocks.WANDERLITE_NYX_ORE.defaultState
+                else if(mb > w && mb <= t * 1.1)
+                    state = ClockworkBlocks.CHARGED_NYX.defaultState
+                else
+                    state = ClockworkBlocks.NYX.defaultState
+                }
             else state = Blocks.AIR.defaultBlockState()
+
+//            if (mb > t && mb == w) state = ClockworkBlocks.WANDERLITE_NYX_ORE.defaultState
+////            else if (mb > t && mb > 1.2 * w) state = ClockworkBlocks.CHARGED_NYX.defaultState
+//            else if (mb > w) state = Blocks.GLASS.defaultBlockState()
+//            else state = Blocks.AIR.defaultBlockState()
 
 
             level.getChunk(BlockPos(x,y,z)).setBlockState(BlockPos(x,y,z), state, false)

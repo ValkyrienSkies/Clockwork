@@ -1,7 +1,9 @@
 package org.valkyrienskies.clockwork.content.logistics.gas.engine
 
+import com.simibubi.create.foundation.utility.CreateLang
 import joptsimple.internal.Strings
 import net.minecraft.ChatFormatting
+import net.minecraft.network.chat.CommonComponents
 import net.minecraft.network.chat.Component
 import net.minecraft.network.chat.MutableComponent
 import org.valkyrienskies.clockwork.ClockworkLang
@@ -20,9 +22,9 @@ object EngineGoggleTooltip {
         temperature: Double,
         temperatureIncrement: Double,
         flowRate: Double,
-        flowForFullEfficiency: Double,
-        minimumFlowRate: Double,
-        flowRateIncrement: Double
+        flowRateIncrement: Double,
+        stressCapacity: Double,
+        engineCount: Int
     ) {
         ClockworkLang.translate("gui.gas_engine.info.title").forGoggles(tooltip)
         addBar(
@@ -40,9 +42,12 @@ object EngineGoggleTooltip {
             flowEfficiency,
             tierHintPerTick(
                 isPlayerSneaking,
-                flowUntilNextTierComponent(flowRate, flowForFullEfficiency, minimumFlowRate, flowRateIncrement)
+                flowUntilNextTierComponent(flowRate, flowRateIncrement)
             )
         )
+        if (engineCount > 0) {
+            addKineticStressCapacity(tooltip, stressCapacity, engineCount)
+        }
     }
 
     fun addSterlingEngineTooltip(
@@ -50,7 +55,8 @@ object EngineGoggleTooltip {
         temperatureEfficiency: Float,
         isPlayerSneaking: Boolean,
         temperature: Double,
-        temperatureIncrement: Double
+        temperatureIncrement: Double,
+        stressCapacity: Double
     ) {
         ClockworkLang.translate("gui.sterling_engine.info.title").forGoggles(tooltip)
         addBar(
@@ -62,6 +68,34 @@ object EngineGoggleTooltip {
                 temperatureUntilNextTierComponent(GasEngineLogic.temperatureUntilNextTier(temperature, temperatureIncrement))
             )
         )
+        addKineticStressCapacity(tooltip, stressCapacity, 0)
+    }
+
+    private fun addKineticStressCapacity(
+        tooltip: MutableList<Component>,
+        stressCapacity: Double,
+        engineCount: Int
+    ) {
+        CreateLang.translate("tooltip.capacityProvided")
+            .style(ChatFormatting.GRAY)
+            .forGoggles(tooltip)
+
+
+
+        val unit = CreateLang.number(stressCapacity)
+            .translate("generic.unit.stress")
+            .style(ChatFormatting.AQUA)
+            .space()
+
+        if (engineCount > 0)
+        unit.add(
+            (if (engineCount == 1) CreateLang.translate("boiler.via_one_engine")
+            else CreateLang.translate("boiler.via_engines", engineCount))
+                .style(ChatFormatting.DARK_GRAY)
+        )
+
+        unit.forGoggles(tooltip, 1)
+        tooltip.add(CommonComponents.EMPTY)
     }
 
     private fun addBar(tooltip: MutableList<Component>, labelKey: String, efficiency: Float, hint: MutableComponent? = null) {
@@ -120,14 +154,10 @@ object EngineGoggleTooltip {
 
     private fun flowUntilNextTierComponent(
         flowRate: Double,
-        flowForFullEfficiency: Double,
-        minimumFlowRate: Double,
         flowRateIncrement: Double
     ): Component {
         val kilogramsPerTick = GasEngineLogic.flowUntilNextTierKilogramsPerTick(
             flowRate,
-            flowForFullEfficiency,
-            minimumFlowRate,
             flowRateIncrement
         )
         return DuctTextUtil.translateMass(

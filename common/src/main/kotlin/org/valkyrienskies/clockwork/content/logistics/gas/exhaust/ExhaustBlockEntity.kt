@@ -15,6 +15,7 @@ import net.minecraft.world.level.block.state.BlockState
 import net.minecraft.world.level.block.state.properties.BlockStateProperties
 import org.valkyrienskies.clockwork.ClockworkMod
 import org.valkyrienskies.clockwork.ClockworkModClient
+import org.valkyrienskies.clockwork.content.logistics.gas.IConnectable
 import org.valkyrienskies.clockwork.mixinduck.MixinAirCurrentDuck
 import org.valkyrienskies.clockwork.util.kelvin.KNodeBlockEntity
 import org.valkyrienskies.clockwork.util.kelvin.KelvinParticleHelper
@@ -28,7 +29,7 @@ import kotlin.math.min
 import kotlin.math.pow
 
 class ExhaustBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: BlockState) : KNodeBlockEntity(type, pos, state),
-    IAirCurrentSource, BlockEntityPhysicsListener {
+    IAirCurrentSource, BlockEntityPhysicsListener, IConnectable {
     val MASS_PER_EXHAUST = 0.01
 
     val facing: Direction = state.getValue(BlockStateProperties.FACING)
@@ -37,7 +38,7 @@ class ExhaustBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: BlockSt
     // Airflow speed parameters cannot be easily made configurable because air current code runs both on server and client
     // so values need to somehow be synced.
     val MAX_AIRFLOW_SPEED = 256F // like a maxed out encased fan with default max rpm cap
-    val PRESSURE_TO_SPEED = 256F / 10000F // outflow pressure in exhausts is very low compared to thrusters, may need tweaking later
+    val PRESSURE_TO_SPEED = 256F / 1000000F // outflow pressure in exhausts is very low compared to thrusters, may need tweaking later
 
     @JvmField
     var airCurrent: AirCurrent? = null
@@ -116,7 +117,7 @@ class ExhaustBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: BlockSt
             val temp = network.getTemperatureAt(getDuctNodePosition())
             val duck = (airCurrent as? MixinAirCurrentDuck)
             duck?.disableParticles(true)
-            duck?.setOwnProcessingType(duck?.getProcessingTypeFor(temp))
+            duck?.setOwnProcessingType(duck.getProcessingTypeFor(temp))
 
             airCurrent?.rebuild();
             sendData();

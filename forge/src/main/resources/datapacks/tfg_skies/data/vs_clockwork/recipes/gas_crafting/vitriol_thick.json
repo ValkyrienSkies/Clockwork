@@ -1,0 +1,25 @@
+{
+  "type": "vs_clockwork:gas_crafting",
+  "heatRequirement": "heated",
+  "ingredients": [
+    {
+      "fluid": "tfc:limewater",
+      "amount": 100
+    }
+  ],
+  "input_gasses": {},
+  "result_gasses": {
+    "vs_clockwork:vitriol": {
+      "amount": 0.05,
+      "unit": "kg"
+    }
+  },
+  "conditions": [
+    {
+      "type": "forge:mod_loaded",
+      "modid": "tfg"
+    }
+  ],
+  "results": [],
+  "energy": 10000
+}

@@ -24,7 +24,7 @@ public class MixinBlockStateInfoProvider {
     @Inject(method = "setBlockState", at = @At("TAIL"))
     private void vs_clockwork$postSetBlockState(BlockPos pos, BlockState state, boolean isMoving, CallbackInfoReturnable<BlockState> cir) {
         if (this.level instanceof ServerLevel serverLevel) {
-            BlockUpdateCollector.INSTANCE.onSetBlock(serverLevel, pos, state);
+            BlockUpdateCollector.INSTANCE.onSetBlock(serverLevel, pos, state, cir.getReturnValue());
         }
     }
 }

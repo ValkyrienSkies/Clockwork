@@ -2,22 +2,14 @@ package org.valkyrienskies.clockwork.content.logistics.gas.duct
 
 import com.mojang.blaze3d.vertex.PoseStack
 import com.simibubi.create.foundation.blockEntity.renderer.SmartBlockEntityRenderer
-import dev.engine_room.flywheel.lib.model.baked.PartialModel
 import net.createmod.catnip.render.CachedBuffers
 import net.createmod.catnip.render.SuperByteBuffer
 import net.minecraft.client.renderer.MultiBufferSource
 import net.minecraft.client.renderer.RenderType
 import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider
 import net.minecraft.core.Direction
-import org.valkyrienskies.clockwork.ClockworkMod
-import org.valkyrienskies.clockwork.ClockworkModClient
 import org.valkyrienskies.clockwork.ClockworkPartials
 import org.valkyrienskies.clockwork.content.logistics.gas.duct.DuctBlock.Companion.DIR_TO_CONNECTION
-import org.valkyrienskies.core.impl.shadow.ke
-import org.valkyrienskies.kelvin.api.ConnectionType
-import org.valkyrienskies.kelvin.util.IEdgeBlock
-import org.valkyrienskies.kelvin.util.INodeBlock
-import org.valkyrienskies.kelvin.util.INodeBlockEntity
 
 class DuctRenderer(context: BlockEntityRendererProvider.Context) : SmartBlockEntityRenderer<DuctBlockEntity>(context) {
     override fun renderSafe(
@@ -36,8 +28,6 @@ class DuctRenderer(context: BlockEntityRendererProvider.Context) : SmartBlockEnt
         val leak = ClockworkPartials.DUCT_LEAK
 
         val vertexConsumer = buffer.getBuffer(RenderType.cutout())
-
-        val kelvin = ClockworkModClient.getKelvin()
 
         for (dir in Direction.values()) {
 
@@ -59,11 +49,8 @@ class DuctRenderer(context: BlockEntityRendererProvider.Context) : SmartBlockEnt
             val partial = when (edge) {
                 DuctEdgeType.FILTERED -> ClockworkPartials.DUCT_SMART
                 DuctEdgeType.SMART ->  ClockworkPartials.DUCT_COPPER
-                // Edge directionality is enforced by axis direction for oneways
-                DuctEdgeType.ONEWAY_FORWARD ->
-                    if (dir.axisDirection.step == -1) ClockworkPartials.DUCT_ONEWAY_FORWARD else ClockworkPartials.DUCT_ONEWAY_BACKWARD
-                DuctEdgeType.ONEWAY_BACKWARD ->
-                    if (dir.axisDirection.step == 1) ClockworkPartials.DUCT_ONEWAY_FORWARD else ClockworkPartials.DUCT_ONEWAY_BACKWARD
+                DuctEdgeType.ONEWAY_FORWARD, DuctEdgeType.ONEWAY_BACKWARD ->
+                    if (edge.flowsOutward(dir)) ClockworkPartials.DUCT_ONEWAY_FORWARD else ClockworkPartials.DUCT_ONEWAY_BACKWARD
 
                 else -> if (dirBe?.blockState?.block is IDuct) null else ClockworkPartials.DUCT_RIM
             }

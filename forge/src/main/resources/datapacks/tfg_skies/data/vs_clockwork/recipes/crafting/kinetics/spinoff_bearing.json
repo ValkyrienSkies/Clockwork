@@ -1,0 +1,29 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    " C ",
+    "KP ",
+    " C "
+  ],
+  "key": {
+    "C": {
+      "item": "create:andesite_casing"
+    },
+    "P": {
+      "item": "gtceu:steel_large_fluid_pipe"
+    },
+    "K": {
+      "tag": "tfc:knives"
+    }
+  },
+  "result": {
+    "item": "vs_clockwork:spinoff_bearing",
+    "count": 2
+  },
+  "conditions": [
+    {
+      "type": "forge:mod_loaded",
+      "modid": "tfg"
+    }
+  ]
+}

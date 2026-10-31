@@ -41,7 +41,6 @@ import org.valkyrienskies.clockwork.util.gui.IHaveDuctStats
 import org.valkyrienskies.kelvin.KelvinMod
 import org.valkyrienskies.kelvin.api.DuctNode
 import org.valkyrienskies.kelvin.api.DuctNodePos
-import org.valkyrienskies.kelvin.api.NodeBehaviorType
 import org.valkyrienskies.kelvin.api.nodes.TankDuctNode
 import org.valkyrienskies.kelvin.impl.registry.GasTypeRegistry
 import org.valkyrienskies.kelvin.serialization.NodeNBTUtil
@@ -82,7 +81,7 @@ class GasBacktankBlock(properties: Properties) : HorizontalDirectionalBlock(prop
     }
 
     override fun createNode(pos: DuctNodePos): DuctNode {
-        return TankDuctNode(pos = pos, behavior =  NodeBehaviorType.TANK, volume = 0.75, maxPressure = 16375049.0, maxTemperature = 1478.0, size = 3.0, heatCapacity = 44.9)
+        return TankDuctNode(pos = pos, volume = 0.75, maxPressure = 16375049.0, maxTemperature = 1478.0, size = 3.0, heatCapacity = 44.9)
     }
 
     override fun onPlace(state: BlockState, level: Level, pos: BlockPos, oldState: BlockState, isMoving: Boolean) {

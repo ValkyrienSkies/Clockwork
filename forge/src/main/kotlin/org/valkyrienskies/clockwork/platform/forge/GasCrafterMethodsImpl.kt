@@ -108,8 +108,8 @@ object GasCrafterMethodsImpl {
             }
 
             baseGasRecipe?.requirements?.forEach { (requirement, element) ->
-                if (!requirement.apply_requirement(be.level!!, be.getDuctNodePosition(),
-                        ClockworkMod.getKelvin(be.level), element)) return false
+                val state = ClockworkMod.getKelvin(be.level).getNodeState(be.getDuctNodePosition()) ?: return false
+                if (!requirement.apply_requirement(be.level!!, state, element)) return false
             }
 
             if (fluidsAffected) {

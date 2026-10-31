@@ -5,6 +5,7 @@
     "vs_clockwork:juryrigged_propeller_bearing",
     "vs_clockwork:blade_controller",
     "vs_clockwork:phys_bearing",
+    "vs_clockwork:gimbal_bearing",
     "vs_clockwork:andesite_flap_bearing",
     "vs_clockwork:smart_flap_bearing",
     "vs_clockwork:alt_meter",

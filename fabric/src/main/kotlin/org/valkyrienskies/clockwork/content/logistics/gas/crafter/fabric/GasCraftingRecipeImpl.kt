@@ -8,10 +8,6 @@ import io.github.fabricators_of_create.porting_lib.transfer.TransferUtil
 import io.github.fabricators_of_create.porting_lib.transfer.callbacks.TransactionCallback
 import net.fabricmc.fabric.api.transfer.v1.fluid.FluidVariant
 import net.fabricmc.fabric.api.transfer.v1.storage.StorageView
-import net.minecraft.core.NonNullList
-import net.minecraft.world.inventory.CraftingContainer
-import net.minecraft.world.item.ItemStack
-import net.minecraft.world.item.crafting.Recipe
 import org.valkyrienskies.clockwork.ClockworkMod
 import org.valkyrienskies.clockwork.content.logistics.gas.crafter.GasCrafterBlockEntity
 import org.valkyrienskies.clockwork.content.logistics.gas.crafter.GasCraftingRecipe

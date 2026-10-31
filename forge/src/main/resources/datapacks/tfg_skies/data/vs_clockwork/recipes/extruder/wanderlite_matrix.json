@@ -1,0 +1,43 @@
+{
+  "type": "gtceu:extruder",
+  "inputs": {
+    "item": [
+      {
+        "content": {
+          "ingredient": {
+            "item": "vs_clockwork:wanderlite_cube"
+          },
+          "count": 1
+        }
+      },
+      {
+        "content": {
+          "ingredient": {
+            "item": "gtceu:cell_extruder_mold"
+          },
+          "count": 1
+        }
+      }
+    ]
+  },
+  "outputs": {
+    "item": [
+      {
+        "content": {
+          "ingredient": {
+            "item": "vs_clockwork:wanderlite_matrix"
+          },
+          "count": 1
+        }
+      }
+    ]
+  },
+  "duration": 200,
+  "tickInputs": {
+    "eu": [
+      {
+        "content": 30
+      }
+    ]
+  }
+}

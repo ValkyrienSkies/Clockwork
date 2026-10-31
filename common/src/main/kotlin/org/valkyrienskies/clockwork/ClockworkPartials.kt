@@ -77,6 +77,10 @@ object ClockworkPartials {
     val PHYS_ATTACHER = block("phys_bearing/attacher")
     // end region
 
+    // Physics Infuser
+    val INFUSER_FRAME = block("physics_infuser/block")
+    val INFUSER_VORTEX = block("physics_infuser/vortex")
+    val INFUSER_ZAP = block("physics_infuser/zap")
 
     val GOO = block("slicker/goo")
     val DOINK = block("slicker/doink")
@@ -160,6 +164,7 @@ object ClockworkPartials {
 
     val GIMBAL_PLATE = block("gimbal_bearing/plate")
     val GIMBAL_ARM = block("gimbal_bearing/arm")
+    val GIMBAL_ATTACHER = block("gimbal_bearing/attacher")
 
     private fun block(path: String): PartialModel {
         return PartialModel.of(ClockworkMod.asResource("block/$path"))

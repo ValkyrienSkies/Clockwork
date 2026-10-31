@@ -1,0 +1,31 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    " V ",
+    "KTK",
+    " D "
+  ],
+  "key": {
+	"K": {
+      "tag": "forge:leather"
+    },
+    "V": {
+      "item": "vs_clockwork:valve_duct"
+    },
+	"T": {
+      "item": "vs_clockwork:duct_tank"
+    },
+	"D": {
+      "item": "vs_clockwork:duct"
+    }
+  },
+  "result": {
+    "item": "vs_clockwork:gas_backtank"
+  },
+  "conditions": [
+    {
+      "type": "forge:mod_loaded",
+      "modid": "tfg"
+    }
+  ]
+}

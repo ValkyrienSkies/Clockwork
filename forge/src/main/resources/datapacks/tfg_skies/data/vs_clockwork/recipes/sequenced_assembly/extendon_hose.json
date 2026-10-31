@@ -1,0 +1,111 @@
+{
+  "type": "create:sequenced_assembly",
+  "ingredient": {
+    "item": "vs_clockwork:duct"
+  },
+  "loops": 5,
+  "results": [
+    {
+      "chance": 120.0,
+      "item": "vs_clockwork:extendon_hose"
+    },
+    {
+      "chance": 10.0,
+      "item": "tfc:food/dried_kelp"
+    },
+    {
+      "chance": 8.0,
+      "item": "vs_clockwork:duct"
+    },
+    {
+      "chance": 5.0,
+      "item": "vintageimprovements:cast_iron_sheet"
+    },
+    {
+      "chance": 3.0,
+      "item": "minecraft:iron_block"
+    },
+    {
+      "chance": 2.0,
+      "item": "create:chute"
+    },
+    {
+      "item": "minecraft:iron_ingot"
+    },
+    {
+      "item": "create:industrial_iron_block"
+    }
+  ],
+  "sequence": [
+    {
+      "type": "create:deploying",
+      "ingredients": [
+        {
+          "item": "vs_clockwork:incomplete_hose_spool"
+        },
+        {
+          "item": "tfc:food/dried_kelp"
+        }
+      ],
+      "results": [
+        {
+          "item": "vs_clockwork:incomplete_hose_spool"
+        }
+      ]
+    },
+    {
+      "type": "create:deploying",
+      "ingredients": [
+        {
+          "item": "vs_clockwork:incomplete_hose_spool"
+        },
+        {
+          "item": "tfc:food/dried_kelp"
+        }
+      ],
+      "results": [
+        {
+          "item": "vs_clockwork:incomplete_hose_spool"
+        }
+      ]
+    },
+    {
+      "type": "create:deploying",
+      "ingredients": [
+        {
+          "item": "vs_clockwork:incomplete_hose_spool"
+        },
+        {
+          "item": "vintageimprovements:cast_iron_sheet"
+        }
+      ],
+      "results": [
+        {
+          "item": "vs_clockwork:incomplete_hose_spool"
+        }
+      ]
+    },
+	{
+      "type": "create:cutting",
+      "ingredients": [
+        {
+          "item": "vs_clockwork:incomplete_hose_spool"
+        }
+      ],
+      "results": [
+        {
+          "item": "vs_clockwork:incomplete_hose_spool"
+        }
+      ]
+    }
+  ],
+  "transitionalItem": {
+    "item": "vs_clockwork:incomplete_hose_spool"
+  },
+  "conditions": [
+    {
+      "type": "forge:mod_loaded",
+      "modid": "tfg"
+    }
+  ]
+}

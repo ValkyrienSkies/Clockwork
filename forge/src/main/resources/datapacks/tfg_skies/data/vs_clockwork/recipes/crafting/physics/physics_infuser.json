@@ -1,0 +1,31 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "BOB",
+    "OMO",
+    "BCB"
+  ],
+  "key": {
+    "B": {
+      "item": "create:brass_ingot"
+    },
+    "O": {
+      "item": "gtceu:rubber_plate"
+    },
+    "M": {
+      "item": "vs_clockwork:wanderlite_matrix"
+    },
+    "C": {
+      "item": "gtceu:mv_machine_casing"
+    }
+  },
+  "result": {
+    "item": "vs_clockwork:physics_infuser"
+  },
+  "conditions": [
+    {
+      "type": "forge:mod_loaded",
+      "modid": "tfg"
+    }
+  ]
+}
