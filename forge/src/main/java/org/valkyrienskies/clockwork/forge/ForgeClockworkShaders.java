@@ -24,27 +24,15 @@ public class ForgeClockworkShaders {
         );
         event.registerShader(
                 new ShaderInstance(event.getResourceProvider(), "heat", DefaultVertexFormat.NEW_ENTITY),
-                ClockworkShaders.INSTANCE::setHeatShader
+                shaderInstance -> {
+                    //ClockworkShaders.heat = shaderInstance;
+                }
         );
         event.registerShader(
                 new ShaderInstance(event.getResourceProvider(), "haze", DefaultVertexFormat.NEW_ENTITY),
-                ClockworkShaders.INSTANCE::setHazeShader
-        );
-        event.registerShader(
-                new ShaderInstance(event.getResourceProvider(), "meteor_trail", DefaultVertexFormat.NEW_ENTITY),
-                ClockworkShaders.INSTANCE::setMeteorTrailShader
-        );
-        event.registerShader(
-                new ShaderInstance(event.getResourceProvider(), "meteor_glow", DefaultVertexFormat.NEW_ENTITY),
-                ClockworkShaders.INSTANCE::setMeteorGlowShader
-        );
-        event.registerShader(
-                new ShaderInstance(event.getResourceProvider(), "meteor_shield_depth", DefaultVertexFormat.NEW_ENTITY),
-                ClockworkShaders.INSTANCE::setMeteorShieldDepthShader
-        );
-        event.registerShader(
-                new ShaderInstance(event.getResourceProvider(), "meteor_heat_shield", DefaultVertexFormat.NEW_ENTITY),
-                ClockworkShaders.INSTANCE::setMeteorHeatShieldShader
+                shaderInstance -> {
+                    //ClockworkShaders.haze = shaderInstance;
+                }
         );
     }
 }

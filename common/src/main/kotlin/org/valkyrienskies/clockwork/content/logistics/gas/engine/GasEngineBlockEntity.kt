@@ -18,17 +18,14 @@ import org.joml.Vector3dc
 import org.valkyrienskies.clockwork.ClockworkConfig
 import org.valkyrienskies.clockwork.ClockworkMod
 import org.valkyrienskies.clockwork.ClockworkModClient
-import org.valkyrienskies.clockwork.content.logistics.gas.IConnectable
 import org.valkyrienskies.clockwork.util.kelvin.KNodeBlockEntity
 import org.valkyrienskies.clockwork.util.kelvin.KelvinParticleHelper
-import kotlin.math.ceil
-import kotlin.math.floor
+import kotlin.math.min
 
-class GasEngineBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: BlockState): KNodeBlockEntity(type, pos, state), IConnectable {
+class GasEngineBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: BlockState): KNodeBlockEntity(type, pos, state) {
     override fun addBehaviours(behaviours: MutableList<BlockEntityBehaviour>?) { return }
 
-    val heatLoss get() = GasEngineLogic.totalEfficiencyFraction(totalEfficiency) *
-        ClockworkConfig.SERVER.gasEngine.gasEngineMaxHeatLoss
+    val heatLoss get() = totalEfficiency * ClockworkConfig.SERVER.gasEngine.gasEngineMaxHeatLoss
 
     var attachedEngines = 0
     var totalEfficiency = 0.0f
@@ -40,19 +37,14 @@ class GasEngineBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: Block
     override fun lazyTick() {
         super.lazyTick()
 
-        val level = level ?: return
-        if (level.isClientSide || blockState.block !is GasEngineBlock) return
-
-        updateEngineEfficiency()
-    }
-
-    private fun updateEngineEfficiency() {
         if (level!!.isClientSide) return
         val components = GasEngineLogic.calculateEfficiencyComponents(
             level!!,
             blockPos,
             getDuctNodePosition(),
             blockState.getValue(BlockStateProperties.AXIS),
+            ClockworkConfig.SERVER.gasEngine.gasEngineFlowForFullEfficiency,
+            ClockworkConfig.SERVER.gasEngine.gasEngineMinimumFlowRate,
             ClockworkConfig.SERVER.gasEngine.gasEngineFlowRateIncrement,
             ClockworkConfig.SERVER.gasEngine.gasEngineTemperatureIncrement
         )
@@ -81,22 +73,11 @@ class GasEngineBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: Block
     }
 
     fun getEngineEfficiency(): Float {
-        val efficiency = GasEngineLogic.efficiencyPerAttachedEngine(totalEfficiency, attachedEngines)
+        val efficiency = if (attachedEngines == 0) 0f else min(totalEfficiency / attachedEngines, 1f)
         return GasEngineLogic.roundEfficiencyForWholeStress(
             efficiency,
             BlockStressValues.getCapacity(AllBlocks.STEAM_ENGINE.get())
         )
-    }
-
-    private fun getTotalStressCapacity(): Double {
-        val fullEngineCapacity = 16.0 * BlockStressValues.getCapacity(AllBlocks.STEAM_ENGINE.get())
-        return floor(totalEfficiency.coerceAtLeast(0f) * fullEngineCapacity)
-    }
-
-    private fun getRequiredEngineCount(stressCapacity: Double): Int {
-        val fullEngineCapacity = 16.0 * BlockStressValues.getCapacity(AllBlocks.STEAM_ENGINE.get())
-        if (stressCapacity <= 0.0 || fullEngineCapacity <= 0.0) return 0
-        return ceil(stressCapacity / fullEngineCapacity).toInt()
     }
 
     //todo: this doesnt work on dedicated servers you moron
@@ -105,7 +86,6 @@ class GasEngineBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: Block
     }
 
     override fun addToGoggleTooltip(tooltip: List<Component>?, isPlayerSneaking: Boolean): Boolean {
-        val stressCapacity = getTotalStressCapacity()
         EngineGoggleTooltip.addGasEngineTooltip(
             tooltip as MutableList<Component>,
             temperatureEfficiency,
@@ -114,9 +94,9 @@ class GasEngineBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: Block
             getTooltipTemperature(),
             ClockworkConfig.SERVER.gasEngine.gasEngineTemperatureIncrement,
             rawFlowRate,
-            ClockworkConfig.SERVER.gasEngine.gasEngineFlowRateIncrement,
-            stressCapacity,
-            getRequiredEngineCount(stressCapacity)
+            ClockworkConfig.SERVER.gasEngine.gasEngineFlowForFullEfficiency,
+            ClockworkConfig.SERVER.gasEngine.gasEngineMinimumFlowRate,
+            ClockworkConfig.SERVER.gasEngine.gasEngineFlowRateIncrement
         )
         return super.addToGoggleTooltip(tooltip, isPlayerSneaking)
     }

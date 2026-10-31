@@ -14,7 +14,6 @@ class PropData: ForceApplierData<PropUpdateData> {
     val bearingAxis: Vector3dc?
     val sailPositions: List<Vector3ic>?
     var bearingAngle = 0.0
-    /** Signed degrees per game tick, shared with animation. Convert to rad/s for force calculations. */
     var bearingSpeed = 0.0
     var inverted = false
     var prevAngularMomentum: Vector3dc? = null
@@ -24,8 +23,7 @@ class PropData: ForceApplierData<PropUpdateData> {
     var bearingAxisRot: Vector3dc? = null
     var bearingTiltQuat: Quaterniondc? = null
 
-    /** Sail collective in normal-setting handedness; the solver mirrors it when inverted. */
-    var currentBladePitch = Math.toRadians(4.0)
+    var currentBladePitch = Math.toRadians(12.0)
 
     override fun updateData(data: PropUpdateData) {
         bearingAngle = data.rotationAngle

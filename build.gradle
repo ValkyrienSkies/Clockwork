@@ -67,7 +67,7 @@ subprojects {
     }
 
     repositories {
-        maven { url = "https://maven.enjarai.dev/mirrors" }
+        maven { url = "https://maven.bawnorton.com/releases" }
 
         // region JEI mavens
         maven {
@@ -119,7 +119,7 @@ subprojects {
 
     dependencies {
         minecraft "com.mojang:minecraft:${minecraft_version}"
-        implementation(annotationProcessor("io.github.llamalad7:mixinextras-common:${rootProject.mixinextras_version}"))
+        implementation(annotationProcessor("io.github.llamalad7:mixinextras-common:0.3.5"))
 
         // layered mappings - Mojmap names, parchment and QM docs and parameters
         mappings(loom.layered {
@@ -165,18 +165,6 @@ allprojects {
                     username = project.vs_maven_username
                     password = project.vs_maven_password
                 }
-            }
-        }
-        // For VMod + CC tweaked only
-        exclusiveContent {
-            forRepository {
-                maven {
-                    name = "Modrinth"
-                    url = "https://api.modrinth.com/maven"
-                }
-            }
-            filter {
-                includeGroup "maven.modrinth"
             }
         }
     }

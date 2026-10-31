@@ -12,7 +12,6 @@ import com.simibubi.create.content.kinetics.transmission.sequencer.SequencerInst
 import com.simibubi.create.foundation.blockEntity.behaviour.BlockEntityBehaviour
 import com.simibubi.create.foundation.blockEntity.behaviour.scrollValue.ScrollOptionBehaviour
 import com.simibubi.create.foundation.utility.ServerSpeedProvider
-import net.createmod.catnip.animation.AnimationTickHolder
 import net.minecraft.core.BlockPos
 import net.minecraft.core.Direction
 import net.minecraft.nbt.CompoundTag
@@ -30,7 +29,6 @@ import org.joml.Vector3dc
 import org.valkyrienskies.clockwork.ClockworkConfig
 import org.valkyrienskies.clockwork.ClockworkMod.MOD_ID
 import org.valkyrienskies.clockwork.ClockworkSounds
-import org.valkyrienskies.clockwork.content.contraptions.flap.dual_link.DualLinkBehaviour
 import org.valkyrienskies.clockwork.content.forces.contraption.BearingController.Companion.getAngle
 import org.valkyrienskies.clockwork.content.forces.contraption.BearingData
 import org.valkyrienskies.clockwork.content.forces.contraption.BearingController
@@ -96,11 +94,6 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
     private var queuedJointToAdd: VSJoint? = null
     private var lastException: AssemblyException? = null
 
-    // jointId is updated on phys tick, but for some dumb reasaon the block entity
-    // needs sendData to be run from the server tick. So we compare with this
-    // in tick() to sync on game tick
-    private var lastSyncedJointId: VSJointId = jointId
-
     @Volatile
     var targetAngle = 0f
         private set
@@ -120,22 +113,15 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
     private val partnerShipId: ShipId
         get() = level.getShipManagingBlock(partnerPos)?.id ?: -1
 
-    // This is probably bad, it uses the game tick to get the joint
-    // but is accessed on phys tick as well.
-    // Should definitely fix this
     private val joint: VSJoint?
         get() = (level as? ServerLevel)?.gtpa?.getJointById(jointId)
 
     val isRunning: Boolean
         get() = (jointId != -1)
 
-    // Used for updating old clockwork versions
-    private var serializationNeedsUpdating = false
-
     // For the visuals
     private var open = false
     private var opening = false
-    private var preOpenProgress = 0f
     private var openProgress = 0f
     private var inOutCorner = 0f
     private var cornerShrinking = false
@@ -170,12 +156,12 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
         if (isRunning && !open && !opening) {
             opening = true
         }
-        if (opening && isRunning && openProgress < 1.35f) {
+        if (opening && isRunning && openProgress < 1.0f) {
             openProgress += 0.05f
-        } else if (openProgress >= 1.35f) {
+        } else if (openProgress >= 1.0f) {
             opening = false
             open = true
-            openProgress = 1.35f
+            openProgress = 1f
         }
 
         if (!isRunning && openProgress > 0.0f) {
@@ -216,8 +202,14 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
         )
     }
 
-    fun getAnimProgress(): Float {
-        return Mth.lerp(AnimationTickHolder.getPartialTicks(), preOpenProgress, openProgress)
+    fun getWingRotOffset(): Float {
+        val openProgressMax = 70f
+        return when {
+            isRunning && open -> openProgressMax.toDouble().toFloat()
+            isRunning -> Mth.lerp(openProgress.toDouble(), 0.0, openProgressMax.toDouble()).toFloat()
+            !isRunning && open -> Mth.lerp(openProgress.toDouble(), 1.0, openProgressMax.toDouble()).toFloat()
+            else -> 0.0f
+        }
     }
 
     private fun movementModeChanged(value: Int) {
@@ -281,30 +273,8 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
 
     override fun read(tag: CompoundTag, clientPacket: Boolean) {
         super.read(tag, clientPacket)
-        if (tag.isEmpty) return
-        if (tag.contains("jointId")) {
-            jointId = tag.getInt("jointId")
-        }
-
-        // Old serialization
-        if (tag.contains("Angle")) {
-            tag.putFloat("targetAngle", tag.getFloat("Angle"))
-            val oldDirection = Direction.entries[tag.getInt("OriginalDirection")]
-            tag.putString("originalFacing", oldDirection.name)
-            tag.putFloat("sequencedAngleLimit", tag.getFloat("SequencedAngleLimit"))
-            tag.putFloat("sequencedAngleProgress", tag.getFloat("SequencedAngleProgress"))
-            tag.getVector3d("NewShiptraptionCenter")?.let {
-                tag.putVector3d("partnerPos", it.add(oldDirection.normal.toJOMLD()))
-            }
-            jointId = -1
-            serializationNeedsUpdating = true
-        }
-
-        if (tag.contains("originalFacing")) {
-            originalFacing = Direction.valueOf(tag.getString("originalFacing"))
-        } else {
-            originalFacing = facing
-        }
+        jointId = tag.getInt("jointId")
+        originalFacing = Direction.valueOf(tag.getString("originalFacing"))
 
         // Load rotational state
         targetAngle = tag.getFloat("targetAngle")
@@ -321,7 +291,6 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
             val vec = tag.getVector3d("partnerPos")!!
             partnerPos = BlockPos.containing(Vec3(vec.x, vec.y, vec.z))
         }
-
         if (clientPacket) { return }
         val level = level as? ServerLevel ?: return
         updateJoint(level)
@@ -455,12 +424,6 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
             return
         }
 
-        open = false
-        opening = false
-        openProgress = 0f
-        inOutCorner = 0f
-        cornerShrinking = false
-
         removeJoint(level)
         AllSoundEvents.CONTRAPTION_DISASSEMBLE.playOnServer(level, worldPosition)
         sendData()
@@ -484,7 +447,6 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
         } else {
             queuedJointToAdd = updatedJoint
         }
-        sendData()
     }
 
     override fun onSpeedChanged(previousSpeed: Float) {
@@ -500,21 +462,9 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
 
     override fun tick() {
         super.tick()
-
-        if (serializationNeedsUpdating && level is ServerLevel) {
-            updateJoint(level as ServerLevel)
-            serializationNeedsUpdating = false
-        }
-
         if (level!!.isClientSide) {
-            preOpenProgress = openProgress
             tickAnimationLogic()
             return
-        }
-
-        if (jointId != lastSyncedJointId) {
-            lastSyncedJointId = jointId
-            sendData()
         }
 
         if (joint != null) {
@@ -590,7 +540,6 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
         val serverLevel = level as? ServerLevel ?: return
         val controller = BearingController.getOrCreate(serverLevel.getLoadedShipManagingPos(partnerPos ?: return) ?: return)
 
-        data.jointId = jointId
         controller.setData(partnerPos!!, data)
     }
 
@@ -621,6 +570,7 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
             return
         }
         jointId = id
+        sendData()
         queuedJointToAdd = null
     }
 

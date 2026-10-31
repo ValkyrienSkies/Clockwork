@@ -24,9 +24,6 @@ pluginManagement {
             }
         }
     }
-    plugins {
-        kotlin("kapt") version "2.0.0"
-    }
 }
 
 include("common")

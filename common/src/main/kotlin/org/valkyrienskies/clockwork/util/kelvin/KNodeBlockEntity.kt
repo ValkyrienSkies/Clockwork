@@ -11,7 +11,6 @@ import org.valkyrienskies.clockwork.ClockworkConfig
 import org.valkyrienskies.clockwork.ClockworkMod
 import org.valkyrienskies.clockwork.ClockworkModClient
 import org.valkyrienskies.clockwork.ClockworkPackets
-import org.valkyrienskies.clockwork.content.logistics.gas.IConnectable
 import org.valkyrienskies.clockwork.content.logistics.gas.IClockworkNodeBE
 import org.valkyrienskies.clockwork.content.logistics.gas.duct.DuctBlock
 import org.valkyrienskies.clockwork.content.logistics.gas.duct.DuctBlockEntity
@@ -24,7 +23,6 @@ import org.valkyrienskies.mod.common.toWorldCoordinates
 abstract class KNodeBlockEntity(type: BlockEntityType<*>?, pos: BlockPos, state: BlockState) : SmartBlockEntity(type, pos, state), IClockworkNodeBE {
 
     var dataToLoad: CompoundTag? = null
-    private var refreshConnectionsPending = true
 
     override fun lazyTick() {
         super.lazyTick()
@@ -46,12 +44,10 @@ abstract class KNodeBlockEntity(type: BlockEntityType<*>?, pos: BlockPos, state:
                     )
                 }
                 ClockworkMod.getKelvin(level).markLoaded(this.getDuctNodePosition())
-                refreshConnectionsIfReady()
             }
             return
         }
         if (this.level != null && ClockworkMod.getKelvin(level).getNodeAt(this.getDuctNodePosition()) != null) {
-            refreshConnectionsIfReady()
             //val pressureDiff = abs(ClockworkMod.getKelvin().getPressureAt(this.getDuctNodePosition()) - (ClockworkMod.getKelvin().nodeInfo[this.getDuctNodePosition()]?.previousPressure ?: 0.0))
             //if (pressureDiff > 0.01) {
                 this.setChanged()
@@ -65,25 +61,6 @@ abstract class KNodeBlockEntity(type: BlockEntityType<*>?, pos: BlockPos, state:
 
     override fun setLazyTickRate(slowTickRate: Int) {
         super.setLazyTickRate(ClockworkConfig.KELVIN.kelvinNodeBlockEntityLazyTickRate)
-    }
-
-    fun queueConnectionRefresh() {
-        refreshConnectionsPending = true
-    }
-
-    private fun refreshConnectionsIfReady() {
-        if (!refreshConnectionsPending) return
-
-        val connectable = this as? IConnectable ?: run {
-            refreshConnectionsPending = false
-            return
-        }
-
-        val level = level ?: return
-        if (ClockworkMod.getKelvin(level).getNodeAt(getDuctNodePosition()) == null) return
-
-        connectable.refreshConnections(level, blockPos)
-        refreshConnectionsPending = false
     }
 
     override fun addToGoggleTooltip(

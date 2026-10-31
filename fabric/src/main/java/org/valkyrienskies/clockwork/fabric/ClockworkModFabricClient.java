@@ -7,11 +7,9 @@ import io.github.fabricators_of_create.porting_lib.event.client.MouseInputEvents
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.blockrenderlayer.v1.BlockRenderLayerMap;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
-import net.fabricmc.fabric.api.client.model.loading.v1.ModelLoadingPlugin;
 import net.fabricmc.fabric.api.client.rendering.v1.HudRenderCallback;
 import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderEvents;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.resources.model.ModelResourceLocation;
 import net.minecraft.client.renderer.ItemBlockRenderTypes;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.ShaderInstance;
@@ -24,7 +22,6 @@ import org.valkyrienskies.clockwork.content.curiosities.tools.wanderwand.Wanderw
 //import org.valkyrienskies.clockwork.content.curiosities.tools.wanderwand.WanderWandClusterRenderer;
 
 import java.io.IOException;
-import java.util.Objects;
 
 public class ClockworkModFabricClient implements ClientModInitializer {
 
@@ -34,17 +31,6 @@ public class ClockworkModFabricClient implements ClientModInitializer {
 
     @Override
     public void onInitializeClient() {
-        ModelLoadingPlugin.register(plugin -> plugin.addModels(
-                new ModelResourceLocation(
-                        Objects.requireNonNull(ResourceLocation.tryBuild(ClockworkMod.MOD_ID, "misc/heat_shield")),
-                        ""
-                ),
-                new ModelResourceLocation(
-                        Objects.requireNonNull(ResourceLocation.tryBuild(ClockworkMod.MOD_ID, "misc/meteor_trail")),
-                        ""
-                )
-        ));
-
         ClockworkModClient.initClient();
 
         ClockworkPartials.INSTANCE.init();

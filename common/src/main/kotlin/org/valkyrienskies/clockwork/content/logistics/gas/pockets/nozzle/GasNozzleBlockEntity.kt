@@ -18,7 +18,6 @@ import net.minecraft.util.Mth
 import net.minecraft.util.RandomSource
 import net.minecraft.world.level.block.entity.BlockEntityType
 import net.minecraft.world.level.block.state.BlockState
-import org.joml.Vector3d
 import org.valkyrienskies.clockwork.ClockworkAugmentations
 import org.valkyrienskies.clockwork.ClockworkConfig
 import org.valkyrienskies.clockwork.ClockworkLang
@@ -26,7 +25,6 @@ import org.valkyrienskies.clockwork.ClockworkMod
 import org.valkyrienskies.clockwork.ClockworkModClient
 import org.valkyrienskies.clockwork.ClockworkSounds
 import org.valkyrienskies.clockwork.content.forces.BalloonController
-import org.valkyrienskies.clockwork.content.forces.BalloonThermodynamics
 import org.valkyrienskies.clockwork.content.forces.data.BalloonData
 import org.valkyrienskies.kelvin.api.DuctNodePos
 import org.valkyrienskies.clockwork.util.ClockworkUtils.retrieveGasInfoFromPocket
@@ -35,14 +33,12 @@ import org.valkyrienskies.clockwork.util.kelvin.KelvinParticleHelper
 import org.valkyrienskies.clockwork.util.gui.ClockworkTooltipHelper
 import org.valkyrienskies.clockwork.util.gui.DuctTextUtil
 import org.valkyrienskies.kelvin.KelvinMod
-import org.valkyrienskies.kelvin.api.DuctNetwork
 import org.valkyrienskies.kelvin.api.GasType
 import org.valkyrienskies.kelvin.impl.registry.GasTypeRegistry
 import org.valkyrienskies.kelvin.util.GasPhysics.mixtureCapacity
 import org.valkyrienskies.kelvin.util.KelvinExtensions.toDuctNodePos
 import org.valkyrienskies.kelvin.util.KelvinExtensions.toVector3i
 import org.valkyrienskies.mod.api.isBlockInShipyard
-import org.valkyrienskies.mod.api.positionToWorld
 import org.valkyrienskies.mod.common.dimensionId
 import org.valkyrienskies.mod.common.getLoadedShipManagingPos
 import org.valkyrienskies.mod.common.shipObjectWorld
@@ -52,7 +48,6 @@ import kotlin.collections.component2
 import kotlin.collections.iterator
 import kotlin.math.abs
 import kotlin.math.floor
-import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.pow
 import kotlin.math.roundToInt
@@ -71,11 +66,8 @@ class GasNozzleBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: Block
 
     var pocketTemperature: Double = 0.0
     var balloonVolume: Double = 0.0
-    var balloonHotAir: Double = 0.0
-    var balloonFullness: Double = 0.0
 
     var balloon: BalloonData? = null
-    private var balloonGeometryVersion = -1
 
     var shouldFetchNextTick = false
 
@@ -89,8 +81,6 @@ class GasNozzleBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: Block
         tag.putBoolean("has_pocket",hasPocket)
         tag.putDouble("pocket_temperature", pocketTemperature)
         tag.putDouble("balloon_volume", balloonVolume)
-        tag.putDouble("balloon_hot_air", balloonHotAir)
-        tag.putDouble("balloon_fullness", balloonFullness)
         tag.putInt("leaks", currentIdealOutput.toInt())
         super.write(tag, clientPacket)
     }
@@ -103,8 +93,6 @@ class GasNozzleBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: Block
         hasPocket = tag.getBoolean("has_pocket")
         pocketTemperature = tag.getDouble("pocket_temperature")
         balloonVolume = tag.getDouble("balloon_volume")
-        balloonHotAir = tag.getDouble("balloon_hot_air")
-        balloonFullness = tag.getDouble("balloon_fullness")
         currentIdealOutput = tag.getInt("leaks").toDouble()
 
         pointer.startWithValue(tag.getDouble("pointer_value"))
@@ -150,7 +138,7 @@ class GasNozzleBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: Block
                     facing.normal.toJOMLD().mul(Mth.clamp(0.0025 * pressure.pow(0.4), 0.1,5.0 )))
             }
 
-            if (soundInstance == null || soundInstance!!.isStopped) {
+            if (soundInstance == null) {
                 soundInstance = GasNozzleSoundInstance(this, random)
                 Minecraft.getInstance().soundManager.play(soundInstance)
             }
@@ -208,10 +196,6 @@ class GasNozzleBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: Block
         }
 
         if (hasPocket) {
-            if (balloon != null && balloonGeometryVersion != balloon!!.geometryVersion && !balloon!!.shouldRemove) {
-                // Splits can move this nozzle to another chamber.
-                fetchBloon()
-            }
             if (balloon?.shouldRemove == true || balloon == null) {
                 shouldFetchNextTick = true
                 hasPocket = false
@@ -231,16 +215,11 @@ class GasNozzleBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: Block
                     pocketGasMass[gasType] = value
                 }
                 val pocketHeatEnergy = balloon!!.currentEnergy
-                val pocketCapacity = BalloonThermodynamics.capacity(pocketGasMass)
-                val currentPocketTemperature = if (pocketCapacity > 1e-9) pocketHeatEnergy / pocketCapacity else 0.0
+                val pocketCapacity = mixtureCapacity(pocketGasMass)
+                val currentPocketTemperature = (pocketHeatEnergy) / pocketCapacity
                 pocketTemperature = currentPocketTemperature
                 balloonVolume = balloon!!.currentVolume
                 currentIdealOutput = balloon!!.missingExternalPositions.toDouble() // this is cursed but i made it without reloading the game so variable reuse lesgo
-
-                val (hotAir, fullness) = calculateHotAirAndFullness(serverLevel, balloon!!, pocketGasMass)
-                balloonHotAir = hotAir
-                balloonFullness = fullness
-
                 sendData()
             }
 
@@ -262,33 +241,12 @@ class GasNozzleBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: Block
 
     }
 
-    private fun calculateHotAirAndFullness(
-        serverLevel: ServerLevel,
-        balloon: BalloonData,
-        pocketGasMass: HashMap<GasType, Double>
-    ): Pair<Double, Double> {
-        val volume = balloon.currentVolume
-        if (volume <= 1e-9) return 0.0 to 0.0
-
-        val ship = serverLevel.getLoadedShipManagingPos(blockPos) ?: return 0.0 to 0.0
-        val center = balloon.getCenter()
-        val yInWorld = ship.transform.positionToWorld(Vector3d(center.x(), center.y(), center.z())).y
-        val atmoDensity = serverLevel.shipObjectWorld.aerodynamicUtils.getAirDensityForY(yInWorld, serverLevel.dimensionId)
-
-        val internalMass = pocketGasMass.values.sum()
-        val hotAir = max(0.0, atmoDensity * volume - internalMass)
-        val atmosphericMass = atmoDensity * volume
-        val fullness = if (atmosphericMass > 1e-9) (hotAir / atmosphericMass).coerceIn(0.0, 1.0) else 0.0
-        return hotAir to fullness
-    }
-
     fun fetchBloon() {
         val serverLevel = level as? ServerLevel ?: return
         val ship = serverLevel.getLoadedShipManagingPos(blockPos) ?: return
         val controller = BalloonController.getOrCreate(ship)
         val balloonId = controller.tryGetOrCreateBalloon(blockPos.above(), serverLevel)
         this.balloon = controller.getBalloonById(balloonId)
-        this.balloonGeometryVersion = this.balloon?.geometryVersion ?: -1
         this.hasPocket = this.balloon != null
         this.balloonVolume = this.balloon?.currentVolume ?: 0.0
         this.scanCooldown = 60
@@ -304,13 +262,12 @@ class GasNozzleBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: Block
     }
 
     fun getChaseSpeed(): Double {
-        return abs(getSpeed().toDouble()) / 16.0 / 40.0 * ClockworkConfig.SERVER.balloons.gasNozzleSensitivity
+        return abs(getSpeed().toDouble()) / 16.0 / 40.0 * ClockworkConfig.SERVER.gasNozzleSensitivity
     }
 
     private fun heatBalloon() {
         val balloon = this.balloon ?: return
-        if (!this.pointer.value.isFinite() || this.pointer.value <= 0) return
-        if (balloon.isLeaking || balloon.shouldValidate || balloon.shouldReScan || balloon.shouldRemove) return
+        if (this.pointer.value <= 0) return
 
         var pocketGasMass: HashMap<GasType, Double> = HashMap()
         for ((key, value) in balloon.gasMasses) {
@@ -318,24 +275,19 @@ class GasNozzleBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: Block
             pocketGasMass[gasType] = value
         }
         val pocketHeatEnergy = balloon.currentEnergy
-        if (!BalloonThermodynamics.isValidState(pocketGasMass, pocketHeatEnergy)) return
 
         val gasMass = ClockworkMod.getKelvin(level).getGasMassAt(getDuctNodePosition())
         val gasMassTotal = gasMass.values.sum()
-        if (!gasMassTotal.isFinite() || gasMassTotal <= 1e-9 || gasMass.values.any { !it.isFinite() || it < 0.0 }) return
-        val heatEnergy = temporaryHeatEnergyCalc(ClockworkMod.getKelvin(level), getDuctNodePosition())
-
-        val pocketCapacity = BalloonThermodynamics.capacity(pocketGasMass)
-        if (!heatEnergy.isFinite() || heatEnergy <= 0.0) return
+        val heatEnergy = ClockworkMod.getKelvin(level).getHeatEnergy(getDuctNodePosition())
+        val pocketCapacity = mixtureCapacity(pocketGasMass)
         val currentPocketTemperature = (pocketHeatEnergy) / pocketCapacity
-        val targetTemperature = ClockworkConfig.SERVER.balloons.gasNozzleMaxTemp * pointer.value.toDouble()
+        val targetTemperature = ClockworkMod.getKelvin(level).getTemperatureAt(getDuctNodePosition()) * pointer.value.toDouble()
         if (currentPocketTemperature >= targetTemperature) return
         val maxEnergyAddedThisTick = (heatEnergy / 2.0)
         val energyToAdd = min(pocketCapacity * min(targetTemperature - currentPocketTemperature, 100.0), maxEnergyAddedThisTick)
 
         val usedUpMass = gasMassTotal * pointer.value
         val usedEnergy = min(heatEnergy, energyToAdd) * pointer.value
-        if (!usedUpMass.isFinite() || !usedEnergy.isFinite() || usedEnergy <= 0.0 || !(pocketHeatEnergy + usedEnergy).isFinite()) return
 
 //        pocketTemperature = (pocketHeatEnergy + usedEnergy) / pocketCapacity
 //        balloonVolume = balloon.currentVolume
@@ -348,13 +300,6 @@ class GasNozzleBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: Block
         }
 
         sendData()
-    }
-
-    private fun temporaryHeatEnergyCalc(kelvin: DuctNetwork<*>, pos: DuctNodePos): Double {
-        val gasses = kelvin.getGasMassAt(pos)
-        val capacity = BalloonThermodynamics.capacity(gasses)
-        val energy = kelvin.getTemperatureAt(pos)
-        return capacity * energy
     }
 
     private fun heatPocket() {
@@ -500,19 +445,18 @@ class GasNozzleBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: Block
                 "gui.gas_nozzle.info.volume",
                 DuctTextUtil.translateVolume(ClockworkLang.builder(), balloonVolume, true)
             ).style(ChatFormatting.GREEN).forGoggles(tooltip)
-
             ClockworkLang.translate(
                 "gui.gas_nozzle.info.temperature",
                 DuctTextUtil.translateTemperature(ClockworkLang.builder(), pocketTemperature, true)
             ).style(ChatFormatting.GOLD).forGoggles(tooltip)
 
-
-            val targetTemperature = ClockworkConfig.SERVER.balloons.gasNozzleMaxTemp * pointer.value.toDouble()
-            ClockworkLang.translate(
-                "gui.gas_nozzle.info.target_temperature",
-                DuctTextUtil.translateTemperature(ClockworkLang.builder(), targetTemperature, true)
-            ).style(ChatFormatting.YELLOW).forGoggles(tooltip)
-
+            if (isPlayerSneaking) {
+                val targetTemperature = ClockworkModClient.getKelvin().getTemperatureAt(getDuctNodePosition()) * pointer.value.toDouble()
+                ClockworkLang.translate(
+                    "gui.gas_nozzle.info.target_temperature",
+                    DuctTextUtil.translateTemperature(ClockworkLang.builder(), targetTemperature, true)
+                ).style(ChatFormatting.YELLOW).style(ChatFormatting.ITALIC).forGoggles(tooltip)
+            }
             if (currentIdealOutput.toInt() != 0) {
                 tooltip.add(CommonComponents.EMPTY)
                 ClockworkTooltipHelper.addHint(tooltip, "gui.gas_nozzle.info.leak", ChatFormatting.RED, -2)

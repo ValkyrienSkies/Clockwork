@@ -1,0 +1,26 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "W",
+    "W",
+    "C"
+  ],
+  "key": {
+    "W": {
+      "tag": "tfc:lumber"
+    },
+    "C": {
+      "item": "gtceu:small_iron_gear"
+    }
+  },
+  "result": {
+    "item": "vs_clockwork:wide_propeller_blade",
+    "count": 8
+  },
+  "conditions": [
+    {
+      "type": "forge:mod_loaded",
+      "modid": "tfc"
+    }
+  ]
+}

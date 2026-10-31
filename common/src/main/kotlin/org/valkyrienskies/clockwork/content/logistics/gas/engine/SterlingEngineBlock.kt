@@ -15,14 +15,13 @@ import net.minecraft.world.level.block.state.BlockState
 import org.valkyrienskies.clockwork.ClockworkBlockEntities
 import org.valkyrienskies.clockwork.ClockworkConfig
 import org.valkyrienskies.clockwork.content.logistics.gas.duct.DuctPipeNode
-import org.valkyrienskies.clockwork.content.logistics.gas.duct.IDuct
 import org.valkyrienskies.clockwork.util.gui.IHaveDuctStats
 import org.valkyrienskies.kelvin.api.DuctNode
 import org.valkyrienskies.kelvin.api.DuctNodePos
 import org.valkyrienskies.kelvin.util.INodeBlock
 
 class SterlingEngineBlock(properties: Properties) :
-    DirectionalKineticBlock(properties), IBE<SterlingEngineBlockEntity>, ICogWheel, IHaveDuctStats, IDuct {
+    DirectionalKineticBlock(properties), IBE<SterlingEngineBlockEntity>, ICogWheel, IHaveDuctStats, INodeBlock {
 
     override fun getRotationAxis(state: BlockState): Direction.Axis {
         return state.getValue(FACING).axis

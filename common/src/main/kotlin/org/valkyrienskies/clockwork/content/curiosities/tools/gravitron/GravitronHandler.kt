@@ -3,11 +3,13 @@ package org.valkyrienskies.clockwork.content.curiosities.tools.gravitron
 import com.simibubi.create.AllKeys
 import net.minecraft.client.Minecraft
 import net.minecraft.client.gui.GuiGraphics
+import net.minecraft.client.player.LocalPlayer
 import net.minecraft.world.entity.player.Inventory
 import net.minecraft.world.entity.player.Player
 import net.minecraft.world.item.ItemStack
 import net.minecraft.world.level.GameType
 import org.valkyrienskies.clockwork.ClockworkItems
+import org.valkyrienskies.clockwork.ClockworkSounds
 import org.valkyrienskies.clockwork.content.curiosities.tools.gravitron.tool.ToolType
 import org.valkyrienskies.clockwork.content.curiosities.tools.gravitron.tool.ToolType.Companion.getTools
 import org.valkyrienskies.clockwork.util.ClockworkHotbarSlotOverlays
@@ -35,6 +37,7 @@ open class GravitronHandler {
 
     fun tick() {
         val mc = Minecraft.getInstance()
+        val wasActive = active
         if (mc.gameMode != null && mc.gameMode!!.playerMode == GameType.SPECTATOR) {
             if (active) {
                 active = false
@@ -47,6 +50,18 @@ open class GravitronHandler {
         val stack = findGravitronInHand(player)
         if (stack == null) {
             active = false
+            if (wasActive) {
+                player?.level().let {
+                    it?.playSound(
+                        player!!,
+                        player.blockPosition(),
+                        ClockworkSounds.GRAVITRON_SHUTDOWN.mainEvent!!,
+                        player.soundSource,
+                        0.5f,
+                        1.0f
+                    )
+                }
+            }
             if (activeSchematicItem != null && itemLost(player!!)) {
                 activeHotbarSlot = 0
                 activeSchematicItem = null
@@ -56,6 +71,18 @@ open class GravitronHandler {
 
         active = true
 
+        if (!wasActive) {
+            player?.level().let {
+                it?.playSound(
+                    player!!,
+                    player.blockPosition(),
+                    ClockworkSounds.GRAVITRON_START.mainEvent!!,
+                    player.soundSource,
+                    0.3f,
+                    1.0f
+                )
+            }
+        }
         if (!active) {
             return
         }
@@ -101,7 +128,7 @@ open class GravitronHandler {
     }
 
     private fun findGravitronInHand(player: Player?): ItemStack? {
-        val stack = player?.mainHandItem ?: return null
+        val stack = player!!.mainHandItem
         if (!ClockworkItems.GRAVITRON.isIn(stack) && !ClockworkItems.CREATIVE_GRAVITRON.isIn(stack)) {
             return null
         }

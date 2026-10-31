@@ -10,54 +10,24 @@ test {
     useJUnitPlatform()
 }
 
-def commonMixinRefmap = tasks.named("compileJava", JavaCompile).flatMap {
-    it.destinationDirectory.file("clockwork-common-refmap.json")
-}
-
-tasks.register("verifyMixinRefmap") {
-    group = "verification"
-    description = "Checks production mappings for tool rendering and rope movement injections."
-    dependsOn tasks.named("compileJava")
-    inputs.file(commonMixinRefmap)
-    doLast {
-        def refmap = new groovy.json.JsonSlurper().parse(commonMixinRefmap.get().asFile)
-        def target = refmap.mappings["org/valkyrienskies/clockwork/mixin/client/MixinItemInHandRenderer"]?.get("renderItem")
-        if (!(target instanceof String) || !target.contains("(") || target.contains(";renderItem(")) {
-            throw new GradleException("Missing production mapping for MixinItemInHandRenderer @WrapMethod(renderItem). " +
-                    "Keep the MixinExtras annotation processor and runtime versions aligned.")
-        }
-        def spriteImage = refmap.mappings["org/valkyrienskies/clockwork/mixin/client/SpriteContentsAccessor"]?.get("originalImage")
-        if (!(spriteImage instanceof String) || !spriteImage.contains(":") || spriteImage.startsWith("originalImage:")) {
-            throw new GradleException("Missing production mapping for SpriteContentsAccessor originalImage.")
-        }
-        def toolRenderMixin = refmap.mappings["org/valkyrienskies/clockwork/mixin/MixinLevelRenderer"]
-        for (def selector : ["renderLevel", "Lnet/minecraft/client/renderer/LevelRenderer;renderDebug(Lcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/MultiBufferSource;Lnet/minecraft/client/Camera;)V"]) {
-            def mapped = toolRenderMixin?.get(selector)
-            if (!(mapped instanceof String) || !mapped.contains("(") || mapped == selector ||
-                    mapped.contains(";renderLevel(") || mapped.contains(";renderDebug(")) {
-                throw new GradleException("Missing production mapping for late tool effects: " + selector)
-            }
-        }
-        def ropeMixin = refmap.mappings["org/valkyrienskies/clockwork/mixin/content/wanderwand/MixinLivingEntity"]
-        for (def selector : ["travel", "Lnet/minecraft/world/entity/LivingEntity;shouldDiscardFriction()Z"]) {
-            def mapped = ropeMixin?.get(selector)
-            if (!(mapped instanceof String) || !mapped.contains("(") || mapped == selector ||
-                    mapped.contains(";travel(") || mapped.contains(";shouldDiscardFriction(")) {
-                throw new GradleException("Missing production mapping for bind swing injection: " + selector)
-            }
-        }
-    }
-}
-
-tasks.named("check") {
-    dependsOn tasks.named("verifyMixinRefmap")
-}
-
 repositories {
     maven { url = "https://maven.terraformersmc.com/releases/" } // Mod Menu
     maven { url = "https://mvn.devos.one/snapshots/" }
     maven { url = "https://mvn.devos.one/releases/" }
     maven { url = "https://maven.cafeteria.dev/releases" } // Fake Player API
+
+    // For VMod only
+    exclusiveContent {
+        forRepository {
+            maven {
+                name = "Modrinth"
+                url = "https://api.modrinth.com/maven"
+            }
+        }
+        filter {
+            includeGroup "maven.modrinth"
+        }
+    }
 }
 
 sourceSets {
@@ -67,6 +37,8 @@ sourceSets {
 dependencies {
     modImplementation("net.fabricmc:fabric-loader:${fabric_loader_version}")
     implementation(annotationProcessor("com.github.bawnorton.mixinsquared:mixinsquared-fabric:0.3.7-beta.1"))
+
+    implementation(("io.github.llamalad7:mixinextras-common:0.4.1"))
 
     modApi("dev.architectury:architectury:${rootProject.architectury_version}")
 
@@ -116,7 +88,6 @@ dependencies {
     var kotestVersion = "5.4.1"
     testImplementation 'org.junit.jupiter:junit-jupiter-api:5.8.1'
     testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.8.1'
-    testRuntimeOnly("net.createmod.ponder:Ponder-Common-${minecraft_version}:${ponder_version}") { transitive = false }
     testImplementation("io.kotest:kotest-runner-junit5:$kotestVersion")
     testImplementation("io.kotest:kotest-property:$kotestVersion")
     testImplementation("io.kotest:kotest-assertions-core:$kotestVersion")

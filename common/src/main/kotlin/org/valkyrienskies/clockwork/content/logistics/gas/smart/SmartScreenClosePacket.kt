@@ -2,60 +2,71 @@ package org.valkyrienskies.clockwork.content.logistics.gas.smart
 
 import net.minecraft.nbt.CompoundTag
 import net.minecraft.network.FriendlyByteBuf
+import net.minecraft.resources.ResourceLocation
 import net.minecraft.world.level.Level
 import org.valkyrienskies.clockwork.ClockworkMod
 import org.valkyrienskies.clockwork.content.logistics.gas.duct.DuctBlockEntity
+import org.valkyrienskies.kelvin.api.DuctNodePos
+import org.valkyrienskies.kelvin.api.GasType
+import org.valkyrienskies.kelvin.api.edges.FilteredEdge
 import org.valkyrienskies.clockwork.platform.api.network.C2SCWPacket
 import org.valkyrienskies.clockwork.platform.api.network.ServerNetworkContext
 import org.valkyrienskies.core.util.readVec3d
 import org.valkyrienskies.core.util.writeVec3d
 import org.valkyrienskies.kelvin.api.DuctEdge
-import org.valkyrienskies.kelvin.api.DuctNodePos
+import org.valkyrienskies.kelvin.api.edges.SmartDuctEdge
+import org.valkyrienskies.kelvin.api.edges.SmartEdge
 import org.valkyrienskies.kelvin.api.edges.SmartEdge.FilterType
+import org.valkyrienskies.kelvin.impl.registry.GasTypeRegistry
 import org.valkyrienskies.kelvin.util.KelvinExtensions.toDuctNodePos
 import org.valkyrienskies.kelvin.util.KelvinExtensions.toMinecraft
 import org.valkyrienskies.kelvin.util.KelvinExtensions.toVector3d
+import kotlin.collections.HashSet
 
-class SmartScreenClosePacket(
-    private val nodeA: DuctNodePos, private val nodeB: DuctNodePos, private val settings: SmartDuctSettings,
-) : C2SCWPacket {
+class SmartScreenClosePacket(private val nodeA: DuctNodePos, private val nodeB: DuctNodePos, private val filter: FilterType, private val comparisonValue: Double, private val moreThan: Boolean): C2SCWPacket {
+
+
     constructor(buffer: FriendlyByteBuf) : this(
         buffer.readVec3d().toDuctNodePos(buffer.readResourceLocation()),
         buffer.readVec3d().toDuctNodePos(buffer.readResourceLocation()),
-        SmartDuctSettings.read(buffer),
+        buffer.readEnum(FilterType::class.java),
+        buffer.readDouble(),
+        buffer.readBoolean()
     )
+
 
     override fun handle(context: ServerNetworkContext) {
         context.enqueueWork {
-            val level = context.sender.level()
-            if (nodeA.dimensionId != level.dimension().location() || nodeB.dimensionId != nodeA.dimensionId) return@enqueueWork
-            if (!settings.comparisonValue.isFinite() || settings.comparisonValue < 0.0 || settings.filter == FilterType.NONE) return@enqueueWork
-            val edges = ClockworkMod.getKelvin(level).edges
-            val edge = (edges[Pair(nodeA, nodeB)] ?: edges[Pair(nodeB, nodeA)]) as? ClockworkSmartEdge ?: return@enqueueWork
-            edge.filter = settings.filter
-            edge.moreThan = settings.moreThan
-            edge.comparisonValue = settings.comparisonValue
-            edge.gasFilter.clear()
-            edge.gasFilter.addAll(settings.gasFilter)
-            edge.filterBlacklist = settings.filterBlacklist
 
-            forceUpdate(level, edge.nodeA, edge.nodeB, edge)
-            forceUpdate(level, edge.nodeB, edge.nodeA, edge)
+            val edge = ClockworkMod.getKelvin(context.sender.level()).edges[Pair(nodeA, nodeB)] as SmartDuctEdge? ?: return@enqueueWork
+            edge.filter = filter
+            edge.moreThan = moreThan
+            edge.comparisonValue = comparisonValue
+
+            forceUpdate(context.sender.level(), nodeA, nodeB, edge)
+            forceUpdate(context.sender.level(), nodeB, nodeA, edge)
         }
         context.setPacketHandled(true)
     }
 
-    private fun forceUpdate(level: Level, nodeA: DuctNodePos, nodeB: DuctNodePos, edge: DuctEdge) {
-        val be = level.getBlockEntity(nodeA.toMinecraft()) as? DuctBlockEntity ?: return
+    fun forceUpdate(level: Level, nodeA: DuctNodePos, nodeB: DuctNodePos, edge: DuctEdge) {
+        val blockPos = nodeA.toMinecraft()
+        val be = level.getBlockEntity(blockPos) as? DuctBlockEntity ?: return
+
         be.edgeData[DuctBlockEntity.EdgePos(nodeA, nodeB)] = edge.serialize(CompoundTag())
         be.notifyUpdate()
     }
 
     override fun write(buffer: FriendlyByteBuf) {
+
+
         buffer.writeVec3d(nodeA.toMinecraft().toVector3d())
         buffer.writeResourceLocation(nodeA.dimensionId)
         buffer.writeVec3d(nodeB.toMinecraft().toVector3d())
         buffer.writeResourceLocation(nodeB.dimensionId)
-        settings.write(buffer)
+        buffer.writeEnum(filter)
+        buffer.writeDouble(comparisonValue * 1000)
+        buffer.writeBoolean(moreThan)
+
     }
 }

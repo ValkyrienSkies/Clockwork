@@ -246,10 +246,8 @@ class CoalBurnerBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: Bloc
     }
 
     override fun sync(storage: NonNullList<ItemStack>) {
-        // I had the storage be <1 long once and I can't reproduce it
-        // but it broke the client big time so I'm duct-tape fixing it here
-        storedFuelStack = storage.getOrNull(0) ?: ItemStack.EMPTY
-        remainingItemStack = storage.getOrNull(1) ?: ItemStack.EMPTY
+        storedFuelStack = storage[0]
+        remainingItemStack = storage[1]
     }
 
     override fun getStorageInventory(): NonNullList<ItemStack> {

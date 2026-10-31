@@ -20,10 +20,9 @@ import net.minecraft.world.level.block.state.properties.BlockStateProperties
 import net.minecraft.world.phys.BlockHitResult
 import org.valkyrienskies.clockwork.ClockworkBlockEntities
 import org.valkyrienskies.clockwork.content.curiosities.sensor.ISensorBlock
-import org.valkyrienskies.clockwork.content.logistics.gas.duct.IDuct
 import org.valkyrienskies.kelvin.util.INodeBlock
 
-class RedstoneDuctBlock(properties: Properties) : RotatedPillarBlock(properties), IDuct, IBE<RedstoneDuctBlockEntity> {
+class RedstoneDuctBlock(properties: Properties) : RotatedPillarBlock(properties), INodeBlock, IBE<RedstoneDuctBlockEntity> {
 
     init {
         registerDefaultState(defaultBlockState().setValue(POWER, 0))
@@ -62,24 +61,6 @@ class RedstoneDuctBlock(properties: Properties) : RotatedPillarBlock(properties)
     override fun onPlace(state: BlockState, level: Level, pos: BlockPos, oldState: BlockState, movedByPiston: Boolean) {
         super.onPlace(state, level, pos, oldState, movedByPiston)
         nodePlace(state, level, pos, oldState, movedByPiston)
-        if (!level.isClientSide) {
-            withBlockEntityDo(level, pos) { it.refreshConnections(level, pos) }
-        }
-    }
-
-    override fun neighborChanged(
-        state: BlockState,
-        level: Level,
-        pos: BlockPos,
-        neighborBlock: Block,
-        neighborPos: BlockPos,
-        movedByPiston: Boolean
-    ) {
-        super.neighborChanged(state, level, pos, neighborBlock, neighborPos, movedByPiston)
-        if (level.isClientSide) return
-
-        val direction = Direction.fromDelta(neighborPos.x - pos.x, neighborPos.y - pos.y, neighborPos.z - pos.z) ?: return
-        withBlockEntityDo(level, pos) { it.updateConnection(level, pos, direction) }
     }
 
     override fun onRemove(state: BlockState, level: Level, pos: BlockPos, newState: BlockState, movedByPiston: Boolean) {

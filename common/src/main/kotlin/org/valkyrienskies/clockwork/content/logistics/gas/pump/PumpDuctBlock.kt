@@ -8,6 +8,7 @@ import net.minecraft.ChatFormatting
 import net.minecraft.core.BlockPos
 import net.minecraft.core.Direction
 import net.minecraft.network.chat.Component
+import net.minecraft.server.level.ServerLevel
 import net.minecraft.world.level.BlockGetter
 import net.minecraft.world.level.Level
 import net.minecraft.world.level.LevelAccessor
@@ -23,15 +24,21 @@ import org.valkyrienskies.clockwork.ClockworkBlockEntities
 import org.valkyrienskies.clockwork.ClockworkConfig
 import org.valkyrienskies.clockwork.ClockworkMod
 import org.valkyrienskies.clockwork.content.logistics.gas.IConnectable
-import org.valkyrienskies.clockwork.content.logistics.gas.duct.IDuct
+import org.valkyrienskies.clockwork.content.logistics.gas.duct.DuctPipeNode
 import org.valkyrienskies.clockwork.util.gui.IHaveDuctStats
 import org.valkyrienskies.kelvin.KelvinMod
+import org.valkyrienskies.kelvin.api.DuctEdge
 import org.valkyrienskies.kelvin.api.DuctNode
 import org.valkyrienskies.kelvin.api.DuctNodePos
-import org.valkyrienskies.kelvin.api.nodes.PumpDuctNode
+import org.valkyrienskies.kelvin.api.edges.PumpDuctEdge
+import org.valkyrienskies.kelvin.api.nodes.PipeDuctNode
+import org.valkyrienskies.kelvin.util.IEdgeBlock
 import org.valkyrienskies.kelvin.util.INodeBlock
+import org.valkyrienskies.kelvin.util.INodeBlockEntity
 
-class PumpDuctBlock(properties: Properties): DirectionalKineticBlock(properties), IBE<PumpDuctBlockEntity>, ICogWheel, IHaveDuctStats, IDuct  {
+class PumpDuctBlock(properties: Properties): DirectionalKineticBlock(properties), IBE<PumpDuctBlockEntity>, ICogWheel, IHaveDuctStats, INodeBlock {
+
+    var edge: PumpDuctEdge? = null
 
     override fun createBlockStateDefinition(builder: StateDefinition.Builder<Block, BlockState>) {
         builder.add(BlockStateProperties.WATERLOGGED)
@@ -58,9 +65,6 @@ class PumpDuctBlock(properties: Properties): DirectionalKineticBlock(properties)
     override fun onPlace(state: BlockState, level: Level, pos: BlockPos, oldState: BlockState, isMoving: Boolean) {
         super.onPlace(state, level, pos, oldState, isMoving)
         nodePlace(state, level, pos, oldState, isMoving)
-        if (!level.isClientSide) {
-            withBlockEntityDo(level, pos) { it.updatePumpNode() }
-        }
 
         val direction = state.getValue(FACING) ?: return
         for (dir in listOf(direction, direction.opposite)) {
@@ -106,13 +110,7 @@ class PumpDuctBlock(properties: Properties): DirectionalKineticBlock(properties)
     }
 
     override fun createNode(pos: DuctNodePos): DuctNode {
-        return PumpDuctNode(
-            pos = pos,
-            volume = getInternalVolume(),
-            maxPressure = 16375049.0,
-            maxTemperature = 1478.0,
-            heatCapacity = 44.9,
-        )
+        return  DuctPipeNode(pos = pos, volume = getInternalVolume(), maxPressure = 16375049.0, maxTemperature = 1478.0)
     }
 
 

@@ -25,11 +25,7 @@ import net.minecraft.world.level.Level
 import org.slf4j.LoggerFactory
 import org.valkyrienskies.clockwork.client.render.airpocket.AirpocketRenderer
 import org.valkyrienskies.clockwork.content.contraptions.flap.dual_link.DualLinkHandler
-import org.valkyrienskies.clockwork.content.contraptions.phys.gimbal.quad_link.QuadLinkHandler
-import org.valkyrienskies.clockwork.content.curiosities.meteor.MeteorShipAttachment
-import org.valkyrienskies.clockwork.content.curiosities.meteor.MeteorStorm
 import org.valkyrienskies.clockwork.content.events.CollisionSoundEffectHandler
-import org.valkyrienskies.clockwork.content.curiosities.tools.gravitron.GravitronFrozenShip
 import org.valkyrienskies.clockwork.content.forces.*
 import org.valkyrienskies.clockwork.content.forces.contraption.BearingController
 import org.valkyrienskies.clockwork.content.physicalities.gyro.GyroShipControl
@@ -113,12 +109,8 @@ object ClockworkMod {
         vsCore.registerAttachment(GyroShipControl::class.java)
         vsCore.registerAttachment(SugarRocketController::class.java)
         vsCore.registerAttachment(GravitronController::class.java) { useTransientSerializer() }
-        vsCore.registerAttachment(GravitronFrozenShip::class.java) {
-            useJacksonSerializer()
-        }
         vsCore.registerAttachment(BearingController::class.java) { useTransientSerializer() }
         vsCore.registerAttachment(BalloonController::class.java)
-        vsCore.registerAttachment(MeteorShipAttachment::class.java)
 
         vsApi.shipLoadEvent.on { event -> val ship = event.ship;
             //TODO: UNCOMMENT WHEN POCKET FORCES IS FIXED
@@ -157,9 +149,7 @@ object ClockworkMod {
         }
 
         TickEvent.SERVER_LEVEL_POST.register {
-            org.valkyrienskies.clockwork.content.curiosities.tools.wanderwand.WanderwandServer.tick(it)
             for (ship in it.shipObjectWorld.loadedShips) {
-                GravitronFrozenShip.tick(it, ship)
                 //TODO: UNCOMMENT WHEN POCKET FORCES IS FIXED
                 //ship.getAttachment(PocketForcesController::class.java)?.gameTick(it, ship.id)
                 ship.getAttachment(BalloonController::class.java)?.gameTick(it, ship)
@@ -168,19 +158,14 @@ object ClockworkMod {
             ClockworkUtils.tick(it)
             if (ClockworkConfig.CLIENT.debugRender) AirpocketRenderer.tick(it)
             CollisionSoundEffectHandler.tick(it)
-            MeteorStorm.tick(it)
 
         }
 
         InteractionEvent.RIGHT_CLICK_BLOCK.register(InteractionEvent.RightClickBlock { player, hand, pos, face ->
             DualLinkHandler.handler(player, hand, pos, face)
         })
-        InteractionEvent.RIGHT_CLICK_BLOCK.register(InteractionEvent.RightClickBlock { player, hand, pos, face ->
-            QuadLinkHandler.handler(player, hand, pos, face)
-        })
 
         vsApi.collisionStartEvent.on(CollisionSoundEffectHandler::onCollide)
-        vsApi.collisionStartEvent.on(MeteorStorm::onCollision)
 
         vsApi.physTickEvent.on {
             val temp = mutableListOf<Pair<DimensionId, (PhysLevel, Double, () -> Unit) -> Unit>>()
@@ -205,7 +190,7 @@ object ClockworkMod {
     @JvmStatic
     fun registerHeaters() {
         // Needs to be deferred (event.enqueueWork) on forge, but fabric it can be run immediately
-        ClockworkBoilerHeaters.init()
+        BoilerHeater.REGISTRY.register(ClockworkBlocks.GAS_HEATER.get(), BoilerHeater.BLAZE_BURNER)
     }
     @JvmStatic
     fun physTickOnce(dimensionId: String, fn: (level: PhysLevel, delta: Double, tryNextTick: () -> Unit) -> Unit) {

@@ -1,0 +1,21 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "ingredients": [
+    {
+      "item": "drivebywire:controller_hub"
+    }
+  ],
+  "result": {
+    "item": "drivebywire:tweaked_controller_hub"
+  },
+  "conditions": [
+    {
+      "type": "forge:mod_loaded",
+      "modid": "tfc"
+    },
+    {
+      "type": "forge:mod_loaded",
+      "modid": "drivebywire"
+    }
+  ]
+}

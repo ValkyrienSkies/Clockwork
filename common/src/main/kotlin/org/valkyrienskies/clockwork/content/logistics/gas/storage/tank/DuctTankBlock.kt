@@ -21,6 +21,7 @@ import org.valkyrienskies.core.util.squared
 import org.valkyrienskies.kelvin.KelvinMod.KELVINLOGGER
 import org.valkyrienskies.kelvin.api.DuctNode
 import org.valkyrienskies.kelvin.api.DuctNodePos
+import org.valkyrienskies.kelvin.api.NodeBehaviorType
 import org.valkyrienskies.kelvin.api.nodes.TankDuctNode
 import org.valkyrienskies.kelvin.util.INodeBlock
 import org.valkyrienskies.kelvin.util.KelvinExtensions.toDuctNodePos
@@ -56,13 +57,7 @@ class DuctTankBlock(properties: Properties) : Block(properties), INodeBlock, IBE
 
     override fun nodeRemove(state: BlockState, level: Level, pos: BlockPos, newState: BlockState, isMoving: Boolean) {
         if (!level.isClientSide) {
-            val kelvin = ClockworkMod.getKelvin(level)
-            val nodePos = pos.toDuctNodePos(level.dimension().location())
-            // Kelvin removes the node without removing its edges. Retire the old
-            // connections so a split cannot leave ducts linked to the former controller.
-            val connections = kelvin.edges.keys.filter { it.first == nodePos || it.second == nodePos }
-            for ((nodeA, nodeB) in connections) kelvin.removeEdge(nodeA, nodeB)
-            kelvin.removeNode(nodePos)
+            ClockworkMod.getKelvin(level).removeNode(pos.toDuctNodePos(level.dimension().location()))
         } else {
             ClockworkModClient.getKelvin().removeNode(pos.toDuctNodePos(level.dimension().location()))
         }
@@ -74,7 +69,7 @@ class DuctTankBlock(properties: Properties) : Block(properties), INodeBlock, IBE
     }
 
     fun createTankNode(pos: DuctNodePos, size: Double): DuctNode {
-        return TankDuctNode(pos, volume = size, maxPressure = 16375049.0, maxTemperature = 1478.0, heatCapacity = 44.9 * size)
+        return TankDuctNode(pos, NodeBehaviorType.TANK, volume = size, maxPressure = 16375049.0, maxTemperature = 1478.0, heatCapacity = 44.9)
     }
 
     override fun onPlace(state: BlockState, level: Level, pos: BlockPos, oldState: BlockState, isMoving: Boolean) {
@@ -85,11 +80,8 @@ class DuctTankBlock(properties: Properties) : Block(properties), INodeBlock, IBE
     override fun onRemove(state: BlockState, level: Level, pos: BlockPos, newState: BlockState, isMoving: Boolean) {
         if (state.hasBlockEntity() && (state.block !== newState.block || !newState.hasBlockEntity())) {
             val blockEntity = level.getBlockEntity(pos) as? DuctTankBlockEntity ?: return
-            blockEntity.preserveContents {
-                nodeRemove(state, level, pos, newState, isMoving)
-                level.removeBlockEntity(pos)
-                ConnectivityHandler.splitMulti(blockEntity)
-            }
+            level.removeBlockEntity(pos)
+            ConnectivityHandler.splitMulti(blockEntity)
         }
     }
 

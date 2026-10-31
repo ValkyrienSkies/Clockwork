@@ -148,36 +148,18 @@ open class PropellerBearingBlockEntity(type: BlockEntityType<*>, pos: BlockPos, 
     }
 
     fun getBlades() {
-        // No controller (or no saved controller data) means no blades in this assembly.
-        blades = ArrayList()
         if (propellerContraption != null) {
             val blocks = propellerContraption!!.contraption.blocks
             for ((key, value) in blocks) {
                 if (value.state.`is`(ClockworkBlocks.BLADE_CONTROLLER.get())) {
-                    if (value.nbt != null) {
+                    val shouldUpdate = true
+                    if (shouldUpdate && value.nbt != null) {
                         value.nbt!!.putBoolean("ShouldUpdatePhys", false)
                         blades = BladeData.fromTag(value.nbt!!)
                     }
                 }
             }
         }
-    }
-
-    internal fun refreshGeometry() {
-        getBlades()
-        sailPositions = ArrayList()
-        if (brass && blades.isEmpty()) getSails()
-    }
-
-    private fun clearGeometry() {
-        blades = ArrayList()
-        sailPositions = ArrayList()
-    }
-
-    private fun retirePhysicsApplier() {
-        if (physID >= 0) removeApplier(PropellerController::class.java, level, worldPosition)
-        // Even if the old ship/attachment is gone, the next assembly needs a fresh snapshot.
-        physID = -1
     }
 
     fun setNewBladeAngle(bladeAngle: Double) {
@@ -387,8 +369,10 @@ open class PropellerBearingBlockEntity(type: BlockEntityType<*>, pos: BlockPos, 
 
         targetOmega = convertToAngular(this.getSpeed()).toDouble() * (if (isInverted()) -1.0 else 1.0)
 
-        refreshGeometry()
-        retirePhysicsApplier()
+        getBlades()
+        if (brass && blades.isEmpty()) {
+            getSails()
+        }
 
         val stressImpact = calculateStressApplied()
         orCreateNetwork?.updateStressFor(this, stressImpact)
@@ -409,12 +393,7 @@ open class PropellerBearingBlockEntity(type: BlockEntityType<*>, pos: BlockPos, 
     }
 
     open fun disassemble() {
-        if (!running && propellerContraption == null) {
-            clearGeometry()
-            retirePhysicsApplier()
-            active = false
-            return
-        }
+        if (!running && propellerContraption == null) return
 
         targetOmega = 0.0
         currentOmega = 0.0
@@ -429,9 +408,9 @@ open class PropellerBearingBlockEntity(type: BlockEntityType<*>, pos: BlockPos, 
         }
         propellerContraption = null
         running = false
-        active = false
-        clearGeometry()
-        retirePhysicsApplier()
+        if (physID != -1) {
+            removeApplier(PropellerController::class.java, level, worldPosition)
+        }
 
         // Remove stress impact
         val stressImpact = calculateStressApplied()
@@ -487,14 +466,11 @@ open class PropellerBearingBlockEntity(type: BlockEntityType<*>, pos: BlockPos, 
         if (!blockState.hasProperty(BearingBlock.FACING)) return
 
         this.propellerContraption = contraption
-        refreshGeometry()
         setChanged()
         val anchor = worldPosition.relative(blockState.getValue(BlockStateProperties.FACING))
         propellerContraption!!.setPos(anchor.x.toDouble(), anchor.y.toDouble(), anchor.z.toDouble())
         if (!level!!.isClientSide) {
-            retirePhysicsApplier()
             this.running = true
-            orCreateNetwork?.updateStressFor(this, calculateStressApplied())
             sendData()
         }
     }

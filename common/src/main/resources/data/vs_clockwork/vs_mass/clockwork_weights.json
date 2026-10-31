@@ -10,14 +10,6 @@
     "friction": 0.4
   },
   {
-    "block": "vs_clockwork:phys_bearing",
-    "mass": 200
-  },
-  {
-    "block": "vs_clockwork:gimbal_bearing",
-    "mass": 150
-  },
-  {
     "block": "vs_clockwork:gyro",
     "mass": 155,
     "friction": 0.4

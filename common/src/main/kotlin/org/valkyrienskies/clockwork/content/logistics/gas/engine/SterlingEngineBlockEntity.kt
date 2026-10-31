@@ -43,6 +43,8 @@ class SterlingEngineBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: 
         if (level.isClientSide) return
 
         val facing = blockState.getValue(BlockStateProperties.FACING)
+        updateConnection(level, blockPos, facing)
+        updateConnection(level, blockPos, facing.opposite)
 
         val newEfficiency = GasEngineLogic.calculateTemperatureEfficiency(
             level,
@@ -120,10 +122,6 @@ class SterlingEngineBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: 
 
     fun getEngineEfficiency(): Float {
         return efficiency.coerceIn(0f, 1f)
-    }
-
-    private fun getTotalStressCapacity(): Double {
-        return floor(getEngineEfficiency() * ClockworkConfig.SERVER.gasEngine.sterlingEngineStressCapacity)
     }
 
     fun updateGeneratedRotation() {
@@ -221,8 +219,7 @@ class SterlingEngineBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: 
             efficiency,
             isPlayerSneaking,
             getTooltipTemperature(),
-            ClockworkConfig.SERVER.gasEngine.sterlingEngineTemperatureIncrement,
-            getTotalStressCapacity()
+            ClockworkConfig.SERVER.gasEngine.sterlingEngineTemperatureIncrement
         )
         return super.addToGoggleTooltip(tooltip, isPlayerSneaking)
     }

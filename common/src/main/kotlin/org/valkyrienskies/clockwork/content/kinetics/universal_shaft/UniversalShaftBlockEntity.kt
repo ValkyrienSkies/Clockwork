@@ -1,11 +1,7 @@
 package org.valkyrienskies.clockwork.content.kinetics.universal_shaft
 
-import com.simibubi.create.api.contraption.transformable.TransformableBlockEntity
-import com.simibubi.create.api.schematic.requirement.SpecialBlockEntityItemRequirement
-import com.simibubi.create.content.contraptions.StructureTransform
 import com.simibubi.create.content.kinetics.base.IRotate
 import com.simibubi.create.content.kinetics.base.KineticBlockEntity
-import com.simibubi.create.content.schematics.requirement.ItemRequirement
 import net.minecraft.core.BlockPos
 import net.minecraft.nbt.CompoundTag
 import net.minecraft.server.level.ServerLevel
@@ -14,16 +10,14 @@ import net.minecraft.world.item.ItemStack
 import net.minecraft.world.level.block.entity.BlockEntity
 import net.minecraft.world.level.block.entity.BlockEntityType
 import net.minecraft.world.level.block.state.BlockState
-import net.minecraft.world.level.block.state.properties.BlockStateProperties
-import net.minecraft.world.phys.AABB
 import org.valkyrienskies.clockwork.ClockworkConfig
 import org.valkyrienskies.clockwork.ClockworkItems
 import org.valkyrienskies.clockwork.ClockworkSounds
+import org.valkyrienskies.clockwork.content.physicalities.extendon.ExtendonBlockEntity
 import org.valkyrienskies.clockwork.util.universal_joint.IUniversalJoint
-import org.valkyrienskies.mod.common.getShipManagingPos
 import org.valkyrienskies.mod.common.toWorldCoordinates
 
-class UniversalShaftBlockEntity(typeIn: BlockEntityType<*>?, pos: BlockPos?, state: BlockState?) : KineticBlockEntity(typeIn, pos, state), IUniversalJoint, SpecialBlockEntityItemRequirement {
+class UniversalShaftBlockEntity(typeIn: BlockEntityType<*>?, pos: BlockPos?, state: BlockState?) : KineticBlockEntity(typeIn, pos, state), IUniversalJoint {
     override var connectedJoint: IUniversalJoint? = null
     override var pos = blockPos
     var connectedPos: BlockPos? = null
@@ -34,26 +28,18 @@ class UniversalShaftBlockEntity(typeIn: BlockEntityType<*>?, pos: BlockPos?, sta
     override val maxCreationDistance: Double
         get() = ClockworkConfig.SERVER.maxUniversalJointDistance
 
+    override fun onSpeedChanged(previousSpeed: Float) {
+        super.onSpeedChanged(previousSpeed)
+    }
+
     // Custom Propagation
     override fun propagateRotationTo(
         target: KineticBlockEntity, stateFrom: BlockState, stateTo: BlockState, diff: BlockPos,
         connectedViaAxes: Boolean, connectedViaCogs: Boolean
     ): Float {
+
         if (connectedJoint == null || target.blockPos != connectedPos) return 0f
-
-        // Output must be negated whenever the two shafts share an axis sign
-        // (e.g. both directions are positive axis or both are negative axis)
-        // Why? Idk it's probably create's fault.
-        val facingFrom = stateFrom.getValue(BlockStateProperties.FACING)
-        val facingTo = stateTo.getValue(BlockStateProperties.FACING)
-        return -facingFrom.axisDirection.step.toFloat() * facingTo.axisDirection.step.toFloat()
-    }
-
-    override fun getRenderBoundingBox(): AABB? {
-        val aabb = AABB(this.worldPosition)
-        if (connectedPos == null) return aabb
-        // Yes this is a stupid way to do it but its what Create does so sue me
-        return aabb.inflate(maxCreationDistance);
+        return 1f
     }
 
     override fun addPropagationLocations(
@@ -106,7 +92,6 @@ class UniversalShaftBlockEntity(typeIn: BlockEntityType<*>?, pos: BlockPos?, sta
         if (other is UniversalShaftBlockEntity) {
             other.connectedBe = this
             other.connectedPos = this.pos
-
             other.connectedJoint = this
             other.main = false
             other.attachKinetics()
@@ -119,9 +104,7 @@ class UniversalShaftBlockEntity(typeIn: BlockEntityType<*>?, pos: BlockPos?, sta
 
         if ((connectedJoint == null || connectedBe == null) && connectedPos != null) {
             val be = level!!.getBlockEntity(connectedPos!!)
-            if (be != null && be !is UniversalShaftBlockEntity) {
-                connectedPos = null
-            }
+            if (be != null && be !is UniversalShaftBlockEntity) connectedPos = null
             else if(be != null) {
                 connectedJoint = be
                 connectedBe = be
@@ -151,32 +134,18 @@ class UniversalShaftBlockEntity(typeIn: BlockEntityType<*>?, pos: BlockPos?, sta
 
     override fun write(compound: CompoundTag, clientPacket: Boolean) {
         if (connectedPos != null) {
-            val offset = connectedPos!!.subtract(worldPosition)
-            compound.putInt("otherPosXr",offset.x)
-            compound.putInt("otherPosYr",offset.y)
-            compound.putInt("otherPosZr",offset.z)
+            compound.putInt("otherPosX",connectedPos!!.x)
+            compound.putInt("otherPosY",connectedPos!!.y)
+            compound.putInt("otherPosZ",connectedPos!!.z)
             compound.putBoolean("main", main)
-
-            // Used for onPaste
-            val ship = level.getShipManagingPos(connectedPos!!)
-            if (ship != null) {
-                compound.putLong("otherShipId", ship.id)
-            }
         }
 
         super.write(compound, clientPacket)
     }
 
     override fun read(compound: CompoundTag, clientPacket: Boolean) {
-        // Old serialization
         if (compound.contains("otherPosX")) {
             connectedPos = BlockPos(compound.getInt("otherPosX"),compound.getInt("otherPosY"),compound.getInt("otherPosZ"))
-            main = compound.getBoolean("main")
-        }
-        // New serialization
-        else if (compound.contains("otherPosXr")) {
-            val offset = BlockPos(compound.getInt("otherPosXr"),compound.getInt("otherPosYr"),compound.getInt("otherPosZr"))
-            connectedPos = worldPosition.offset(offset)
             main = compound.getBoolean("main")
         } else {
             connectedPos = null
@@ -187,12 +156,6 @@ class UniversalShaftBlockEntity(typeIn: BlockEntityType<*>?, pos: BlockPos?, sta
         }
 
         super.read(compound, clientPacket)
-    }
-
-    override fun getRequiredItems(state: BlockState?): ItemRequirement? {
-        return if (connectedPos != null && main)
-            ItemRequirement(ItemRequirement.ItemUseType.CONSUME, ClockworkItems.UNIVERSAL_SHAFT_ITEM.asStack())
-        else ItemRequirement.NONE
     }
 
     override fun remove() {

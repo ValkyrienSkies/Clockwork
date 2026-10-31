@@ -120,19 +120,6 @@ class VirtualDuctNetwork(
         return nodeInfo[node]?.currentGasMasses ?: emptyMap()
     }
 
-    override fun getNodeState(nodePos: DuctNodePos): DuctNodeState? {
-        val info = nodeInfo[nodePos] ?: return null
-        val volume = (nodes[nodePos]?.volume ?: info.totalVolume) + info.volumeChange
-        return DuctNodeState(
-            nodePos,
-            getTemperatureAt(nodePos),
-            getPressureAt(nodePos),
-            HashMap<GasType, Double>(info.currentGasMasses),
-            info.currentEnergy,
-            volume
-        )
-    }
-
     override fun getEdgeBetween(from: DuctNodePos, to: DuctNodePos): DuctEdge? {
         return edges[Pair(from, to)] ?: edges[Pair(to, from)]
     }
@@ -142,7 +129,7 @@ class VirtualDuctNetwork(
     }
 
     override fun addNode(pos: DuctNodePos, node: DuctNode) {
-        if (nodes[pos]?.javaClass == node.javaClass && !unloadedNodes.contains(pos)) {
+        if (nodes.containsKey(pos) && nodes[pos]!!.behavior == node.behavior && !unloadedNodes.contains(pos)) {
             KELVINLOGGER.debug("Node already exists at {}", pos)
             return
         } else if (unloadedNodes.contains(pos)) {
@@ -151,7 +138,7 @@ class VirtualDuctNetwork(
         nodes[pos] = node
         // Seed wall thermal energy at ambient (273.15K) so a fresh node doesn't act as a
         // 0K cold sink for the first gas to enter. Combined energy = wallCap * T_ambient.
-        nodeInfo[pos] = DuctNodeInfo(273.15, 0.0, Object2DoubleOpenHashMap(), node.volume, currentEnergy = node.heatCapacity * 273.15)
+        nodeInfo[pos] = DuctNodeInfo(node.behavior, 273.15, 0.0, Object2DoubleOpenHashMap(), node.volume, currentEnergy = node.heatCapacity * 273.15)
         if (nodesInDimension[pos.dimensionId] == null) {
             nodesInDimension[pos.dimensionId] = hashSetOf()
         }
@@ -365,13 +352,11 @@ class VirtualDuctNetwork(
         // Process recipes
         for (node in dimensionNodes) {
             val gasMasses = getGasMassAt(node)
-            if (gasMasses.isEmpty()) continue
-
-            val state = getNodeState(node) ?: continue
+            if (gasMasses.size == 0) continue
 
             for (reaction in reactions.values) {
                 var con = false
-                reaction.requirements.forEach {if (!it.key.apply_requirement(level, state, it.value)) { con = true; return@forEach }}
+                reaction.requirements.forEach {if (!it.key.apply_requirement(level, node, this, it.value)) { con = true; return@forEach }}
                 if (con) continue
 
                 calcReaction(node, gasMasses, reaction.gasses, reaction.result, reaction.energy)

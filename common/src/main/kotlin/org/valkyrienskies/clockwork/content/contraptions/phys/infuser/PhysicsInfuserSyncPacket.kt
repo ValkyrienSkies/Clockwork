@@ -1,39 +1,57 @@
 package org.valkyrienskies.clockwork.content.contraptions.phys.infuser
 
+
 import net.minecraft.client.Minecraft
 import net.minecraft.core.BlockPos
+import net.minecraft.core.NonNullList
 import net.minecraft.nbt.CompoundTag
 import net.minecraft.network.FriendlyByteBuf
+import net.minecraft.world.ContainerHelper
 import net.minecraft.world.entity.player.Player
+import net.minecraft.world.item.ItemStack
 import org.valkyrienskies.clockwork.platform.api.network.ClientNetworkContext
 import org.valkyrienskies.clockwork.platform.api.network.S2CCWPacket
 
 class PhysicsInfuserSyncPacket : S2CCWPacket {
     override var player: Player? = null
-    private val state: CompoundTag
+    private var inventoryPacket: NonNullList<ItemStack>? = null
     private val pos: BlockPos
 
     constructor(buf: FriendlyByteBuf) {
+        val nbt = buf.readNbt()
+        if (nbt != null) {
+            inventoryPacket = NonNullList.withSize(1, ItemStack.EMPTY)
+            ContainerHelper.loadAllItems(nbt, inventoryPacket)
+        } else {
+            inventoryPacket = NonNullList.withSize(1, ItemStack.EMPTY)
+        }
         pos = buf.readBlockPos()
-        state = buf.readNbt() ?: CompoundTag()
     }
 
     constructor(tile: PhysicsInfuserBlockEntity) {
-        state = CompoundTag().also { tile.write(it, true) }
-        pos = tile.blockPos
+        inventoryPacket = tile.inventory
+        pos = tile.getBlockPos()
     }
 
     override fun write(buffer: FriendlyByteBuf) {
         buffer.writeBlockPos(pos)
-        buffer.writeNbt(state)
+        val nbt = CompoundTag()
+        ContainerHelper.saveAllItems(nbt, inventoryPacket)
+        buffer.writeNbt(nbt)
     }
 
     override fun handle(context: ClientNetworkContext) {
         context.enqueueWork {
-            val level = Minecraft.getInstance().level ?: return@enqueueWork
-            val blockEntity = level.getBlockEntity(pos) as? PhysicsInfuserBlockEntity ?: return@enqueueWork
-            blockEntity.read(state, true)
-            InfuserEffects.track(blockEntity)
+            if (Minecraft.getInstance().level != null && Minecraft.getInstance().level!!.getBlockEntity(
+                    pos
+                ) is PhysicsInfuserBlockEntity
+            ) {
+                val ce =
+                    Minecraft.getInstance().level!!.getBlockEntity(pos) as PhysicsInfuserBlockEntity?
+                if (ce != null) {
+                    ce.inventory = inventoryPacket
+                }
+            }
         }
         context.setPacketHandled(true)
     }

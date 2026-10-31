@@ -10,11 +10,7 @@ import net.minecraft.nbt.NbtUtils
 import net.minecraft.world.level.block.entity.BlockEntity
 import net.minecraft.world.level.block.entity.BlockEntityType
 import net.minecraft.world.level.block.state.BlockState
-import org.valkyrienskies.clockwork.ClockworkMod
-import org.valkyrienskies.clockwork.content.logistics.gas.duct.DuctBlockEntity
 import org.valkyrienskies.clockwork.util.kelvin.KNodeBlockEntity
-import org.valkyrienskies.clockwork.util.kelvin.KNodeKineticBlockEntity
-import org.valkyrienskies.kelvin.api.DuctNetwork
 import org.valkyrienskies.kelvin.api.DuctNodePos
 import org.valkyrienskies.kelvin.util.KelvinExtensions.toDuctNodePos
 
@@ -81,67 +77,10 @@ class DuctTankBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: BlockS
         if (!isController) return
 
 
-        preserveContents { ConnectivityHandler.formMulti(this) }
-    }
-
-    internal fun preserveContents(update: () -> Unit) {
-        val level = level ?: return
-        if (level.isClientSide) {
-            update()
-            return
-        }
-        preserveContents(ClockworkMod.getKelvin(level), update)
-    }
-
-    internal fun preserveContents(network: DuctNetwork<*>, update: () -> Unit) {
-        val level = level ?: return
-        if (contentTransfer.get() != null) {
-            captureContents()
-            update()
-            return
-        }
-
-        val transfer = DuctTankContentTransfer(network)
-        contentTransfer.set(transfer)
-        try {
-            captureContents()
-            update()
-        } finally {
-            contentTransfer.remove()
-            transfer.restore { pos ->
-                val part = level.getBlockEntity(pos) as? DuctTankBlockEntity
-                part?.getDuctNodePosition()
-            }
-        }
-    }
-
-    private fun captureContents() {
-        val transfer = contentTransfer.get() ?: return
-        if (transfer.hasCaptured(blockPos)) return
-        val owner = getControllerBE<DuctTankBlockEntity>() ?: return
-        if (transfer.hasCaptured(owner.blockPos)) return
-
-        // A loaded controller can be resized before its first lazy tick restores NBT.
-        owner.dataToLoad?.let {
-            val ownerLevel = owner.level ?: return
-            if (ClockworkMod.getKelvin(ownerLevel).getNodeAt(owner.getDuctNodePosition()) == null) {
-                (owner.blockState.block as? DuctTankBlock)?.nodePlace(
-                    owner.blockState, ownerLevel, owner.blockPos, owner.blockState, false
-                )
-            }
-            owner.loadData(it, owner.getDuctNodePosition())
-            owner.dataToLoad = null
-        }
-        val members = BlockPos.betweenClosed(
-            owner.blockPos, owner.blockPos.offset(owner.width - 1, owner.height - 1, owner.width - 1)
-        ).map { it.immutable() }
-        transfer.capture(owner.getDuctNodePosition(), members)
+        ConnectivityHandler.formMulti(this)
     }
 
     override fun notifyMultiUpdated() {
-        // Create can elect a different singleton as controller without calling
-        // setController/removeController on it. Capture it before replacing its node.
-        captureContents()
         var state = blockState
         if (state.block is DuctTankBlock) { // safety
             state = state.setValue(DuctTankBlock.BOTTOM, controller!!.y == blockPos.y)
@@ -152,18 +91,6 @@ class DuctTankBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: BlockS
             (blockState.block as? DuctTankBlock)?.nodeRemove(blockState, level!!, blockPos, blockState, false)
             if (isController) {
                 (blockState.block as? DuctTankBlock)?.nodePlace(blockState, level!!, blockPos, blockState, false)
-            }
-
-            if (!level!!.isClientSide) {
-                // Every member can have ducts attached. Defer rebuilding their edges until
-                // formation/splitting has finished assigning controllers and replacing nodes.
-                for (direction in Direction.entries) {
-                    when (val neighbor = level!!.getBlockEntity(blockPos.relative(direction))) {
-                        is DuctBlockEntity -> neighbor.shouldUpdateEdges = true
-                        is KNodeBlockEntity -> neighbor.queueConnectionRefresh()
-                        is KNodeKineticBlockEntity -> neighbor.queueConnectionRefresh()
-                    }
-                }
             }
         }
 
@@ -201,7 +128,6 @@ class DuctTankBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: BlockS
     }
 
     override fun setController(pos: BlockPos?) {
-        captureContents()
         controllerCT = pos
         notifyUpdate()
         setChanged()
@@ -210,8 +136,6 @@ class DuctTankBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: BlockS
 
     override fun removeController(keepContents: Boolean) {
         if (level!!.isClientSide) return
-
-        if (keepContents) captureContents()
 
         if (isController) (blockState.block as? DuctTankBlock)?.nodeRemove(blockState, level!!, blockPos, blockState, false)
 
@@ -257,8 +181,4 @@ class DuctTankBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: BlockS
     override fun setHeight(height: Int) { this.heightCT = height }
     override fun getWidth(): Int = widthCT
     override fun setWidth(width: Int) { this.widthCT = width }
-
-    companion object {
-        private val contentTransfer = ThreadLocal<DuctTankContentTransfer>()
-    }
 }

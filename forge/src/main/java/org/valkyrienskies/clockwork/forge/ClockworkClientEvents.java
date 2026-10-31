@@ -7,6 +7,7 @@ import net.createmod.catnip.render.DefaultSuperRenderTypeBuffer;
 import net.createmod.catnip.render.SuperRenderTypeBuffer;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
+import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.client.event.InputEvent;
 import net.minecraftforge.client.event.RenderLevelStageEvent;
@@ -49,6 +50,10 @@ public class ClockworkClientEvents {
         ms.pushPose();
         SuperRenderTypeBuffer buffer = DefaultSuperRenderTypeBuffer.getInstance();
         float partialTicks = AnimationTickHolder.getPartialTicks();
+        Vec3 camera = Minecraft.getInstance().gameRenderer.getMainCamera()
+                .getPosition();
+
+        ClockworkModClient.getWANDERWAND_EFFECT_RENDERER().render(ms, DefaultSuperRenderTypeBuffer.getInstance(), camera, partialTicks);
         LightningRenderer.INSTANCE.onRenderLevelStage(ms, partialTicks);
 
         buffer.draw();

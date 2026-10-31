@@ -1,272 +1,455 @@
 package org.valkyrienskies.clockwork.content.contraptions.phys.infuser
 
+
+import com.simibubi.create.content.contraptions.AssemblyException
 import com.simibubi.create.foundation.blockEntity.SmartBlockEntity
 import com.simibubi.create.foundation.blockEntity.behaviour.BlockEntityBehaviour
+import net.createmod.catnip.animation.LerpedFloat
+import net.minecraft.client.Minecraft
 import net.minecraft.core.BlockPos
 import net.minecraft.core.Direction
 import net.minecraft.core.NonNullList
 import net.minecraft.nbt.CompoundTag
-import net.minecraft.nbt.ListTag
-import net.minecraft.nbt.Tag
-import net.minecraft.network.chat.Component
-import net.minecraft.resources.ResourceLocation
 import net.minecraft.server.level.ServerLevel
-import net.minecraft.server.level.ServerPlayer
+import net.minecraft.util.Mth
+import net.minecraft.util.RandomSource
 import net.minecraft.world.ContainerHelper
 import net.minecraft.world.WorldlyContainer
 import net.minecraft.world.entity.item.ItemEntity
 import net.minecraft.world.entity.player.Player
 import net.minecraft.world.item.ItemStack
+import net.minecraft.world.level.Level
 import net.minecraft.world.level.block.entity.BlockEntityType
 import net.minecraft.world.level.block.state.BlockState
 import net.minecraft.world.phys.Vec3
+import org.joml.Vector3d
 import org.valkyrienskies.clockwork.ClockworkConfig
-import org.valkyrienskies.clockwork.ClockworkMod
 import org.valkyrienskies.clockwork.ClockworkPackets
 import org.valkyrienskies.clockwork.ClockworkSounds
+import org.valkyrienskies.clockwork.client.render.scanner.ScannerRenderer
+import org.valkyrienskies.clockwork.content.contraptions.phys.infuser.PhysicsInfuserRenderer.Companion.SCAN_GROWTH_DURATION
 import org.valkyrienskies.clockwork.content.curiosities.tools.wanderwand.WanderwandItem
-import org.valkyrienskies.clockwork.content.curiosities.tools.wanderwand.WandSelectionMath
+import org.valkyrienskies.clockwork.util.ClockworkConstants
+//import org.valkyrienskies.clockwork.util.ClockworkUtils.assembleFromBlockSet
+//import org.valkyrienskies.clockwork.util.ClockworkUtils.assembleFromDenseBlockSet
+import org.valkyrienskies.clockwork.util.EaseHelper.easeInBounce
+import org.valkyrienskies.core.api.ships.ClientShip
+import org.valkyrienskies.core.api.ships.Ship
 import org.valkyrienskies.mod.common.assembly.ShipAssembler
-import org.valkyrienskies.mod.common.getLoadedShipManagingPos
-import java.util.UUID
-import kotlin.math.roundToInt
+import org.valkyrienskies.mod.common.getShipObjectManagingPos
+import org.valkyrienskies.mod.common.util.toJOMLD
+import org.valkyrienskies.mod.common.util.toMinecraft
+import java.util.*
+import kotlin.collections.HashSet
 
 class PhysicsInfuserBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: BlockState?) :
     SmartBlockEntity(type, pos, state), WorldlyContainer {
-    var inventory: NonNullList<ItemStack> = NonNullList.withSize(1, ItemStack.EMPTY)
-    var sequence: InfuserSequence? = null
+    private val thisposition = worldPosition.toJOMLD().toMinecraft()
+    var isAssembled = false
+    var assembling = false
+    var disassembling = false
+    var animationType: Animation? = Animation.IDLE
+    var assemblyProgress = LerpedFloat.linear()
+    var disassemblyProgress = LerpedFloat.linear()
+    var idleProgress = LerpedFloat.linear()
+    protected var lastException: AssemblyException? = null
+    var skippingAssembly = false
+    var coreAngle = 0f
+    var previousCoreAngle = 0f
+    var useCooldown = 0
+    var onCooldown = false
+    var initPlayed = false
+    var connectedShip: Ship? = null
         private set
-    var regions: List<InfuserRegion> = emptyList()
-        private set
-    var selection = CompoundTag()
-        private set
-    var impacted = false
-        private set
-    private var completed = true
-    private var powered = false
-    private var initiator: UUID? = null
-    private var planned: List<Set<BlockPos>> = emptyList()
-    val assembling get() = sequence != null && !completed
+    private val createdShips: MutableSet<Ship> = HashSet()
+    private var sendAnimationUpdate = false
+    private var launchForce = 0
+    var shouldEjectDesignator = false
+    var inventory = NonNullList.withSize(1, ItemStack.EMPTY)
 
-    override fun addBehaviours(behaviours: MutableList<BlockEntityBehaviour>) = Unit
-    override fun getSlotsForFace(side: Direction) = intArrayOf()
-    override fun canPlaceItemThroughFace(index: Int, stack: ItemStack, direction: Direction?) = false
-    override fun canTakeItemThroughFace(index: Int, stack: ItemStack, direction: Direction) = !assembling
-    override fun getContainerSize() = 1
-    override fun isEmpty() = inventory[0].isEmpty
-    override fun getItem(slot: Int): ItemStack = inventory[0]
-    override fun removeItem(slot: Int, amount: Int): ItemStack {
-        if (assembling) return ItemStack.EMPTY
-        return ContainerHelper.removeItem(inventory, slot, amount).also { if (!it.isEmpty) setChanged() }
-    }
-    override fun removeItemNoUpdate(slot: Int): ItemStack =
-        if (assembling) ItemStack.EMPTY else ContainerHelper.takeItem(inventory, slot)
-    override fun setItem(slot: Int, stack: ItemStack) {
-        if (assembling) return
-        inventory[slot] = stack
-        setChanged()
-    }
-    override fun stillValid(player: Player) = level?.getBlockEntity(worldPosition) === this &&
-        player.distanceToSqr(Vec3.atCenterOf(worldPosition)) <= 64.0
-    override fun clearContent() {
-        inventory[0] = ItemStack.EMPTY
-        setChanged()
-    }
-    override fun setChanged() {
-        super.setChanged()
-        if (level is ServerLevel) {
-            sendData()
-            ClockworkPackets.sendToNear(level, worldPosition, 128, PhysicsInfuserSyncPacket(this))
-        }
+    override fun getSlotsForFace(side: Direction): IntArray {
+        return IntArray(0)
     }
 
-    fun redstoneChanged() {
-        val world = level as? ServerLevel ?: return
-        val signal = world.hasNeighborSignal(worldPosition)
-        val rising = signal && !powered
-        powered = signal
-        super.setChanged()
-        if (rising) startAssembly(null)
+    override fun canPlaceItemThroughFace(index: Int, itemStack: ItemStack, direction: Direction?): Boolean {
+        return false //itemStack.item is WanderWandItem
     }
 
-    fun startAssembly(player: ServerPlayer?): Boolean {
-        val world = level as? ServerLevel ?: return false
-        if (assembling) return false
-        val previous = sequence
-        if (previous != null && previous.age(world.gameTime) < previous.settled + 20) return false
-        fun fail(key: String): Boolean {
-            player?.displayClientMessage(Component.translatable("message.vs_clockwork.infuser.$key"), true)
-            return false
-        }
-        val wand = inventory[0]
-        if (wand.item !is WanderwandItem) return false
-        val tag = wand.tag ?: return fail("empty")
-        if (tag.contains("selectionDimension") && tag.getString("selectionDimension") != world.dimension().location().toString())
-            return fail("dimension")
-        val selected = tag.getCompound("selectedBlocks")
-        val boxes = WanderwandItem.readAABBSetFromNBT(selected)
-        if (boxes.isEmpty()) return fail("empty")
-        if (boxes.sumOf { WandSelectionMath.volume(it) } > 100000) return fail("large")
-        for (box in boxes) {
-            if (box.minY() < world.minBuildHeight || box.maxY() > world.maxBuildHeight) return fail("unloaded")
-            for (x in (box.minX() shr 4)..((box.maxX() - 1) shr 4))
-                for (z in (box.minZ() shr 4)..((box.maxZ() - 1) shr 4))
-                    if (!world.hasChunk(x, z)) return fail("unloaded")
-        }
-        val components = WanderwandItem.findIsolatedComponents(boxes, world)
-            .filter { component -> component.isNotEmpty() && component.none {
-                it == worldPosition || ClockworkConfig.SERVER.blockBlacklist.contains(world.getBlockState(it).block.descriptionId)
-            } }
-            .sortedWith(compareBy<Set<BlockPos>> { set -> set.minOf { it.distSqr(worldPosition) } }
-                .thenBy { set -> set.minOf { it.asLong() } })
-        if (components.isEmpty()) return fail("empty")
-        if (components.size > 128) return fail("regions")
-        planned = components
-        regions = components.map { component -> InfuserRegion(component.minWith(compareBy<BlockPos> {
-            it.distSqr(worldPosition)
-        }.thenBy { it.asLong() })) }
-        selection = selected.copy()
-        initiator = player?.uuid
-        sequence = InfuserSequence(world.gameTime, player?.let { InfuserProgress.get(world).activate(it.uuid) } ?: false)
-        impacted = false
-        completed = false
-        ClockworkSounds.PHYSICS_INFUSER_INITIALIZE.play(world, null, soundPosition(world), 0.95f, 1f)
-        setChanged()
+    override fun canTakeItemThroughFace(index: Int, stack: ItemStack, direction: Direction): Boolean {
         return true
     }
 
-    fun skipAssembly() {
-        val world = level as? ServerLevel ?: return
-        if (sequence?.skip(world.gameTime) == true) {
-            ClockworkSounds.WAND_WELD.play(world, null, soundPosition(world), 0.8f, 0.8f)
-            setChanged()
-        }
+    override fun getContainerSize(): Int {
+        return 1
+    }
+
+    override fun isEmpty(): Boolean {
+        return inventory[0].isEmpty
+    }
+
+    override fun getItem(slot: Int): ItemStack {
+        return inventory[0]
+    }
+
+    override fun removeItem(slot: Int, amount: Int): ItemStack {
+        return inventory.removeAt(0)
+    }
+
+    override fun removeItemNoUpdate(slot: Int): ItemStack {
+        return inventory.removeAt(0)
+    }
+
+    override fun setItem(slot: Int, stack: ItemStack) {
+        inventory[0] = stack
+    }
+
+    override fun setChanged() {
+        ClockworkPackets.sendToNear(getLevel(), worldPosition, 64, PhysicsInfuserSyncPacket(this))
+        super.setChanged()
+    }
+
+    override fun stillValid(player: Player): Boolean {
+        return true
+    }
+
+    override fun clearContent() {
+        inventory[0] = ItemStack.EMPTY
     }
 
     override fun tick() {
         super.tick()
-        val world = level ?: return
-        if (world.isClientSide) {
-            InfuserEffects.track(this)
-            return
-        }
-        world as ServerLevel
-        val animation = sequence ?: return
-        if (completed) return
-        val age = animation.age(world.gameTime).toInt()
-        val center = Vec3.atCenterOf(worldPosition)
-        val soundCenter = soundPosition(world)
-        if (age < animation.impact && age % (if (age < 50) 12 else 25) == 0)
-            ClockworkSounds.PHYSICS_INFUSER_LIGHTNING.play(world, null, soundCenter, 0.6f, 1f + world.random.nextFloat() * 0.4f)
-        if (age == (if (animation.firstUse) 48 else 16))
-            ClockworkSounds.WAND_START.play(world, null, soundCenter, 0.8f, 0.85f)
-        val connection = regions.indices.firstOrNull {
-            kotlin.math.ceil(animation.connection(it, regions.size) + InfuserVisuals.BEAM_FLIGHT).toInt() == age
-        }
-        if (connection != null && age < animation.impact) {
-            ClockworkSounds.WAND_FINISH.play(world, null, soundCenter, 0.85f, 1.0f + connection.toFloat() / regions.size * 0.4f)
-            ClockworkSounds.PHYSICS_INFUSER_LIGHTNING.play(world, null, Vec3.atCenterOf(regions[connection].seed), 0.65f, 1.3f)
-        }
-        if (age == (animation.impact - InfuserVisuals.collapseDuration(animation)).toInt())
-            ClockworkSounds.WAND_WELD.play(world, null, soundCenter, 1f, 0.75f)
-        if (animation.shouldImpact(world.gameTime, impacted)) {
-            impacted = true
-            assemble(world)
-            ClockworkSounds.PHYSICS_INFUSER_FINISH.play(world, null, soundCenter, 1.25f, 0.9f)
-            ClockworkSounds.WAND_FINISH.play(world, null, soundCenter, 0.8f, 0.7f)
-            if (regions.any { it.shipId >= 0 }) {
-                val player = initiator?.let { world.server.playerList.getPlayer(it) }
-                val advancement = world.server.advancements.getAdvancement(ResourceLocation("vs_clockwork", "infuser/awakening"))
-                if (player != null && advancement != null) player.advancements.award(advancement, "activate")
-            }
-            planned = emptyList()
-            setChanged()
-        }
-        if (age >= animation.settled) {
-            completed = true
-            if (!inventory[0].isEmpty) {
-                val item = ItemEntity(world, center.x, center.y + 0.65, center.z, inventory[0])
-                inventory[0] = ItemStack.EMPTY
-                item.deltaMovement = Vec3(0.0, 0.18, 0.0)
-                item.setDefaultPickUpDelay()
-                world.addFreshEntity(item)
-            }
-            setChanged()
-        }
-    }
+        if (level == null) return
+        if (shouldEjectDesignator) {
+            shouldEjectDesignator = false
+            if (inventory[0].isEmpty) return
 
-    private fun soundPosition(world: ServerLevel): Vec3 {
-        val point = org.joml.Vector3d(worldPosition.x + 0.5, worldPosition.y + 0.5, worldPosition.z + 0.5)
-        world.getLoadedShipManagingPos(worldPosition)?.shipToWorld?.transformPosition(point)
-        return Vec3(point.x, point.y, point.z)
-    }
+            val ejected = ItemEntity(
+                level, blockPos.x.toDouble(), (blockPos.y + 1).toDouble(), blockPos.z.toDouble(),
+                inventory[0]
+            )
 
-    private fun assemble(world: ServerLevel) {
-        for ((index, original) in planned.withIndex()) {
-            if (original.any { !world.hasChunkAt(it) }) continue
-            val blocks = original.filterTo(hashSetOf()) { !world.getBlockState(it).isAir }
-            if (blocks.isEmpty() || blocks.any {
-                    ClockworkConfig.SERVER.blockBlacklist.contains(world.getBlockState(it).block.descriptionId)
-                }) continue
-            try {
-                val sourceCenter = org.joml.Vector3d(
-                    (blocks.minOf { it.x }.toDouble() + blocks.maxOf { it.x } + 1) / 2,
-                    (blocks.minOf { it.y }.toDouble() + blocks.maxOf { it.y } + 1) / 2,
-                    (blocks.minOf { it.z }.toDouble() + blocks.maxOf { it.z } + 1) / 2)
-                val result = ShipAssembler.assembleToShipFull(world, blocks, 1.0)
-                val shift = result.toCenter.sub(sourceCenter, org.joml.Vector3d())
-                regions[index].shipId = result.ship.id
-                regions[index].offset = BlockPos(shift.x.roundToInt(), shift.y.roundToInt(), shift.z.roundToInt())
-            } catch (error: Throwable) {
-                // The assembler reports an unsuccessful block transfer with AssertionError.
-                if (error !is Exception && error !is AssertionError) throw error
-                ClockworkMod.LOGGER.error("Infuser assembly failed at {}", worldPosition, error)
-                initiator?.let { world.server.playerList.getPlayer(it) }?.displayClientMessage(
-                    Component.translatable("message.vs_clockwork.infuser.failed"), false)
+            inventory[0] = ItemStack.EMPTY
+            ejected.deltaMovement = Vec3(0.0, launchForce.toDouble() / 10.0, 0.0)
+            level!!.addFreshEntity(ejected)
+        }
+        if (level is ServerLevel) {
+            connectedShip = level.getShipObjectManagingPos(worldPosition)
+        }
+        if (useCooldown > 0) {
+            onCooldown = true
+            useCooldown--
+        }
+        if (useCooldown == 0) {
+            onCooldown = false
+        }
+        if (animationType == null) {
+            animationType = Animation.IDLE
+        }
+        if (animationType == Animation.IDLE) {
+            startAnimation(Animation.IDLE)
+        }
+        if (assembling) {
+            assemblyProgress.setValue((assemblyProgress.value + 1).toDouble())
+        }
+        //        if (disassembling) {
+//            disassemblyProgress.setValue(disassemblyProgress.getValue() + 1);
+//        }
+        val rand = level!!.getRandom()
+        //client sounds
+        if (assembling) {
+            if (skippingAssembly && assemblyProgress.value < 455) assemblyProgress.setValue(455.0)
+
+            if (assemblyProgress.value == 0f) {
+                playInitializeSound(level!!, thisposition)
+            }
+            if (assemblyProgress.value == 100f) {
+                playWindupSound(level!!, thisposition)
+            }
+            if (assemblyProgress.value == 160f || assemblyProgress.value == 220f || assemblyProgress.value == 240f || assemblyProgress.value == 300f || assemblyProgress.value == 320f || assemblyProgress.value == 360f || assemblyProgress.value == 400f || assemblyProgress.value == 410f || assemblyProgress.value == 420f) {
+                playZapSound(level!!, thisposition, rand)
+            }
+            if (assemblyProgress.value == 455f) {
+                assemble()
+            }
+            if (assemblyProgress.value == 460f) {
+                playFinishSound(level!!, thisposition)
+                if (level!!.isClientSide) {
+                    for (cship in createdShips) {
+                        ScannerRenderer.INSTANCE.ping(cship as ClientShip, thisposition, this)
+                        createdShips.remove(cship)
+                    }
+                }
+            }
+            if (assemblyProgress.value == 500f) {
+                resetAfterAssemble()
             }
         }
     }
 
-    public override fun write(tag: CompoundTag, clientPacket: Boolean) {
-        super.write(tag, clientPacket)
-        ContainerHelper.saveAllItems(tag, inventory)
-        tag.putBoolean("Powered", powered)
-        tag.putBoolean("Impacted", impacted)
-        tag.putBoolean("Completed", completed)
-        initiator?.let { tag.putUUID("Initiator", it) }
-        sequence?.let { animation ->
-            tag.put("Sequence", CompoundTag().also {
-                it.putLong("Start", animation.startedAt); it.putBoolean("First", animation.firstUse)
-                it.putInt("Skip", animation.skippedAt)
-            })
-        }
-        tag.put("Selection", selection)
-        tag.put("Regions", ListTag().also { list -> regions.forEach { list.add(it.save()) } })
-        if (!clientPacket) tag.put("Planned", ListTag().also { list -> planned.forEach { blocks ->
-            list.add(CompoundTag().also { it.putLongArray("Blocks", blocks.map(BlockPos::asLong)) })
-        } })
+    private fun resetAfterAssemble() {
+//        isAssembled = true;
+        assembling = false
+        skippingAssembly = false
+        initPlayed = false
+        animationType = Animation.IDLE
+        startAnimation(Animation.IDLE)
+        assemblyProgress.startWithValue(0.0)
+        useCooldown = 400
+        shouldEjectDesignator = true
     }
 
-    public override fun read(tag: CompoundTag, clientPacket: Boolean) {
-        super.read(tag, clientPacket)
-        inventory = NonNullList.withSize(1, ItemStack.EMPTY)
-        ContainerHelper.loadAllItems(tag, inventory)
-        powered = tag.getBoolean("Powered")
-        impacted = tag.getBoolean("Impacted")
-        completed = !tag.contains("Sequence") || tag.getBoolean("Completed")
-        initiator = if (tag.hasUUID("Initiator")) tag.getUUID("Initiator") else null
-        sequence = if (tag.contains("Sequence")) tag.getCompound("Sequence").let {
-            InfuserSequence(it.getLong("Start"), it.getBoolean("First"), it.getInt("Skip"))
-        } else null
-        selection = tag.getCompound("Selection")
-        regions = tag.getList("Regions", Tag.TAG_COMPOUND.toInt()).map { InfuserRegion.load(it as CompoundTag) }
-        if (!clientPacket) planned = tag.getList("Planned", Tag.TAG_COMPOUND.toInt()).map {
-            (it as CompoundTag).getLongArray("Blocks").mapTo(hashSetOf(), BlockPos::of)
-        }
+    //Ship Assembly Handlers
+    fun startAssembly() {
+        assembling = true
+        animationType = Animation.ASSEMBLY
+        startAnimation(Animation.ASSEMBLY)
     }
 
-    val pulseRange get() = 64.0
-    val scanGrowthDuration get() = 2000
-    fun computeRadius(start: Long, duration: Float) =
-        (64f * ((System.currentTimeMillis() - start) / duration).coerceIn(0f, 1f))
+    fun skipAssembly() {
+        skippingAssembly = true
+
+    }
+
+    fun startDisassembly() {
+        disassembling = true
+        animationType = Animation.DISASSEMBLY
+        startAnimation(Animation.DISASSEMBLY)
+    }
+
+    val pulseRange: Double
+        get() = if (connectedShip != null) {
+            val shipAABB = connectedShip!!.shipAABB
+            val max = Vector3d(
+                shipAABB!!.maxX().toDouble(),
+                shipAABB.maxY().toDouble(),
+                shipAABB.maxZ().toDouble()
+            )
+            val min = Vector3d(
+                shipAABB.minX().toDouble(),
+                shipAABB.minY().toDouble(),
+                shipAABB.minZ().toDouble()
+            )
+            max.distance(min)
+        } else {
+            Minecraft.getInstance().gameRenderer.renderDistance.toDouble()
+        }
+    val scanGrowthDuration: Int
+        //Animation Jargon
+        get() {
+            if (connectedShip != null) {
+                val range = pulseRange
+                return SCAN_GROWTH_DURATION * range.toInt() / 12
+            }
+            return SCAN_GROWTH_DURATION * (Minecraft.getInstance().options.renderDistance().get() / 12)
+        }
+
+    fun computeRadius(start: Long, duration: Float): Float {
+        // Scan wave speeds up exponentially. To avoid the initial speed being
+        // near zero due to that we offset the time and adjust the remaining
+        // parameters accordingly. Base equation is:
+        //   r = a + (t + b)^2 * c
+        // with r := 0 and target radius and t := 0 and target time this yields:
+        //   c = r1/((t1 + b)^2 - b*b)
+        //   a = -r1*b*b/((t1 + b)^2 - b*b)
+        val r1 = pulseRange.toFloat()
+        val b = 200f
+        val n = 1f / ((duration + b) * (duration + b) - b * b)
+        val a = -r1 * b * b * n
+        val c = r1 * n
+        val t = (System.currentTimeMillis() - start).toFloat()
+        return 10 + a + (t + b) * (t + b) * c
+    }
+
+    fun assemble() {
+        if (level!!.isClientSide) return
+        if (inventory[0].item !is WanderwandItem) return
+        val item = inventory[0]
+        val selectedTag = item.tag?.get("selectedBlocks") as? CompoundTag ?: return
+        val blockposSet = WanderwandItem.readAABBSetFromNBT(selectedTag)
+
+        launchForce = 0
+        for (component in WanderwandItem.findIsolatedComponents(blockposSet, level!!)) {
+
+            if (component.firstOrNull { pos -> !level!!.getBlockState(pos).isAir } == null) continue
+            if (component.any { ClockworkConfig.SERVER.blockBlacklist.contains(level!!.getBlockState(it).block.descriptionId) } ) continue
+
+            launchForce++
+
+            //assembleFromBlockSet(level as ServerLevel, component, false)
+            ShipAssembler.assembleToShip(level as ServerLevel, component, 1.0)
+        }
+
+
+//        item.selectedArea.selectionClusters.run clusters@{
+//            item.selectedArea.selectionClusters.forEach { cluster ->
+//                val selection: DenseBlockPosSet
+//                val caughtEntities: Set<Entity>
+//                if (level is ServerLevel)
+//                    val serverLevel = level as ServerLevel
+//                    selection = SelectedAreaToolkit.denseBlocksFromCluster(cluster)
+//                    caughtEntities = SelectedAreaToolkit.entitiesFromCluster(cluster, (level as ServerLevel))
+//                    if (selection == null) return@forEach
+//
+//                    var bl = false
+//
+//                    selection.run loop@{
+//                        selection.forEach { x, y, z ->
+//                            val it =serverLevel.getBlockState(BlockPos(x, y, z))
+//                            if (!it.isAir && !) {
+//                                bl = true
+//                                return@loop
+//                            }
+//                        }
+//                    }
+//
+//                    if (!bl) {
+//                        return@forEach
+//                    }
+//
+//                    connectedShip = createNewShipWithBlocks(worldPosition, selection, level as ServerLevel)
+//                    // TODO: relocate entities properly cause it barely works
+//                    if (caughtEntities != null) {
+//                        caughtEntities.forEach(Consumer { entity: Entity ->
+//                            if (entity is AbstractContraptionEntity || entity is SuperGlueEntity || entity is SeatEntity) {
+//                                if (entity !is SuperGlueEntity) {
+//                                    val oldPos: Vector3dc = entity.position().toJOML()
+//                                    val newPos: Vector3dc =
+//                                        connectedShip!!.transform.worldToShip.transformPosition(oldPos, Vector3d())
+//                                    entity.moveTo(newPos.toMinecraft())
+//                                } else {
+//                                    val glueEntity = entity
+//                                    val oldBounds = glueEntity.boundingBox
+//                                    val oldMax: Vector3dc = Vector3d(oldBounds.maxX, oldBounds.maxY, oldBounds.maxZ)
+//                                    val oldMin: Vector3dc = Vector3d(oldBounds.minX, oldBounds.minY, oldBounds.minZ)
+//                                    val newMax: Vector3dc =
+//                                        connectedShip!!.transform.worldToShip.transformPosition(oldMax, Vector3d())
+//                                    val newMin: Vector3dc =
+//                                        connectedShip!!.transform.worldToShip.transformPosition(oldMin, Vector3d())
+//                                    val newBounds =
+//                                        AABB(newMin.x(), newMin.y(), newMin.z(), newMax.x(), newMax.y(), newMax.z())
+//                                    glueEntity.boundingBox = newBounds
+//                                    glueEntity.resetPositionToBB()
+//                                }
+//                            }
+//                        })
+//                    }
+//                    createdShips.add(connectedShip!!)
+//                }
+//                toDump.add(cluster)
+//            }
+//        }
+
+    }
+
+    fun disassemble() {}
+
+    fun startAnimation(animation: Animation) {
+        animationType = animation
+        if (animation == Animation.ASSEMBLY) {
+            assemblyProgress.startWithValue(0.0)
+        } else if (animation == Animation.DISASSEMBLY) {
+            disassemblyProgress.startWithValue(0.0)
+        } else if (animation == Animation.IDLE) {
+            idleProgress.startWithValue(0.0)
+        }
+        sendAnimationUpdate = true
+        sendData()
+    }
+
+    fun getInterpolatedCoreAngle(partialTicks: Float): Float {
+        previousCoreAngle = coreAngle
+        coreAngle++
+        if (coreAngle == 360f) {
+            coreAngle = 0f
+        }
+        return if (isVirtual) Mth.lerp(partialTicks + .5f, previousCoreAngle, coreAngle) else Mth.lerp(
+            partialTicks,
+            coreAngle,
+            coreAngle + 4f
+        )
+    }
+
+    fun getCoreOffset(partialTicks: Float): Float {
+        if (animationType == Animation.IDLE) {
+            return 0f
+        } else if (animationType == Animation.ASSEMBLY) {
+            val runningTicks = Math.abs(assemblyProgress.value).toInt()
+            val prevRunningTicks = Math.abs(assemblyProgress.value - 1).toInt()
+            val ticks = Mth.lerp(partialTicks, prevRunningTicks.toFloat(), runningTicks.toFloat())
+            return if (runningTicks < ASSEMBLY_TIME * 3 / 4) {
+                Mth.clamp(Math.pow((ticks / ASSEMBLY_TIME * 3).toDouble(), 4.0), 0.0, 1.0).toFloat()
+            } else {
+                Mth.clamp(easeInBounce(Mth.clamp((ASSEMBLY_TIME - ticks) / ASSEMBLY_TIME * 8, 0f, 1f)), 0.0f, 1.0f)
+            }
+        } else if (animationType == Animation.DISASSEMBLY) {
+            return disassemblyProgress.getValue(partialTicks)
+        }
+        return 0f
+    }
+
+    public override fun write(compound: CompoundTag, clientPacket: Boolean) {
+        compound.putString(ClockworkConstants.Nbt.ANIMATION_STATE, animationType.toString())
+        compound.putFloat(ClockworkConstants.Nbt.ASSEMBLY_PROGRESS, assemblyProgress.value)
+        compound.putFloat(ClockworkConstants.Nbt.DISASSEMBLY_PROGRESS, disassemblyProgress.value)
+        compound.putFloat(ClockworkConstants.Nbt.IDLE_PROGRESS, idleProgress.value)
+        compound.putBoolean(ClockworkConstants.Nbt.IS_ASSEMBLED, isAssembled)
+        compound.putBoolean(ClockworkConstants.Nbt.ASSEMBLING, assembling)
+        compound.putBoolean(ClockworkConstants.Nbt.DISASSEMBLING, disassembling)
+        ContainerHelper.saveAllItems(compound, inventory)
+        super.write(compound, clientPacket)
+    }
+
+    //NBT stuff
+    override fun read(compound: CompoundTag, clientPacket: Boolean) {
+        animationType =
+            if (compound.getString(ClockworkConstants.Nbt.ANIMATION_STATE) == "ASSEMBLY") Animation.ASSEMBLY else if (compound.getString(ClockworkConstants.Nbt.ANIMATION_STATE) == "DISASSEMBLY") Animation.DISASSEMBLY else Animation.IDLE
+        assemblyProgress.setValueNoUpdate(compound.getFloat(ClockworkConstants.Nbt.ASSEMBLY_PROGRESS).toDouble())
+        disassemblyProgress.setValueNoUpdate(compound.getFloat(ClockworkConstants.Nbt.DISASSEMBLY_PROGRESS).toDouble())
+        idleProgress.setValueNoUpdate(compound.getFloat(ClockworkConstants.Nbt.IDLE_PROGRESS).toDouble())
+        isAssembled = compound.getBoolean(ClockworkConstants.Nbt.IS_ASSEMBLED)
+        assembling = compound.getBoolean(ClockworkConstants.Nbt.ASSEMBLING)
+        disassembling = compound.getBoolean(ClockworkConstants.Nbt.DISASSEMBLING)
+        inventory = NonNullList.withSize(this.containerSize, ItemStack.EMPTY)
+        ContainerHelper.loadAllItems(compound, inventory)
+        super.read(compound, clientPacket)
+    }
+
+    override fun addBehaviours(behaviours: List<BlockEntityBehaviour>) {}
+
+    //Create Behaviors
+    enum class Animation {
+        ASSEMBLY,
+        DISASSEMBLY,
+        IDLE
+    }
+
+    companion object {
+        const val ASSEMBLY_TIME = 500
+        const val DISASSEMBLY_TIME = 1000
+        fun playInitializeSound(world: Level, location: Vec3) {
+            ClockworkSounds.PHYSICS_INFUSER_INITIALIZE.playAt(world, location, 0.5f, 1f, false)
+        }
+
+        fun playWindupSound(world: Level, location: Vec3) {
+            ClockworkSounds.PHYSICS_INFUSER_WINDUP.playAt(world, location, 0.5f, 1f, false)
+        }
+
+        fun playZapSound(world: Level, location: Vec3, rand: RandomSource) {
+            val pitch = 0.6f + rand.nextFloat() * 0.4f
+            ClockworkSounds.PHYSICS_INFUSER_LIGHTNING.playAt(world, location, 0.5f, 1f, false)
+        }
+
+        fun playFinishSound(world: Level, location: Vec3) {
+            ClockworkSounds.PHYSICS_INFUSER_FINISH.playAt(world, location, 0.5f, 1f, false)
+        }
+
+        fun spawnParticlesAssembly(world: Level, pos: Vec3, rand: Random) {
+            val degrees = rand.nextDouble() * 360
+            val angle = Math.toRadians(degrees)
+            val radius = 2.0
+            val x = radius * Math.cos(angle)
+            val y = 0.5
+            val z = radius * Math.sin(angle)
+        }
+    }
 }

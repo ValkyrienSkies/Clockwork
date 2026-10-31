@@ -3,19 +3,18 @@ package org.valkyrienskies.clockwork.content.contraptions.phys.infuser
 
 import com.simibubi.create.foundation.block.IBE
 import net.minecraft.core.BlockPos
-import net.minecraft.server.level.ServerPlayer
-import net.minecraft.world.Containers
 import net.minecraft.world.InteractionHand
 import net.minecraft.world.InteractionResult
 import net.minecraft.world.entity.player.Player
 import net.minecraft.world.level.BlockGetter
 import net.minecraft.world.level.Level
 import net.minecraft.world.level.block.Block
-import net.minecraft.world.level.block.RenderShape
 import net.minecraft.world.level.block.entity.BlockEntityType
 import net.minecraft.world.level.block.state.BlockState
 import net.minecraft.world.phys.BlockHitResult
+import net.minecraft.world.phys.shapes.BooleanOp
 import net.minecraft.world.phys.shapes.CollisionContext
+import net.minecraft.world.phys.shapes.Shapes
 import net.minecraft.world.phys.shapes.VoxelShape
 import org.valkyrienskies.clockwork.ClockworkBlockEntities
 import org.valkyrienskies.clockwork.content.curiosities.tools.wanderwand.WanderwandItem
@@ -38,74 +37,41 @@ class PhysicsInfuserBlock(properties: Properties) : Block(properties),
         handIn: InteractionHand,
         hit: BlockHitResult
     ): InteractionResult {
+        if (worldIn.isClientSide) {
+            return InteractionResult.PASS
+        }
         if (!player.mayBuild()) return InteractionResult.FAIL
+        if (player.isShiftKeyDown) return InteractionResult.FAIL
+        if (player.getItemInHand(handIn).isEmpty) {
 
-        val blockEntity = worldIn.getBlockEntity(pos) as? PhysicsInfuserBlockEntity
-            ?: return InteractionResult.PASS
-
-        // 1. Lock interactions while assembling animation is active
-        if (blockEntity.assembling) {
-            if (!worldIn.isClientSide) blockEntity.skipAssembly()
-            return InteractionResult.sidedSuccess(worldIn.isClientSide)
-        }
-
-        val heldStack = player.getItemInHand(handIn)
-        val wandStack = blockEntity.inventory[0]
-        val hasWand = !wandStack.isEmpty
-        val isShift = player.isShiftKeyDown
-
-        // 2. Shift + Right Click: Remove Wand (if wand present)
-        if (isShift && hasWand) {
-            if (!worldIn.isClientSide) {
-                player.inventory.placeItemBackInInventory(wandStack.copy())
-                blockEntity.inventory[0] = net.minecraft.world.item.ItemStack.EMPTY
-                blockEntity.setChanged()
+            withBlockEntityDo(worldIn, pos) {
+                if (!it.assembling) it.startAssembly()
+                else it.skipAssembly()
             }
-            return InteractionResult.sidedSuccess(worldIn.isClientSide)
-        }
 
-        // 3. Right Click with WanderwandItem: Insert Wand (if empty)
-        if (heldStack.item is WanderwandItem && !hasWand) {
-            if (!worldIn.isClientSide) {
-                blockEntity.inventory[0] = heldStack.split(1)
-                blockEntity.setChanged()
+//            withBlockEntityDo(
+//                worldIn, pos
+//            ) { te: PhysicsInfuserBlockEntity? -> if (te!!.isAssembled && !te.assembling && !te.disassembling) te.startDisassembly() }
+//            withBlockEntityDo(
+//                worldIn, pos
+//            ) { te: PhysicsInfuserBlockEntity? -> if (!te!!.isAssembled && !te.assembling && !te.disassembling) te.startAssembly() }
+            return InteractionResult.SUCCESS
+
+        } else if (player.getItemInHand(handIn).item is WanderwandItem) {
+            if (worldIn.getBlockEntity(pos) != null) {
+                if (worldIn.getBlockEntity(pos) is PhysicsInfuserBlockEntity) {
+                    val te: PhysicsInfuserBlockEntity = worldIn.getBlockEntity(pos) as PhysicsInfuserBlockEntity
+                    return if (te.inventory[0].isEmpty) {
+                        te.inventory[0] = player.getItemInHand(handIn).copy()
+                        player.getItemInHand(handIn).shrink(1)
+                        InteractionResult.SUCCESS
+                    } else {
+                        InteractionResult.FAIL
+                    }
+                }
             }
-            return InteractionResult.sidedSuccess(worldIn.isClientSide)
         }
-
-        // 4. Right Click with Empty Hand: Start Assembly Sequence (if wand present)
-        if (hasWand && heldStack.isEmpty) {
-            if (!worldIn.isClientSide) {
-                blockEntity.startAssembly(player as? ServerPlayer)
-            }
-            return InteractionResult.sidedSuccess(worldIn.isClientSide)
-        }
-
         return InteractionResult.PASS
-    }
-
-    override fun neighborChanged(
-        state: BlockState,
-        level: Level,
-        pos: BlockPos,
-        neighborBlock: Block,
-        neighborPos: BlockPos,
-        movedByPiston: Boolean
-    ) {
-        super.neighborChanged(state, level, pos, neighborBlock, neighborPos, movedByPiston)
-        if (level.isClientSide) return
-        val blockEntity = level.getBlockEntity(pos) as? PhysicsInfuserBlockEntity ?: return
-        blockEntity.redstoneChanged()
-    }
-
-    override fun onRemove(state: BlockState, level: Level, pos: BlockPos, next: BlockState, moved: Boolean) {
-        if (!state.`is`(next.block)) {
-            if (!level.isClientSide && !moved) {
-                val be = level.getBlockEntity(pos) as? PhysicsInfuserBlockEntity
-                if (be != null) Containers.dropContents(level, pos, be)
-            }
-            super.onRemove(state, level, pos, next, moved)
-        }
     }
 
     // Voxelshape Hell
@@ -120,9 +86,6 @@ class PhysicsInfuserBlock(properties: Properties) : Block(properties),
     override fun getBlockEntityType(): BlockEntityType<out PhysicsInfuserBlockEntity> {
         return ClockworkBlockEntities.PHYSICS_INFUSER.get()
     }
-    override fun getRenderShape(state: BlockState): RenderShape {
-        return RenderShape.ENTITYBLOCK_ANIMATED
-    }
 
     companion object {
         private val SHAPE = makeShape()
@@ -131,7 +94,17 @@ class PhysicsInfuserBlock(properties: Properties) : Block(properties),
         }
 
         private fun makeShape(): VoxelShape {
-            return box(1.0,1.0,1.0,15.0,15.0,15.0)
+            var shape = Shapes.empty()
+            shape = Shapes.join(shape, box(0.0, 11.0, 0.0, 5.0, 16.0, 5.0), BooleanOp.OR)
+            shape = Shapes.join(shape, box(0.5, 0.5, 0.5, 15.5, 15.5, 15.5), BooleanOp.OR)
+            shape = Shapes.join(shape, box(0.0, 0.0, 0.0, 5.0, 5.0, 5.0), BooleanOp.OR)
+            shape = Shapes.join(shape, box(11.0, 0.0, 0.0, 16.0, 5.0, 5.0), BooleanOp.OR)
+            shape = Shapes.join(shape, box(11.0, 11.0, 0.0, 16.0, 16.0, 5.0), BooleanOp.OR)
+            shape = Shapes.join(shape, box(11.0, 11.0, 11.0, 16.0, 16.0, 16.0), BooleanOp.OR)
+            shape = Shapes.join(shape, box(11.0, 0.0, 11.0, 16.0, 5.0, 16.0), BooleanOp.OR)
+            shape = Shapes.join(shape, box(0.0, 0.0, 11.0, 5.0, 5.0, 16.0), BooleanOp.OR)
+            shape = Shapes.join(shape, box(0.0, 11.0, 11.0, 5.0, 16.0, 16.0), BooleanOp.OR)
+            return shape.optimize()
         }
     }
 }
