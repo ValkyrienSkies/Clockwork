@@ -1126,8 +1126,7 @@ class GimbalBearingBlockEntity(type: net.minecraft.world.level.block.entity.Bloc
     override fun getBlockPosition(): BlockPos = worldPosition
 
     private class ModeSlot : DirectionalExtenderScrollOptionSlot({ state, dir ->
-        val facingAxis = state.getValue(BearingBlock.FACING).axis
-        dir.axis != facingAxis && dir.axis != maxAngleAxisFor(facingAxis)
+        dir.axis != state.getValue(BearingBlock.FACING).axis
     }) {
         override fun getSouthLocation(): Vec3 {
             return VecHelper.voxelSpace(8.0, 8.0, 14.0)
@@ -1170,6 +1169,22 @@ class GimbalBearingBlockEntity(type: net.minecraft.world.level.block.entity.Bloc
     ) : ScrollValueBehaviour(label, be, slot) {
         override fun getType(): BehaviourType<*> = TYPE
         override fun netId(): Int = NET_ID
+
+        override fun isActive(): Boolean {
+            if (!super.isActive()) return false
+
+            // On the client, hide the box if the player is holding a wrench in either hand
+            val level = blockEntity.level
+            if (level != null && level.isClientSide) {
+                val player = net.minecraft.client.Minecraft.getInstance().player
+                if (player != null) {
+                    val isHoldingWrench = com.simibubi.create.AllTags.AllItemTags.WRENCH.matches(player.mainHandItem) ||
+                            com.simibubi.create.AllTags.AllItemTags.WRENCH.matches(player.offhandItem)
+                    if (isHoldingWrench) return false
+                }
+            }
+            return true
+        }
 
         override fun write(nbt: CompoundTag, clientPacket: Boolean) {
             nbt.putInt(NBT_KEY, value)

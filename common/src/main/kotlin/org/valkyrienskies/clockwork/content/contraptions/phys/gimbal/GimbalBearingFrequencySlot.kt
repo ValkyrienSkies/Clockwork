@@ -34,7 +34,7 @@ class GimbalBearingFrequencySlot(isFirst: Boolean, val front: Int) : ValueBoxTra
             .rotateYDegrees((1 - front) * 90f)
     }
 
-    override fun getScale(): Float = 0.5f
+    override fun getScale(): Float = 0.25f
 
     companion object {
         fun getSlotDirection(state: BlockState, front: Int): Direction {

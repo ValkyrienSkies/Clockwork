@@ -74,16 +74,6 @@ class GimbalBearingRenderer(context: BlockEntityRendererProvider.Context) : Smar
         applyModelPose(gimbal_top_attacher, platePose, PLATE_FACE_CENTER_MODEL)
 
         // The shaft ends up not quite aligned with connected shafts but I don't know how to fix it
-        RotateShaft(gimbal_top_shaft, be, angle)
-        RotateShaft(gimbal_top_attacher, be, angle)
-
-        gimbal_top_shaft.rotateCentered(AngleHelper.rad(180.0), Direction.Axis.X)
-        gimbal_top_attacher.rotateCentered(AngleHelper.rad(180.0), Direction.Axis.X)
-
-        gimbal_top_attacher.translate(0.0, 0.05, 0.0)
-
-        gimbal_top_shaft.renderInto(ms, vertexConsumer)
-        gimbal_top_attacher.renderInto(ms, vertexConsumer)
 
         for (i in 0..3) {
             val arm = CachedBuffers.partial(ClockworkPartials.GIMBAL_ARM, blockState).light<SuperByteBuffer>(light)
@@ -105,10 +95,19 @@ class GimbalBearingRenderer(context: BlockEntityRendererProvider.Context) : Smar
         rotateDirection(gimbal_shaft, be)
         RotateShaft(gimbal_attacher, be, angle)
         RotateShaft(gimbal_shaft, be, angle)
+        RotateShaft(gimbal_top_shaft, be, (angle)*(3/4))
+        RotateShaft(gimbal_top_attacher, be, angle)
+
+        gimbal_top_shaft.rotateCentered(AngleHelper.rad(180.0), Direction.Axis.X)
+        gimbal_top_attacher.rotateCentered(AngleHelper.rad(180.0), Direction.Axis.X)
+
+        gimbal_top_attacher.translate(0.0, 0.05, 0.0)
 
         gimbal_plate.renderInto(ms, vertexConsumer)
         gimbal_attacher.renderInto(ms, vertexConsumer)
         gimbal_shaft.renderInto(ms, vertexConsumer)
+        gimbal_top_shaft.renderInto(ms, vertexConsumer)
+        gimbal_top_attacher.renderInto(ms, vertexConsumer)
 
         //RENDER CRYSTAL MATRIX start
         val interpolatedAngle = be.getInterpolatedCoreAngle(AnimationTickHolder.getPartialTicks() - 1)

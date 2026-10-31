@@ -1,0 +1,33 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "show_notification": true,
+  "category": "misc",
+  "pattern": [
+    "ASA",
+    "NBN",
+    "IJI"
+  ],
+  "key": {
+    "A": {
+      "item": "create:andesite_alloy"
+    },
+    "S": {
+      "tag": "minecraft:wooden_slabs"
+    },
+    "N": {
+      "item": "minecraft:iron_nugget"
+    },
+    "I": {
+      "item": "minecraft:iron_ingot"
+    },
+    "J": {
+      "item": "vs_clockwork:universal_shaft"
+    },
+    "B": {
+      "item": "vs_clockwork:brass_propeller_bearing"
+    }
+  },
+  "result": {
+    "item": "vs_clockwork:copter_bearing"
+  }
+}
