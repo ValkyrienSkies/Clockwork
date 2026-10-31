@@ -74,9 +74,28 @@ class GasHeaterBlock(properties: Properties) : HorizontalDirectionalBlock(proper
         super.onPlace(state, level, pos, oldState, isMoving)
         nodePlace(state, level, pos, oldState, isMoving)
 
+        if (!level.isClientSide) {
+            withBlockEntityDo(level, pos) { it.refreshConnections(level, pos) }
+        }
+
         if (level.isClientSide) return
         val blockEntity = level.getBlockEntity(pos.above()) as? BasinBlockEntity? ?: return
         blockEntity.notifyChangeOfContents()
+    }
+
+    override fun neighborChanged(
+        state: BlockState,
+        level: Level,
+        pos: BlockPos,
+        neighborBlock: Block,
+        neighborPos: BlockPos,
+        movedByPiston: Boolean
+    ) {
+        super.neighborChanged(state, level, pos, neighborBlock, neighborPos, movedByPiston)
+        if (level.isClientSide) return
+
+        val direction = Direction.fromDelta(neighborPos.x - pos.x, neighborPos.y - pos.y, neighborPos.z - pos.z) ?: return
+        withBlockEntityDo(level, pos) { it.updateConnection(level, pos, direction) }
     }
 
     override fun onRemove(state: BlockState, level: Level, pos: BlockPos, newState: BlockState, isMoving: Boolean) {

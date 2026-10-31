@@ -12,13 +12,14 @@ import net.minecraft.world.level.block.state.BlockState
 import org.valkyrienskies.clockwork.ClockworkConfig
 import org.valkyrienskies.clockwork.ClockworkLang
 import org.valkyrienskies.clockwork.ClockworkMod
+import org.valkyrienskies.clockwork.content.logistics.gas.IConnectable
 import org.valkyrienskies.clockwork.util.kelvin.KNodeBlockEntity
 import org.valkyrienskies.clockwork.util.gui.ClockworkTooltipHelper
 import org.valkyrienskies.clockwork.util.gui.DuctTextUtil
 import org.valkyrienskies.kelvin.api.DuctNodePos
 import org.valkyrienskies.kelvin.util.KelvinExtensions.toDuctNodePos
 
-class GasHeaterBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: BlockState) : KNodeBlockEntity(type, pos, state) {
+class GasHeaterBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: BlockState) : KNodeBlockEntity(type, pos, state), IConnectable {
     override fun addBehaviours(behaviours: MutableList<BlockEntityBehaviour>?) { }
 
     override fun getDuctNodePosition(): DuctNodePos {

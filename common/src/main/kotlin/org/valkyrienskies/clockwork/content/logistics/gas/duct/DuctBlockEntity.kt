@@ -12,7 +12,6 @@ import net.minecraft.world.phys.AABB
 import org.valkyrienskies.clockwork.ClockworkMod
 import org.valkyrienskies.clockwork.ClockworkPackets
 import org.valkyrienskies.clockwork.util.DuctNetworkUtils.configureMetalDuctEdge
-import org.valkyrienskies.clockwork.util.DuctNetworkUtils.magnitudeSqr
 import org.valkyrienskies.clockwork.util.kelvin.KNodeBlockEntity
 import org.valkyrienskies.kelvin.api.DuctNodePos
 import org.valkyrienskies.kelvin.util.INodeBlockEntity
@@ -35,6 +34,17 @@ class DuctBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: BlockState
 
     override fun addBehaviours(behaviours: MutableList<BlockEntityBehaviour>) {
         super.addBehavioursDeferred(behaviours)
+    }
+
+    override fun lazyTick() {
+        super.lazyTick()
+        val level = level ?: return
+        if (level.isClientSide || !shouldUpdateEdges) return
+
+        // Recreate loaded or invalidated edges using the current neighbor controller
+        // and the same direction rule as newly configured edges.
+        (blockState.block as? DuctBlock)?.getConnectedState(level, blockState, blockPos)
+        shouldUpdateEdges = false
     }
 
     override fun read(tag: CompoundTag, clientPacket: Boolean) {
@@ -114,30 +124,15 @@ class DuctBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: BlockState
                 ClockworkMod.getKelvin(level).removeEdge(getDuctNodePosition(), otherDuctNodePos)
                 if (edgeType != DuctEdgeType.NONE) {
 
-                    // Edge directionality is important for oneway
-                    // which is why it's enforced by axis direction
-                    val nodeA: DuctNodePos
-                    val nodeB: DuctNodePos
-                    if (edgeType.isOneWay()) {
-                        if (getDuctNodePosition().magnitudeSqr() > otherDuctNodePos.magnitudeSqr()) {
-                            nodeA = getDuctNodePosition()
-                            nodeB = otherDuctNodePos
-                        } else {
-                            nodeA = otherDuctNodePos
-                            nodeB = getDuctNodePosition()
-                        }
-                    } else {
-                        nodeA = getDuctNodePosition()
-                        nodeB = otherDuctNodePos
-                    }
-
-                    val newEdge = DuctEdgeType.createEdgeType(nodeA, nodeB, edgeType)
+                    val nodeA = getDuctNodePosition()
+                    val nodeB = otherDuctNodePos
+                    val newEdge = DuctEdgeType.createEdgeType(nodeA, nodeB, edgeType, dir)
 
                     if (edgeData[EdgePos(nodeA, nodeB)] != null)
                         newEdge.deserialize(edgeData[EdgePos(nodeA, nodeB)]!!)
 
                     configureMetalDuctEdge(newEdge)
-                    ClockworkMod.getKelvin(level).addEdge(nodeA, nodeB, newEdge)
+                    ClockworkMod.getKelvin(level).addEdge(newEdge.nodeA, newEdge.nodeB, newEdge)
                 }
             }
         }

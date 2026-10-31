@@ -1,11 +1,6 @@
 package org.valkyrienskies.clockwork.content.logistics.gas.duct
 
-import net.minecraft.core.BlockPos
 import net.minecraft.core.Direction
-import net.minecraft.nbt.CompoundTag
-import net.minecraft.nbt.Tag
-import net.minecraft.world.level.Level
-import org.valkyrienskies.clockwork.content.logistics.gas.filter.edges.ClockworkFilteredDuctEdge
 import org.valkyrienskies.clockwork.util.DuctNetworkUtils.createFilteredEdge
 import org.valkyrienskies.clockwork.util.DuctNetworkUtils.createOneWayEdge
 import org.valkyrienskies.clockwork.util.DuctNetworkUtils.createPipeEdge
@@ -37,12 +32,19 @@ enum class DuctEdgeType {
         return this == ONEWAY_BACKWARD || this == ONEWAY_FORWARD
     }
 
+    fun flowsOutward(direction: Direction): Boolean {
+        require(isOneWay()) { "Only one-way edges have a fixed flow direction" }
+        // Forward flows along the negative axis; backward flows along the positive axis.
+        return (this == ONEWAY_FORWARD) == (direction.axisDirection == Direction.AxisDirection.NEGATIVE)
+    }
+
     companion object {
-        fun createEdgeType(nodeA: DuctNodePos, nodeB: DuctNodePos, type: DuctEdgeType): DuctEdge {
+        fun createEdgeType(nodeA: DuctNodePos, nodeB: DuctNodePos, type: DuctEdgeType, direction: Direction): DuctEdge {
             return when (type) {
                 PIPE -> createPipeEdge(nodeA, nodeB)
-                ONEWAY_FORWARD -> createOneWayEdge(nodeA, nodeB)
-                ONEWAY_BACKWARD -> createOneWayEdge(nodeB, nodeA)
+                ONEWAY_FORWARD, ONEWAY_BACKWARD ->
+                    if (type.flowsOutward(direction)) createOneWayEdge(nodeA, nodeB)
+                    else createOneWayEdge(nodeB, nodeA)
                 FILTERED -> createFilteredEdge(nodeA, nodeB)
                 SMART -> createSmartEdge(nodeA, nodeB)
                 else -> throw IllegalArgumentException("Unsupported edge type: $type")

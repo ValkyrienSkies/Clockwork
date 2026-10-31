@@ -1,0 +1,37 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "PGP",
+    "KCK",
+    "DSD"
+  ],
+  "key": {
+    "P": {
+      "item": "forge:sheets/iron"
+    },
+    "G": {
+      "item": "tfc:metal/bars/wrought_iron"
+    },
+    "K": {
+      "tag": "forge:leather"
+    },
+	  "C": {
+      "item": "create:industrial_iron_block"
+    },
+	  "D": {
+      "item": "vs_clockwork:duct"
+    },
+    "S": {
+      "tag": "forge:shafts"
+    }
+  },
+  "result": {
+    "item": "vs_clockwork:air_compressor"
+  },
+  "conditions": [
+    {
+      "type": "forge:mod_loaded",
+      "modid": "tfg"
+    }
+  ]
+}

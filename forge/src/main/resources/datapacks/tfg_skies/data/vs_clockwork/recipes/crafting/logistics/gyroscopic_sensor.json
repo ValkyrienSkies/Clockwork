@@ -1,0 +1,22 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    {
+      "item": "create:content_observer"
+    },
+    {
+      "item": "firmaciv:firmaciv_compass"
+    }
+  ],
+  "result": {
+    "item": "vs_clockwork:gyroscopic_sensor"
+  },
+  "conditions": [
+    {
+      "type": "forge:mod_loaded",
+      "modid": "tfg"
+    }
+  ],
+  "show_notification": true
+}

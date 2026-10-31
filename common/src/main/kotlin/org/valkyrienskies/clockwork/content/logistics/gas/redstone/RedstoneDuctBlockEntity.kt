@@ -8,9 +8,10 @@ import net.minecraft.world.entity.player.Player
 import net.minecraft.world.level.block.entity.BlockEntityType
 import net.minecraft.world.level.block.state.BlockState
 import org.valkyrienskies.clockwork.ClockworkMod
+import org.valkyrienskies.clockwork.content.logistics.gas.IConnectable
 import org.valkyrienskies.clockwork.util.kelvin.KNodeBlockEntity
 
-class RedstoneDuctBlockEntity(type: BlockEntityType<*>?, pos: BlockPos, state: BlockState) : KNodeBlockEntity(type, pos, state) {
+class RedstoneDuctBlockEntity(type: BlockEntityType<*>?, pos: BlockPos, state: BlockState) : KNodeBlockEntity(type, pos, state), IConnectable {
 
     override fun addBehaviours(behaviours: List<BlockEntityBehaviour?>?) { }
 

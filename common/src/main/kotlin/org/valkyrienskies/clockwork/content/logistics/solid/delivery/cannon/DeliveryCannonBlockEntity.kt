@@ -397,7 +397,7 @@ class DeliveryCannonBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state
         ALWAYS_CLOSEST(AllIcons.I_TUNNEL_PREFER_NEAREST),
         ;
 
-        private val translationKey = "contraptions.movement_mode." + Lang.asId(name)
+        private val translationKey = "vs_clockwork.delivery_cannon.distribution_mode." + Lang.asId(name)
 
         override fun getIcon(): AllIcons {
             return icon

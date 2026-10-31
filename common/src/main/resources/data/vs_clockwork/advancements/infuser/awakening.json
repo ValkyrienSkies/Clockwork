@@ -1,0 +1,13 @@
+{
+  "display": {
+    "icon": { "item": "vs_clockwork:physics_infuser" },
+    "title": { "translate": "advancement.vs_clockwork.infuser.awakening" },
+    "description": { "translate": "advancement.vs_clockwork.infuser.awakening.description" },
+    "background": "minecraft:textures/block/purple_concrete.png",
+    "frame": "task",
+    "show_toast": true,
+    "announce_to_chat": true,
+    "hidden": false
+  },
+  "criteria": { "activate": { "trigger": "minecraft:impossible" } }
+}

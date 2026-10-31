@@ -1,0 +1,36 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "P": {
+      "tag": "forge:sheets/iron"
+    },
+    "N": {
+      "tag": "forge:nuggets/iron"
+    },
+	  "S": {
+      "tag": "forge:shafts"
+    },
+	  "C": {
+      "item": "create:industrial_iron_block"
+    },
+	  "D": {
+      "item": "vs_clockwork:duct"
+    }
+  },
+  "pattern": [
+    " S ",
+    "NPN",
+	  "DC "
+  ],
+  "conditions": [
+    {
+      "type": "forge:mod_loaded",
+      "modid": "tfg"
+    }
+  ],
+  "result": {
+    "item": "vs_clockwork:extendon"
+  },
+  "show_notification": true
+}

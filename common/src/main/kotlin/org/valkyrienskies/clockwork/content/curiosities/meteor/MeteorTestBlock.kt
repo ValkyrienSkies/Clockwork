@@ -13,7 +13,7 @@ class MeteorTestBlock(properties: Properties) : Block(properties) {
         super.onPlace(state, level, pos, oldState, isMoving)
         if (level.isClientSide) return
 
-        MeteorStorm.assembleMeteor(level as ServerLevel, pos.offset(0,30,0).toVector3i())
+        MeteorStorm.assembleMeteor(level as ServerLevel, pos.offset(0,100,0).toVector3i())
         //MeteorGenerator.generate(level as ServerLevel, pos.offset(25,25,25), 0.035, 10, 3)
     }
 

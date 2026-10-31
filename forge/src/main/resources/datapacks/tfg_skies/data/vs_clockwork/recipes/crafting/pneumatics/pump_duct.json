@@ -1,0 +1,21 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    {
+      "tag": "forge:cogwheels"
+    },
+    {
+      "item": "vs_clockwork:duct"
+    }
+  ],
+  "result": {
+    "item": "vs_clockwork:pump_duct"
+  },
+  "conditions": [
+    {
+      "type": "forge:mod_loaded",
+      "modid": "tfg"
+    }
+  ]
+}

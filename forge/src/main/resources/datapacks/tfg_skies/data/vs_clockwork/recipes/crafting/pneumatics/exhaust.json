@@ -1,0 +1,21 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    {
+      "item": "tfc:metal/bars/wrought_iron"
+    },
+    {
+      "item": "vs_clockwork:duct"
+    }
+  ],
+  "conditions": [
+    {
+      "type": "forge:mod_loaded",
+      "modid": "tfg"
+    }
+  ],
+  "result": {
+    "item": "vs_clockwork:exhaust"
+  }
+}

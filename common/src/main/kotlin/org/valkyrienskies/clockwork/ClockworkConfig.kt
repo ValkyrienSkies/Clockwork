@@ -17,6 +17,9 @@ object ClockworkConfig {
 
 
     class Client {
+        @ConfigEntry(description = "Show the original rectangular Gravitron ship contours instead of block surface effects")
+        var gravitronLegacyShipContours = false
+
         @ConfigEntry(description = "Enable debug rendering")
         var debugRender = false
 
@@ -59,6 +62,9 @@ object ClockworkConfig {
         @ConfigCategory(title = "Gas Engine")
         val gasEngine = GasEngine()
 
+        @ConfigCategory(title = "balloons")
+        val balloons = Balloons()
+
         @ConfigEntry(description = "Enable verbose debug logging")
         var debugMode = false
 
@@ -91,17 +97,14 @@ object ClockworkConfig {
         @ConfigEntry(description = "Max Gravitron mass in 1000 kg")
         var maxGravitronMass = 256
 
-        @ConfigEntry(description = "Force multiplier for balloons. Realism is 1.0, default is 1000.0. Range: > 0.0", min = 0.0)
-        var balloonForceMult: Double = 50.0
-
-        @ConfigEntry(description = "Speed multiplier for the gas nozzle pointer, default is 0.5. Range: > 0.0", min = 0.0)
-        var gasNozzleSensitivity = 0.5
-
         @ConfigEntry(description = "Sets the gas retention efficiency of the balloon material; lower values simulate airtight rubber/synthetic, while higher values represent porous fabrics. Default 0.001.", min = 0.0, max = 1.0)
         var permeabilityConstant = 0.01
 
         @ConfigEntry(description = "Controls how fast air pocket temperature equalizes with the ambient temperature; lower values simulate thick insulation, while higher values cause rapid cooling or heating. Default 0.001", min = 0.0, max = 1.0)
         var heatTransferCoefficient = 0.01
+
+        @ConfigEntry(description = "Extra multiplier on how much faster a balloon's temperature equalizes with the outside air while it's actively leaking gas. 0 disables the extra cooling from leaking.", min = 0.0)
+        var leakHeatTransferMultiplier = 5.0
 
         @ConfigEntry(description = "Effectiveness scalar for reaction wheels. Higher value means a single reaction wheel can better control an entire ship, regardless of its mass. Default value is 0.1.", min = 0.001, max = 1.0)
         var reactionWheelEffectiveness = 1.0
@@ -114,15 +117,6 @@ object ClockworkConfig {
 
         @ConfigEntry(description = "The maximum distance (in blocks) allowed between two Universal Joints while connected.", min = 1.0)
         var maxUniversalJointDistance = 10.0
-
-        @ConfigEntry(description = "The length of the raycast made by the Gas Nozzle when attempting to find a valid balloon ceiling.", min = 1.0)
-        var hotAirBalloonMaxRaycastDistance = 64.0
-
-        @ConfigEntry(description = "The maximum volume (in blocks) that the hot air balloon floodfill will scan when trying to determine the balloon's interior.", min = 1.0)
-        var hotAirBalloonMaxScanVolume = 100000.0
-
-        @ConfigEntry(description = "The maximum surface area (in blocks) that the hot air balloon floodfill will scan when trying to determine the balloon's exterior.", min = 1.0)
-        var hotAirBalloonMaxScanSurface = 100000.0
 
         @ConfigEntry(description = "Force multiplier when no rpm is given")
         var unlockedModeRotationResistanceMultiplier = 1.0
@@ -143,28 +137,28 @@ object ClockworkConfig {
         var angleFollowingOmegaErrorMultiplier = 16.0
 
         @ConfigEntry(min = 0.0, description = "Maximum torque magnitude applied by follow-angle PhysBearing controller. Set 0 to disable clamping.")
-        var angleFollowingMaxTorque = 5000.0
+        var angleFollowingMaxTorque = 0
 
         @ConfigEntry(min = 0.0, description = "Maximum change in follow-angle PhysBearing torque per physics tick. Lower values reduce violent impulses.")
-        var angleFollowingMaxTorqueStep = 250.0
+        var angleFollowingMaxTorqueStep = 0
 
         @ConfigEntry(min = 0.0, description = "Follow-angle deadband in degrees. Within this error band, the angle term is ignored to avoid oscillation.")
         var angleFollowingAngleDeadbandDeg = 0.75
 
-        @ConfigEntry(min = 0.0, description = "Seconds to block Phys Bearing rotation updates after restore/reload so joints can settle. 0 disables the settle gate.")
-        var physBearingRestoreSettleSeconds = 1.0
-
         @ConfigEntry()
         var allowWrenchingActivatedPhysBearing = false
 
-        @ConfigEntry(min = 0.0)
-        var forceMulPerSailInPropeller = 12.0
+        @ConfigEntry(min = 0.0, description = "Gameplay strength of sail and item-blade propellers. Scales aerodynamic force and torque together without changing the RPM, pitch, stall or altitude curves.")
+        var forceMulPerSailInPropeller = 240.0
 
-        @ConfigEntry(min = 0.0, description = "Maximum net force magnitude applied by each propeller controller update. Set 0 to disable clamping.")
-        var propellerMaxForce = 200000.0
+        @ConfigEntry(min = 0.0, description = "Additional gameplay strength for sail propellers only, multiplied by forceMulPerSailInPropeller. Scales aerodynamic force and torque together without changing Create stress cost. 1 restores the unboosted strength; item blades are unaffected.")
+        var sailPropellerForceMultiplier = 4.0
 
-        @ConfigEntry(min = 0.0, description = "Maximum net torque magnitude applied by each propeller controller update. Set 0 to disable clamping.")
-        var propellerMaxTorque = 200000.0
+        @ConfigEntry(min = 0.0, description = "Optional per-rotor force limit in N. 0 disables this limit (default); a fixed cap makes larger or faster rotors stop gaining thrust. Force and torque are reduced together when either limit is reached.")
+        var propellerMaxForce = 0.0
+
+        @ConfigEntry(min = 0.0, description = "Optional per-rotor torque limit about the ship COM in N*m, including off-center thrust. 0 disables this limit (default). Force and torque are reduced together when either limit is reached.")
+        var propellerMaxTorque = 0.0
 
         @ConfigEntry(min = 0.0, description = "Damping used by extendon distance joints. Default matches legacy extendon behavior.")
         var extendonDistanceJointDamping = 1000.0
@@ -214,16 +208,14 @@ object ClockworkConfig {
         @ConfigEntry(description = "Maximum range (in blocks) the survival gravitron will interact with ships", min = 1.0, max = 1000.0)
         var survivalGravitronMaxRange = 20.0
 
-        @ConfigEntry(description = "The density mult of wanderlite ore in meteors", min = 0.0)
-        val meteor_density = 0.0
+        @ConfigEntry(description = "The density multiplier of wanderlite ore in meteors", min = 0.0, max = 1.0)
+        val meteorDensity = 0.0125
 
         @ConfigEntry(description = "Maximum amount of blocks a flap bearing can assemble", min = 0.0, max = Int.MAX_VALUE.toDouble())
         var flapBearingMaxSize = 16
 
         @ConfigEntry(description = "Maximum amount of blocks a smart flap bearing can assemble", min = 0.0, max = Int.MAX_VALUE.toDouble())
         var smartFlapBearingMaxSize = 24
-
-
 
         @ConfigEntry(description = "Whether the (smart) flap bearing peripheral can use setAngle without rotational power")
         var cheatFlapBearingPeripheral = false
@@ -246,12 +238,6 @@ object ClockworkConfig {
     }
 
     class GasEngine {
-        @ConfigEntry(description = "Gas mass flow rate through a Gas Engine required for full power, in kg/s. Set to 0 to make any non-zero through-flow full power.", min = 0.0)
-        var gasEngineFlowForFullEfficiency = 5.0
-
-        @ConfigEntry(description = "Gas mass flow rate below which a Gas Engine treats through-flow as zero, in kg/s.", min = 0.0)
-        var gasEngineMinimumFlowRate = 0.5
-
         @ConfigEntry(description = "Gas Engine flow rate increment, in kg/s. Through-flow is rounded down to this step before efficiency is calculated. Set to 0 to disable flow stepping.", min = 0.0)
         var gasEngineFlowRateIncrement = 0.25
 
@@ -290,5 +276,37 @@ object ClockworkConfig {
 
         @ConfigEntry(description = "Whether the generic kelvin peripheral can move gas/heat through only a peripheral connection")
         var cheatKelvinPeripheral = false
+    }
+
+    class Balloons {
+        @ConfigEntry(description = "Force multiplier for balloons. Realism is 1.0, default is 3000.0. Range: > 0.0", min = 0.0)
+        var balloonForceMult: Double = 3000.0
+
+        @ConfigEntry(description = "The length of the raycast made by the Gas Nozzle when attempting to find a valid balloon ceiling.", min = 1.0)
+        var hotAirBalloonMaxRaycastDistance = 64.0
+
+        @ConfigEntry(description = "The maximum volume (in blocks) that the hot air balloon floodfill will scan when trying to determine the balloon's interior.", min = 1.0)
+        var hotAirBalloonMaxScanVolume = 100000.0
+
+        @ConfigEntry(description = "The maximum surface area (in blocks) that the hot air balloon floodfill will scan when trying to determine the balloon's exterior.", min = 1.0)
+        var hotAirBalloonMaxScanSurface = 100000.0
+
+        @ConfigEntry(description = "Speed multiplier for the gas nozzle pointer, default is 0.5. Range: > 0.0", min = 0.0)
+        var gasNozzleSensitivity = 0.05
+
+        @ConfigEntry(description = "Maximum target temperature the gas nozzle can aim for", min = 0.0)
+        var gasNozzleMaxTemp = 1500
+
+        @ConfigEntry(description = "Multiplier that balloons apply on dampening rotational movement", min = 0.0)
+        var balloonAngularDamping = 1.2
+
+        @ConfigEntry(description = "Multiplier on balloon vertical angular alignment torque", min = 0.0)
+        var balloonAlignmentKp = 10.0
+
+        @ConfigEntry(description = "Vertical linear drag. Helps prevent balloons bobbing up and down endlessly", min = 0.0)
+        var balloonVerticalDragCoefficient = 100.0
+
+        @ConfigEntry(description = "Horizontal linear drag. Helps prevent balloons drifting endlessly", min = 0.0)
+        var balloonHorizontalDragCoefficient = 80.0
     }
 }

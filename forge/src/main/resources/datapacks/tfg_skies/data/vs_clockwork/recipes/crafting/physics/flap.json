@@ -1,0 +1,25 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "CB",
+    "BC"
+  ],
+  "key": {
+    "C": {
+      "tag": "forge:cloth"
+    },
+    "B": {
+      "tag": "forge:nuggets/iron"
+    }
+  },
+  "result": {
+    "item": "vs_clockwork:flap",
+    "count": 8
+  },
+  "conditions": [
+    {
+      "type": "forge:mod_loaded",
+      "modid": "tfg"
+    }
+  ]
+}

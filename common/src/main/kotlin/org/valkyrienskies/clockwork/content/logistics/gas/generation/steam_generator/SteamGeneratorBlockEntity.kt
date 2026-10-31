@@ -7,13 +7,14 @@ import net.minecraft.world.level.block.entity.BlockEntityType
 import net.minecraft.world.level.block.state.BlockState
 import org.joml.Math.clamp
 import org.valkyrienskies.clockwork.ClockworkMod
+import org.valkyrienskies.clockwork.content.logistics.gas.IConnectable
 import org.valkyrienskies.clockwork.util.kelvin.KNodeBlockEntity
 import org.valkyrienskies.kelvin.impl.registry.GasTypeRegistry
 import java.lang.ref.WeakReference
 import kotlin.math.max
 import kotlin.math.pow
 
-class SteamGeneratorBlockEntity(type: BlockEntityType<*>?, pos: BlockPos, state: BlockState) : KNodeBlockEntity(type, pos, state) {
+class SteamGeneratorBlockEntity(type: BlockEntityType<*>?, pos: BlockPos, state: BlockState) : KNodeBlockEntity(type, pos, state), IConnectable {
 
     var source = WeakReference<FluidTankBlockEntity?>(null)
 

@@ -43,6 +43,24 @@ class SteamGeneratorBlock(properties: Properties) : FaceAttachedHorizontalDirect
     override fun onPlace(pState: BlockState, pLevel: Level, pPos: BlockPos, pOldState: BlockState, pIsMoving: Boolean) {
         FluidTankBlock.updateBoilerState(pState, pLevel, pPos.relative(SteamEngineBlock.getFacing(pState).opposite))
         nodePlace(pState, pLevel, pPos, pOldState, pIsMoving)
+        if (!pLevel.isClientSide) {
+            withBlockEntityDo(pLevel, pPos) { it.refreshConnections(pLevel, pPos) }
+        }
+    }
+
+    override fun neighborChanged(
+        state: BlockState,
+        level: Level,
+        pos: BlockPos,
+        neighborBlock: Block,
+        neighborPos: BlockPos,
+        movedByPiston: Boolean
+    ) {
+        super.neighborChanged(state, level, pos, neighborBlock, neighborPos, movedByPiston)
+        if (level.isClientSide) return
+
+        val direction = Direction.fromDelta(neighborPos.x - pos.x, neighborPos.y - pos.y, neighborPos.z - pos.z) ?: return
+        withBlockEntityDo(level, pos) { it.updateConnection(level, pos, direction) }
     }
 
 

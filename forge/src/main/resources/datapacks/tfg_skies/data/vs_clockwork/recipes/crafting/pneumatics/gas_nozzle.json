@@ -1,0 +1,31 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "P P",
+    "SCS",
+    " D "
+  ],
+  "key": {
+    "P": {
+      "tag": "forge:sheets/iron"
+    },
+	  "C": {
+      "item": "create:industrial_iron_block"
+    },
+	  "D": {
+      "item": "vs_clockwork:duct"
+    },
+    "S": {
+      "tag": "forge:shafts"
+    }
+  },
+  "result": {
+    "item": "vs_clockwork:gas_nozzle"
+  },
+  "conditions": [
+    {
+      "type": "forge:mod_loaded",
+      "modid": "tfg"
+    }
+  ]
+}

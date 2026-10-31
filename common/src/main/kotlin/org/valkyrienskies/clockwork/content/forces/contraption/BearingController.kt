@@ -4,6 +4,8 @@ import com.fasterxml.jackson.annotation.JsonAutoDetect
 import net.minecraft.core.BlockPos
 import org.joml.Matrix3dc
 import org.joml.Quaterniondc
+import org.joml.Quaterniond
+import org.joml.Vector3f
 import org.joml.Vector3d
 import org.joml.Vector3dc
 import org.valkyrienskies.clockwork.ClockworkConfig
@@ -13,6 +15,10 @@ import org.valkyrienskies.core.api.VsBeta
 import org.valkyrienskies.core.api.ships.*
 import org.valkyrienskies.core.api.ships.properties.ShipTransform
 import org.valkyrienskies.core.api.world.PhysLevel
+import org.valkyrienskies.core.internal.world.VsiPhysLevel
+import org.valkyrienskies.core.internal.joints.VSD6Joint
+import org.valkyrienskies.core.internal.joints.VSRevoluteJoint
+import org.valkyrienskies.core.internal.joints.VSJointPose
 import java.lang.Float
 import java.util.*
 import kotlin.math.abs
@@ -32,6 +38,7 @@ data class BearingData(
     var subPos: Vector3d = Vector3d(),
     var actualAngle: Double = 0.0,
     var lastLockedTorque: Double = 0.0,
+    var jointId: Int = -1,
 )
 
 @JsonAutoDetect(fieldVisibility = JsonAutoDetect.Visibility.ANY)
@@ -44,6 +51,8 @@ class BearingController : ShipPhysicsListener {
         for (data in bearingData.values) {
             // Locked bearings use a fixed joint with a target rotation, they don't need any torque
             if (data.kinematic) continue
+
+            if (updateDrive(data, physShip, physLevel)) continue
 
             val physShipBearingIsOnId = data.mainShipId
             if (physShipBearingIsOnId == -1L) {
@@ -62,6 +71,78 @@ class BearingController : ShipPhysicsListener {
                 physShipBearingIsOn.applyWorldTorque(torque.mul(-1.0, Vector3d()))
             }
         }
+    }
+
+    private fun updateDrive(data: BearingData, subShip: PhysShip, level: PhysLevel): Boolean {
+        val physics = level as? VsiPhysLevel ?: return false
+        val axis = data.bearingAxis ?: return false
+        val mainShip = physics.getShipById(data.mainShipId)
+        val current = physics.getJointById(data.jointId)?.takeIf {
+            it.shipId1 == subShip.id && it.shipId0 == mainShip?.id &&
+                it.pose0.pos.distanceSquared(data.mainPos) < 1e-12 &&
+                it.pose1.pos.distanceSquared(data.subPos) < 1e-12
+        } ?: physics.getJointsFromShip(subShip.id)
+            .firstNotNullOfOrNull { id ->
+                physics.getJointById(id)?.takeIf {
+                    it.shipId1 == subShip.id && it.shipId0 == mainShip?.id &&
+                        it.pose0.pos.distanceSquared(data.mainPos) < 1e-12 &&
+                        it.pose1.pos.distanceSquared(data.subPos) < 1e-12
+                }?.also { data.jointId = id }
+            } ?: return false
+        if (current.shipId1 != subShip.id || current.shipId0 != mainShip?.id) return false
+        if (current !is VSRevoluteJoint && current !is VSD6Joint) return false
+        if (!BearingDriveSupport.supportsAngularDrives())
+            return !BearingDriveSupport.clearDrive(physics, data.jointId)
+        val locked = data.locked || data.aligning
+        if (locked && ClockworkConfig.SERVER.angleFollowingMaxTorqueStep > 0.0)
+            return !BearingDriveSupport.clearDrive(physics, data.jointId)
+        val worldAxis = Vector3d(axis)
+        mainShip?.transform?.shipToWorldRotation?.transform(worldAxis)
+        val inertia = BearingDriveSupport.effectiveInertia(physics, data.jointId, current, worldAxis)
+        if (inertia <= 0.0) return !BearingDriveSupport.clearDrive(physics, data.jointId)
+        data.actualAngle = getAngle(axis, subShip.transform, mainShip?.transform)
+        if (!data.actualAngle.isFinite() || !data.bearingAngle.isFinite() || !data.angularSpeed.isFinite()) {
+            BearingDriveSupport.clearDrive(physics, data.jointId)
+            return true
+        }
+        val stiffness: Double
+        val damping: Double
+        val cap: Double
+        var targetAngle = 0.0
+        var targetVelocity = 0.0
+        if (locked) {
+            val error = shortestAngleDeltaRadians(if (data.aligning) 0.0 else data.bearingAngle, data.actualAngle)
+            val deadband = Math.toRadians(ClockworkConfig.SERVER.angleFollowingAngleDeadbandDeg)
+            targetAngle = data.actualAngle + sign(error) * max(0.0, abs(error) - deadband)
+            stiffness = inertia * ClockworkConfig.SERVER.angleFollowingAngleErrorMultiplier
+            damping = inertia * ClockworkConfig.SERVER.angleFollowingOmegaErrorMultiplier
+            cap = ClockworkConfig.SERVER.angleFollowingMaxTorque.toDouble()
+        } else {
+            stiffness = 0.0
+            val resistance = if (abs(data.angularSpeed) > 0.001)
+                ClockworkConfig.SERVER.unlockedModeRotationResistanceMultiplier else 0.0
+            if (resistance <= 0.0 && abs(data.angularSpeed) > 0.001)
+                return !BearingDriveSupport.clearDrive(physics, data.jointId)
+            damping = inertia * ClockworkConfig.SERVER.unlockedModeOmegaErrorMultiplier * resistance
+            targetVelocity = if (resistance > 0.0) -data.angularSpeed / resistance else 0.0
+            val configured = ClockworkConfig.SERVER.unlockedModeMaxTorque
+            cap = if (configured > 0.0) max(configured,
+                inertia * ClockworkConfig.SERVER.unlockedModeMinAngularAcceleration) else 0.0
+        }
+        val motions = EnumMap<VSD6Joint.D6Axis, VSD6Joint.D6Motion>(VSD6Joint.D6Axis::class.java)
+        VSD6Joint.D6Axis.entries.forEach { motions[it] = VSD6Joint.D6Motion.LOCKED }
+        motions[VSD6Joint.D6Axis.TWIST] = VSD6Joint.D6Motion.FREE
+        val drives = EnumMap<VSD6Joint.D6Drive, VSD6Joint.D6JointDrive>(VSD6Joint.D6Drive::class.java)
+        drives[VSD6Joint.D6Drive.TWIST] = VSD6Joint.D6JointDrive(
+            BearingDriveSupport.finiteGain(stiffness), BearingDriveSupport.finiteGain(damping),
+            if (cap > 0.0) BearingDriveSupport.finiteGain(cap) else Float.POSITIVE_INFINITY)
+        val updated = VSD6Joint(current.shipId0, current.pose0, current.shipId1, current.pose1,
+            current.maxForceTorque, current.compliance, motions = motions, drives = drives,
+            drivePosition = VSD6Joint.DrivePosition(VSJointPose(Vector3d(), Quaterniond().rotateX(targetAngle))),
+            driveVelocity = VSD6Joint.DriveVelocity(Vector3f(), Vector3f(targetVelocity.toFloat(), 0f, 0f)))
+        updated.shouldBeSerialized = current.shouldBeSerialized
+        if (current != updated) physics.updateJoint(data.jointId, updated)
+        return true
     }
 
     private fun computeRotationalForce(
@@ -235,7 +316,7 @@ class BearingController : ShipPhysicsListener {
             return Vector3d()
         }
 
-        val maxTorque = ClockworkConfig.SERVER.angleFollowingMaxTorque
+        val maxTorque = ClockworkConfig.SERVER.angleFollowingMaxTorque.toDouble()
         if (maxTorque > 0.0) {
             torque = torque.coerceIn(-maxTorque, maxTorque)
         }

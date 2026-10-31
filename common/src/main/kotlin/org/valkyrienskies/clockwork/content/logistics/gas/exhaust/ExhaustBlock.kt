@@ -1,6 +1,5 @@
 package org.valkyrienskies.clockwork.content.logistics.gas.exhaust
 
-import com.simibubi.create.AllShapes
 import com.simibubi.create.foundation.block.IBE
 import net.minecraft.ChatFormatting
 import net.minecraft.core.BlockPos
@@ -23,7 +22,6 @@ import org.valkyrienskies.clockwork.ClockworkConfig
 import org.valkyrienskies.clockwork.ClockworkShapes
 import org.valkyrienskies.clockwork.content.logistics.gas.duct.DuctPipeNode
 import org.valkyrienskies.clockwork.content.logistics.gas.duct.IDuct
-import org.valkyrienskies.clockwork.util.blocktype.ConnectedWingAlike
 import org.valkyrienskies.clockwork.util.gui.IHaveDuctStats
 import org.valkyrienskies.kelvin.api.DuctNode
 import org.valkyrienskies.kelvin.api.DuctNodePos
@@ -79,6 +77,24 @@ class ExhaustBlock(properties: Properties) : DirectionalBlock(properties), IBE<E
     override fun onPlace(state: BlockState, level: Level, pos: BlockPos, oldState: BlockState, movedByPiston: Boolean) {
         super.onPlace(state, level, pos, oldState, movedByPiston)
         nodePlace(state, level, pos, oldState, movedByPiston)
+        if (!level.isClientSide) {
+            withBlockEntityDo(level, pos) { it.refreshConnections(level, pos) }
+        }
+    }
+
+    override fun neighborChanged(
+        state: BlockState,
+        level: Level,
+        pos: BlockPos,
+        neighborBlock: Block,
+        neighborPos: BlockPos,
+        movedByPiston: Boolean
+    ) {
+        super.neighborChanged(state, level, pos, neighborBlock, neighborPos, movedByPiston)
+        if (level.isClientSide) return
+
+        val direction = Direction.fromDelta(neighborPos.x - pos.x, neighborPos.y - pos.y, neighborPos.z - pos.z) ?: return
+        withBlockEntityDo(level, pos) { it.updateConnection(level, pos, direction) }
     }
 
     override fun createNode(pos: DuctNodePos): DuctNode {

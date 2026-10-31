@@ -1,0 +1,29 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "TAT",
+    "B B",
+    "ROR"
+  ],
+  "key": {
+    "T": {
+      "item": "create:turntable"
+    },
+    "A": {
+      "item": "create:andesite_alloy"
+    },
+    "B": {
+      "item": "create:brass_ingot"
+    },
+    "R": {
+      "item": "create:transmitter"
+    },
+    "O": {
+      "item": "vs_clockwork:wanderlite_matrix"
+    }
+  },
+  "result": {
+    "item": "vs_clockwork:gimbal_bearing",
+    "count": 1
+  }
+}
