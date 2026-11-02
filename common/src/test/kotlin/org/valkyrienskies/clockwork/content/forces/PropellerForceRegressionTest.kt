@@ -89,7 +89,7 @@ class PropellerForceRegressionTest {
     }
 
     @Test
-    fun `sail boost scales force and moment in moving air without changing blades or collective`() {
+    fun `propeller boost scales force and moment in moving air without changing blades or collective`() {
         val physicsShip = ship(velocity = Vector3d(1.0, -2.0, 3.0),
             wind = Vector3d(-0.5, 1.0, -2.0), omega = Vector3d(0.3, -0.8, 0.2))
         for (sails in listOf(true, false)) for (rpm in listOf(-64.0, 64.0, 128.0)) {
@@ -99,7 +99,7 @@ class PropellerForceRegressionTest {
             val base = forces(baseProp, physicsShip)
             ClockworkConfig.SERVER.sailPropellerForceMultiplier = 4.0
             val boosted = forces(boostedProp, physicsShip)
-            val gain = if (sails) 4.0 else 1.0
+            val gain = 4.0
             assertTrue(base.first.length() > 0.0 && base.second.length() > 0.0)
             assertVectorEquals(Vector3d(base.first).mul(gain), boosted.first)
             assertVectorEquals(Vector3d(base.second).mul(gain), boosted.second)
@@ -125,17 +125,18 @@ class PropellerForceRegressionTest {
     }
 
     @Test
-    fun `disabled or invalid sail boost gives finite zero sail forces without disabling blades`() {
+    fun `disabled or invalid boost gives finite zero forces for every propeller`() {
         val physicsShip = ship()
-        val blade = forces(propeller(false), physicsShip)
-        for (gain in listOf(0.0, -1.0, Double.NaN, Double.POSITIVE_INFINITY)) {
-            ClockworkConfig.SERVER.sailPropellerForceMultiplier = gain
-            val sail = forces(propeller(true), physicsShip)
-            assertVectorEquals(Vector3d(), sail.first)
-            assertVectorEquals(Vector3d(), sail.second)
-            val unchangedBlade = forces(propeller(false), physicsShip)
-            assertVectorEquals(blade.first, unchangedBlade.first)
-            assertVectorEquals(blade.second, unchangedBlade.second)
+        for (sails in listOf(true, false)) {
+            ClockworkConfig.SERVER.sailPropellerForceMultiplier = 1.0
+            val base = forces(propeller(sails), physicsShip)
+            assertTrue(base.first.length() > 0.0)
+            for (gain in listOf(0.0, -1.0, Double.NaN, Double.POSITIVE_INFINITY)) {
+                ClockworkConfig.SERVER.sailPropellerForceMultiplier = gain
+                val boosted = forces(propeller(sails), physicsShip)
+                assertVectorEquals(Vector3d(), boosted.first)
+                assertVectorEquals(Vector3d(), boosted.second)
+            }
         }
     }
 
