@@ -22,6 +22,7 @@ import org.valkyrienskies.core.api.ships.properties.ShipTransform
 import org.valkyrienskies.core.api.world.PhysLevel
 import org.valkyrienskies.core.internal.ships.VsiPhysShip
 import kotlin.math.PI
+import kotlin.math.abs
 
 /** Calls the production force functions; only the ship, atmosphere and wind are mocked. */
 class PropellerForceRegressionTest {
@@ -35,6 +36,7 @@ class PropellerForceRegressionTest {
     private var savedSailMultiplier = 0.0
     private var savedMaxForce = 0.0
     private var savedMaxTorque = 0.0
+    private var savedSpinTorqueEnabled = true
 
     @BeforeEach
     fun configureForces() {
@@ -42,6 +44,7 @@ class PropellerForceRegressionTest {
         savedSailMultiplier = ClockworkConfig.SERVER.sailPropellerForceMultiplier
         savedMaxForce = ClockworkConfig.SERVER.propellerMaxForce
         savedMaxTorque = ClockworkConfig.SERVER.propellerMaxTorque
+        savedSpinTorqueEnabled = ClockworkConfig.SERVER.propellerSpinTorqueEnabled
         ClockworkConfig.SERVER.forceMulPerSailInPropeller = 12.0
         ClockworkConfig.SERVER.sailPropellerForceMultiplier = 1.0
         // Check the equations below the limits; coupled force/moment limiting is tested separately.
@@ -55,6 +58,7 @@ class PropellerForceRegressionTest {
         ClockworkConfig.SERVER.sailPropellerForceMultiplier = savedSailMultiplier
         ClockworkConfig.SERVER.propellerMaxForce = savedMaxForce
         ClockworkConfig.SERVER.propellerMaxTorque = savedMaxTorque
+        ClockworkConfig.SERVER.propellerSpinTorqueEnabled = savedSpinTorqueEnabled
     }
 
     @Test
@@ -375,6 +379,40 @@ class PropellerForceRegressionTest {
             verify(exactly = 1) { physicsShip.applyWorldTorque(match { it.distance(expected.second) < 1e-8 }) }
             verify(exactly = 0) { physicsShip.applyWorldForceToModelPos(any(), any()) }
         }
+    }
+
+    @Test
+    fun `spin torque toggle removes axial reaction torque but keeps thrust and unbalanced torque`() {
+        val physicsShip = ship()
+        val appliedForce = Vector3d()
+        val appliedTorque = Vector3d()
+        every { physicsShip.applyWorldForceToBodyPos(any(), any()) } answers {
+            appliedForce.set(firstArg<Vector3dc>())
+            Unit
+        }
+        every { physicsShip.applyWorldTorque(any()) } answers {
+            appliedTorque.set(firstArg<Vector3dc>())
+            Unit
+        }
+
+        ClockworkConfig.SERVER.propellerSpinTorqueEnabled = true
+        val enabledController = PropellerController()
+        enabledController.appliers[0] = propeller(true)
+        enabledController.physTick(physicsShip, level)
+        val enabledForce = Vector3d(appliedForce)
+        val enabledTorque = Vector3d(appliedTorque)
+        assertTrue(abs(enabledTorque.z()) > 1e-6, "A spinning rotor should produce axial reaction torque")
+        assertTrue(Vector3d(enabledTorque.x(), enabledTorque.y(), 0.0).length() > 1e-6,
+            "An unbalanced rotor should produce off-axis torque")
+
+        ClockworkConfig.SERVER.propellerSpinTorqueEnabled = false
+        val disabledController = PropellerController()
+        disabledController.appliers[0] = propeller(true)
+        disabledController.physTick(physicsShip, level)
+        assertVectorEquals(enabledForce, appliedForce)
+        assertEquals(0.0, appliedTorque.z(), 1e-8)
+        assertVectorEquals(Vector3d(enabledTorque.x(), enabledTorque.y(), 0.0),
+            Vector3d(appliedTorque.x(), appliedTorque.y(), 0.0))
     }
 
     private fun propeller(

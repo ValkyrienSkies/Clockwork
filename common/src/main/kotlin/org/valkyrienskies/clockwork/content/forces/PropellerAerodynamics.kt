@@ -102,7 +102,7 @@ internal object PropellerAerodynamics {
 
     data class PreparedRotor(
         val force: Vector3dc = Vector3d(), val torque: Vector3dc = Vector3d(),
-        val sections: List<Section> = emptyList()
+        val sections: List<Section> = emptyList(), val axis: Vector3dc = Vector3d()
     )
 
     fun compute(
@@ -239,11 +239,14 @@ internal object PropellerAerodynamics {
         }
 
         if (!force.isFinite || !torque.isFinite) return PreparedRotor()
+        val axisWorld = flow.modelToWorld.transformDirection(Vector3d(axis), Vector3d())
+        if (!axisWorld.isFinite || axisWorld.lengthSquared() < EPSILON) return PreparedRotor()
+        axisWorld.normalize()
         var fraction = 1.0
         if (maxForce > 0.0 && force.length() > maxForce) fraction = min(fraction, maxForce / force.length())
         if (maxTorque > 0.0 && torque.length() > maxTorque) fraction = min(fraction, maxTorque / torque.length())
         if (fraction < 1.0) sections.forEach { it.response.scale(fraction) }
-        return PreparedRotor(force.mul(fraction), torque.mul(fraction), sections)
+        return PreparedRotor(force.mul(fraction), torque.mul(fraction), sections, axisWorld)
     }
 
     private fun perpendicular(axis: Vector3dc): Vector3d {
