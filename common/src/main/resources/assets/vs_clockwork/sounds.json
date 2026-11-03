@@ -1,4 +1,12 @@
 {
+  "rope_tie": {
+    "sounds": ["vs_clockwork:rope_tie"],
+    "subtitle": "vs_clockwork.subtitle.rope_tie"
+  },
+  "rope_snap_1": {
+    "sounds": ["vs_clockwork:rope_snap_1", "vs_clockwork:rope_snap_2"],
+    "subtitle": "vs_clockwork.subtitle.rope_snap_1"
+  },
   "physics_infuser_initialize": {
     "sounds": [
       {

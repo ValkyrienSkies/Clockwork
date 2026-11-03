@@ -23,6 +23,9 @@ import java.util.function.Supplier
 
 object ClockworkSounds {
     val ALL: MutableMap<ResourceLocation, SoundEntry> = HashMap()
+    val ROPE_TIE = create("rope_tie").subtitle("Rope tied").category(SoundSource.BLOCKS).build()
+    val ROPE_SNAP = create("rope_snap_1").addVariant("rope_snap_2")
+        .subtitle("Rope snaps").category(SoundSource.BLOCKS).build()
     val PHYSICS_INFUSER_INITIALIZE = create("physics_infuser_initialize").subtitle("Physics Infuser starts")
         .category(SoundSource.BLOCKS)
         .attenuationDistance(32)
