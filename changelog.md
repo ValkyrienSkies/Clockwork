@@ -27,13 +27,13 @@ Holy bug fixes batman
 - Changed how the gas engine works
 - Changed the delivery cannon to maintain its previous angle instead of resetting after firing
 - Changed the model for the creative gas generator, gas back tank, and the redstone duct
-- Rewrote all serialization code for the Physics and Spinoff bearings, making them much stabler on world reload
 - Added VMod compatibility for all the bearings
 - Rewrote all the propeller math, making sails and blade controllers more balanced (and hopefully better to use)
 - Allowed the universal shaft to be waterlogged
 - Added more gas related blocks to the wrenchable tag
 - Added new visuals to the physics assembler
 - Reworked the smart duct completely
+- Rewrote how the balloons calculate buoyancy, making them much more fun to use
 
 ### Bugfixes:
 - Fixed aeronaut goggles not rendering on armor stands or other players
@@ -51,7 +51,9 @@ Holy bug fixes batman
 - Fixed gyroscope and reaction wheel rendering an extra shaft
 - Fixed reaction wheel applying torque in the wrong direction
 - Fixed spinoff bearings not copying/pasting in VMod schematics properly
+- Fixed phys bearings not copying/pasting in VMod schematics properly
 - Fixed spinoff bearings not serialising, causing a jolt on world reload
+- Fixed phys bearings not serialising, causing a jolt on world reload
 - Fixed the item model of the wanderlite matrix
 - Fixed balloons sometimes not being detected
 - Fixed universal shaft not dropping compressible shaft item when broken
