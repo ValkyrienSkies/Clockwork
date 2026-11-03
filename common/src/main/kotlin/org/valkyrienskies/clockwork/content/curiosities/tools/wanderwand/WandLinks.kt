@@ -10,6 +10,7 @@ import org.joml.Vector3d
 import org.valkyrienskies.core.internal.joints.*
 import org.valkyrienskies.mod.common.dimensionId
 import org.valkyrienskies.mod.common.shipObjectWorld
+import org.valkyrienskies.mod.common.vsPipeline
 import org.valkyrienskies.clockwork.util.gtpa
 import org.valkyrienskies.clockwork.util.matchesByAnchors
 import org.valkyrienskies.clockwork.util.updateJoint
@@ -133,11 +134,8 @@ class WandLinks : SavedData() {
         if (link.jointId == null) link.mass = WandLinkPhysics.effectiveMass(
             level.shipObjectWorld.loadedShips.getById(link.a.shipId)?.inertiaData?.mass,
             level.shipObjectWorld.loadedShips.getById(link.b.shipId)?.inertiaData?.mass)
-        val joint: VSJoint = if (link.rope) VSDistanceJoint(a, link.pose0, b, link.pose1,
-            VSJointMaxForceTorque((link.mass * if (link.physical) RopeKnotPhysics.BREAK_ACCELERATION else WandLinkPhysics.ROPE_BREAK_ACCELERATION).toFloat(), Float.MAX_VALUE),
-            minDistance = 0f, maxDistance = link.length.toFloat(),
-            stiffness = (link.mass * if (link.physical) RopeKnotPhysics.STIFFNESS else WandLinkPhysics.ROPE_STIFFNESS).toFloat(),
-            damping = (link.mass * if (link.physical) RopeKnotPhysics.DAMPING else WandLinkPhysics.ROPE_DAMPING).toFloat())
+        val joint: VSJoint = if (link.rope) WandLinkPhysics.ropeJoint(a, b, link.pose0, link.pose1, link.mass,
+            link.length, link.physical, level.server.vsPipeline.getPhysicsBackendType())
         else WandLinkPhysics.glueJoint(a, b, link.pose0, link.pose1, link.mass, link.age)
         link.jointId?.let { id ->
             val current = level.gtpa.getJointById(id)

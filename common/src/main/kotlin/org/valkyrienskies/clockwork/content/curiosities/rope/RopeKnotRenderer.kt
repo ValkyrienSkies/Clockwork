@@ -100,9 +100,13 @@ object RopeKnotRenderer {
         if (ship != null) ms.mulPose(Quaternionf(ship.renderTransform.shipToWorldRotation))
         ms.mulPose(anchor.face.rotation)
         ms.translate(0.0, 0.1, 0.0)
+        knotModel(level, point, ms, buffers)
+        ms.popPose()
+    }
+
+    private fun knotModel(level: ClientLevel, point: Vec3, ms: PoseStack, buffers: MultiBufferSource) {
         Minecraft.getInstance().itemRenderer.renderStatic(ItemStack(ClockworkItems.ROPE_KNOT.get()), ItemDisplayContext.NONE,
             LevelRenderer.getLightColor(level, BlockPos.containing(point)), OverlayTexture.NO_OVERLAY, ms, buffers, level, 0)
-        ms.popPose()
     }
 
     fun rope(level: ClientLevel, curve: WandRopeCurve, origin: Vec3, ms: PoseStack, buffers: MultiBufferSource) {
@@ -123,10 +127,12 @@ object RopeKnotRenderer {
         }
         var u = 0f
         for (i in 0 until points.lastIndex) {
-            val nextU = u + (points[i].distanceTo(points[i + 1]) * 4).toFloat()
+            val nextU = u + points[i].distanceTo(points[i + 1]).toFloat()
             val light = LevelRenderer.getLightColor(level, BlockPos.containing(points[i]))
             for (face in 0..3) {
                 val next = (face + 1) % 4
+                val v0 = (4 + face * 2) / 16f
+                val v1 = v0 + 2 / 16f
                 val normal = rings[i][face].add(rings[i][next]).scale(0.5).subtract(points[i]).normalize()
                 fun vertex(p: Vec3, texU: Float, texV: Float) {
                     val v = p.subtract(origin)
@@ -134,10 +140,10 @@ object RopeKnotRenderer {
                         .uv(texU, texV).overlayCoords(OverlayTexture.NO_OVERLAY).uv2(light)
                         .normal(ms.last().normal(), normal.x.toFloat(), normal.y.toFloat(), normal.z.toFloat()).endVertex()
                 }
-                vertex(rings[i][face], u, 0.25f)
-                vertex(rings[i + 1][face], nextU, 0.25f)
-                vertex(rings[i + 1][next], nextU, 0.75f)
-                vertex(rings[i][next], u, 0.75f)
+                vertex(rings[i][face], u, v0)
+                vertex(rings[i + 1][face], nextU, v0)
+                vertex(rings[i + 1][next], nextU, v1)
+                vertex(rings[i][next], u, v1)
             }
             u = nextU
         }
@@ -154,6 +160,10 @@ object RopeKnotRenderer {
             val hand = player.getEyePosition(partialTick).add(player.getViewVector(partialTick).scale(0.45)).add(0.0, -0.4, 0.0)
             knot(level, anchor, start.subtract(camera), ms, buffers)
             rope(level, WandRopeCurve(start, hand, RopeKnotPhysics.placedLength(start.distanceTo(hand))), camera, ms, buffers)
+            ms.pushPose()
+            ms.translate(hand.x - camera.x, hand.y - camera.y, hand.z - camera.z)
+            knotModel(level, hand, ms, buffers)
+            ms.popPose()
         }
         snaps.removeAll { level.gameTime - it.born > 16 }
         for (snap in snaps) {

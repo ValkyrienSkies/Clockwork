@@ -4,6 +4,8 @@ import net.minecraft.world.phys.Vec3
 import org.joml.Quaterniond
 import org.joml.Quaterniondc
 import org.joml.Vector3d
+import org.valkyrienskies.clockwork.content.curiosities.rope.RopeKnotPhysics
+import org.valkyrienskies.core.impl.api_impl.config.ConfigPhysicsBackendType
 import org.valkyrienskies.core.internal.joints.*
 import java.util.EnumMap
 import kotlin.math.max
@@ -48,6 +50,19 @@ internal object WandLinkPhysics {
             Vector3d(anchor.pos.x + 0.5 + anchor.face.stepX * 0.5,
                 anchor.pos.y + 0.5 + anchor.face.stepY * 0.5, anchor.pos.z + 0.5 + anchor.face.stepZ * 0.5), q)
         return atFace(a, frameA) to atFace(b, frameB)
+    }
+
+    fun ropeJoint(a: Long, b: Long, poseA: VSJointPose, poseB: VSJointPose, mass: Double, length: Double,
+                  physical: Boolean, backend: ConfigPhysicsBackendType): VSDistanceJoint {
+        val stiffness = mass * if (physical) RopeKnotPhysics.STIFFNESS else ROPE_STIFFNESS
+        val damping = mass * if (physical) RopeKnotPhysics.DAMPING else ROPE_DAMPING
+        val classic = backend == ConfigPhysicsBackendType.KRUNCH_CLASSIC
+        return VSDistanceJoint(a, poseA, b, poseB,
+            VSJointMaxForceTorque((mass * if (physical) RopeKnotPhysics.BREAK_ACCELERATION else ROPE_BREAK_ACCELERATION).toFloat(), Float.MAX_VALUE),
+            compliance = if (classic) 1.0 / stiffness else VSJoint.DEFAULT_COMPLIANCE,
+            maxDistance = length.toFloat(),
+            stiffness = if (classic) null else stiffness.toFloat(),
+            damping = if (classic) null else damping.toFloat())
     }
 
     fun glueJoint(a: Long, b: Long, poseA: VSJointPose, poseB: VSJointPose, mass: Double, age: Int): VSD6Joint {
