@@ -4,6 +4,7 @@ import org.joml.Quaterniond
 import org.joml.Vector3d
 import org.joml.Vector3dc
 import org.valkyrienskies.clockwork.content.curiosities.tools.gravitron.GravitronForceInducerData
+import org.valkyrienskies.clockwork.content.physicalities.gyro.GyroShipControl
 import org.valkyrienskies.core.api.attachment.getAttachment
 import org.valkyrienskies.core.api.ships.LoadedServerShip
 import org.valkyrienskies.core.api.ships.PhysShip
@@ -11,7 +12,7 @@ import org.valkyrienskies.core.api.ships.ShipPhysicsListener
 import org.valkyrienskies.core.api.world.PhysLevel
 
 class GravitronController : ShipPhysicsListener {
-    var data: GravitronForceInducerData? = null
+    private var data: GravitronForceInducerData? = null
 
     override fun physTick(physShip: PhysShip, physLevel: PhysLevel) {
         val dataCopy = data ?: return
@@ -59,6 +60,15 @@ class GravitronController : ShipPhysicsListener {
             )
             physShip.applyWorldTorque(torque)
         }
+    }
+
+    /**
+     * Providing the server ship is required so that it can enable/disable the gyro when gravitroning
+     */
+    fun setData(data: GravitronForceInducerData?, ship: LoadedServerShip) {
+        this.data = data
+
+        GyroShipControl.getOrCreate(ship).overrideDisable = (data == null)
     }
 
     companion object {
