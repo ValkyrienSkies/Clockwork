@@ -2,9 +2,10 @@
 Holy bug fixes batman
 
 ### Updated Kelvin:
-- New and shiny default solver (JacobiSeidel)
+- New, very performant default solver (JacobiSeidel)
 - Prettier gas particles
-- Removed the wall heat system
+- Replaced the wall heat system with node heatCapacity
+- Added a consistent way to get flow rate for an edge
 - More usable by other mods with the new Connectable system
 - More usable by other mods with it being published as its own mod instead of included in the clockwork jar
 - Fixed a few bugs (thanks G_Mungus)
@@ -17,6 +18,7 @@ Holy bug fixes batman
 - Added lazy linking to flap bearings (e.g. click the side of a bearing with a linked controller to copy its frequency). Has compat for tweaked controllers.
 - Added the ability to change the tilt of the blade controller while moving by powering the side of the brass propeller bearing with redstone
 - Added the gimbal bearing (like a cross between a physics bearing and a copter bearing)
+- Added sterling engine
 - Added the sterling engine
 - Added polish translations (by SuperKotz)
 - Added bind, attach, and weld mode to the Wanderwand
@@ -24,11 +26,12 @@ Holy bug fixes batman
 - Added custom recipes for everything that activate when TFG is present, to better fit into its progression
 
 ### Changes:
-- Changed how the gas engine works
+- Changed the gas engine to use flowrate 
 - Changed the delivery cannon to maintain its previous angle instead of resetting after firing
 - Changed the model for the creative gas generator, gas back tank, and the redstone duct
 - Added VMod compatibility for all the bearings
 - Rewrote all the propeller math, making sails and blade controllers more balanced (and hopefully better to use)
+- Reworked phys bearing
 - Allowed the universal shaft to be waterlogged
 - Added more gas related blocks to the wrenchable tag
 - Added new visuals to the physics assembler
@@ -62,5 +65,7 @@ Holy bug fixes batman
 - Fixed universal shafts not pasting linked in create schematics
 - Fixed Z-Fighting on the physics bearing model
 - Fixed Creative Gravitron ring spinning at different speeds depending on FPS
-- Fixed gas tanks having all sorts of bugs (hopefully)
+- Fixed gas tanks having all sorts of bugs
+- Fixed gas valve and pump not working with connections
+- Fixed oneway connection visual not matching 
 - Fixed physics bearing not taking into account the mass of connected ships
