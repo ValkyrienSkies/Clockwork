@@ -21,6 +21,7 @@ Holy bug fixes batman
 - Added polish translations (by SuperKotz)
 - Added bind, attach, and weld mode to the Wanderwand
 - Added new shiny visuals to the Wanderwand and Gravitrons
+- Added custom recipes for everything that activate when TFG is present, to better fit into its progression
 
 ### Changes:
 - Changed how the gas engine works
@@ -31,6 +32,8 @@ Holy bug fixes batman
 - Rewrote all the propeller math, making sails and blade controllers more balanced (and hopefully better to use)
 - Allowed the universal shaft to be waterlogged
 - Added more gas related blocks to the wrenchable tag
+- Added new visuals to the physics assembler
+- Reworked the smart duct completely
 
 ### Bugfixes:
 - Fixed aeronaut goggles not rendering on armor stands or other players
@@ -54,5 +57,8 @@ Holy bug fixes batman
 - Fixed universal shaft not dropping compressible shaft item when broken
 - Fixed universal shafts sometimes having reversed rotation
 - Fixed universal shafts looking glitched out when one end is unloaded
+- Fixed universal shafts not pasting linked in create schematics
 - Fixed Z-Fighting on the physics bearing model
 - Fixed Creative Gravitron ring spinning at different speeds depending on FPS
+- Fixed gas tanks having all sorts of bugs (hopefully)
+- Fixed physics bearing not taking into account the mass of connected ships
