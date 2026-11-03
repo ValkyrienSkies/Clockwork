@@ -16,6 +16,7 @@ import net.minecraft.world.phys.HitResult
 import net.minecraft.world.phys.Vec3
 import org.joml.Matrix4f
 import org.valkyrienskies.clockwork.ClockworkMod
+import org.valkyrienskies.clockwork.content.curiosities.rope.RopeKnotRenderer
 import org.valkyrienskies.clockwork.util.render.ShaderPackCompat
 import org.valkyrienskies.clockwork.util.render.SurfaceEffectPass
 import org.valkyrienskies.clockwork.ClockworkRenderTypes
@@ -88,9 +89,11 @@ class WanderwandEffectRenderer {
             }
             "links" -> {
                 WandRopeRidingClient.accept(data)
+                RopeKnotRenderer.accept(data)
                 links.clear()
                 for (entry in data.getList("links", Tag.TAG_COMPOUND.toInt()).take(256)) {
                     val t = entry as CompoundTag
+                    if (t.getBoolean("physical")) continue
                     links.add(Link(WandAnchor.load(t.getCompound("a")), WandAnchor.load(t.getCompound("b")), t.getBoolean("rope"), t.getDouble("length")))
                 }
             }
@@ -104,6 +107,7 @@ class WanderwandEffectRenderer {
                 if (pulse.action == "weld_end") blocks.weldPulse(pulse.anchor, level.gameTime)
             }
             "ride" -> WandRopeRidingClient.accept(data)
+            "physical_rope_break" -> RopeKnotRenderer.accept(data)
         }
     }
     fun handlePacket(packet: WanderwandRenderUpdatePacket) {

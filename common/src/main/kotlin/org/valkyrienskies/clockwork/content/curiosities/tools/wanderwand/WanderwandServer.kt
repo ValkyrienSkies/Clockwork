@@ -98,7 +98,7 @@ object WanderwandServer {
             else if (state.tool == ToolType.ATTACH || state.tool == ToolType.BIND) {
                 val data = WandLinks.get(level)
                 val visibleRange = min(range, hit.location.distanceTo(eye))
-                val link = data.links.values.asSequence().filter { state.tool == ToolType.ATTACH || it.rope }.mapNotNull { link ->
+                val link = data.links.values.asSequence().filter { !it.physical && (state.tool == ToolType.ATTACH || it.rope) }.mapNotNull { link ->
                     WandLinkTargeting.removalDistance(link, eye, player.lookAngle, visibleRange, target,
                         link.a.world(level), link.b.world(level))?.let { distance -> link to distance }
                 }.minByOrNull { it.second }?.first
@@ -273,7 +273,7 @@ object WanderwandServer {
         ClockworkPackets.sendToClientsTrackingAndSelf(WanderwandStatePacket(tag), player)
     }
 
-    private fun syncLinks(level: ServerLevel) {
+    fun syncLinks(level: ServerLevel) {
         val data = WandLinks.get(level)
         for (player in level.players()) {
             val list = ListTag()
@@ -285,8 +285,10 @@ object WanderwandServer {
         }
     }
 
-    fun breakEffect(level: ServerLevel, link: WandLinks.Link, owner: UUID = UUID(0, 0)) =
-        effect(level, owner, if (link.rope) "rope_break" else "attach_break", link.a, link.b)
+    fun breakEffect(level: ServerLevel, link: WandLinks.Link, owner: UUID = UUID(0, 0)) {
+        if (link.physical) org.valkyrienskies.clockwork.content.curiosities.rope.RopeKnotServer.breakEffect(level, link)
+        else effect(level, owner, if (link.rope) "rope_break" else "attach_break", link.a, link.b)
+    }
     private fun effect(level: ServerLevel, owner: UUID, action: String, anchor: WandAnchor, other: WandAnchor? = null) {
         val tag = CompoundTag()
         tag.putString("kind", "event"); tag.putUUID("owner", owner); tag.putString("action", action); tag.put("anchor", anchor.save())
