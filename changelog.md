@@ -18,7 +18,6 @@ Holy bug fixes batman
 - Added lazy linking to flap bearings (e.g. click the side of a bearing with a linked controller to copy its frequency). Has compat for tweaked controllers.
 - Added the ability to change the tilt of the blade controller while moving by powering the side of the brass propeller bearing with redstone
 - Added the gimbal bearing (like a cross between a physics bearing and a copter bearing)
-- Added sterling engine
 - Added the sterling engine
 - Added polish translations (by SuperKotz)
 - Added bind, attach, and weld mode to the Wanderwand
