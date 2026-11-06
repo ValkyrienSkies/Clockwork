@@ -18,6 +18,7 @@ import org.valkyrienskies.clockwork.ClockworkSounds
 import org.valkyrienskies.clockwork.content.curiosities.tools.wanderwand.tool.ToolType
 import org.valkyrienskies.clockwork.util.AABBHelper.mergeAdjacentFast
 import org.valkyrienskies.clockwork.util.AABBHelper.subtractWithAABB
+import org.valkyrienskies.mod.common.toWorldCoordinates
 import org.valkyrienskies.mod.common.world.clipIncludeShips
 import java.util.UUID
 import kotlin.math.max
@@ -52,7 +53,9 @@ object WanderwandServer {
         if (player.abilities.flying) return // already in creative mode flight
 
         // Only allow jump when rope is above player
-        if (state.rope!!.pos.center.subtract(player.position()).normalize().y < 0.8) return
+        var pos = state.rope!!.pos.center
+        pos = player.level().toWorldCoordinates(pos)
+        if (pos.subtract(player.position()).normalize().y < 0.8) return
 
         // To lazy to write custom break-rope code here so we fake a packet instead
         click(player, WandSelectionPacket(BlockPos(0,0,0), null, ToolType.BIND, true))
