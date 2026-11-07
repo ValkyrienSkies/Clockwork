@@ -155,7 +155,7 @@ object ClockworkConfig {
         var sailPropellerForceMultiplier = 4.0
 
         @ConfigEntry(description = "Whether a spinning propeller applies its reaction torque to the ship. Disable to keep thrust and unbalanced-rotor torque while removing the torque caused by the rotor spinning about its own axis.")
-        var propellerSpinTorqueEnabled = true
+        var propellerSpinTorqueEnabled = false
 
         @ConfigEntry(min = 0.0, description = "Optional per-rotor force limit in N. 0 disables this limit (default); a fixed cap makes larger or faster rotors stop gaining thrust. Force and torque are reduced together when either limit is reached.")
         var propellerMaxForce = 0.0
