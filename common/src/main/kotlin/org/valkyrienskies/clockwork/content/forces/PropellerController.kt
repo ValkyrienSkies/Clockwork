@@ -46,7 +46,7 @@ class PropellerController(
                 ClockworkConfig.SERVER.propellerMaxForce, ClockworkConfig.SERVER.propellerMaxTorque)
             // One coupled impulse, with its complete world-space moment about the COM.
             physShip.applyWorldForceToBodyPos(force)
-            physShip.applyWorldTorque(applySpinTorqueSetting(torque, rotors))
+            physShip.applyWorldTorque(torque)
         }
 
         // Propeller Pushing
@@ -61,27 +61,13 @@ class PropellerController(
         physShip: PhysShip,
         physLevel: PhysLevel
     ): Pair<Vector3dc, Vector3dc> = prepareAerodynamics(physTransform, physProp, vel, omega, physShip, physLevel)
-        .let { it.force to applySpinTorqueSetting(it.torque, listOf(it)) }
+        .let { it.force to it.torque }
 
     internal fun computeBladeForce(
         physShip: PhysShip, physProp: PropData, physLevel: PhysLevel
     ): Pair<Vector3dc, Vector3dc> = prepareAerodynamics(
         physShip.transform, physProp, physShip.velocity, physShip.angularVelocity, physShip, physLevel
-    ).let { it.force to applySpinTorqueSetting(it.torque, listOf(it)) }
-
-    private fun applySpinTorqueSetting(
-        torque: Vector3dc, rotors: List<PropellerAerodynamics.PreparedRotor>
-    ): Vector3dc {
-        if (ClockworkConfig.SERVER.propellerSpinTorqueEnabled) return torque
-        val adjusted = Vector3d(torque)
-        for (rotor in rotors) {
-            val axis = rotor.axis
-            val lengthSquared = axis.lengthSquared()
-            if (!axis.isFinite || lengthSquared < 1e-12) continue
-            adjusted.sub(Vector3d(axis).mul(axis.dot(adjusted) / lengthSquared))
-        }
-        return adjusted
-    }
+    ).let { it.force to it.torque }
 
     private fun prepareAerodynamics(
         transform: ShipTransform, prop: PropData, velocity: Vector3dc, angularVelocity: Vector3dc,
@@ -98,7 +84,8 @@ class PropellerController(
             ClockworkConfig.SERVER.sailPropellerForceMultiplier
         return PropellerAerodynamics.prepare(
             prop, flow, estimatedAngle, forceMultiplier,
-            ClockworkConfig.SERVER.propellerMaxForce, ClockworkConfig.SERVER.propellerMaxTorque
+            ClockworkConfig.SERVER.propellerMaxForce, ClockworkConfig.SERVER.propellerMaxTorque,
+            spinTorqueEnabled = ClockworkConfig.SERVER.propellerSpinTorqueEnabled
         )
     }
 

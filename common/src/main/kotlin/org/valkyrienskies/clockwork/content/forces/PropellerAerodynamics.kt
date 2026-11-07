@@ -111,9 +111,12 @@ internal object PropellerAerodynamics {
     ): Pair<Vector3dc, Vector3dc> = prepare(prop, flow, angleDegrees, forceMultiplier, maxForce, maxTorque, radialSegments)
         .let { it.force to it.torque }
 
+    /** Disabling shaft reaction removes only commanded-spin forcing. Passive axial moments,
+     * including those induced during the implicit timestep, must remain in the response.
+     */
     fun prepare(
         prop: PropData, flow: Flow, angleDegrees: Double, forceMultiplier: Double,
-        maxForce: Double, maxTorque: Double, radialSegments: Int = 8
+        maxForce: Double, maxTorque: Double, radialSegments: Int = 8, spinTorqueEnabled: Boolean = true
     ): PreparedRotor {
         val force = Vector3d()
         val torque = Vector3d()
@@ -134,6 +137,9 @@ internal object PropellerAerodynamics {
         tilt.normalize()
         val orientation = PropellerTransform.orientation(baseAxis, tilt, angleDegrees)
         val axis = tilt.transform(baseAxis, Vector3d())
+        val axisWorld = flow.modelToWorld.transformDirection(axis, Vector3d())
+        if (!axisWorld.isFinite || axisWorld.lengthSquared() < EPSILON) return PreparedRotor()
+        axisWorld.normalize()
         val omega = bearingSpeedToRadiansPerSecond(prop.bearingSpeed) * facingSign
         val hub = Vector3d(position).add(0.5, 0.5, 0.5).add(baseAxis)
             .add(PropellerTransform.hubDisplacement(baseAxis, tilt))
@@ -172,11 +178,13 @@ internal object PropellerAerodynamics {
             }
         }
 
+        fun spinVelocityAt(offset: Vector3dc): Vector3d =
+            flow.modelToWorld.transformDirection(axis.cross(offset, Vector3d()).mul(omega))
+
         fun velocityAt(offset: Vector3dc): Vector3d {
             val leverWorld = flow.modelToWorld.transformDirection(Vector3d(hub).add(offset).sub(flow.centerOfMassModel))
-            val spinVelocity = flow.modelToWorld.transformDirection(axis.cross(offset, Vector3d()).mul(omega))
             return Vector3d(flow.velocityWorld).sub(flow.windWorld)
-                .add(flow.angularVelocityWorld.cross(leverWorld, Vector3d())).add(spinVelocity)
+                .add(flow.angularVelocityWorld.cross(leverWorld, Vector3d())).add(spinVelocityAt(offset))
         }
 
         val densities = DoubleArray(elements.size) { index ->
@@ -221,6 +229,7 @@ internal object PropellerAerodynamics {
         }
 
         val sections = ArrayList<Section>(elements.size)
+        var drivenShaftTorque = 0.0
         for ((index, element) in elements.withIndex()) {
             val pitch = if (prop.brass) sailPitchSign * prop.currentBladePitch else element.pitch
             val spanWorld = flow.modelToWorld.transformDirection(Vector3d(element.span).mul(element.spanLength))
@@ -236,12 +245,19 @@ internal object PropellerAerodynamics {
             sections.add(Section(leverWorld, response))
             force.add(elementForce)
             torque.add(leverWorld.cross(elementForce, Vector3d()))
+            if (!spinTorqueEnabled) {
+                // Split the frozen response into ship/air motion and commanded rotor spin.
+                // Cancel only the latter's axial moment about this rotor's hub, never its
+                // hub-to-COM moment or any other rotor's torque. Keep the passive response
+                // intact, including axial damping, for the coupled implicit solve.
+                val spinForce = response.transform(spinVelocityAt(element.offset), Vector3d())
+                val radiusWorld = flow.modelToWorld.transformDirection(element.offset, Vector3d())
+                drivenShaftTorque += axisWorld.dot(radiusWorld.cross(spinForce))
+            }
         }
 
+        if (!spinTorqueEnabled) torque.sub(Vector3d(axisWorld).mul(drivenShaftTorque))
         if (!force.isFinite || !torque.isFinite) return PreparedRotor()
-        val axisWorld = flow.modelToWorld.transformDirection(Vector3d(axis), Vector3d())
-        if (!axisWorld.isFinite || axisWorld.lengthSquared() < EPSILON) return PreparedRotor()
-        axisWorld.normalize()
         var fraction = 1.0
         if (maxForce > 0.0 && force.length() > maxForce) fraction = min(fraction, maxForce / force.length())
         if (maxTorque > 0.0 && torque.length() > maxTorque) fraction = min(fraction, maxTorque / torque.length())

@@ -47,6 +47,7 @@ class PropellerForceRegressionTest {
         savedSpinTorqueEnabled = ClockworkConfig.SERVER.propellerSpinTorqueEnabled
         ClockworkConfig.SERVER.forceMulPerSailInPropeller = 12.0
         ClockworkConfig.SERVER.sailPropellerForceMultiplier = 1.0
+        ClockworkConfig.SERVER.propellerSpinTorqueEnabled = true
         // Check the equations below the limits; coupled force/moment limiting is tested separately.
         ClockworkConfig.SERVER.propellerMaxForce = 1e12
         ClockworkConfig.SERVER.propellerMaxTorque = 1e12
@@ -382,37 +383,69 @@ class PropellerForceRegressionTest {
     }
 
     @Test
-    fun `spin torque toggle removes axial reaction torque but keeps thrust and unbalanced torque`() {
-        val physicsShip = ship()
-        val appliedForce = Vector3d()
-        val appliedTorque = Vector3d()
-        every { physicsShip.applyWorldForceToBodyPos(any(), any()) } answers {
-            appliedForce.set(firstArg<Vector3dc>())
-            Unit
-        }
-        every { physicsShip.applyWorldTorque(any()) } answers {
-            appliedTorque.set(firstArg<Vector3dc>())
-            Unit
-        }
+    fun `spin torque toggle removes driven shaft moment from raw loads only`() {
+        for (sails in listOf(false, true)) {
+            val physicsShip = ship()
+            ClockworkConfig.SERVER.propellerSpinTorqueEnabled = true
+            val enabled = forces(propeller(sails), physicsShip)
+            assertTrue(abs(enabled.second.z()) > 1e-6, "A spinning rotor should produce shaft reaction")
+            assertTrue(Vector3d(enabled.second.x(), enabled.second.y(), 0.0).length() > 1e-6,
+                "An unbalanced rotor should produce off-axis torque")
 
-        ClockworkConfig.SERVER.propellerSpinTorqueEnabled = true
-        val enabledController = PropellerController()
-        enabledController.appliers[0] = propeller(true)
-        enabledController.physTick(physicsShip, level)
-        val enabledForce = Vector3d(appliedForce)
-        val enabledTorque = Vector3d(appliedTorque)
-        assertTrue(abs(enabledTorque.z()) > 1e-6, "A spinning rotor should produce axial reaction torque")
-        assertTrue(Vector3d(enabledTorque.x(), enabledTorque.y(), 0.0).length() > 1e-6,
-            "An unbalanced rotor should produce off-axis torque")
+            ClockworkConfig.SERVER.propellerSpinTorqueEnabled = false
+            val disabled = forces(propeller(sails), physicsShip)
+            assertVectorEquals(enabled.first, disabled.first)
+            assertVectorEquals(Vector3d(enabled.second.x(), enabled.second.y(), 0.0), disabled.second)
+        }
+    }
 
-        ClockworkConfig.SERVER.propellerSpinTorqueEnabled = false
-        val disabledController = PropellerController()
-        disabledController.appliers[0] = propeller(true)
-        disabledController.physTick(physicsShip, level)
-        assertVectorEquals(enabledForce, appliedForce)
-        assertEquals(0.0, appliedTorque.z(), 1e-8)
-        assertVectorEquals(Vector3d(enabledTorque.x(), enabledTorque.y(), 0.0),
-            Vector3d(appliedTorque.x(), appliedTorque.y(), 0.0))
+    @Test
+    fun `spin setting enters the coupled solve without projecting other rotors moments`() {
+        // Nonparallel axes catch both crossed-axis torque loss and order-dependent projections.
+        for (sails in listOf(false, true)) for (enabled in listOf(false, true))
+            for (tilt in listOf(PI / 2.0, 0.73)) {
+            ClockworkConfig.SERVER.propellerSpinTorqueEnabled = enabled
+            ClockworkConfig.SERVER.propellerMaxForce = 0.0
+            ClockworkConfig.SERVER.propellerMaxTorque = 0.0
+            val rotation = Quaterniond().rotateXYZ(.4, -.2, .3)
+            val physicsShip = ship(rotation = rotation, velocity = Vector3d(3.0, -2.0, 5.0),
+                omega = Vector3d(.4, -.3, .2))
+            val inertia = Matrix3d().scaling(20000.0, 40000.0, 80000.0)
+            every { physicsShip.momentOfInertia } returns inertia
+            fun props() = listOf(
+                propeller(sails, rpm = 128.0, position = Vector3i(-2, 3, 0)),
+                propeller(sails, rpm = -64.0, position = Vector3i(3, -2, 1)).apply {
+                    bearingTiltQuat = Quaterniond().rotateY(tilt)
+                }
+            )
+            val flow = PropellerAerodynamics.Flow(physicsShip.transform.shipToWorld, physicsShip.centerOfMass,
+                physicsShip.velocity, physicsShip.angularVelocity, Vector3d()) { rho }
+            val prepared = props().map {
+                PropellerAerodynamics.prepare(it, flow, 0.0, 12.0, 0.0, 0.0, spinTorqueEnabled = enabled)
+            }
+            val r = Matrix3d().rotation(rotation)
+            val worldInertia = Matrix3d(r).mul(inertia).mul(r.transpose(Matrix3d()))
+            val expected = PropellerImpulseSolver.solve(prepared, physicsShip.mass, worldInertia)
+            assertTrue(abs(expected.second.dot(prepared[0].axis)) > 1e-4,
+                "Fixture must retain torque along the first shaft, including other rotors' moments")
+            assertTrue(abs(expected.second.dot(prepared[1].axis)) > 1e-4)
+            for (reverse in listOf(false, true)) {
+                val appliedForce = Vector3d()
+                val appliedTorque = Vector3d()
+                every { physicsShip.applyWorldForceToBodyPos(any(), any()) } answers {
+                    appliedForce.set(firstArg<Vector3dc>()); Unit
+                }
+                every { physicsShip.applyWorldTorque(any()) } answers {
+                    appliedTorque.set(firstArg<Vector3dc>()); Unit
+                }
+                val tickingController = PropellerController()
+                val ordered = props().let { if (reverse) it.reversed() else it }
+                ordered.forEachIndexed { index, prop -> tickingController.appliers[index] = prop }
+                tickingController.physTick(physicsShip, level)
+                assertVectorEquals(expected.first, appliedForce)
+                assertVectorEquals(expected.second, appliedTorque)
+            }
+        }
     }
 
     private fun propeller(

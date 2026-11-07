@@ -154,7 +154,7 @@ object ClockworkConfig {
         @ConfigEntry(min = 0.0, description = "Additional gameplay strength for all propellers, multiplied by forceMulPerSailInPropeller. Scales aerodynamic force and torque together without changing Create stress cost. 1 restores the unboosted strength; applies to sail and blade-controller propellers alike.")
         var sailPropellerForceMultiplier = 4.0
 
-        @ConfigEntry(description = "Whether a spinning propeller applies its reaction torque to the ship. Disable to keep thrust and unbalanced-rotor torque while removing the torque caused by the rotor spinning about its own axis.")
+        @ConfigEntry(description = "Whether a propeller applies its driven shaft reaction torque to the ship. Disable to remove the axial moment caused by commanded rotor spin while keeping thrust, hub-offset and unbalanced-rotor moments, and passive aerodynamic damping.")
         var propellerSpinTorqueEnabled = false
 
         @ConfigEntry(min = 0.0, description = "Optional per-rotor force limit in N. 0 disables this limit (default); a fixed cap makes larger or faster rotors stop gaining thrust. Force and torque are reduced together when either limit is reached.")
