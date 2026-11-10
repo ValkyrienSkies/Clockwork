@@ -1,5 +1,7 @@
 package org.valkyrienskies.clockwork
 
+import org.valkyrienskies.clockwork.content.curiosities.spring.SpringItem
+
 import com.simibubi.create.AllTags
 import com.simibubi.create.AllTags.AllItemTags
 import com.simibubi.create.content.equipment.goggles.GogglesItem
@@ -42,6 +44,12 @@ import org.valkyrienskies.clockwork.util.builder.ClockworkRegistrate
 import java.util.function.Supplier
 
 object ClockworkItems {
+
+    @JvmField
+    val SPRING = REGISTRATE.item<SpringItem>("spring") {
+        SpringItem(it!!)
+    }.properties { it.stacksTo(16) }.tab(ClockworkMod.BASE_CREATIVE_TABINFO)
+        .model(AssetLookup.existingItemModel()).register()
 
     @JvmField
     val ROPE_KNOT: ItemEntry<RopeKnotItem> = REGISTRATE.item<RopeKnotItem>("rope_knot") { RopeKnotItem(it!!) }

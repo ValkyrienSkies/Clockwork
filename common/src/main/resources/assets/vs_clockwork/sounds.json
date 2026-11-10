@@ -1,4 +1,9 @@
 {
+  "rope_overload": {"sounds": ["vs_clockwork:rope_overload"], "subtitle": "vs_clockwork.subtitle.rope_overload"},
+  "spring_overload": {"sounds": ["vs_clockwork:spring_overload"], "subtitle": "vs_clockwork.subtitle.spring_overload"},
+  "spring_attach_start": {"sounds": ["vs_clockwork:spring_attach_start"], "subtitle": "vs_clockwork.subtitle.spring_attach_start"},
+  "spring_attach_end": {"sounds": ["vs_clockwork:spring_attach_end"], "subtitle": "vs_clockwork.subtitle.spring_attach_end"},
+  "spring_snap_1": {"sounds": ["vs_clockwork:spring_snap_1", "vs_clockwork:spring_snap_2"], "subtitle": "vs_clockwork.subtitle.spring_snap_1"},
   "rope_tie": {
     "sounds": ["vs_clockwork:rope_tie"],
     "subtitle": "vs_clockwork.subtitle.rope_tie"

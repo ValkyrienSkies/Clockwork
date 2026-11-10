@@ -183,6 +183,7 @@ object ClockworkMod {
         vsApi.collisionStartEvent.on(MeteorStorm::onCollision)
 
         vsApi.physTickEvent.on {
+            org.valkyrienskies.clockwork.content.curiosities.spring.SpringBendingController.tick(it.world)
             val temp = mutableListOf<Pair<DimensionId, (PhysLevel, Double, () -> Unit) -> Unit>>()
             while (physTickOnce.isNotEmpty()) {
                 val (dimension, fn) = physTickOnce.poll() ?: continue

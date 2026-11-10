@@ -264,6 +264,7 @@ object WanderwandServer {
             if (level.gameTime % 10L == 0L) sync(player, s)
         }
         val linksChanged = data.tick(level)
+        if (level.gameTime % 4L == 0L) syncLinkStress(level, data)
         WandRopeRiding.tick(level, data)
         if (linksChanged || level.gameTime % 20L == 0L) syncLinks(level)
     }
@@ -283,9 +284,27 @@ object WanderwandServer {
             data.links.values.asSequence().filter {
                 (it.a.world(level)?.distanceToSqr(player.position()) ?: Double.MAX_VALUE) < 192 * 192 ||
                     (it.b.world(level)?.distanceToSqr(player.position()) ?: Double.MAX_VALUE) < 192 * 192
-            }.take(256).forEach { list.add(it.save()) }
+            }.take(256).forEach { link -> list.add(link.save().also { it.putFloat("stress", link.stress) }) }
             ClockworkPackets.sendTo(WanderwandStatePacket(CompoundTag().also { it.putString("kind", "links"); it.put("links", list) }), player)
         }
+    }
+
+    private fun syncLinkStress(level: ServerLevel, data: WandLinks) {
+        val physical = data.links.values.filter { it.physical }
+        if (physical.none { it.stress >= 0.5f || kotlin.math.abs(it.stress - it.sentStress) >= 0.025f }) return
+        for (player in level.players()) {
+            val list = ListTag()
+            physical.asSequence().filter {
+                (it.a.world(level)?.distanceToSqr(player.position()) ?: Double.MAX_VALUE) < 192 * 192 ||
+                    (it.b.world(level)?.distanceToSqr(player.position()) ?: Double.MAX_VALUE) < 192 * 192
+            }.take(256).forEach { link ->
+                list.add(CompoundTag().also { it.putUUID("id", link.id); it.putFloat("stress", link.stress) })
+            }
+            ClockworkPackets.sendTo(WanderwandStatePacket(CompoundTag().also {
+                it.putString("kind", "link_stress"); it.put("links", list)
+            }), player)
+        }
+        physical.forEach { it.sentStress = it.stress }
     }
 
     fun breakEffect(level: ServerLevel, link: WandLinks.Link, owner: UUID = UUID(0, 0)) {

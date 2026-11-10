@@ -15,7 +15,7 @@ import net.minecraft.world.level.Level
 import org.valkyrienskies.clockwork.platform.CWItem
 import org.valkyrienskies.clockwork.content.curiosities.tools.wanderwand.WandAnchor
 
-class RopeKnotItem(properties: Properties) : CWItem(properties) {
+open class RopeKnotItem(properties: Properties) : CWItem(properties) {
     override fun useOn(context: UseOnContext): InteractionResult {
         val player = context.player ?: return InteractionResult.PASS
         if (!player.mayBuild()) return InteractionResult.FAIL

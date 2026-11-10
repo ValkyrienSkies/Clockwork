@@ -70,6 +70,7 @@ open class WanderwandHandler {
     }
 
     fun render(poseStack: GuiGraphics, partialTicks: Float, width: Int, height: Int) {
+        org.valkyrienskies.clockwork.content.curiosities.spring.SpringToolClient.render(poseStack)
         if (Minecraft.getInstance().options.hideGui || !active) return
 
         if (activeSchematicItem != null && isRegular) {
@@ -162,6 +163,7 @@ open class WanderwandHandler {
     }
 
     fun mouseScrolled(delta: Double): Boolean {
+        if (org.valkyrienskies.clockwork.content.curiosities.spring.SpringToolClient.scroll(delta)) return true
         if (!active || delta == 0.0) {
             return false
         }

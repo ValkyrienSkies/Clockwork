@@ -97,6 +97,7 @@ enum class ClockworkPackets(
     WAND_STATE_PACKET(WanderwandStatePacket::class.java, ::WanderwandStatePacket),
     WAND_REEL_PACKET(WanderwandReelPacket::class.java, ::WanderwandReelPacket),
     WAND_ROPE_RIDE_PACKET(WandRopeRidePacket::class.java, ::WandRopeRidePacket),
+    SPRING_ADJUST_PACKET(org.valkyrienskies.clockwork.content.curiosities.spring.SpringAdjustPacket::class.java, { org.valkyrienskies.clockwork.content.curiosities.spring.SpringAdjustPacket(it) }),
     WAND_ROPE_RIDE_JUMP_PACKET(WandJumpPacket::class.java, ::WandJumpPacket),
 
     ;

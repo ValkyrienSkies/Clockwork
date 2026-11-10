@@ -1,5 +1,9 @@
 package org.valkyrienskies.clockwork.content.curiosities.rope
 
+import org.valkyrienskies.clockwork.content.curiosities.spring.SpringRenderer
+
+import org.valkyrienskies.clockwork.content.curiosities.spring.SpringItem
+
 import com.mojang.blaze3d.vertex.PoseStack
 import com.mojang.blaze3d.vertex.VertexConsumer
 import net.minecraft.client.Minecraft
@@ -18,11 +22,15 @@ import net.minecraft.world.item.ItemDisplayContext
 import net.minecraft.world.item.ItemStack
 import net.minecraft.world.phys.AABB
 import net.minecraft.world.phys.Vec3
+import org.joml.Quaterniond
 import org.joml.Quaternionf
 import org.valkyrienskies.clockwork.ClockworkItems
+import org.valkyrienskies.clockwork.util.sound.LinkStressSoundInstance
 import org.valkyrienskies.clockwork.ClockworkMod
 import org.valkyrienskies.clockwork.content.curiosities.tools.wanderwand.WandAnchor
+import org.valkyrienskies.clockwork.content.curiosities.tools.wanderwand.WandLinks
 import org.valkyrienskies.clockwork.content.curiosities.tools.wanderwand.WandRopeCurve
+import org.valkyrienskies.clockwork.content.curiosities.spring.SpringSettings
 import org.valkyrienskies.core.api.ships.ClientShip
 import org.valkyrienskies.mod.common.shipObjectWorld
 import java.util.UUID
@@ -48,10 +56,15 @@ class RopeKnotEntityRenderer(context: EntityRendererProvider.Context) : EntityRe
         val anchor = if (entity.end == 0) link.a else link.b
         val point = anchor.world(level, true) ?: return
         val origin = entity.getPosition(partialTick)
-        RopeKnotRenderer.knot(level, anchor, point.subtract(origin), ms, buffers)
+        if (!link.spring) RopeKnotRenderer.knot(level, anchor, point.subtract(origin), ms, buffers)
         if (entity.end == 0) {
             val other = link.b.world(level, true) ?: return
-            RopeKnotRenderer.rope(level, WandRopeCurve(point, other, link.length), origin, ms, buffers)
+            if (link.spring) {
+                val ticks = level.gameTime - link.lengthUpdated + partialTick.toDouble()
+                val length = SpringSettings.easeLength(link.appliedLength, link.length, ticks)
+                SpringRenderer.render(level, link.a, link.b, link.frameA, link.frameB, length, origin, ms, buffers)
+            }
+            else RopeKnotRenderer.rope(level, WandRopeCurve(point, other, link.length), origin, ms, buffers)
         }
         super.render(entity, yaw, partialTick, ms, buffers, light)
     }
@@ -60,15 +73,21 @@ class RopeKnotEntityRenderer(context: EntityRendererProvider.Context) : EntityRe
 object RopeKnotRenderer {
     val TEXTURE = ClockworkMod.asResource("textures/entity/rope.png")
     private val type = RenderType.entityCutoutNoCull(TEXTURE)
-    data class Link(val a: WandAnchor, val b: WandAnchor, val length: Double)
+    data class Link(val a: WandAnchor, val b: WandAnchor, val length: Double, val spring: Boolean, var stress: Float,
+                    var stressUpdated: Long, val settings: CompoundTag, val appliedLength: Double, val lengthUpdated: Long,
+                    val frameA: Quaterniond, val frameB: Quaterniond)
     private data class Snap(val curve: WandRopeCurve, val born: Long, val untied: Boolean)
     private val links = mutableMapOf<UUID, Link>()
     private val snaps = mutableListOf<Snap>()
+    private val stressSounds = mutableMapOf<UUID, LinkStressSoundInstance>()
     private var world: ClientLevel? = null
 
     private fun world(): ClientLevel? {
         val level = Minecraft.getInstance().level
-        if (world !== level) { links.clear(); snaps.clear(); world = level }
+        if (world !== level) {
+            stressSounds.values.forEach { it.stopNow() }; stressSounds.clear()
+            links.clear(); snaps.clear(); world = level
+        }
         return level
     }
 
@@ -76,19 +95,62 @@ object RopeKnotRenderer {
 
     fun accept(data: CompoundTag) {
         val level = world() ?: return
-        if (data.getString("kind") == "links") {
+        if (data.getString("kind") == "physical_rope_break" && data.hasUUID("id")) {
+            val id = data.getUUID("id")
+            stressSounds.remove(id)?.stopNow()
+            links.remove(id)
+        }
+        if (data.getString("kind") == "link_stress") {
+            for (entry in data.getList("links", Tag.TAG_COMPOUND.toInt()).take(256)) {
+                val tag = entry as CompoundTag
+                if (!tag.hasUUID("id")) continue
+                links[tag.getUUID("id")]?.let { it.stress = tag.getFloat("stress"); it.stressUpdated = level.gameTime }
+            }
+            updateStressSounds(level)
+        } else if (data.getString("kind") == "links") {
             links.clear()
             for (entry in data.getList("links", Tag.TAG_COMPOUND.toInt()).take(256)) {
                 val tag = entry as CompoundTag
                 if (!tag.getBoolean("physical") || !tag.hasUUID("id")) continue
-                links[tag.getUUID("id")] = Link(WandAnchor.load(tag.getCompound("a")),
-                    WandAnchor.load(tag.getCompound("b")), tag.getDouble("length"))
+                val length = tag.getDouble("length")
+                links[tag.getUUID("id")] = Link(WandAnchor.load(tag.getCompound("a")), WandAnchor.load(tag.getCompound("b")),
+                    length, tag.getBoolean("spring"), tag.getFloat("stress"), level.gameTime, tag.getCompound("settings"),
+                    WandLinks.readAppliedLength(tag, length), level.gameTime,
+                    WandLinks.loadPoseRotation(tag.getCompound("pose0")), WandLinks.loadPoseRotation(tag.getCompound("pose1")))
             }
+            updateStressSounds(level)
+        } else if (data.getString("kind") == "physical_rope_break" && data.getBoolean("spring")) {
+            SpringRenderer.acceptBreak(level, data)
         } else if (data.getString("kind") == "physical_rope_break") {
             val a = Vec3(data.getDouble("ax"), data.getDouble("ay"), data.getDouble("az"))
             val b = Vec3(data.getDouble("bx"), data.getDouble("by"), data.getDouble("bz"))
             if (snaps.size >= 32) snaps.removeAt(0)
             snaps.add(Snap(WandRopeCurve(a, b, data.getDouble("length")), level.gameTime, data.getBoolean("untied")))
+        }
+    }
+
+    private fun updateStressSounds(level: ClientLevel) {
+        stressSounds.keys.toList().filter { it !in links }.forEach { stressSounds.remove(it)?.stopNow() }
+        for ((id, link) in links) {
+            if (!link.stress.isFinite() || link.stress < LinkStressWarning.START || stressSounds[id]?.isStopped == false) continue
+            val sound = LinkStressSoundInstance(link.spring) {
+                val current = links[id]
+                val player = Minecraft.getInstance().player
+                if (Minecraft.getInstance().level !== level || current == null || player == null ||
+                    level.gameTime - current.stressUpdated > 30) null
+                else {
+                    val a = current.a.world(level)
+                    val b = current.b.world(level)
+                    if (a == null || b == null) null else {
+                        val delta = b.subtract(a)
+                        val t = if (delta.lengthSqr() < 1e-8) 0.0 else
+                            player.position().subtract(a).dot(delta).div(delta.lengthSqr()).coerceIn(0.0, 1.0)
+                        LinkStressSoundInstance.State(a.lerp(b, t), current.stress)
+                    }
+                }
+            }
+            stressSounds[id] = sound
+            Minecraft.getInstance().soundManager.play(sound)
         }
     }
 
@@ -151,6 +213,7 @@ object RopeKnotRenderer {
 
     fun renderEffects(ms: PoseStack, buffers: MultiBufferSource, camera: Vec3, partialTick: Float) {
         val level = world() ?: return
+        SpringRenderer.renderEffects(level, camera, ms, buffers, partialTick)
         val player = Minecraft.getInstance().player ?: return
         val stack = player.mainHandItem.takeIf { it.item is RopeKnotItem }
             ?: player.offhandItem.takeIf { it.item is RopeKnotItem }
@@ -158,12 +221,16 @@ object RopeKnotRenderer {
         val start = anchor?.world(level, true)
         if (start != null && start.distanceToSqr(player.position()) <= 128 * 128) {
             val hand = player.getEyePosition(partialTick).add(player.getViewVector(partialTick).scale(0.45)).add(0.0, -0.4, 0.0)
+            if (stack?.item is SpringItem) {
+                SpringRenderer.preview(level, anchor, hand, camera, ms, buffers)
+            } else {
             knot(level, anchor, start.subtract(camera), ms, buffers)
             rope(level, WandRopeCurve(start, hand, RopeKnotPhysics.placedLength(start.distanceTo(hand))), camera, ms, buffers)
             ms.pushPose()
             ms.translate(hand.x - camera.x, hand.y - camera.y, hand.z - camera.z)
             knotModel(level, hand, ms, buffers)
             ms.popPose()
+            }
         }
         snaps.removeAll { level.gameTime - it.born > 16 }
         for (snap in snaps) {

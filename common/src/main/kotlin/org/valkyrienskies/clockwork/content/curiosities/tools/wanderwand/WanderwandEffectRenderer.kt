@@ -107,7 +107,7 @@ class WanderwandEffectRenderer {
                 if (pulse.action == "weld_end") blocks.weldPulse(pulse.anchor, level.gameTime)
             }
             "ride" -> WandRopeRidingClient.accept(data)
-            "physical_rope_break" -> RopeKnotRenderer.accept(data)
+            "physical_rope_break", "link_stress" -> RopeKnotRenderer.accept(data)
         }
     }
     fun handlePacket(packet: WanderwandRenderUpdatePacket) {
