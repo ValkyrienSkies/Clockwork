@@ -8,24 +8,28 @@ import net.minecraft.world.item.ItemStack
 import org.valkyrienskies.clockwork.content.curiosities.tools.wanderwand.WandLinks
 
 internal object SpringClipboard {
-    private const val KEY = "vs_clockwork:Spring"
+    private const val KEY = "vs_clockwork:spring"
+    private const val LEGACY_KEY = "vs_clockwork:Spring"
 
     fun isClipboard(stack: ItemStack) = AllBlocks.CLIPBOARD.isIn(stack)
 
-    fun hasSettings(stack: ItemStack) = stack.getTagElement(KEY) != null
+    fun hasSettings(stack: ItemStack) = copiedSettings(stack) != null
 
     fun copy(stack: ItemStack, link: WandLinks.Link) {
         stack.orCreateTag.put(KEY, snapshot(link))
+        stack.removeTagKey(LEGACY_KEY)
         ClipboardOverrides.switchTo(ClipboardOverrides.ClipboardType.WRITTEN, stack)
     }
 
     fun snapshot(link: WandLinks.Link) = link.settings.save().also { it.putDouble("length", link.length) }
 
     fun paste(stack: ItemStack, link: WandLinks.Link, includeLength: Boolean): Boolean {
-        val data = stack.getTagElement(KEY) ?: return false
+        val data = copiedSettings(stack) ?: return false
         apply(data, link, includeLength)
         return true
     }
+
+    private fun copiedSettings(stack: ItemStack) = stack.getTagElement(KEY) ?: stack.getTagElement(LEGACY_KEY)
 
     fun apply(data: CompoundTag, link: WandLinks.Link, includeLength: Boolean) {
         link.settings = SpringSettings.load(data)
