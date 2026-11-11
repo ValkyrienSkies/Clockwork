@@ -84,7 +84,19 @@ class RopeTensionGameTests {
         @JvmStatic @GameTest(template = TEMPLATE, batch = "rope_tension", timeoutTicks = 100)
         fun magicalRopeSupportsHangingShip(helper: GameTestHelper) = slack(helper, true, false, hanging = true, physical = false)
 
-        private fun slack(helper: GameTestHelper, vertical: Boolean, staticFirst: Boolean, hanging: Boolean = false, physical: Boolean = true) {
+        @JvmStatic @GameTest(template = TEMPLATE, batch = "rope_tension", timeoutTicks = 100)
+        fun shorteningRopeUpdatesLiveJoint(helper: GameTestHelper) = slack(helper, true, true, hanging = true, reeling = true)
+
+        @JvmStatic @GameTest(template = TEMPLATE, batch = "rope_tension", timeoutTicks = 120)
+        fun redstoneReleasesFirstEndpointAndCatchesLoad(helper: GameTestHelper) = slack(helper, true, true, hanging = true, release = true)
+
+        @JvmStatic @GameTest(template = TEMPLATE, batch = "rope_tension", timeoutTicks = 120)
+        fun redstoneReleasesSecondEndpointAndCatchesLoad(helper: GameTestHelper) = slack(helper, true, false, hanging = true, release = true)
+
+        @JvmStatic @GameTest(template = TEMPLATE, batch = "rope_tension", timeoutTicks = 120)
+        fun releasedWinchStopsAtMaximumExtension(helper: GameTestHelper) = slack(helper, true, true, hanging = true, release = true, catchRelease = false)
+
+        private fun slack(helper: GameTestHelper, vertical: Boolean, staticFirst: Boolean, hanging: Boolean = false, physical: Boolean = true, reeling: Boolean = false, release: Boolean = false, catchRelease: Boolean = true) {
             val level = helper.level
             val base = helper.absolutePos(BlockPos(2, 0, 2)).let { BlockPos(it.x, 180, it.z) }
             val connection = object : Connection(PacketFlow.SERVERBOUND) {
@@ -117,13 +129,19 @@ class RopeTensionGameTests {
                 if (level.setChunkForced(chunk.x, chunk.z, true)) chunks.add(chunk)
                 return WandAnchor(pos, Direction.NORTH, ship.id)
             }
-            val a = anchor(fixed)
+            val a = anchor(fixed).let { if (release) it.copy(face = Direction.DOWN, winch = true) else it }
             val b = anchor(moving)
             anchor(control)
+            if (release) {
+                level.setBlockAndUpdate(a.pos, org.valkyrienskies.clockwork.ClockworkBlocks.ROPE_WINCH.getDefaultState())
+                (level.getBlockEntity(a.pos) as org.valkyrienskies.clockwork.content.curiosities.rope.RopeWinchBlockEntity).maximum.setValue(if (catchRelease) 24 else 12)
+            }
             var link: WandLinks.Link? = null
             var movingAnchor: WandAnchor? = null
             var initial = Vec3.ZERO
             var peakDistance = 0.0
+            var originalLength = 0.0
+            val stretchAllowance = if (release && catchRelease) 2.0 else 1.0
             helper.startSequence().thenIdle(8).thenWaitUntil {
                 helper.assertTrue(control.velocity.y() < -0.1,
                     "Unlinked control ship is not falling: velocity=${control.velocity}, mass=${control.inertiaData.mass}, static=${control.isStatic}")
@@ -139,12 +157,27 @@ class RopeTensionGameTests {
                 helper.assertTrue(link?.jointId != null, "Rope joint was not created")
             }.thenExecute {
                 initial = movingAnchor!!.world(level)!!
+                originalLength = link!!.length
+                if (reeling) WandLinks.get(level).resizeRope(level, link!!, link!!.length - 1.0)
+                if (release) level.setBlockAndUpdate(a.pos.above(), Blocks.REDSTONE_BLOCK.defaultBlockState())
                 helper.assertTrue(initial.y > 100 && !moving.isStatic, "Rope fixture must be dynamic and clear of terrain: $initial")
+            }.thenIdle(if (release) 20 else 0).thenExecute {
+                if (release) {
+                    val distance = a.world(level)!!.distanceTo(b.world(level)!!)
+                    helper.assertTrue(distance > originalLength + 1.0, "Released winch restrained its load: $distance / $originalLength")
+                    helper.assertTrue(link!!.ropeLimit == (if (catchRelease) 24.0 else 12.0) && link!!.stress == 0f, "Released rope remained under tension")
+                    if (catchRelease) {
+                        level.removeBlock(a.pos.above(), false)
+                        WandLinks.get(level).updateWinchRelease(level, link!!)
+                        helper.assertTrue(link!!.releasedMaximum == null && link!!.length >= distance,
+                            "Winch did not retain the paid-out rope on re-engagement")
+                    }
+                }
             }.thenExecuteFor(if (hanging) 40 else 8) {
                 if (hanging) {
                     val distance = a.world(level)!!.distanceTo(b.world(level)!!)
                     peakDistance = maxOf(peakDistance, distance)
-                    helper.assertTrue(distance < link!!.length + 1.0, "Rope did not arrest its falling load: $distance / ${link!!.length}")
+                    helper.assertTrue(distance < link!!.length + stretchAllowance, "Rope did not arrest its falling load: $distance / ${link!!.length}")
                 }
             }.thenExecute {
                 val current = movingAnchor!!.world(level)!!
@@ -153,7 +186,8 @@ class RopeTensionGameTests {
                     "Rope broke under gravity: distance=$distance, length=${link!!.length}, missing=${link!!.missingTicks}, age=${link!!.age}")
                 helper.assertTrue(link!!.missingTicks == 0, "Native rope joint is missing")
                 if (hanging) {
-                    helper.assertTrue(peakDistance > link!!.length && peakDistance < link!!.length + 1.0,
+                    if (release && !catchRelease) helper.assertTrue(link!!.length == 12.0, "Released winch did not stop at its configured maximum")
+                    helper.assertTrue(peakDistance > link!!.length && peakDistance < link!!.length + stretchAllowance,
                         "Rope should stretch slightly and support its load: peak=$peakDistance / ${link!!.length}")
                     return@thenExecute
                 }

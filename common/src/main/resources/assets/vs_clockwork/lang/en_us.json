@@ -1,4 +1,6 @@
 {
+  "block.vs_clockwork.rope_winch": "Rope Winch",
+  "block.vs_clockwork.rope_winch.maximum": "Maximum Rope Extension",
   "item.vs_clockwork.spring.adjust": "Wrench: adjust length. Screwdriver: adjust stiffness, damping, and twist.",
   "spring.vs_clockwork.length": "Rest length: %s m",
   "spring.vs_clockwork.stiffness": "Stiffness: %s×",

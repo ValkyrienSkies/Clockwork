@@ -26,6 +26,9 @@ class RopeKnotEntity(type: EntityType<*>, level: Level) : Entity(type, level) {
     var spring: Boolean
         get() = entityData.get(SPRING)
         set(value) { entityData.set(SPRING, value) }
+    var winch: Boolean
+        get() = entityData.get(WINCH)
+        set(value) { entityData.set(WINCH, value) }
     var end: Int
         get() = entityData.get(END)
         set(value) { entityData.set(END, value) }
@@ -34,11 +37,12 @@ class RopeKnotEntity(type: EntityType<*>, level: Level) : Entity(type, level) {
         entityData.define(LINK, Optional.empty())
         entityData.define(END, 0)
         entityData.define(SPRING, false)
+        entityData.define(WINCH, false)
     }
     override fun readAdditionalSaveData(tag: CompoundTag) = Unit
     override fun addAdditionalSaveData(tag: CompoundTag) = Unit
     override fun getAddEntityPacket() = ClientboundAddEntityPacket(this)
-    override fun isPickable() = !isRemoved
+    override fun isPickable() = !isRemoved && !winch
     override fun isPushable() = false
 
     override fun skipAttackInteraction(attacker: Entity): Boolean {
@@ -87,6 +91,7 @@ class RopeKnotEntity(type: EntityType<*>, level: Level) : Entity(type, level) {
     companion object {
         private val LINK = SynchedEntityData.defineId(RopeKnotEntity::class.java, EntityDataSerializers.OPTIONAL_UUID)
         private val SPRING = SynchedEntityData.defineId(RopeKnotEntity::class.java, EntityDataSerializers.BOOLEAN)
+        private val WINCH = SynchedEntityData.defineId(RopeKnotEntity::class.java, EntityDataSerializers.BOOLEAN)
         private val END = SynchedEntityData.defineId(RopeKnotEntity::class.java, EntityDataSerializers.INT)
     }
 }

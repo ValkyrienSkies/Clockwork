@@ -64,6 +64,76 @@ class RopeKnotGameTests {
         }
 
         @JvmStatic
+        @GameTest(template = TEMPLATE, batch = "rope_knots")
+        fun winchCanBeEitherEndpointAndReused(helper: GameTestHelper) {
+            val player = player(helper)
+            val world = helper.level
+            val pos = helper.absolutePos(BlockPos(2, 3, 2))
+            val other = helper.absolutePos(BlockPos(5, 3, 2))
+            world.setBlockAndUpdate(pos, org.valkyrienskies.clockwork.ClockworkBlocks.ROPE_WINCH.getDefaultState())
+            world.setBlockAndUpdate(other, Blocks.STONE.defaultBlockState())
+            val data = WandLinks.get(world)
+            for (first in listOf(true, false)) {
+                val stack = ItemStack(ClockworkItems.ROPE_KNOT.get(), 2)
+                player.setItemInHand(InteractionHand.MAIN_HAND, stack)
+                val a = WandAnchor(pos, Direction.NORTH)
+                val b = WandAnchor(other, Direction.NORTH)
+                RopeKnotServer.tie(player, stack, if (first) a else b)
+                RopeKnotServer.tie(player, stack, if (first) b else a)
+                val link = data.links.values.single { it.a.pos == pos || it.b.pos == pos }
+                val outlet = if (first) link.a else link.b
+                helper.assertTrue(outlet.winch && outlet.face == Direction.DOWN, "Winch did not claim its bottom outlet")
+                val marker = world.getEntity((if (first) link.knotA else link.knotB)!!) as RopeKnotEntity
+                helper.assertTrue(!marker.isPickable, "Winch marker intercepts block interactions")
+                helper.assertTrue(data.add(world, outlet, b.copy(pos = other.above()), true, 4.0, physical = true) == null,
+                    "Winch accepted a second outlet rope")
+                data.remove(world, link)
+            }
+            helper.succeed()
+        }
+
+        @JvmStatic
+        @GameTest(template = TEMPLATE, batch = "rope_knots", timeoutTicks = 140)
+        fun motorDrivesWinchInBothDirections(helper: GameTestHelper) {
+            val world = helper.level
+            val pos = helper.absolutePos(BlockPos(2, 3, 2))
+            val other = helper.absolutePos(BlockPos(5, 3, 2))
+            world.setBlockAndUpdate(pos, org.valkyrienskies.clockwork.ClockworkBlocks.ROPE_WINCH.getDefaultState()
+                .setValue(net.minecraft.world.level.block.state.properties.BlockStateProperties.HORIZONTAL_AXIS, Direction.Axis.Z))
+            world.setBlockAndUpdate(other, Blocks.STONE.defaultBlockState())
+            world.setBlockAndUpdate(pos.north(), com.simibubi.create.AllBlocks.CREATIVE_MOTOR.getDefaultState()
+                .setValue(net.minecraft.world.level.block.state.properties.BlockStateProperties.FACING, Direction.SOUTH))
+            val motor = world.getBlockEntity(pos.north()) as com.simibubi.create.content.kinetics.motor.CreativeMotorBlockEntity
+            val be = world.getBlockEntity(pos) as org.valkyrienskies.clockwork.content.curiosities.rope.RopeWinchBlockEntity
+            be.maximum.setValue(5)
+            val data = WandLinks.get(world)
+            val link = data.add(world, WandAnchor(pos, Direction.DOWN, winch = true),
+                WandAnchor(other, Direction.NORTH), true, 3.0, physical = true)!!
+            motor.generatedSpeed.setValue(64)
+            helper.startSequence().thenIdle(30).thenExecute {
+                helper.assertTrue(link.length == 5.0, "Motor did not extend to the limit: length=${link.length}, speed=${be.speed}")
+                motor.generatedSpeed.setValue(-64)
+            }.thenIdle(20).thenExecute {
+                helper.assertTrue(link.length < 5.0 && link.length >= 0.5, "Motor did not retract")
+                world.setBlockAndUpdate(pos.above(), Blocks.REDSTONE_BLOCK.defaultBlockState())
+            }.thenIdle(10).thenExecute {
+                val distance = link.a.world(world)!!.distanceTo(link.b.world(world)!!)
+                helper.assertTrue(link.releasedMaximum == 5.0 && link.length >= distance,
+                    "Redstone did not release the rope against retracting RPM")
+                helper.assertTrue(link.length < 5.0, "Release dumped unused rope instead of paying out under tension")
+                motor.generatedSpeed.setValue(0)
+                world.removeBlock(pos.above(), false)
+            }.thenIdle(5).thenExecute {
+                helper.assertTrue(link.releasedMaximum == null && link.length > 3.0, "Winch did not catch at the paid-out length")
+                motor.generatedSpeed.setValue(-64)
+            }.thenIdle(10).thenExecute {
+                helper.assertTrue(link.length < 3.0, "Motor did not resume after release")
+                motor.generatedSpeed.setValue(0)
+                data.remove(world, link)
+            }.thenSucceed()
+        }
+
+        @JvmStatic
         @GameTest(template = TEMPLATE, batch = "rope_knots", timeoutTicks = 50)
         fun threeHitsRefundOneRope(helper: GameTestHelper) {
             val player = player(helper)

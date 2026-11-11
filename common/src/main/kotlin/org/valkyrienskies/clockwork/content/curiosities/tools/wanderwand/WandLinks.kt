@@ -18,6 +18,7 @@ import org.valkyrienskies.clockwork.content.curiosities.spring.SpringSettings
 import org.valkyrienskies.clockwork.content.curiosities.spring.SpringJoints
 import org.valkyrienskies.clockwork.content.curiosities.rope.RopeKnotPhysics
 import org.valkyrienskies.clockwork.content.curiosities.rope.RopeKnotServer
+import org.valkyrienskies.clockwork.content.curiosities.rope.RopeWinchBlockEntity
 import java.util.UUID
 
 /** The visual endpoints and joint blueprint are saved together; physics IDs are session-local. */
@@ -27,6 +28,8 @@ class WandLinks : SavedData() {
         internal var settings = SpringSettings()
         var appliedLength = length
         var settingsDirty = false
+        var releasedMaximum: Double? = null
+        val ropeLimit: Double get() = maxOf(length, releasedMaximum ?: length)
         var lastAdjustment = Long.MIN_VALUE
         var jointId: Int? = null
         var alignmentId: Int? = null
@@ -57,6 +60,7 @@ class WandLinks : SavedData() {
     }
 
     val links = linkedMapOf<UUID, Link>()
+    private var ropeLengthChanged = false
     val sessions = mutableMapOf<UUID, WanderwandServer.Session>()
     // Riding is transient; only the rope itself is saved.
     val riders = mutableMapOf<UUID, WandRopeRiding.Ride>()
@@ -68,6 +72,11 @@ class WandLinks : SavedData() {
 
     fun add(level: ServerLevel, a: WandAnchor, b: WandAnchor, rope: Boolean, length: Double, physical: Boolean = false, spring: Boolean = false): Link? {
         if (links.size >= 2048 || a == b) return null
+        for (anchor in listOf(a, b).filter { it.winch }) {
+            if (!physical || !rope || spring ||
+                level.getBlockEntity(anchor.pos) !is org.valkyrienskies.clockwork.content.curiosities.rope.RopeWinchBlockEntity ||
+                links.values.any { (it.a.winch && it.a.pos == anchor.pos) || (it.b.winch && it.b.pos == anchor.pos) }) return null
+        }
         if ((!rope || spring) && !WandLinkPhysics.canAttach(a, b)) return null
         if (links.values.any { it.rope == rope && it.spring == spring && ((it.a == a && it.b == b) || (it.a == b && it.b == a)) }) return null
         a.world(level) ?: return null
@@ -82,6 +91,41 @@ class WandLinks : SavedData() {
         return link
     }
 
+    fun resizeRope(level: ServerLevel, link: Link, length: Double) {
+        if (!length.isFinite() || !link.rope || link.spring || links[link.id] !== link) return
+        link.length = length.coerceIn(0.5, 128.0)
+        ropeLengthChanged = true
+        link.settingsDirty = true
+        setDirty()
+        ensureJoint(level, link)
+    }
+
+    fun updateWinchRelease(level: ServerLevel, link: Link) {
+        if (!link.physical || !link.rope || link.spring || (!link.a.winch && !link.b.winch)) return
+        val anchors = listOf(link.a, link.b).filter { it.winch }
+        if (anchors.isEmpty() || anchors.any { !level.hasChunkAt(it.pos) }) return
+        val previousLimit = link.ropeLimit
+        val maximum = anchors.mapNotNull { anchor ->
+            val winch = level.getBlockEntity(anchor.pos) as? RopeWinchBlockEntity ?: return@mapNotNull null
+            if (level.hasNeighborSignal(anchor.pos)) winch.maximum.value.toDouble() else null
+        }.maxOrNull()
+        val payoutMaximum = link.releasedMaximum ?: maximum
+        if (payoutMaximum != null) {
+            val a = link.a.world(level)
+            val b = link.b.world(level)
+            if (a != null && b != null) {
+                val next = RopeWinchBlockEntity.releasedLength(link.length, a.distanceTo(b), payoutMaximum)
+                if (next != link.length) {
+                    link.length = next
+                    ropeLengthChanged = true
+                    setDirty()
+                }
+            }
+        }
+        link.releasedMaximum = maximum
+        if (link.ropeLimit != previousLimit) link.settingsDirty = true
+    }
+
     fun remove(level: ServerLevel, link: Link) {
         links.remove(link.id)
         link.knotA?.let { level.getEntity(it)?.discard() }
@@ -92,12 +136,15 @@ class WandLinks : SavedData() {
     }
 
     fun tick(level: ServerLevel): Boolean {
-        var changed = false
+        var changed = ropeLengthChanged && level.gameTime % 2L == 0L
+        if (changed) ropeLengthChanged = false
         for (link in links.values.toList()) {
             val ends = listOf(link.a, link.b)
             val a = link.a.world(level)
             val b = link.b.world(level)
-            val invalid = ends.any { it.shipId >= 0 && level.shipObjectWorld.allShips.getById(it.shipId) == null } ||
+            val invalidWinch = ends.any { it.winch && level.hasChunkAt(it.pos) &&
+                level.getBlockEntity(it.pos) !is org.valkyrienskies.clockwork.content.curiosities.rope.RopeWinchBlockEntity }
+            val invalid = invalidWinch || ends.any { it.shipId >= 0 && level.shipObjectWorld.allShips.getById(it.shipId) == null } ||
                 ends.any { it.world(level) != null && level.hasChunkAt(it.pos) && level.getBlockState(it.pos).isAir }
             if (!invalid && (a == null || b == null || ends.any { !level.hasChunkAt(it.pos) })) {
                 // Unloaded bodies are not broken ropes. Resume with a fresh ramp on return.
@@ -125,19 +172,20 @@ class WandLinks : SavedData() {
                 }
             }
             val distance = if (a != null && b != null) a.distanceTo(b) else 0.0
+            updateWinchRelease(level, link)
             val speed = (distance - (link.previousDistance ?: distance)) * 20
             link.previousDistance = distance
             val hasPhysics = link.a.shipId != link.b.shipId
             link.stress = if (!hasPhysics || !link.physical) 0f else {
                 val ratio = if (link.spring) SpringJoints.stressRatio(distance - link.appliedLength, speed, link.settings)
-                    else RopeKnotPhysics.stressRatio(distance - link.length, speed)
+                    else RopeKnotPhysics.stressRatio(distance - link.ropeLimit, speed)
                 ratio.coerceIn(0.0, 1.0).toFloat()
             }
             val missing = link.jointId != null && !link.pending && (level.gtpa.getJointById(link.jointId!!) == null ||
                 (link.spring && link.alignmentId?.let { level.gtpa.getJointById(it) } == null))
             link.missingTicks = if (missing) link.missingTicks + 1 else 0
             val overloaded = hasPhysics && if (link.spring) SpringJoints.overloaded(distance - link.appliedLength, speed, link.settings)
-                else if (link.physical) RopeKnotPhysics.overloaded(distance - link.length, speed)
+                else if (link.physical) RopeKnotPhysics.overloaded(distance - link.ropeLimit, speed)
                 else WandLinkPhysics.overloaded(link.rope, distance - if (link.rope) link.length else 0.01, speed, link.age)
             if (invalid || overloaded || link.missingTicks > 10) {
                 remove(level, link)
@@ -169,10 +217,11 @@ class WandLinks : SavedData() {
     }
 
     private fun ensureJoint(level: ServerLevel, link: Link) {
+        updateWinchRelease(level, link)
         if (link.a.shipId == link.b.shipId || link.pending) return
         if (link.spring && link.jointId != null && !link.settingsDirty) return
         if (link.a.world(level) == null || link.b.world(level) == null) return
-        if (!link.spring && link.jointId != null && (link.rope || link.age > WandLinkPhysics.GLUE_RAMP_TICKS || link.age % 2 != 0)) return
+        if (!link.spring && link.jointId != null && !link.settingsDirty && (link.rope || link.age > WandLinkPhysics.GLUE_RAMP_TICKS || link.age % 2 != 0)) return
         val ground = level.shipObjectWorld.dimensionToGroundBodyIdImmutable[level.dimensionId] ?: return
         val a = link.a.shipId.takeIf { it >= 0 } ?: ground
         val b = link.b.shipId.takeIf { it >= 0 } ?: ground
@@ -221,13 +270,14 @@ class WandLinks : SavedData() {
             return
         }
         val joint: VSJoint = if (link.rope) WandLinkPhysics.ropeJoint(a, b, link.pose0, link.pose1, link.mass,
-            link.length, link.physical, level.server.vsPipeline.getPhysicsBackendType())
+            link.ropeLimit, link.physical, level.server.vsPipeline.getPhysicsBackendType())
         else WandLinkPhysics.glueJoint(a, b, link.pose0, link.pose1, link.mass, link.age)
         link.jointId?.let { id ->
             val current = level.gtpa.getJointById(id)
             // Never resurrect a native joint which snapped, or modify an ID now owned by another tool.
-            if (current?.matchesByAnchors(joint) == true && !link.rope && link.age <= WandLinkPhysics.GLUE_RAMP_TICKS && link.age % 2 == 0)
+            if (current?.matchesByAnchors(joint) == true && ((link.rope && link.settingsDirty) || (!link.rope && link.age <= WandLinkPhysics.GLUE_RAMP_TICKS && link.age % 2 == 0)))
                 level.gtpa.updateJoint(id, joint)
+            link.settingsDirty = false
             return
         }
         // SavedData owns reconstruction. Do not also serialize a second copy in VS's joint store.

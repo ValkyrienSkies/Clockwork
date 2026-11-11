@@ -92,6 +92,10 @@ object RopeKnotRenderer {
     }
 
     fun link(id: UUID?): Link? { world(); return links[id] }
+    fun winchLink(pos: BlockPos): Link? {
+        world()
+        return links.values.firstOrNull { (it.a.winch && it.a.pos == pos) || (it.b.winch && it.b.pos == pos) }
+    }
 
     fun accept(data: CompoundTag) {
         val level = world() ?: return
@@ -155,6 +159,7 @@ object RopeKnotRenderer {
     }
 
     fun knot(level: ClientLevel, anchor: WandAnchor, offset: Vec3, ms: PoseStack, buffers: MultiBufferSource) {
+        if (anchor.winch) return
         val point = anchor.world(level, true) ?: return
         ms.pushPose()
         ms.translate(offset.x, offset.y, offset.z)

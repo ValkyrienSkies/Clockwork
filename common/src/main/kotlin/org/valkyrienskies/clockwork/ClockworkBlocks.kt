@@ -760,6 +760,14 @@ object ClockworkBlocks {
             .register()
 
     @JvmField
+    val ROPE_WINCH = REGISTRATE.block("rope_winch") { p: BlockBehaviour.Properties ->
+        org.valkyrienskies.clockwork.content.curiosities.rope.RopeWinchBlock(p)
+    }.initialProperties { SharedProperties.softMetal() }
+        .transform(axeOrPickaxe()).properties { it.noOcclusion() }
+        .addLayer { Supplier { RenderType.cutout() } }
+        .item().tab(ClockworkMod.BASE_CREATIVE_TABINFO).build().register()
+
+    @JvmField
     val EXTENDON: BlockEntry<ExtendonBlock> =
         REGISTRATE.block("extendon") { properties: BlockBehaviour.Properties? ->
             ExtendonBlock(properties!!)

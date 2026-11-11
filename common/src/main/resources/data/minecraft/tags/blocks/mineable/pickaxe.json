@@ -1,6 +1,6 @@
 {
   "replace": false,
-  "values": [
+  "values": ["vs_clockwork:rope_winch",
     "vs_clockwork:brass_propeller_bearing",
     "vs_clockwork:juryrigged_propeller_bearing",
     "vs_clockwork:blade_controller",

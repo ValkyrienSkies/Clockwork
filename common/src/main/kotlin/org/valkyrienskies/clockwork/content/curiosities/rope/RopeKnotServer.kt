@@ -30,6 +30,11 @@ object RopeKnotServer {
         val level = player.serverLevel()
         if (!player.mayBuild() || player.isSpectator || stack.item !is RopeKnotItem || stack.isEmpty ||
             !valid(level, anchor) || !level.mayInteract(player, anchor.pos)) return
+        val candidate = if (stack.item !is SpringItem && !anchor.winch &&
+            level.getBlockEntity(anchor.pos) is RopeWinchBlockEntity &&
+            WandLinks.get(level).links.values.none { (it.a.winch && it.a.pos == anchor.pos) || (it.b.winch && it.b.pos == anchor.pos) })
+            anchor.copy(face = net.minecraft.core.Direction.DOWN, winch = true) else anchor
+        if (candidate != anchor) { tie(player, stack, candidate); return }
         val end = anchor.world(level) ?: return
         val spring = stack.item is SpringItem
         val first = RopeKnotItem.start(stack, level)
@@ -64,7 +69,7 @@ object RopeKnotServer {
             val point = anchor.world(level) ?: return null
             if (!level.hasChunkAt(BlockPos.containing(point))) return null
             val knot = ClockworkEntities.ROPE_KNOT.create(level) ?: return null
-            knot.spring = link.spring
+            knot.spring = link.spring; knot.winch = anchor.winch
             knot.linkId = link.id
             knot.end = end
             knot.setPos(point.x, point.y - knot.bbHeight / 2, point.z)

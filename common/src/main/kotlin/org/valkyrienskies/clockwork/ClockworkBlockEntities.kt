@@ -870,6 +870,15 @@ object ClockworkBlockEntities {
         .register()
 
     @JvmField
+    val ROPE_WINCH = ClockworkMod.REGISTRATE
+        .blockEntity("rope_winch") { type: BlockEntityType<org.valkyrienskies.clockwork.content.curiosities.rope.RopeWinchBlockEntity>, pos: BlockPos, state: BlockState ->
+            org.valkyrienskies.clockwork.content.curiosities.rope.RopeWinchBlockEntity(type, pos, state)
+        }.validBlocks(ClockworkBlocks.ROPE_WINCH)
+        .renderer { NonNullFunction { context: BlockEntityRendererProvider.Context ->
+            org.valkyrienskies.clockwork.content.curiosities.rope.RopeWinchRenderer(context)
+        } }.register()
+
+    @JvmField
     val EXTENDON: BlockEntityEntry<ExtendonBlockEntity> = ClockworkMod.REGISTRATE
         .blockEntity<ExtendonBlockEntity>(
             "extendon"
