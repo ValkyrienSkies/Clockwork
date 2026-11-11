@@ -26,6 +26,10 @@ import org.valkyrienskies.clockwork.content.contraptions.phys.gimbal.GimbalBeari
 import org.valkyrienskies.clockwork.content.contraptions.phys.gimbal.GimbalBearingRenderer
 import org.valkyrienskies.clockwork.content.contraptions.phys.infuser.PhysicsInfuserBlockEntity
 import org.valkyrienskies.clockwork.content.contraptions.phys.infuser.PhysicsInfuserRenderer
+import org.valkyrienskies.clockwork.content.contraptions.phys.linear.PhysicalGantryBlockEntity
+import org.valkyrienskies.clockwork.content.contraptions.phys.linear.PhysicalGantryRenderer
+import org.valkyrienskies.clockwork.content.contraptions.phys.linear.PhysicalPistonBlockEntity
+import org.valkyrienskies.clockwork.content.contraptions.phys.linear.PhysicalPistonRenderer
 import org.valkyrienskies.clockwork.content.contraptions.phys.slicker.SlickerBlockEntity
 import org.valkyrienskies.clockwork.content.contraptions.phys.slicker.SlickerBlockEntityRenderer
 import org.valkyrienskies.clockwork.content.contraptions.propeller.PropellerBearingBlockEntity
@@ -206,6 +210,30 @@ object ClockworkBlockEntities {
                 )
             }
         }
+        .register()
+
+    @JvmField
+    val PHYS_GANTRY: BlockEntityEntry<PhysicalGantryBlockEntity> = (ClockworkMod.REGISTRATE
+        .blockEntity("phys_gantry", ::PhysicalGantryBlockEntity) as ClockworkBlockEntityBuilder)
+        .clockworkVisual {
+            ClockworkSimpleBlockEntityVisualFactory { context, blockEntity, partialTick ->
+                SingleAxisRotatingVisual.shaft(context, blockEntity, partialTick)
+            }
+        }
+        .validBlocks(ClockworkBlocks.PHYS_GANTRY)
+        .renderer { NonNullFunction(::PhysicalGantryRenderer) }
+        .register()
+
+    @JvmField
+    val PHYS_PISTON: BlockEntityEntry<PhysicalPistonBlockEntity> = (ClockworkMod.REGISTRATE
+        .blockEntity("phys_piston", ::PhysicalPistonBlockEntity) as ClockworkBlockEntityBuilder)
+        .clockworkVisual {
+            ClockworkSimpleBlockEntityVisualFactory { context, blockEntity, partialTick ->
+                SingleAxisRotatingVisual.shaft(context, blockEntity, partialTick)
+            }
+        }
+        .validBlocks(ClockworkBlocks.PHYS_PISTON)
+        .renderer { NonNullFunction(::PhysicalPistonRenderer) }
         .register()
 
     @JvmField

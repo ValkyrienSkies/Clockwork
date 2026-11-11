@@ -22,18 +22,20 @@ object GlueAssembler {
     fun collectGlued(
         level: Level,
         pos: BlockPos,
+        canCollect: (BlockPos, BlockState) -> Boolean = { _, _ -> true },
     ): DenseBlockPosSet? {
         val toRemove: Set<Entity> = HashSet()
         val result = DenseBlockPosSet()
         val frontier: Queue<BlockPos> = UniqueLinkedList()
-        if (level.getBlockState(pos).isAir) return null
+        val start = level.getBlockState(pos)
+        if (start.isAir || !canCollect(pos, start)) return null
         frontier.add(pos)
         for (limit in 100000 downTo 1) {
             if (frontier.isEmpty()) {
                 if (result.isEmpty()) throw AssemblyException(Component.literal("No blocks found!"))
                 return result
             }
-            visitBlock(level, frontier, result, toRemove)
+            visitBlock(level, frontier, result, toRemove, canCollect)
         }
         toRemove.forEach(Consumer { obj: Entity -> obj.discard() })
         throw AssemblyException.structureTooLarge()
@@ -44,7 +46,8 @@ object GlueAssembler {
         level: LevelAccessor,
         frontier: Queue<BlockPos>,
         visited: DenseBlockPosSet,
-        cache: Set<Entity>
+        cache: Set<Entity>,
+        canCollect: (BlockPos, BlockState) -> Boolean,
     ) {
         val pos = frontier.poll()!!
 
@@ -57,7 +60,7 @@ object GlueAssembler {
             val newPos = pos.relative(direction)
             if (visited.contains(newPos.x, newPos.y, newPos.z)) continue
             val state = level.getBlockState(newPos)
-            if (!isAllowed(state) || state.isAir) continue
+            if (!isAllowed(state) || state.isAir || !canCollect(newPos, state)) continue
             frontier.add(newPos)
         }
     }

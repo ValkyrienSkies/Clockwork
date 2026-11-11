@@ -407,6 +407,12 @@
   "fluid.vs_clockwork.strawberry_frosting_bucket": "Strawberry Frosting",
 
   "block.vs_clockwork.phys_bearing": "Phys Bearing",
+  "block.vs_clockwork.phys_gantry": "Physical Gantry Carriage",
+  "block.vs_clockwork.phys_piston": "Physical Mechanical Piston",
+  "block.vs_clockwork.phys_piston_head": "Physical Piston Head",
+  "vs_clockwork.phys_gantry.movement_mode": "Travel Mode",
+  "vs_clockwork.phys_gantry.movement_mode.locked": "Locked",
+  "vs_clockwork.phys_gantry.movement_mode.free": "Free",
   "item.vs_clockwork.phys_bearing": "Phys Bearing",
   "vs_clockwork.phys_bearing.rotation_mode": "Rotation Mode",
   "vs_clockwork.phys_bearing.rotation_mode.follow_angle": "Follow angle",

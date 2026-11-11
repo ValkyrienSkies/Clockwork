@@ -26,6 +26,7 @@ import org.slf4j.LoggerFactory
 import org.valkyrienskies.clockwork.client.render.airpocket.AirpocketRenderer
 import org.valkyrienskies.clockwork.content.contraptions.flap.dual_link.DualLinkHandler
 import org.valkyrienskies.clockwork.content.contraptions.phys.gimbal.quad_link.QuadLinkHandler
+import org.valkyrienskies.clockwork.content.contraptions.phys.linear.PhysicalPistonBlock
 import org.valkyrienskies.clockwork.content.curiosities.meteor.MeteorShipAttachment
 import org.valkyrienskies.clockwork.content.curiosities.meteor.MeteorStorm
 import org.valkyrienskies.clockwork.content.events.CollisionSoundEffectHandler
@@ -103,6 +104,7 @@ object ClockworkMod {
         ClockworkTags.init()
         ClockworkRecipes.init()
         TAB_REGISTRY.register()
+        PhysicalPistonBlock.registerPhysicsShape()
 
         vsCore.registerAttachment(PocketForcesController::class.java)
         vsCore.registerAttachment(WanderShipControl::class.java)

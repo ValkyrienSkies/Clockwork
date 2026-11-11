@@ -5,6 +5,7 @@ import com.simibubi.create.AllTags
 import com.simibubi.create.api.behaviour.display.DisplaySource.displaySource
 import com.simibubi.create.api.behaviour.movement.MovementBehaviour.movementBehaviour
 import com.simibubi.create.api.stress.BlockStressValues
+import com.simibubi.create.content.contraptions.piston.MechanicalPistonHeadBlock
 import com.simibubi.create.content.decoration.encasing.CasingBlock
 import com.simibubi.create.content.decoration.encasing.EncasingRegistry
 import com.simibubi.create.content.fluids.PipeAttachmentModel
@@ -34,6 +35,8 @@ import org.valkyrienskies.clockwork.content.contraptions.flap.smart_flap.SmartFl
 import org.valkyrienskies.clockwork.content.contraptions.phys.bearing.PhysBearingBlock
 import org.valkyrienskies.clockwork.content.contraptions.phys.gimbal.GimbalBearingBlock
 import org.valkyrienskies.clockwork.content.contraptions.phys.infuser.PhysicsInfuserBlock
+import org.valkyrienskies.clockwork.content.contraptions.phys.linear.PhysicalGantryBlock
+import org.valkyrienskies.clockwork.content.contraptions.phys.linear.PhysicalPistonBlock
 import org.valkyrienskies.clockwork.content.contraptions.phys.slicker.SlickerBlock
 import org.valkyrienskies.clockwork.content.contraptions.propeller.PropellerBearingBlock
 import org.valkyrienskies.clockwork.content.contraptions.propeller.blades.BladeControllerBlock
@@ -431,6 +434,39 @@ object ClockworkBlocks {
             .build()
             .register()
 
+
+    @JvmField
+    val PHYS_GANTRY: BlockEntry<PhysicalGantryBlock> =
+        REGISTRATE.block("phys_gantry", ::PhysicalGantryBlock)
+            .initialProperties(AllBlocks.GANTRY_CARRIAGE)
+            .properties { it.noOcclusion() }
+            .transform(axeOrPickaxe())
+            .addLayer { Supplier { RenderType.cutout() } }
+            .item()
+            .tab(ClockworkMod.PHYSICAL_CREATIVE_TABINFO)
+            .build()
+            .register()
+
+    @JvmField
+    val PHYS_PISTON: BlockEntry<PhysicalPistonBlock> =
+        REGISTRATE.block("phys_piston", ::PhysicalPistonBlock)
+            .initialProperties(AllBlocks.MECHANICAL_PISTON)
+            .properties { it.noOcclusion() }
+            .transform(axeOrPickaxe())
+            .addLayer { Supplier { RenderType.cutout() } }
+            .item()
+            .tab(ClockworkMod.PHYSICAL_CREATIVE_TABINFO)
+            .build()
+            .register()
+
+    @JvmField
+    val PHYS_PISTON_HEAD: BlockEntry<MechanicalPistonHeadBlock> =
+        REGISTRATE.block("phys_piston_head", ::MechanicalPistonHeadBlock)
+            .initialProperties(AllBlocks.MECHANICAL_PISTON_HEAD)
+            .properties { it.noLootTable() }
+            .transform(axeOrPickaxe())
+            .addLayer { Supplier { RenderType.cutout() } }
+            .register()
 
     @JvmField
     val PHYSICS_INFUSER: BlockEntry<PhysicsInfuserBlock> =
