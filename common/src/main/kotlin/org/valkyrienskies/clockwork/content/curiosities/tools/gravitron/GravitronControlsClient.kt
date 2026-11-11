@@ -8,7 +8,7 @@ import org.lwjgl.glfw.GLFW
 import org.valkyrienskies.clockwork.ClockworkPackets
 
 object GravitronControlsClient {
-    val ROTATE = KeyMapping("key.vs_clockwork.gravitron_rotate", InputConstants.Type.KEYSYM, GLFW.GLFW_KEY_LEFT_ALT, "category.vs_clockwork.clockwork_keys")
+    val ROTATE = KeyMapping("key.vs_clockwork.gravitron_rotate", InputConstants.Type.KEYSYM, GLFW.GLFW_KEY_Z, "category.vs_clockwork.clockwork_keys")
     val CONNECTED_MASS = KeyMapping("key.vs_clockwork.gravitron_connected_mass", InputConstants.Type.KEYSYM, GLFW.GLFW_KEY_M, "category.vs_clockwork.clockwork_keys")
     private var ship = -1L
     private var yaw = 0.0

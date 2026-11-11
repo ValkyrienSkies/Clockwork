@@ -1,6 +1,7 @@
 package org.valkyrienskies.clockwork.forge.gametest
 
 import com.mojang.authlib.GameProfile
+import com.simibubi.create.content.contraptions.glue.SuperGlueEntity
 import com.simibubi.create.AllBlocks
 import com.simibubi.create.content.contraptions.piston.MechanicalPistonBlock.PistonState
 import com.simibubi.create.content.contraptions.piston.MechanicalPistonBlock.STATE
@@ -27,6 +28,7 @@ import net.minecraft.world.item.ItemStack
 import net.minecraft.world.level.ChunkPos
 import net.minecraft.world.level.block.Blocks
 import net.minecraft.world.level.block.state.properties.BlockStateProperties.FACING
+import net.minecraft.world.phys.AABB
 import net.minecraft.world.phys.BlockHitResult
 import net.minecraftforge.gametest.GameTestHolder
 import net.minecraftforge.gametest.PrefixGameTestTemplate
@@ -34,6 +36,10 @@ import net.minecraftforge.network.NetworkHooks
 import org.joml.Quaterniond
 import org.joml.Vector3d
 import org.valkyrienskies.clockwork.ClockworkBlocks
+import org.valkyrienskies.clockwork.content.contraptions.phys.gimbal.GimbalBearingBlockEntity
+import org.valkyrienskies.clockwork.content.contraptions.phys.hinge.HingeAssembly
+import org.valkyrienskies.clockwork.content.contraptions.phys.hinge.HingeBlock
+import org.valkyrienskies.clockwork.content.contraptions.phys.hinge.HingeLinks
 import org.valkyrienskies.clockwork.ClockworkMod
 import org.valkyrienskies.clockwork.content.contraptions.phys.linear.PhysicalGantryBlock
 import org.valkyrienskies.clockwork.content.contraptions.phys.linear.PhysicalGantryBlockEntity
@@ -42,6 +48,7 @@ import org.valkyrienskies.clockwork.content.curiosities.tools.wanderwand.WandAnc
 import org.valkyrienskies.clockwork.content.curiosities.tools.wanderwand.WandLinks
 import org.valkyrienskies.clockwork.util.gtpa
 import org.valkyrienskies.core.impl.config.VSCoreConfig
+import org.valkyrienskies.core.internal.joints.VSD6Joint
 import org.valkyrienskies.core.internal.joints.VSFixedJoint
 import org.valkyrienskies.core.internal.joints.VSPrismaticJoint
 import org.valkyrienskies.mod.api.toJOML
@@ -348,6 +355,132 @@ class PhysicalLinearGameTests {
                 .thenIdle(5)
                 .thenExecute { assertAligned(.05) }
                 .thenSucceed()
+        }
+
+        @JvmStatic
+        @GameTest(batch = BATCH, template = TEMPLATE, timeoutTicks = 120)
+        fun gantryPayloadDoesNotShiftOnAssembly(helper: GameTestHelper) {
+            val level = helper.level
+            val start = fixturePosition(helper)
+            observe(level, start)
+            val rail = start.west()
+            fixtureBlocks.addAll(listOf(rail, start, start.east()))
+            level.setBlockAndUpdate(rail, AllBlocks.GANTRY_SHAFT.defaultState.setValue(FACING, Direction.UP))
+            level.setBlockAndUpdate(start, ClockworkBlocks.PHYS_GANTRY.defaultState
+                .setValue(FACING, Direction.EAST).setValue(AXIS_ALONG_FIRST_COORDINATE, false))
+            level.setBlockAndUpdate(start.east(), Blocks.NETHERITE_BLOCK.defaultBlockState())
+            val glue = SuperGlueEntity(level, AABB(start).expandTowards(1.0, 0.0, 0.0))
+            level.addFreshEntity(glue)
+            val before = level.shipObjectWorld.allShips.map { it.id }.toSet()
+            use(helper, start, Direction.EAST)
+            val ship = level.shipObjectWorld.allShips.single { it.id !in before }
+            val box = ship.shipAABB!!
+            val carriage = BlockPos(box.minX(), box.minY(), box.minZ())
+            forceChunk(level, carriage)
+            helper.assertTrue(level.getBlockState(carriage.east()).`is`(Blocks.NETHERITE_BLOCK), "Gantry did not collect its heavy payload")
+            fun assertAligned() {
+                val actual = ship.transform.shipToWorld.transformPosition(carriage.center.toJOML())
+                helper.assertTrue(actual.distance(start.center.toJOML()) < .02,
+                    "Gantry shifted on assembly: ${actual.sub(start.center.toJOML())}")
+            }
+            assertAligned()
+            helper.startSequence().thenWaitUntil {
+                helper.assertTrue(level.gtpa.getAllJoints().values.any { it is VSFixedJoint && it.shipId1 == ship.id }, "Gantry did not lock")
+            }.thenIdle(5).thenExecute { assertAligned() }.thenSucceed()
+        }
+
+        @JvmStatic
+        @GameTest(batch = BATCH, template = TEMPLATE, timeoutTicks = 120)
+        fun hingePayloadKeepsItsPositionOnARotatedShip(helper: GameTestHelper) {
+            val level = helper.level
+            val start = fixturePosition(helper)
+            observe(level, start)
+            level.setBlockAndUpdate(start, Blocks.STONE.defaultBlockState())
+            val host = ShipAssembler.assembleToShip(level, setOf(start), 0.8)
+            host.isStatic = true
+            val box = host.shipAABB!!
+            val base = BlockPos(box.minX(), box.minY(), box.minZ()).east(2)
+            forceChunk(level, base)
+            level.setBlockAndUpdate(base, ClockworkBlocks.HINGE.defaultState.setValue(HingeBlock.FACING, Direction.EAST))
+            level.setBlockAndUpdate(base.east(), Blocks.NETHERITE_BLOCK.defaultBlockState())
+            level.setBlockAndUpdate(base.east().above(), Blocks.OAK_PLANKS.defaultBlockState())
+            level.addFreshEntity(SuperGlueEntity(level, AABB(base.east()).expandTowards(0.0, 1.0, 0.0)))
+            fixtureBlocks.add(base)
+            lateinit var link: HingeLinks.Link
+            helper.startSequence().thenIdle(5).thenExecute {
+                level.shipObjectWorld.teleportShip(host, vsCore.newShipTeleportData(
+                    newPos = host.transform.positionInWorld, newRot = Quaterniond().rotateXYZ(.3, .6, .2)))
+            }.thenIdle(3).thenExecute {
+                helper.assertTrue(HingeAssembly.assemble(level, base) == null, "Ship-mounted hinge did not assemble")
+                link = HingeLinks.get(level).at(base)!!
+                val child = level.shipObjectWorld.allShips.getById(link.b.shipId)!!
+                forceChunk(level, link.b.pos)
+                val expected = host.transform.shipToWorld.transformPosition(base.east().center.toJOML())
+                val actual = child.transform.shipToWorld.transformPosition(link.b.pos.east().center.toJOML())
+                helper.assertTrue(actual.distance(expected) < .001, "Hinge payload shifted on assembly: ${actual.sub(expected)}")
+                val pinA = host.transform.shipToWorld.transformPosition(base.center.toJOML())
+                val pinB = child.transform.shipToWorld.transformPosition(link.b.pos.center.toJOML())
+                helper.assertTrue(pinA.distance(pinB) < .001, "Hinge began with separated pivots")
+            }.thenWaitUntil {
+                helper.assertTrue(link.jointId != null, "Hinge did not create its joint")
+            }.thenIdle(5).thenExecute {
+                helper.assertTrue(HingeLinks.worldPoint(level, link.a)!!.distanceTo(HingeLinks.worldPoint(level, link.b)!!) < .05,
+                    "Hinge pivots separated after physics began")
+                HingeLinks.get(level).remove(level, link)
+            }.thenSucceed()
+        }
+
+        @JvmStatic
+        @GameTest(batch = BATCH, template = TEMPLATE, timeoutTicks = 160)
+        fun gimbalPreservesExistingShipOrientation(helper: GameTestHelper) {
+            val level = helper.level
+            val start = fixturePosition(helper)
+            observe(level, start)
+            level.setBlockAndUpdate(start, Blocks.STONE.defaultBlockState())
+            val host = ShipAssembler.assembleToShip(level, setOf(start), 1.0)
+            host.isStatic = true
+            val box = host.shipAABB!!
+            val base = BlockPos(box.minX(), box.minY(), box.minZ()).east(2)
+            forceChunk(level, base)
+            level.setBlockAndUpdate(base, ClockworkBlocks.GIMBAL_BEARING.defaultState.setValue(FACING, Direction.EAST))
+            fixtureBlocks.add(base)
+            val seed = start.south(8)
+            level.setBlockAndUpdate(seed, Blocks.STONE.defaultBlockState())
+            val target = ShipAssembler.assembleToShip(level, setOf(seed), 1.0)
+            target.isStatic = true
+            val targetBox = target.shipAABB!!
+            forceChunk(level, BlockPos(targetBox.minX(), targetBox.minY(), targetBox.minZ()))
+            val hostRotation = Quaterniond().rotateXYZ(.2, .5, .1)
+            val targetRotation = Quaterniond(hostRotation).rotateXYZ(.35, .6, -.2)
+            var targetPosition = Vector3d()
+            val bearing = level.getBlockEntity(base) as GimbalBearingBlockEntity
+            helper.startSequence().thenIdle(5).thenExecute {
+                level.shipObjectWorld.teleportShip(host, vsCore.newShipTeleportData(
+                    newPos = host.transform.positionInWorld, newRot = hostRotation))
+            }.thenIdle(3).thenExecute {
+                targetPosition = host.transform.shipToWorld.transformPosition(base.east().center.toJOML())
+                level.shipObjectWorld.teleportShip(target, vsCore.newShipTeleportData(newPos = targetPosition, newRot = targetRotation))
+            }.thenIdle(3).thenExecute { bearing.assembleNextTick = true }.thenWaitUntil {
+                helper.assertTrue(bearing.isRunning, "Gimbal did not attach")
+            }.thenExecute {
+                helper.assertTrue(bearing.connectedShipId == target.id, "Gimbal attached to the wrong ship")
+                helper.assertTrue(abs(target.transform.shipToWorldRotation.dot(targetRotation)) > .999999, "Gimbal rotated the existing ship on attachment")
+                helper.assertTrue(target.transform.positionInWorld.distance(targetPosition) < .001, "Gimbal teleported the existing ship on attachment")
+                val joint = bearing.joint as VSD6Joint
+                val subAnchor = target.transform.shipToWorld.transformPosition(joint.pose0.pos, Vector3d())
+                val hostAnchor = host.transform.shipToWorld.transformPosition(joint.pose1.pos, Vector3d())
+                helper.assertTrue(subAnchor.distance(hostAnchor) < .001, "Gimbal started with separated anchors")
+                val subFrame = Quaterniond(targetRotation).mul(joint.pose0.rot)
+                val hostFrame = Quaterniond(hostRotation).mul(joint.pose1.rot)
+                helper.assertTrue(abs(subFrame.dot(hostFrame)) > .999999, "Gimbal started with mismatched angular frames")
+                val data = bearing.saveWithoutMetadata()
+                bearing.load(data)
+                val localAxis = bearing.getRenderBearingAxisLocal()
+                val actualAxis = targetRotation.transform(localAxis)
+                val expectedAxis = hostRotation.transform(Vector3d(1.0, 0.0, 0.0))
+                helper.assertTrue(actualAxis.distance(expectedAxis) < .001, "Gimbal lost its attachment orientation on reload")
+                level.removeBlock(base, false)
+            }.thenSucceed()
         }
 
         private fun motor(level: ServerLevel, pos: BlockPos, facing: Direction): CreativeMotorBlockEntity {

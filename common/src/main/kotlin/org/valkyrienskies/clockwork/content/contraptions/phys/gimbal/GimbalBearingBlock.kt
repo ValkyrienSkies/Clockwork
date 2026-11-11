@@ -27,7 +27,6 @@ import org.joml.Vector3d
 import org.joml.Vector3dc
 import org.valkyrienskies.clockwork.ClockworkBlockEntities
 import org.valkyrienskies.core.api.ships.ServerShip
-import org.valkyrienskies.mod.api.toMinecraft
 import org.valkyrienskies.mod.common.assembly.ICopyableBlock
 import java.util.function.Consumer
 
@@ -65,11 +64,16 @@ class GimbalBearingBlock(properties: Properties) : BearingBlock(properties), IBE
             val partnerId = tag.getLong("connectedShip")
             val centerMigrate = centerPositions[partnerId] ?: return null
             vectorPartner = vectorPartner.sub(centerMigrate.first).add(centerMigrate.second)
-            val bp = vectorPartner.toMinecraft()
-            tag.putDouble("BearingPosSX", bp.x)
-            tag.putDouble("BearingPosSY", bp.y)
-            tag.putDouble("BearingPosSZ", bp.z)
+            tag.putDouble("BearingPosSX", vectorPartner.x)
+            tag.putDouble("BearingPosSY", vectorPartner.y)
+            tag.putDouble("BearingPosSZ", vectorPartner.z)
 
+            if (tag.contains("AttachedBlock")) {
+                val block = BlockPos.of(tag.getLong("AttachedBlock"))
+                val point = Vector3d(block.x + 0.5, block.y + 0.5, block.z + 0.5)
+                    .sub(centerMigrate.first).add(centerMigrate.second)
+                tag.putLong("AttachedBlock", BlockPos.containing(point.x, point.y, point.z).asLong())
+            }
             tag.putLong("connectedShip", oldShipIdToNewId[partnerId] ?: -1)
 
             tag.putInt("JointID", oldJointIdToNewId[tag.getInt("JointID")] ?: -1)

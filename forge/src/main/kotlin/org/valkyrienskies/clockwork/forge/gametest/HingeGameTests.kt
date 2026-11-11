@@ -92,11 +92,28 @@ class HingeGameTests {
                     helper.assertTrue(HingeLinks.worldPoint(level, link.a)!!.distanceTo(HingeLinks.worldPoint(level, link.b)!!) < 0.1,
                         "The hinge halves do not share their pin center")
                 }
-                for (roll in 0..3) for (facing in Direction.values()) for (grid in WandGridRotation.all) {
+                for (roll in 0..3) for (facing in Direction.values()) {
                     val state = ClockworkBlocks.HINGE.defaultState.setValue(HingeBlock.FACING, facing).setValue(HingeBlock.ROLL, roll)
-                    val transformed = grid.steps.fold(state) { s, step -> step.apply(s) }
-                    helper.assertTrue(HingeGeometry.axis(transformed) == grid.face(HingeGeometry.axis(state)),
-                        "Structure rotation lost the signed hinge axis")
+                    for (grid in WandGridRotation.all) {
+                        val transformed = grid.steps.fold(state) { s, step -> step.apply(s) }
+                        helper.assertTrue(HingeGeometry.axis(transformed) == grid.face(HingeGeometry.axis(state)),
+                            "Structure rotation lost the signed hinge axis")
+                    }
+                    for (attachment in listOf(false, true)) {
+                        val half = (if (attachment) ClockworkBlocks.HINGE_ATTACHMENT else ClockworkBlocks.HINGE).defaultState
+                            .setValue(HingeBlock.FACING, facing).setValue(HingeBlock.ROLL, roll)
+                            .setValue(HingeBlock.ASSEMBLED, !attachment)
+                        val shape = half.getCollisionShape(level, BlockPos.ZERO)
+                        fun checkPoint(x: Double, y: Double, z: Double, solid: Boolean) {
+                            val point = HingeGeometry.orientation(half).transform(Vector3d(x - 8, y - 8, z - 8))
+                                .add(8.0, 8.0, 8.0).div(16.0)
+                            helper.assertTrue(shape.toAabbs().any { it.contains(point.x, point.y, point.z) } == solid,
+                                "Hinge collision does not match its plate/support: $half at $x,$y,$z")
+                        }
+                        checkPoint(3.5, if (attachment) 15.0 else 1.0, 3.5, true)
+                        checkPoint(8.0, 8.0, 8.0, true)
+                        checkPoint(3.5, 8.0, 3.5, false)
+                    }
                 }
             }.thenSucceed()
         }
@@ -146,22 +163,26 @@ class HingeGameTests {
             var rotation = Quaterniond()
             val loadTicks = AtomicInteger()
             val applied = AtomicInteger()
+            val load = AtomicReference(2_000_000.0)
             helper.startSequence().thenIdle(25).thenExecute {
                 helper.assertTrue(link.jointId != null, "Hinge never acquired a joint")
                 val ship = level.shipObjectWorld.loadedShips.getById(link.b.shipId)!!
                 helper.assertTrue(!ship.isStatic, "The hinge payload is static")
                 original = Vector3d(ship.transform.positionInWorld)
                 rotation = Quaterniond(ship.transform.shipToWorldRotation)
-                loadTicks.set(60)
+                loadTicks.set(120)
                 ClockworkMod.physTickOnce(level.dimensionId) { physics, _, again ->
                     if (loadTicks.getAndDecrement() > 0) {
                         physics.getBodyById(ship.id)?.let {
-                            it.applyWorldForce(Vector3d(0.0, HingeGeometry.MAX_FORCE * 20.0, 0.0))
+                            it.applyWorldForce(Vector3d(0.0, load.get(), 0.0))
                             applied.incrementAndGet()
                         }
                         again()
                     }
                 }
+            }.thenIdle(12).thenExecute {
+                helper.assertTrue(link.connected, "The strengthened hinge broke under twice its former force limit")
+                load.set(HingeGeometry.MAX_FORCE * 20.0)
             }.thenWaitUntil {
                 helper.assertTrue(!link.connected, "Overloading did not break the hinge after ${applied.get()} force applications; gap=${HingeLinks.worldPoint(level, link.a)!!.distanceTo(HingeLinks.worldPoint(level, link.b)!!)}")
                 loadTicks.set(0)
@@ -170,7 +191,7 @@ class HingeGameTests {
                     "Broken attachment did not regain collision")
                 val ship = level.shipObjectWorld.allShips.getById(link.b.shipId)!!
                 helper.assertTrue(HingeAssembly.connect(level, link.a.pos, link.b.pos) == "far", "A distant hinge reconnected")
-                level.shipObjectWorld.teleportShip(ship, vsCore.newShipTeleportData(Vector3d(original).add(0.0, 0.55, 0.0), rotation, Vector3d(), Vector3d()))
+                level.shipObjectWorld.teleportShip(ship, vsCore.newShipTeleportData(Vector3d(original).add(0.0, 2.25, 0.0), rotation, Vector3d(), Vector3d()))
             }.thenIdle(3).thenExecute {
                 val error = HingeAssembly.connect(level, link.b.pos, link.a.pos)
                 helper.assertTrue(error == null, "Nearby compatible ends could not reconnect: $error")
@@ -178,10 +199,12 @@ class HingeGameTests {
             }.thenIdle(15).thenExecute {
                 val repaired = HingeLinks.get(level).at(pos)!!
                 helper.assertTrue(repaired.connected && repaired.jointId != null, "Repaired hinge did not regain physics")
+                helper.assertTrue(HingeLinks.worldPoint(level, repaired.a)!!.distanceTo(HingeLinks.worldPoint(level, repaired.b)!!) < 0.15,
+                    "Repaired hinge did not pull its ends back together")
             }.thenSucceed()
         }
 
-        @JvmStatic @GameTest(template = TEMPLATE, batch = "hinges", timeoutTicks = 180)
+        @JvmStatic @GameTest(template = TEMPLATE, batch = "hinges", timeoutTicks = 240)
         fun rotationStopsAtBothSignedLimits(helper: GameTestHelper) {
             val level = helper.level
             val pos = base(helper)
@@ -193,7 +216,7 @@ class HingeGameTests {
             val link = HingeLinks.get(level).at(pos)!!
             remember(level, link)
             val torque = AtomicReference(0.0)
-            val ticks = AtomicInteger(420)
+            val ticks = AtomicInteger(600)
             helper.startSequence().thenIdle(25).thenExecute {
                 torque.set(5_000.0)
                 ClockworkMod.physTickOnce(level.dimensionId) { physics, _, again ->
@@ -202,7 +225,10 @@ class HingeGameTests {
                         again()
                     }
                 }
-            }.thenIdle(45).thenExecute {
+            }.thenWaitUntil {
+                val angle = HingeGeometry.angle(HingeLinks.worldRotation(level, link.a), HingeLinks.worldRotation(level, link.b))
+                helper.assertTrue(link.connected && angle in 50.0..60.0, "Hinge has not reached the positive stop: $angle")
+            }.thenIdle(10).thenExecute {
                 val angle = HingeGeometry.angle(HingeLinks.worldRotation(level, link.a), HingeLinks.worldRotation(level, link.b))
                 helper.assertTrue(link.connected && angle in 50.0..60.0, "Positive limit did not stop the hinge: $angle, connected=${link.connected}")
                 helper.assertTrue(HingeAssembly.disassemble(level, link) == "neutral", "A bent hinge disassembled")
@@ -212,7 +238,10 @@ class HingeGameTests {
                 helper.assertTrue(link.connected && angle in -40.0..50.0,
                     "Changing the limit broke the hinge or left it outside the allowed range: $angle, connected=${link.connected}")
                 torque.set(-5_000.0)
-            }.thenIdle(45).thenExecute {
+            }.thenWaitUntil {
+                val angle = HingeGeometry.angle(HingeLinks.worldRotation(level, link.a), HingeLinks.worldRotation(level, link.b))
+                helper.assertTrue(link.connected && angle in -40.0..-30.0, "Hinge has not reached the negative stop: $angle")
+            }.thenIdle(10).thenExecute {
                 ticks.set(0)
                 val angle = HingeGeometry.angle(HingeLinks.worldRotation(level, link.a), HingeLinks.worldRotation(level, link.b))
                 helper.assertTrue(link.connected && angle in -40.0..-30.0, "Negative limit did not stop the hinge: $angle")

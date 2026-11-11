@@ -11,7 +11,6 @@ import net.minecraft.world.InteractionResultHolder
 import net.minecraft.world.entity.player.Player
 import net.minecraft.world.item.Item
 import net.minecraft.world.item.ItemStack
-import net.minecraft.world.item.TooltipFlag
 import net.minecraft.world.item.context.UseOnContext
 import net.minecraft.world.level.Level
 import net.minecraft.world.phys.BlockHitResult
@@ -77,11 +76,6 @@ class LubricantItem(properties: Properties) : Item(properties) {
             return InteractionResultHolder.sidedSuccess(stack, level.isClientSide)
         }
         return InteractionResultHolder.pass(stack)
-    }
-
-    override fun appendHoverText(stack: ItemStack, level: Level?, lines: MutableList<Component>, flag: TooltipFlag) {
-        lines.add(Component.translatable("item.vs_clockwork.lubricant.hint"))
-        lines.add(Component.translatable("item.vs_clockwork.lubricant.remove_hint"))
     }
 
     companion object {

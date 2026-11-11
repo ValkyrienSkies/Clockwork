@@ -15,11 +15,10 @@ import org.valkyrienskies.clockwork.content.curiosities.tools.wanderwand.WandAnc
 import org.valkyrienskies.clockwork.content.curiosities.tools.wanderwand.WandGridRotation
 import org.valkyrienskies.clockwork.content.curiosities.tools.wanderwand.WandLinkTransfer
 import org.valkyrienskies.clockwork.util.GlueAssembler.collectGlued
+import org.valkyrienskies.clockwork.util.alignAssembledShip
 import org.valkyrienskies.mod.common.assembly.ShipAssembler
 import org.valkyrienskies.mod.common.getShipManagingPos
 import org.valkyrienskies.mod.common.shipObjectWorld
-import org.valkyrienskies.mod.common.vsCore
-import org.valkyrienskies.core.internal.ships.VsiServerShip
 import kotlin.math.abs
 import kotlin.math.cos
 
@@ -63,13 +62,7 @@ object HingeAssembly {
         val headPos = pos.offset(delta)
         level.setBlockAndUpdate(headPos, head)
         if (empty) level.removeBlock(front.offset(delta), false)
-        val transform = ship.transform
-        val center = Vector3d(ship.inertiaData.centerOfMass)
-        val worldCenter = transform.shipToWorld.transformPosition(center, Vector3d())
-        val velocity = Vector3d(ship.velocity).add(Vector3d(ship.angularVelocity)
-            .cross(Vector3d(worldCenter).sub(transform.positionInWorld)))
-        (ship as VsiServerShip).unsafeSetKinematics(vsCore.newBodyKinematics(velocity, ship.angularVelocity,
-            vsCore.newBodyTransform(worldCenter, transform.shipToWorldRotation, transform.scaling, center)))
+        alignAssembledShip(ship, level.getShipManagingPos(pos), HingeLinks.center(pos), HingeLinks.center(headPos))
         val a = WandAnchor.at(level, pos, facing)
         val b = WandAnchor(headPos, facing, ship.id)
         HingeLinks.get(level).add(level, a, b, -be.lower.value, be.upper.value) ?: return "occupied"

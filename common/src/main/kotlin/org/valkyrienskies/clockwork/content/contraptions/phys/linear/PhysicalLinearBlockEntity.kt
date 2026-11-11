@@ -14,6 +14,7 @@ import net.minecraft.world.level.block.state.properties.BlockStateProperties
 import org.joml.Quaterniond
 import org.joml.Vector3d
 import org.joml.Vector3i
+import org.valkyrienskies.clockwork.util.alignAssembledShip
 import org.valkyrienskies.clockwork.util.gtpa
 import org.valkyrienskies.core.api.ships.PhysShip
 import org.valkyrienskies.core.api.ships.ServerShip
@@ -31,6 +32,7 @@ import org.valkyrienskies.mod.common.assembly.ShipAssembler.AssembleContext
 import org.valkyrienskies.mod.common.assembly.ShipAssembler.assembleToShipFull
 import org.valkyrienskies.mod.common.assembly.ShipAssembler.findMinAndMax
 import org.valkyrienskies.mod.common.assembly.ShipAssembler.moveBlocksFromTo
+import org.valkyrienskies.mod.common.getShipManagingPos
 import org.valkyrienskies.mod.common.getLoadedShipManagingPos
 import org.valkyrienskies.mod.common.inAssemblyBlacklist
 import org.valkyrienskies.mod.common.util.toJOMLD
@@ -218,7 +220,10 @@ internal fun AssembleContext.migrate(pos: BlockPos): BlockPos {
 internal fun assembleLinearShip(level: ServerLevel, blocks: Set<BlockPos>): AssembleContext {
     val (min, max) = findMinAndMax(blocks)
     val sourceCenter = min.center.add(max.center).scale(0.5).toJOML()
-    return assembleToShipFull(level, blocks).copy(fromCenter = sourceCenter)
+    val parent = level.getShipManagingPos(blocks.first())
+    val assembly = assembleToShipFull(level, blocks).copy(fromCenter = sourceCenter)
+    alignAssembledShip(assembly.ship, parent, sourceCenter, assembly.toCenter)
+    return assembly
 }
 
 internal fun shipBlocks(level: ServerLevel, ship: ServerShip): Set<BlockPos> {

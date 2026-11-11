@@ -93,14 +93,24 @@ class HingeBlock(properties: Properties, val attachment: Boolean = false) : Wren
         val ROLL: IntegerProperty = IntegerProperty.create("roll", 0, 3)
         val ASSEMBLED: BooleanProperty = BooleanProperty.create("assembled")
         private val shapes = buildMap {
+            val base = listOf(
+                doubleArrayOf(2.0, 0.0, 2.0, 14.0, 3.0, 14.0),
+                doubleArrayOf(4.0, 3.0, 4.0, 12.0, 12.0, 12.0))
+            val head = listOf(
+                doubleArrayOf(2.0, 13.0, 2.0, 14.0, 16.0, 14.0),
+                doubleArrayOf(3.0, 6.0, 5.0, 13.0, 13.0, 11.0))
             for (facing in Direction.values()) for (roll in 0..3) for (part in 0..2) {
                 val q = HingeGeometry.orientation(facing, roll)
-                val points = buildList {
-                    for (x in listOf(2.0, 14.0)) for (y in listOf(if (part == 2) 4.0 else 0.0, if (part == 1) 12.0 else 16.0)) for (z in listOf(2.0, 14.0))
-                        add(q.transform(Vector3d(x - 8, y - 8, z - 8)).add(8.0, 8.0, 8.0))
+                val boxes = when (part) { 1 -> base; 2 -> head; else -> base + head }
+                val shape = boxes.fold(Shapes.empty()) { shape, bounds ->
+                    val points = buildList {
+                        for (x in listOf(bounds[0], bounds[3])) for (y in listOf(bounds[1], bounds[4])) for (z in listOf(bounds[2], bounds[5]))
+                            add(q.transform(Vector3d(x - 8, y - 8, z - 8)).add(8.0, 8.0, 8.0))
+                    }
+                    Shapes.or(shape, box(points.minOf { it.x }, points.minOf { it.y }, points.minOf { it.z },
+                        points.maxOf { it.x }, points.maxOf { it.y }, points.maxOf { it.z }))
                 }
-                put(Triple(facing, roll, part), box(points.minOf { it.x }, points.minOf { it.y }, points.minOf { it.z },
-                    points.maxOf { it.x }, points.maxOf { it.y }, points.maxOf { it.z }))
+                put(Triple(facing, roll, part), shape.optimize())
             }
         }
     }

@@ -11,9 +11,9 @@ import java.util.EnumMap
 import kotlin.math.atan2
 
 object HingeGeometry {
-    const val MAX_FORCE = 1_000_000f
-    const val MAX_TORQUE = 500_000f
-    const val RECONNECT_DISTANCE = 0.75
+    const val MAX_FORCE = 5_000_000f
+    const val MAX_TORQUE = 2_500_000f
+    const val RECONNECT_DISTANCE = 2.5
     const val COMPLIANCE = 1e-7
 
     fun orientation(facing: Direction, roll: Int): Quaterniond {
