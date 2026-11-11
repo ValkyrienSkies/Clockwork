@@ -38,6 +38,8 @@ import org.valkyrienskies.clockwork.ClockworkMod
 import org.valkyrienskies.clockwork.content.contraptions.phys.linear.PhysicalGantryBlock
 import org.valkyrienskies.clockwork.content.contraptions.phys.linear.PhysicalGantryBlockEntity
 import org.valkyrienskies.clockwork.content.contraptions.phys.linear.PhysicalPistonBlockEntity
+import org.valkyrienskies.clockwork.content.curiosities.tools.wanderwand.WandAnchor
+import org.valkyrienskies.clockwork.content.curiosities.tools.wanderwand.WandLinks
 import org.valkyrienskies.clockwork.util.gtpa
 import org.valkyrienskies.core.impl.config.VSCoreConfig
 import org.valkyrienskies.core.internal.joints.VSFixedJoint
@@ -60,6 +62,7 @@ class PhysicalLinearGameTests {
         private val forcedChunks = mutableSetOf<ChunkPos>()
         private val observers = mutableListOf<Pair<ServerPlayer, EmbeddedChannel>>()
         private val fixtureBlocks = mutableSetOf<BlockPos>()
+        private val fixtureSprings = mutableListOf<WandLinks.Link>()
         private var synchronizePhysics = false
 
         @JvmStatic
@@ -73,6 +76,8 @@ class PhysicalLinearGameTests {
         @JvmStatic
         @AfterBatch(batch = BATCH)
         fun cleanUp(level: ServerLevel) {
+            fixtureSprings.forEach { WandLinks.get(level).remove(level, it) }
+            fixtureSprings.clear()
             fixtureBlocks.forEach { level.removeBlock(it, false) }
             fixtureBlocks.clear()
             level.shipObjectWorld.allShips.filter { it.id !in originalShips }.forEach {
@@ -146,6 +151,60 @@ class PhysicalLinearGameTests {
                         ClockworkBlocks.PHYS_GANTRY.has(state) && !state.getValue(PhysicalGantryBlock.ASSEMBLED)
                     } }, "Gantry did not return to the track")
                 }
+                .thenSucceed()
+        }
+
+        @JvmStatic
+        @GameTest(batch = BATCH, template = TEMPLATE, timeoutTicks = 120)
+        fun gantryCompressesSpringUnderDrive(helper: GameTestHelper) {
+            val level = helper.level
+            val rail = fixturePosition(helper)
+            val start = rail.east()
+            val stop = start.above(4)
+            observe(level, start)
+            for (i in -2..3) {
+                fixtureBlocks.add(rail.above(i))
+                level.setBlockAndUpdate(rail.above(i), AllBlocks.GANTRY_SHAFT.defaultState.setValue(FACING, Direction.UP))
+            }
+            fixtureBlocks.addAll(listOf(start, stop))
+            level.setBlockAndUpdate(stop, Blocks.STONE.defaultBlockState())
+            level.setBlockAndUpdate(start, ClockworkBlocks.PHYS_GANTRY.defaultState
+                .setValue(FACING, Direction.EAST).setValue(AXIS_ALONG_FIRST_COORDINATE, false))
+            val before = level.shipObjectWorld.allShips.map { it.id }.toSet()
+            use(helper, start, Direction.EAST)
+            val carriage = level.shipObjectWorld.allShips.single { it.id !in before }
+            val box = carriage.shipAABB!!
+            val carriagePos = BlockPos(box.minX(), box.minY(), box.minZ())
+            forceChunk(level, carriagePos)
+            val motor = motor(level, rail.below(3), Direction.UP)
+            motor.generatedSpeed.setValue(0)
+            val moving = WandAnchor.at(level, carriagePos, Direction.UP)
+            val fixed = WandAnchor.at(level, stop, Direction.DOWN)
+            lateinit var spring: WandLinks.Link
+
+            fun assertCompressed() {
+                helper.assertTrue(WandLinks.get(level).links[spring.id] === spring, "Spring detached under compression")
+                val distance = moving.world(level)!!.distanceTo(fixed.world(level)!!)
+                val compression = spring.appliedLength - distance
+                helper.assertTrue(compression >= 0.8, "Driven gantry compressed the spring by only $compression blocks")
+            }
+
+            helper.startSequence()
+                .thenWaitUntil {
+                    helper.assertTrue(level.gtpa.getAllJoints().values.any { it is VSFixedJoint && it.shipId1 == carriage.id },
+                        "Gantry did not hold its starting position")
+                }
+                .thenExecute {
+                    val length = moving.world(level)!!.distanceTo(fixed.world(level)!!)
+                    val link = WandLinks.get(level).add(level, moving, fixed, rope = true, length = length, physical = true, spring = true)
+                    helper.assertTrue(link != null, "Could not attach a spring to the carriage")
+                    spring = link!!
+                    fixtureSprings.add(spring)
+                }
+                .thenWaitUntil { helper.assertTrue(spring.jointId != null, "Spring joint did not load") }
+                .thenExecute { motor.generatedSpeed.setValue(-64) }
+                .thenWaitUntil { assertCompressed() }
+                .thenExecuteFor(15) { assertCompressed() }
                 .thenSucceed()
         }
 

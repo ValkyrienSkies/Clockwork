@@ -35,6 +35,10 @@ import org.valkyrienskies.mod.common.getLoadedShipManagingPos
 import org.valkyrienskies.mod.common.inAssemblyBlacklist
 import org.valkyrienskies.mod.common.util.toJOMLD
 
+private const val DRIVE_VELOCITY_GAIN = 24.0
+private const val DRIVE_POSITION_GAIN = 600.0
+private const val MAX_DRIVE_ACCELERATION = 360.0
+
 abstract class PhysicalLinearBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: BlockState) :
     KineticBlockEntity(type, pos, state), IDisplayAssemblyExceptions, BlockEntityPhysicsListener {
 
@@ -183,8 +187,9 @@ abstract class PhysicalLinearBlockEntity(type: BlockEntityType<*>, pos: BlockPos
             val relativeVelocity = velocityAt(child, childPoint).sub(velocityAt(parent, parentPoint)).dot(axisWorld)
             val mass = if (parent == null || parent.isStatic) child.mass else 1.0 / (1.0 / child.mass + 1.0 / parent.mass)
             val motorVelocity = speed * scale * 20.0
-            val correction = if (target != null) (target * scale - position) * 100.0 else 0.0
-            val acceleration = ((motorVelocity - relativeVelocity) * 10.0 + correction).coerceIn(-40.0, 40.0)
+            val correction = if (target != null) (target * scale - position) * DRIVE_POSITION_GAIN else 0.0
+            val acceleration = ((motorVelocity - relativeVelocity) * DRIVE_VELOCITY_GAIN + correction)
+                .coerceIn(-MAX_DRIVE_ACCELERATION, MAX_DRIVE_ACCELERATION)
             val force = axisWorld.mul(acceleration * mass)
             if (!force.isFinite) return
             child.applyWorldForce(force, childPoint)
