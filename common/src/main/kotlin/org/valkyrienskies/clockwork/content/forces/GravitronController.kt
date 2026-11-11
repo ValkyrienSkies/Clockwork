@@ -4,17 +4,29 @@ import org.joml.Quaterniond
 import org.joml.Vector3d
 import org.joml.Vector3dc
 import org.valkyrienskies.clockwork.content.curiosities.tools.gravitron.GravitronForceInducerData
+import org.valkyrienskies.clockwork.content.curiosities.tools.gravitron.GravitronManipulation
 import org.valkyrienskies.core.api.attachment.getAttachment
 import org.valkyrienskies.core.api.ships.LoadedServerShip
 import org.valkyrienskies.core.api.ships.PhysShip
 import org.valkyrienskies.core.api.ships.ShipPhysicsListener
 import org.valkyrienskies.core.api.world.PhysLevel
+import org.valkyrienskies.core.internal.world.VsiPhysLevel
+import org.valkyrienskies.clockwork.util.ConnectedShipMass
 
 class GravitronController : ShipPhysicsListener {
+    @Volatile
     var data: GravitronForceInducerData? = null
 
     override fun physTick(physShip: PhysShip, physLevel: PhysLevel) {
         val dataCopy = data ?: return
+        val connected = if (dataCopy.connectedMass && physLevel is VsiPhysLevel)
+            ConnectedShipMass(physLevel.getAllJoints().values, elastic = { true }) { id ->
+                physLevel.getShipById(id)?.let { ConnectedShipMass.Load(it.mass, it.isStatic) }
+                    ?: ConnectedShipMass.Load(0.0, true)
+            } else null
+        val gain = GravitronManipulation.supportedGain(physShip.mass, connected?.total(physShip.id)?.mass ?: physShip.mass,
+            connected?.rigidMass(physShip.id) ?: physShip.mass,
+            timeSteps[physLevel.dimension] ?: (1.0 / 60.0))
 
         run {
             val pConst = 160.0
@@ -30,7 +42,7 @@ class GravitronController : ShipPhysicsListener {
             // Integrate
             posDif.sub(physShip.velocity.mul(dConst, Vector3d()))
 
-            val force = posDif.mul(mass, Vector3d())
+            val force = posDif.mul(mass * gain, Vector3d())
             physShip.applyWorldForceToBodyPos(force)
         }
 
@@ -57,11 +69,15 @@ class GravitronController : ShipPhysicsListener {
                     )
                 )
             )
-            physShip.applyWorldTorque(torque)
+            physShip.applyWorldTorque(torque.mul(gain))
         }
     }
 
     companion object {
+        private val timeSteps = java.util.concurrent.ConcurrentHashMap<String, Double>()
+        fun timeStep(level: PhysLevel, delta: Double) {
+            if (delta.isFinite() && delta > 0.0) timeSteps[level.dimension] = delta
+        }
         fun getOrCreate(ship: LoadedServerShip): GravitronController {
             return ship.getAttachment<GravitronController>()
                 ?: GravitronController().also { ship.setAttachment(it) }

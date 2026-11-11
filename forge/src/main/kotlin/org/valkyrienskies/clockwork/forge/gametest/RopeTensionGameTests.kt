@@ -305,7 +305,7 @@ class RopeTensionGameTests {
                 spring?.let {
                     helper.assertTrue(abs(it.mass - mass) < mass * 0.01, "Spring and rope disagree on connected mass")
                     val native = it.jointId?.let { id -> level.gtpa.getJointById(id) } as? VSSpringJoint
-                    helper.assertTrue(native != null && abs(native.stiffness.toDouble() / it.mass - 350.0) < 0.1,
+                    helper.assertTrue(native != null && abs(native.stiffness.toDouble() / it.mass - 87.5) < 0.1,
                         "Native spring stiffness did not track connected mass")
                 }
             }

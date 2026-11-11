@@ -17,6 +17,7 @@ class GravitronState {
     var shipGrabbedRot: Quaterniondc? = null
     var shipID: ShipId? = null
     var shipGrabbedDistance: Double? = null
+    val lastInputTicks = LongArray(GravitronInputPacket.Action.entries.size) { Long.MIN_VALUE }
 
     companion object {
         @JvmStatic

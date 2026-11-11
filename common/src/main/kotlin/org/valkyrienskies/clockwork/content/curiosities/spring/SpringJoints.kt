@@ -13,10 +13,10 @@ import kotlin.math.atan2
 import kotlin.math.max
 
 internal object SpringJoints {
-    private const val STIFFNESS = 350.0
-    private const val DAMPING = 28.0
-    private const val TWIST_STIFFNESS = 28.0
-    private const val TWIST_DAMPING = 5.25
+    private const val STIFFNESS = 87.5
+    private const val DAMPING = 14.0
+    private const val TWIST_STIFFNESS = 7.0
+    private const val TWIST_DAMPING = 2.625
     private const val BREAK_ACCELERATION = 7200.0
 
     fun effectiveMass(a: Double?, b: Double?, fixedA: Boolean = false, fixedB: Boolean = false): Double {

@@ -26,6 +26,7 @@ import org.valkyrienskies.clockwork.content.curiosities.tools.gravitron.Gravitro
 import org.valkyrienskies.clockwork.content.curiosities.tools.gravitron.GravitronGrabPacket
 import org.valkyrienskies.clockwork.content.curiosities.tools.gravitron.GravitronLeftClickPacket
 import org.valkyrienskies.clockwork.content.curiosities.tools.gravitron.GravitronState
+import org.valkyrienskies.clockwork.content.curiosities.tools.gravitron.GravitronLoad
 import org.valkyrienskies.clockwork.content.curiosities.tools.gravitron.GravitronFrozenShip
 import org.valkyrienskies.clockwork.content.curiosities.tools.gravitron.GravitronState.Companion.getState
 import org.valkyrienskies.clockwork.util.ClockworkUtils.readVec3
@@ -111,7 +112,9 @@ class GrabTool : GravitronToolBase() {
                     val position = Vector3d(s.heldBlockPos)
 
                     val gravitronForceInducer = getOrCreate(ship)
-                    val newData = GravitronForceInducerData(position, rotation, location)
+                    val load = (entity as? Player)?.let { GravitronLoad.load(level, ship, it.mainHandItem) }
+                    val newData = GravitronForceInducerData(position, rotation, location, load?.mass ?: ship.inertiaData.mass,
+                        load?.rigidMass ?: ship.inertiaData.mass, (entity as? Player)?.let { GravitronLoad.enabled(it.mainHandItem) } == true)
                     gravitronForceInducer.data = newData
                 }
             }
@@ -173,7 +176,7 @@ class GrabTool : GravitronToolBase() {
                 val bl = graviton.`is`(ClockworkItems.GRAVITRON.get().asItem())
                 val heldShip = s.shipID?.let { serverLevel.shipObjectWorld.loadedShips.getById(it) }
                 if (s.shipID != null && (heldShip == null || heldShip.isStatic)) dropShip(player)
-                if (heldShip != null && bl && heldShip.inertiaData.mass > ClockworkConfig.SERVER.maxGravitronMass * 1000.0) {
+                if (heldShip != null && bl && GravitronLoad.mass(serverLevel, heldShip, graviton) > ClockworkConfig.SERVER.maxGravitronMass * 1000.0) {
                     val anchor = s.shipGrabbedPos
                     dropShip(player, false)
                     overload(player, heldShip, anchor)
@@ -184,7 +187,7 @@ class GrabTool : GravitronToolBase() {
                 if (player.tickCount % 10 == 0) {
                     if (s.shipID != null && heldShip != null) {
                         GravitronAnimationPacket.send(player, GravitronAction.HOLD, heldShip.id, s.shipGrabbedPos,
-                            loadOf(heldShip))
+                            loadOf(heldShip, player))
                     } else {
                         GravitronAnimationPacket.send(player, GravitronAction.IDLE)
                     }
@@ -242,7 +245,7 @@ class GrabTool : GravitronToolBase() {
 
             if (!isCreative) {
 
-                val mass = ship.inertiaData.mass
+                val mass = GravitronLoad.mass(level, ship, player.mainHandItem)
 
                 if (mass > ClockworkConfig.SERVER.maxGravitronMass * 1000 * 0.9) {
                     player.displayClientMessage(
@@ -295,14 +298,17 @@ class GrabTool : GravitronToolBase() {
             s.shipGrabbedDistance = player.eyePosition.toJOML().distance(heldPosInWorld)
             ship.isStatic = false
             (player.level() as? ServerLevel)?.let { GravitronFrozenShip.thaw(it, ship) }
-            GravitronAnimationPacket.send(player, GravitronAction.GRAB, ship.id, grabPosInShip, loadOf(ship))
+            GravitronAnimationPacket.send(player, GravitronAction.GRAB, ship.id, grabPosInShip, loadOf(ship, player))
         }
 
-        fun loadOf(ship: ServerShip): Float =
-            (ship.inertiaData.mass / (ClockworkConfig.SERVER.maxGravitronMass * 1000.0).coerceAtLeast(1.0)).toFloat()
+        fun loadOf(ship: ServerShip, player: Player? = null): Float {
+            val level = player?.level() as? ServerLevel
+            val mass = if (level != null) GravitronLoad.mass(level, ship, player.mainHandItem) else ship.inertiaData.mass
+            return (mass / (ClockworkConfig.SERVER.maxGravitronMass * 1000.0).coerceAtLeast(1.0)).toFloat()
+        }
 
         fun overload(player: Player, ship: ServerShip, anchor: Vector3dc?) {
-            GravitronAnimationPacket.send(player, GravitronAction.OVERLOAD, ship.id, anchor, loadOf(ship))
+            GravitronAnimationPacket.send(player, GravitronAction.OVERLOAD, ship.id, anchor, loadOf(ship, player))
             player.level().playSound(null, player.blockPosition(), ClockworkSounds.GRAVITRON_SHUTDOWN.mainEvent!!,
                 player.soundSource, 0.9f, 0.65f)
             player.cooldowns.addCooldown(player.mainHandItem.item, 32)

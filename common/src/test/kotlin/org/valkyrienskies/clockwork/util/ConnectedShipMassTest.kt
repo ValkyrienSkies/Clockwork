@@ -29,6 +29,28 @@ class ConnectedShipMassTest {
         return SpringJoints.effectiveMass(left.mass, right.mass, left.anchored, right.anchored)
     }
 
+    @Test fun totalLoadIncludesElasticConnectionsOnceAndKeepsRigidMassSeparate() {
+        hinge(1, 2)
+        spring(2, 3)
+        joints.add(VSDistanceJoint(3, pose, 4, pose, maxDistance = 4f))
+        joints.add(VSDistanceJoint(4, pose, 1, pose, maxDistance = 4f))
+        val graph = ConnectedShipMass(joints, elastic = { true }) { ships[it] }
+        assertEquals(107000.0, graph.total(1).mass)
+        assertEquals(3000.0, graph.rigidMass(1))
+        joints.clear()
+        assertEquals(1000.0, graph().total(1).mass)
+    }
+
+    @Test fun totalLoadDoesNotCrossGroundOrStaticShips() {
+        ships[4] = ConnectedShipMass.Load(4000.0, true)
+        joints.add(VSDistanceJoint(1, pose, 4, pose, maxDistance = 4f))
+        hinge(4, 3)
+        joints.add(VSDistanceJoint(1, pose, null, pose, maxDistance = 4f))
+        joints.add(VSDistanceJoint(2, pose, null, pose, maxDistance = 4f))
+        val graph = ConnectedShipMass(joints, elastic = { true }) { ships[it] }
+        assertEquals(1000.0, graph.total(1).mass)
+    }
+
     @Test fun connectedPayloadCountsOnceAcrossLoopsAndDuplicateJoints() {
         hinge(1, 2)
         joints.add(VSFixedJoint(2, pose, 3, pose))

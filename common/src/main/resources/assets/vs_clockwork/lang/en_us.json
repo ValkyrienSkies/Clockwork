@@ -684,6 +684,10 @@
   "death.attack.gas_burn": "%s was singed to a crisp",
   "death.attack.gas_explosion": "%s couldn't handle the pressure",
   "item.vs_clockwork.lubricant": "Lubricant",
+  "key.vs_clockwork.gravitron_rotate": "Rotate held Gravitron object",
+  "key.vs_clockwork.gravitron_connected_mass": "Toggle Gravitron connected mass",
+  "vs_clockwork.gravitron.connected_mass.on": "Gravitron: connected-ship mass enabled",
+  "vs_clockwork.gravitron.connected_mass.off": "Gravitron: grabbed-ship mass only",
   "item.vs_clockwork.lubricant.hint": "Right-click two corners to coat the blocks between them.",
   "item.vs_clockwork.lubricant.remove_hint": "Left-click a coated area to remove it. Left-click while selecting to cancel.",
   "item.vs_clockwork.lubricant.start": "Select the opposite corner to apply lubricant",
@@ -692,5 +696,7 @@
   "item.vs_clockwork.lubricant.applied": "Coated %s blocks",
   "item.vs_clockwork.lubricant.removed": "Removed coating from %s blocks",
   "vs_clockwork.subtitle.lubricant_apply_1": "Lubricant applied",
-  "vs_clockwork.subtitle.lubricant_remove_1": "Lubricant removed"
+  "vs_clockwork.subtitle.lubricant_remove_1": "Lubricant removed",
+  "vs_clockwork.subtitle.gravitron_massmode_on": "Overcharge Engaged",
+  "vs_clockwork.subtitle.gravitron_massmode_off": "Overcharge Disengaged"
 }

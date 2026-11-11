@@ -16,8 +16,8 @@ internal object SpringBending {
             axis.set(fallbackAxis).fma(-normal.dot(fallbackAxis), normal).normalize()
         } else axis.zero()
         val damping = Vector3d(relativeAngularVelocity).fma(-relativeAngularVelocity.dot(direction), direction)
-        val torque = axis.mul(angle * mass * 56.0 * settings.stiffness)
-            .fma(-mass * 10.5 * settings.damping, damping)
+        val torque = axis.mul(angle * mass * 14.0 * settings.stiffness)
+            .fma(-mass * 5.25 * settings.damping, damping)
         torque.fma(-torque.dot(direction), direction)
         val limit = mass * 120.0
         if (torque.lengthSquared() > limit * limit) torque.normalize(limit)

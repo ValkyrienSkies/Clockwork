@@ -189,6 +189,7 @@ object ClockworkMod {
         vsApi.collisionStartEvent.on(MeteorStorm::onCollision)
 
         vsApi.physTickEvent.on {
+            org.valkyrienskies.clockwork.content.forces.GravitronController.timeStep(it.world, it.delta)
             org.valkyrienskies.clockwork.content.curiosities.grippad.GripPadController.tick(it.world, it.delta)
             org.valkyrienskies.clockwork.content.curiosities.spring.SpringBendingController.tick(it.world)
             val temp = mutableListOf<Pair<DimensionId, (PhysLevel, Double, () -> Unit) -> Unit>>()

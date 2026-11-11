@@ -111,6 +111,7 @@ object ClockworkModClient {
         }
 
         ClientTickEvent.CLIENT_POST.register(ClientTickEvent.Client {
+            org.valkyrienskies.clockwork.content.curiosities.tools.gravitron.GravitronControlsClient.tick()
             org.valkyrienskies.clockwork.content.curiosities.lubricant.LubricantClient.tick()
             org.valkyrienskies.clockwork.content.curiosities.tools.wanderwand.WandRopeRidingClient.tick()
             org.valkyrienskies.clockwork.content.curiosities.tools.gravitron.GravitronEffects.tick()
@@ -132,6 +133,7 @@ object ClockworkModClient {
 //        }
 
         KeyMappingRegistry.register(AERONAUT_GOGGLE_KEYBIND)
+        org.valkyrienskies.clockwork.content.curiosities.tools.gravitron.GravitronControlsClient.register()
         KeyMappingRegistry.register(DEBUG_LIGHTNING_KEYBIND)
         ClientTickEvent.CLIENT_POST.register {
             while (AERONAUT_GOGGLE_KEYBIND.consumeClick()) {

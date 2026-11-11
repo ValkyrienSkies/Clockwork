@@ -60,6 +60,12 @@ object GravitronEffects {
     @JvmStatic
     fun isGravitron(stack: ItemStack): Boolean = stack.item is GravitronItem || stack.item is CreativeGravitronItem
 
+    fun heldShip(player: Player): Long? {
+        val level = checkWorld() ?: return null
+        val state = states[player.uuid] ?: return null
+        return state.shipId.takeIf { it >= 0 && state.animation.holding && level.gameTime - state.lastSync <= 30 }
+    }
+
     private fun checkWorld(): ClientLevel? {
         val level = Minecraft.getInstance().level
         if (world !== level) {

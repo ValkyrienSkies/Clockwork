@@ -81,7 +81,7 @@ class SpringJointsTest {
         assertTrue(alignment.motions!!.values.all { it == VSD6Joint.D6Motion.FREE })
         assertFalse(SpringJoints.overloaded(1.0, -100.0))
         assertFalse(SpringJoints.overloaded(-1.0, 100.0))
-        assertTrue(SpringJoints.overloaded(1.0, 320.0))
-        assertTrue(SpringJoints.overloaded(-1.0, -320.0))
+        assertTrue(SpringJoints.overloaded(1.0, 640.0))
+        assertTrue(SpringJoints.overloaded(-1.0, -640.0))
     }
 }

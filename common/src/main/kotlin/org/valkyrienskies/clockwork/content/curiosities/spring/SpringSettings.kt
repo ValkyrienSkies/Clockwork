@@ -8,9 +8,9 @@ internal data class SpringSettings(val stiffness: Double = 1.0, val damping: Dou
     fun adjust(field: Int, direction: Int, fine: Boolean): SpringSettings {
         val delta = direction.coerceIn(-1, 1) * if (fine) 0.025 else 0.1
         return when (field) {
-            0 -> copy(stiffness = (stiffness + delta).coerceIn(0.25, 4.0))
-            1 -> copy(damping = (damping + delta).coerceIn(0.0, 2.0))
-            else -> copy(twist = (twist + delta).coerceIn(0.0, 4.0))
+            0 -> copy(stiffness = (stiffness + delta).coerceIn(0.25, 16.0))
+            1 -> copy(damping = (damping + delta).coerceIn(0.0, 4.0))
+            else -> copy(twist = (twist + delta).coerceIn(0.0, 16.0))
         }
     }
     fun reset(field: Int) = when (field) { 0 -> copy(stiffness = 1.0); 1 -> copy(damping = 1.0); else -> copy(twist = 1.0) }
@@ -23,7 +23,7 @@ internal data class SpringSettings(val stiffness: Double = 1.0, val damping: Dou
         fun load(tag: CompoundTag): SpringSettings {
             fun value(key: String, min: Double, max: Double): Double =
                 if (!tag.contains(key) || !tag.getDouble(key).isFinite()) 1.0 else tag.getDouble(key).coerceIn(min, max)
-            return SpringSettings(value("stiffness", 0.25, 4.0), value("damping", 0.0, 2.0), value("twist", 0.0, 4.0))
+            return SpringSettings(value("stiffness", 0.25, 16.0), value("damping", 0.0, 4.0), value("twist", 0.0, 16.0))
         }
         fun adjustLength(length: Double, direction: Int, fine: Boolean): Double {
             val step = if (fine) 1.0 / 16 else 0.25

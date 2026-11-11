@@ -539,5 +539,7 @@
     "vs_clockwork:lubricant_remove_1",
     "vs_clockwork:lubricant_remove_2"
   ]
-}
+},
+  "gravitron_massmode_on": {"sounds": ["vs_clockwork:gravitron_massmode_on"], "subtitle": "vs_clockwork.subtitle.gravitron_massmode_on"},
+  "gravitron_massmode_off": {"sounds": ["vs_clockwork:gravitron_massmode_off"], "subtitle": "vs_clockwork.subtitle.gravitron_massmode_off"}
 }
