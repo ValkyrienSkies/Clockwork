@@ -23,6 +23,9 @@ import net.minecraftforge.gametest.GameTestHolder
 import net.minecraftforge.gametest.PrefixGameTestTemplate
 import net.minecraftforge.network.NetworkHooks
 import org.valkyrienskies.clockwork.ClockworkMod
+import org.valkyrienskies.clockwork.content.curiosities.rope.RopeKnotPhysics
+import org.valkyrienskies.clockwork.util.gtpa
+import org.valkyrienskies.core.internal.joints.VSDistanceJoint
 import org.valkyrienskies.clockwork.content.curiosities.tools.wanderwand.WandAnchor
 import org.valkyrienskies.clockwork.content.curiosities.tools.wanderwand.WandLinks
 import org.valkyrienskies.core.api.ships.ServerShip
@@ -96,7 +99,13 @@ class RopeTensionGameTests {
         @JvmStatic @GameTest(template = TEMPLATE, batch = "rope_tension", timeoutTicks = 120)
         fun releasedWinchStopsAtMaximumExtension(helper: GameTestHelper) = slack(helper, true, true, hanging = true, release = true, catchRelease = false)
 
-        private fun slack(helper: GameTestHelper, vertical: Boolean, staticFirst: Boolean, hanging: Boolean = false, physical: Boolean = true, reeling: Boolean = false, release: Boolean = false, catchRelease: Boolean = true) {
+        @JvmStatic @GameTest(template = TEMPLATE, batch = "rope_tension", timeoutTicks = 140)
+        fun winchUpdatesMassWithFirstEndpointFixed(helper: GameTestHelper) = slack(helper, true, true, hanging = true, massChange = true)
+
+        @JvmStatic @GameTest(template = TEMPLATE, batch = "rope_tension", timeoutTicks = 140)
+        fun winchUpdatesMassWithSecondEndpointFixed(helper: GameTestHelper) = slack(helper, true, false, hanging = true, massChange = true)
+
+        private fun slack(helper: GameTestHelper, vertical: Boolean, staticFirst: Boolean, hanging: Boolean = false, physical: Boolean = true, reeling: Boolean = false, release: Boolean = false, catchRelease: Boolean = true, massChange: Boolean = false) {
             val level = helper.level
             val base = helper.absolutePos(BlockPos(2, 0, 2)).let { BlockPos(it.x, 180, it.z) }
             val connection = object : Connection(PacketFlow.SERVERBOUND) {
@@ -129,10 +138,10 @@ class RopeTensionGameTests {
                 if (level.setChunkForced(chunk.x, chunk.z, true)) chunks.add(chunk)
                 return WandAnchor(pos, Direction.NORTH, ship.id)
             }
-            val a = anchor(fixed).let { if (release) it.copy(face = Direction.DOWN, winch = true) else it }
+            val a = anchor(fixed).let { if (release || massChange) it.copy(face = Direction.DOWN, winch = true) else it }
             val b = anchor(moving)
             anchor(control)
-            if (release) {
+            if (release || massChange) {
                 level.setBlockAndUpdate(a.pos, org.valkyrienskies.clockwork.ClockworkBlocks.ROPE_WINCH.getDefaultState())
                 (level.getBlockEntity(a.pos) as org.valkyrienskies.clockwork.content.curiosities.rope.RopeWinchBlockEntity).maximum.setValue(if (catchRelease) 24 else 12)
             }
@@ -141,6 +150,21 @@ class RopeTensionGameTests {
             var initial = Vec3.ZERO
             var peakDistance = 0.0
             var originalLength = 0.0
+            var originalMass = 0.0
+            var originalJoint: Int? = null
+            val ballast = BlockPos.betweenClosed(b.pos.offset(-1, -1, -1), b.pos.offset(1, 1, 1))
+                .map { it.immutable() }.filter { it != b.pos }
+            fun assertUpdatedMass() {
+                val mass = moving.inertiaData.mass
+                helper.assertTrue(abs(link!!.mass - mass) < mass * 0.01, "Winch mass did not track its dynamic load: ${link!!.mass} / $mass")
+                helper.assertTrue(link!!.jointId == originalJoint, "Mass change replaced the rope joint")
+                val joint = level.gtpa.getJointById(link!!.jointId!!) as? VSDistanceJoint
+                helper.assertTrue(joint != null, "Winch joint disappeared after mass change")
+                val stiffness = joint!!.stiffness?.toDouble() ?: (1.0 / joint.compliance)
+                helper.assertTrue(abs(stiffness / mass - RopeKnotPhysics.STIFFNESS) < 0.1, "Native rope stiffness did not update with mass")
+                if (joint.damping != null) helper.assertTrue(abs(joint.damping!!.toDouble() / mass - RopeKnotPhysics.DAMPING) < 0.1,
+                    "Native rope damping did not update with mass")
+            }
             val stretchAllowance = if (release && catchRelease) 2.0 else 1.0
             helper.startSequence().thenIdle(8).thenWaitUntil {
                 helper.assertTrue(control.velocity.y() < -0.1,
@@ -196,6 +220,25 @@ class RopeTensionGameTests {
                     "Rope propped up a ship: initial=$initial, current=$current")
                 else helper.assertTrue(abs(current.x - initial.x) < 0.1 && abs(current.z - initial.z) < 0.1,
                     "Slack rope pulled toward the static ship: initial=$initial, current=$current")
+            }.thenExecute {
+                if (massChange) {
+                    originalMass = moving.inertiaData.mass
+                    originalJoint = link!!.jointId
+                    assertUpdatedMass()
+                    ballast.forEach { level.setBlockAndUpdate(it, Blocks.IRON_BLOCK.defaultBlockState()) }
+                }
+            }.thenWaitUntil {
+                if (massChange) {
+                    helper.assertTrue(moving.inertiaData.mass > maxOf(25_000.0, originalMass * 2), "Ballast did not increase ship mass")
+                    assertUpdatedMass()
+                }
+            }.thenExecute {
+                if (massChange) ballast.forEach { level.removeBlock(it, false) }
+            }.thenWaitUntil {
+                if (massChange) {
+                    helper.assertTrue(abs(moving.inertiaData.mass - originalMass) < 1.0, "Removing ballast did not restore ship mass")
+                    assertUpdatedMass()
+                }
             }.thenSucceed()
         }
     }

@@ -7,6 +7,17 @@ import org.junit.jupiter.api.Test
 import org.valkyrienskies.clockwork.content.curiosities.tools.wanderwand.WandAnchor
 
 class RopeWinchTest {
+    @Test fun `spool interpolates payout and reversal without snapping`() {
+        val spool = RopeWinchAnimation(8.0)
+        assertEquals(8.0, spool.sample(8.0, 20.0))
+        assertEquals(8.0, spool.sample(10.0, 21.0))
+        assertEquals(8.5, spool.sample(10.0, 21.5))
+        assertEquals(9.0, spool.sample(6.0, 22.0))
+        assertEquals(7.5, spool.sample(6.0, 23.0))
+        assertEquals(6.0, spool.sample(6.0, 24.0))
+        assertEquals(6.0, spool.sample(6.0, 40.0))
+    }
+
     @Test fun `released rope pays out without retracting or exceeding maximum`() {
         assertEquals(20.0, RopeWinchBlockEntity.releasedLength(8.0, 20.0, 32.0))
         assertEquals(8.0, RopeWinchBlockEntity.releasedLength(8.0, 6.0, 32.0))

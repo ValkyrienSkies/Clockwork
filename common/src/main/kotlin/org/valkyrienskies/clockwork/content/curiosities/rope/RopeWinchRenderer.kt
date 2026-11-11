@@ -11,8 +11,11 @@ import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider
 import net.minecraft.core.Direction
 import org.valkyrienskies.clockwork.ClockworkPartials
 import kotlin.math.PI
+import java.util.WeakHashMap
 
 class RopeWinchRenderer(context: BlockEntityRendererProvider.Context) : KineticBlockEntityRenderer<RopeWinchBlockEntity>(context) {
+    private val spools = WeakHashMap<RopeWinchBlockEntity, RopeWinchAnimation>()
+
     override fun getRenderedBlockState(be: RopeWinchBlockEntity) =
         shaft(be.blockState.getValue(HorizontalAxisKineticBlock.HORIZONTAL_AXIS))
 
@@ -23,8 +26,14 @@ class RopeWinchRenderer(context: BlockEntityRendererProvider.Context) : KineticB
         renderRotatingKineticBlock(be, getRenderedBlockState(be), ms, buffers.getBuffer(RenderType.solid()), light)
         val link = RopeKnotRenderer.winchLink(be.blockPos)
         val axis = be.blockState.getValue(HorizontalAxisKineticBlock.HORIZONTAL_AXIS)
-        val angle = if (link != null) (link.length * 3.2 % (2 * PI)).toFloat()
-            else getAngleForBe(be, be.blockPos, axis) * if (axis == Direction.Axis.Z) -1f else 1f
+        val angle = if (link != null) {
+            val time = (be.level?.gameTime ?: 0L).toDouble() + partialTicks
+            val spool = spools.getOrPut(be) { RopeWinchAnimation(link.length) }
+            (-spool.sample(link.length, time) * 3.2 % (2 * PI)).toFloat()
+        } else {
+            spools.remove(be)
+            getAngleForBe(be, be.blockPos, axis) * if (axis == Direction.Axis.Z) -1f else 1f
+        }
         ms.pushPose()
         if (axis == Direction.Axis.Z) {
             ms.translate(0.5, 0.5, 0.5)
@@ -43,5 +52,22 @@ class RopeWinchRenderer(context: BlockEntityRendererProvider.Context) : KineticB
                 .light<SuperByteBuffer>(light).overlay<SuperByteBuffer>(overlay).renderInto(ms, buffer)
         }
         ms.popPose()
+    }
+}
+
+internal class RopeWinchAnimation(length: Double) {
+    private var from = length
+    private var target = length
+    private var changedAt = 0.0
+
+    fun sample(length: Double, time: Double): Double {
+        val progress = ((time - changedAt) / 2.0).coerceIn(0.0, 1.0)
+        val current = from + (target - from) * progress
+        if (length != target) {
+            from = current
+            target = length
+            changedAt = time
+        }
+        return current
     }
 }

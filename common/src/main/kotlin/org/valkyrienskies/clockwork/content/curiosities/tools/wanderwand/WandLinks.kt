@@ -162,8 +162,8 @@ class WandLinks : SavedData() {
                 }
                 link.suspended = false
             }
+            if (link.spring || (link.rope && link.physical)) refreshPhysicalMass(level, link)
             if (link.spring) {
-                refreshSpringMass(level, link)
                 val next = SpringSettings.easeLength(link.appliedLength, link.length)
                 if (next != link.appliedLength) {
                     link.appliedLength = next
@@ -205,7 +205,7 @@ class WandLinks : SavedData() {
         level.shipObjectWorld.loadedShips.getById(a.shipId)?.transform?.shipToWorldRotation ?: Quaterniond(),
         level.shipObjectWorld.loadedShips.getById(b.shipId)?.transform?.shipToWorldRotation ?: Quaterniond())
 
-    private fun refreshSpringMass(level: ServerLevel, link: Link) {
+    private fun refreshPhysicalMass(level: ServerLevel, link: Link) {
         val shipA = level.shipObjectWorld.loadedShips.getById(link.a.shipId)
         val shipB = level.shipObjectWorld.loadedShips.getById(link.b.shipId)
         val mass = SpringJoints.effectiveMass(shipA?.inertiaData?.mass, shipB?.inertiaData?.mass,
@@ -230,8 +230,8 @@ class WandLinks : SavedData() {
             link.pose0 = poses.first; link.pose1 = poses.second; link.needsReframe = false
             setDirty()
         }
-        if (link.spring && link.jointId == null) refreshSpringMass(level, link)
-        if (!link.spring && link.jointId == null) {
+        if ((link.spring || (link.rope && link.physical)) && link.jointId == null) refreshPhysicalMass(level, link)
+        if (!link.spring && !link.physical && link.jointId == null) {
             val massA = level.shipObjectWorld.loadedShips.getById(link.a.shipId)?.inertiaData?.mass
             val massB = level.shipObjectWorld.loadedShips.getById(link.b.shipId)?.inertiaData?.mass
             link.mass = WandLinkPhysics.effectiveMass(massA, massB)
