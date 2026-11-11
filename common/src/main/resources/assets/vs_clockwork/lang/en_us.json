@@ -5,7 +5,7 @@
   "spring.vs_clockwork.damping": "Damping: %s×",
   "spring.vs_clockwork.twist": "Twist resistance: %s×",
   "spring.vs_clockwork.clipboard.paste": "[%s] Paste tuning",
-  "spring.vs_clockwork.clipboard.paste_all": "[%s + %s] Paste all (with rest length)",
+  "spring.vs_clockwork.clipboard.paste_all": "While sneaking, [%s] to paste all (with rest length)",
   "spring.vs_clockwork.clipboard.pasted": "Pasted spring tuning",
   "spring.vs_clockwork.clipboard.pasted_all": "Pasted spring tuning and rest length",
   "spring.vs_clockwork.scroll": "Scroll to adjust; sneak for fine steps",

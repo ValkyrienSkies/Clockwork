@@ -44,14 +44,14 @@ object SpringToolClient {
         val tooltip = mutableListOf<Component>()
         CreateLang.builder().add(Component.translatable("item.vs_clockwork.spring")).style(ChatFormatting.WHITE).forGoggles(tooltip)
         if (SpringClipboard.isClipboard(stack)) {
-            CreateLang.builder().add(CreateLang.translateDirect("clipboard.to_copy", Component.keybind("key.use")))
+            CreateLang.builder().add(CreateLang.translateDirect("clipboard.to_copy", mc.options.keyUse.translatedKeyMessage))
                 .forGoggles(tooltip, 1)
             if (SpringClipboard.hasSettings(stack)) {
-                val attack = Component.keybind("key.attack")
+                val attack = mc.options.keyAttack.translatedKeyMessage
                 CreateLang.builder().add(Component.translatable("spring.vs_clockwork.clipboard.paste", attack))
                     .forGoggles(tooltip, 1)
-                CreateLang.builder().add(Component.translatable("spring.vs_clockwork.clipboard.paste_all",
-                    Component.keybind("key.sneak"), attack)).forGoggles(tooltip, 1)
+                CreateLang.builder().add(Component.translatable("spring.vs_clockwork.clipboard.paste_all", attack))
+                    .forGoggles(tooltip, 1)
             }
         } else {
             val wrench = SpringControls.isWrench(stack)

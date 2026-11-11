@@ -1,6 +1,7 @@
 package org.valkyrienskies.clockwork.content.curiosities.spring
 
 import com.mojang.blaze3d.vertex.PoseStack
+import com.mojang.blaze3d.vertex.VertexConsumer
 import net.minecraft.client.multiplayer.ClientLevel
 import net.minecraft.client.renderer.LevelRenderer
 import net.minecraft.client.renderer.MultiBufferSource
@@ -21,6 +22,7 @@ import kotlin.math.*
 
 object SpringRenderer {
     private val type = RenderType.entityCutoutNoCull(ClockworkMod.asResource("textures/entity/spring.png"))
+    private val capType = RenderType.entityCutoutNoCull(ClockworkMod.asResource("textures/entity/spring_end.png"))
     private data class Snap(val a: WandAnchor?, val b: WandAnchor?, val start: Vec3, val end: Vec3,
                             val restLength: Double, val born: Long)
     private val snaps = mutableListOf<Snap>()
@@ -115,7 +117,7 @@ object SpringRenderer {
                 val anchor = if (endpoint == 0) snap.a else snap.b
                 val basis = anchor?.let { side(level, it) } ?: perpendicular(n)
                 strand(level, points, n, points.last().subtract(points[points.lastIndex - 1]).normalize(), basis, 0.0,
-                    snap.restLength * 0.5, ((1 - progress) / 0.2).coerceIn(0.0, 1.0), origin, pose, buffers)
+                    snap.restLength * 0.5, ((1 - progress) / 0.2).coerceIn(0.0, 1.0), origin, pose, buffers, capEnd = false)
             }
         }
     }
@@ -125,7 +127,7 @@ object SpringRenderer {
 
     private fun strand(level: ClientLevel, points: List<Vec3>, startNormal: Vec3, endNormal: Vec3,
                        initialSide: Vec3, twist: Double, restLength: Double, scale: Double,
-                       origin: Vec3, pose: PoseStack, buffers: MultiBufferSource) {
+                       origin: Vec3, pose: PoseStack, buffers: MultiBufferSource, capEnd: Boolean = true) {
         if (points.first().distanceToSqr(points.last()) < 1e-10) return
         val tangents = points.indices.map { i ->
             when {
@@ -155,6 +157,13 @@ object SpringRenderer {
         val lengths = DoubleArray(points.size)
         for (i in 1..points.lastIndex) lengths[i] = lengths[i - 1] + points[i].distanceTo(points[i - 1])
         val total = lengths.last().coerceAtLeast(1e-6)
+        val transform = pose.last()
+        fun vertex(consumer: VertexConsumer, point: Vec3, u: Float, v: Float, light: Int, normal: Vec3) {
+            val local = point.subtract(origin)
+            consumer.vertex(transform.pose(), local.x.toFloat(), local.y.toFloat(), local.z.toFloat())
+                .color(255, 255, 255, 255).uv(u, v).overlayCoords(OverlayTexture.NO_OVERLAY).uv2(light)
+                .normal(transform.normal(), normal.x.toFloat(), normal.y.toFloat(), normal.z.toFloat()).endVertex()
+        }
         val consumer = buffers.getBuffer(type)
         for (i in 0 until points.lastIndex) {
             val light = LevelRenderer.getLightColor(level, BlockPos.containing(points[i]))
@@ -163,17 +172,25 @@ object SpringRenderer {
             for (face in 0..3) {
                 val next = (face + 1) % 4
                 val n = rings[i][face].add(rings[i][next]).scale(0.5).subtract(points[i]).normalize()
-                fun vertex(point: Vec3, u: Float, v: Float) {
-                    val local = point.subtract(origin)
-                    consumer.vertex(pose.last().pose(), local.x.toFloat(), local.y.toFloat(), local.z.toFloat())
-                        .color(255, 255, 255, 255).uv(u, v).overlayCoords(OverlayTexture.NO_OVERLAY).uv2(light)
-                        .normal(pose.last().normal(), n.x.toFloat(), n.y.toFloat(), n.z.toFloat()).endVertex()
-                }
-                vertex(rings[i][face], 0f, v0)
-                vertex(rings[i + 1][face], 0f, v1)
-                vertex(rings[i + 1][next], 1f, v1)
-                vertex(rings[i][next], 1f, v0)
+                vertex(consumer, rings[i][face], 0f, v0, light, n)
+                vertex(consumer, rings[i + 1][face], 0f, v1, light, n)
+                vertex(consumer, rings[i + 1][next], 1f, v1, light, n)
+                vertex(consumer, rings[i][next], 1f, v0, light, n)
             }
         }
+        val caps = buffers.getBuffer(capType)
+        fun cap(index: Int) {
+            val ring = rings[index]
+            val first = index == 0
+            val corners = if (first) listOf(ring[1], ring[0], ring[3], ring[2]) else ring
+            val normal = if (first) startNormal.scale(-1.0) else endNormal
+            val light = LevelRenderer.getLightColor(level, BlockPos.containing(points[index]))
+            vertex(caps, corners[0], 0f, 1f, light, normal)
+            vertex(caps, corners[1], 1f, 1f, light, normal)
+            vertex(caps, corners[2], 1f, 0f, light, normal)
+            vertex(caps, corners[3], 0f, 0f, light, normal)
+        }
+        cap(0)
+        if (capEnd) cap(rings.lastIndex)
     }
 }
