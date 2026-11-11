@@ -20,17 +20,22 @@ import net.minecraft.world.level.block.entity.BlockEntityType
 import net.minecraft.world.level.block.state.BlockState
 import net.minecraft.world.level.block.state.properties.BlockStateProperties
 import net.minecraft.world.phys.BlockHitResult
+import org.joml.Vector3d
 import org.valkyrienskies.clockwork.ClockworkBlocks
 import org.valkyrienskies.clockwork.util.GlueAssembler
 import org.valkyrienskies.core.api.attachment.getAttachment
 import org.valkyrienskies.core.api.ships.LoadedServerShip
 import org.valkyrienskies.core.api.ships.ServerShip
+import org.valkyrienskies.core.internal.ships.VsiServerShip
 import org.valkyrienskies.kelvin.util.KelvinExtensions.toMinecraft
+import org.valkyrienskies.mod.api.toJOML
 import org.valkyrienskies.mod.common.assembly.ShipAssembler.assembleToShipFull
 import org.valkyrienskies.mod.common.getLoadedShipManagingPos
+import org.valkyrienskies.mod.common.getShipManagingPos
 import org.valkyrienskies.mod.common.inAssemblyBlacklist
 import org.valkyrienskies.mod.common.shipObjectWorld
 import org.valkyrienskies.mod.common.util.SplittingDisablerAttachment
+import org.valkyrienskies.mod.common.vsCore
 import kotlin.math.roundToInt
 
 class PhysicalPistonBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: BlockState) :
@@ -71,7 +76,7 @@ class PhysicalPistonBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: 
             if (level.shipObjectWorld.allShips.getById(shaftShipId) == null) disconnect(level)
             return
         }
-        val parent = level.getLoadedShipManagingPos(worldPosition)
+        val parent = level.getShipManagingPos(worldPosition)
         ship.getAttachment<SplittingDisablerAttachment>()?.disableSplitting()
         val offset = displacement(parent, ship, worldPosition, origin, facing)
         if (!updateShaft(level, ship, origin, offset)) {
@@ -119,8 +124,26 @@ class PhysicalPistonBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: 
         val internal = if (front == 0) ClockworkBlocks.PHYS_PISTON_HEAD.defaultState else AllBlocks.PISTON_EXTENSION_POLE.defaultState
         level.setBlockAndUpdate(worldPosition, blockState.setValue(STATE, PistonState.MOVING))
         level.setBlockAndUpdate(origin, internal.setValue(BlockStateProperties.FACING, direction))
+        val parent = level.getShipManagingPos(worldPosition)
+        alignShaft(parent, assembly.ship, origin)
+        drive(parent, assembly.ship, worldPosition, origin, direction, -front, back, travelSpeed, !level.hasNeighborSignal(worldPosition))
         playAssemblySound(level, worldPosition, true)
         sendData()
+    }
+
+    private fun alignShaft(parent: ServerShip?, shaft: ServerShip, origin: BlockPos) {
+        val centerOfMass = shaft.inertiaData.centerOfMass
+        val position = Vector3d(centerOfMass).sub(origin.center.toJOML()).add(worldPosition.center.toJOML())
+        parent?.transform?.shipToWorld?.transformPosition(position)
+        val movingParent = parent?.takeUnless { it.isStatic }
+        val angularVelocity = movingParent?.angularVelocity ?: Vector3d()
+        val velocity = if (movingParent == null) Vector3d() else {
+            val parentCenter = movingParent.transform.shipToWorld.transformPosition(movingParent.inertiaData.centerOfMass, Vector3d())
+            val offset = position.sub(parentCenter, Vector3d())
+            angularVelocity.cross(offset, Vector3d()).add(movingParent.velocity)
+        }
+        val transform = vsCore.newBodyTransform(position, shaft.transform.shipToWorldRotation, shaft.transform.scaling, centerOfMass)
+        (shaft as VsiServerShip).unsafeSetKinematics(vsCore.newBodyKinematics(velocity, angularVelocity, transform))
     }
 
     fun addPole(player: Player, hand: InteractionHand): InteractionResult {

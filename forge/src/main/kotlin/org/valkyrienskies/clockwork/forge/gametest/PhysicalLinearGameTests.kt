@@ -31,6 +31,8 @@ import net.minecraft.world.phys.BlockHitResult
 import net.minecraftforge.gametest.GameTestHolder
 import net.minecraftforge.gametest.PrefixGameTestTemplate
 import net.minecraftforge.network.NetworkHooks
+import org.joml.Quaterniond
+import org.joml.Vector3d
 import org.valkyrienskies.clockwork.ClockworkBlocks
 import org.valkyrienskies.clockwork.ClockworkMod
 import org.valkyrienskies.clockwork.content.contraptions.phys.linear.PhysicalGantryBlock
@@ -44,6 +46,7 @@ import org.valkyrienskies.mod.api.toJOML
 import org.valkyrienskies.mod.common.assembly.ShipAssembler
 import org.valkyrienskies.mod.common.getShipManagingPos
 import org.valkyrienskies.mod.common.shipObjectWorld
+import org.valkyrienskies.mod.common.vsCore
 import java.util.UUID
 import kotlin.math.abs
 
@@ -220,6 +223,71 @@ class PhysicalLinearGameTests {
                         "Breaking a pole detached the connected shaft from the piston")
                     helper.assertTrue(level.isEmptyBlock(origin.above()), "The snapped-off payload stayed on the shaft ship")
                 }
+                .thenSucceed()
+        }
+
+        @JvmStatic
+        @GameTest(batch = BATCH, template = TEMPLATE, timeoutTicks = 100)
+        fun pistonKeepsItsAlignmentWhenAssembledOnAShip(helper: GameTestHelper) {
+            val level = helper.level
+            val start = fixturePosition(helper)
+            observe(level, start)
+            fixtureBlocks.add(start)
+            level.setBlockAndUpdate(start, Blocks.STONE.defaultBlockState())
+            val host = ShipAssembler.assembleToShip(level, setOf(start), 0.8)
+            host.isStatic = true
+            val box = host.shipAABB!!
+            val base = BlockPos(box.minX(), box.minY(), box.minZ()).south()
+            forceChunk(level, base)
+            forceChunk(level, base.west(2))
+
+            lateinit var origin: BlockPos
+            var shaftId = -1L
+            fun assertAligned(tolerance: Double) {
+                val shaft = level.shipObjectWorld.allShips.getById(shaftId)!!
+                val expected = host.transform.shipToWorld.transformPosition(base.center.toJOML())
+                val actual = shaft.transform.shipToWorld.transformPosition(origin.center.toJOML())
+                helper.assertTrue(actual.distance(expected) < tolerance,
+                    "Piston shaft shifted from the housing on assembly (offset=${actual.sub(expected)})")
+            }
+
+            helper.startSequence()
+                .thenWaitUntil {
+                    helper.assertTrue(level.shipObjectWorld.loadedShips.getById(host.id) != null, "Host ship did not load")
+                }
+                .thenExecute {
+                    level.setBlockAndUpdate(base, ClockworkBlocks.PHYS_PISTON.defaultState.setValue(FACING, Direction.EAST))
+                    level.setBlockAndUpdate(base.east(), Blocks.IRON_BLOCK.defaultBlockState())
+                    for (i in 1..2) level.setBlockAndUpdate(base.west(i), AllBlocks.PISTON_EXTENSION_POLE.defaultState.setValue(FACING, Direction.EAST))
+                }
+                .thenIdle(5)
+                .thenExecute {
+                    host.isStatic = false
+                    level.shipObjectWorld.teleportShip(host, vsCore.newShipTeleportData(
+                        newPos = host.transform.positionInWorld,
+                        newRot = Quaterniond().rotateY(0.6),
+                        newVel = Vector3d(0.5, 0.0, 0.0),
+                        newOmega = Vector3d(0.0, 0.5, 0.0)
+                    ))
+                }
+                .thenIdle(3)
+                .thenExecute {
+                    val piston = level.getBlockEntity(base) as? PhysicalPistonBlockEntity
+                    helper.assertTrue(piston != null, "Missing piston on the host ship")
+                    use(helper, base, Direction.NORTH)
+                    val data = piston!!.saveWithoutMetadata()
+                    helper.assertTrue(data.contains("ShaftOrigin"), "Ship-mounted piston did not assemble")
+                    origin = BlockPos.of(data.getLong("ShaftOrigin"))
+                    shaftId = data.getLong("ShaftShip")
+                    forceChunk(level, origin)
+                    assertAligned(.01)
+                }
+                .thenWaitUntil {
+                    helper.assertTrue(level.gtpa.getAllJoints().values.any { it is VSFixedJoint && it.shipId0 == host.id && it.shipId1 == shaftId },
+                        "Piston did not engage its brake against the host ship")
+                }
+                .thenIdle(5)
+                .thenExecute { assertAligned(.05) }
                 .thenSucceed()
         }
 
