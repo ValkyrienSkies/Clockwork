@@ -46,6 +46,9 @@ object ClockworkPartials {
     val WIDEBLADE_TIP = block("blade_controller/blade/wideblade_tip")
 
     val PROPELLER_TOP = block("propeller_bearing/top")
+    val ROPE_WINCH_DRUM = block("rope_winch/drum")
+    val ROPE_WINCH_ROPE = block("rope_winch/rope")
+    val ROPE_WINCH_LEAD = block("rope_winch/lead")
 
     // region Gravitron
     val GRAV_DIAL_HAND = item("gravitron/dialhand")
