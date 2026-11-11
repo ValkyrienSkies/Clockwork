@@ -1,54 +1,54 @@
 {
   "variants": {
     "facing=down,type=normal": {
-      "model": "create:block/mechanical_piston/normal/head",
+      "model": "vs_clockwork:block/phys_piston/head",
       "x": 180
     },
     "facing=down,type=sticky": {
-      "model": "create:block/mechanical_piston/sticky/head",
+      "model": "vs_clockwork:block/phys_piston/sticky_head",
       "x": 180
     },
     "facing=east,type=normal": {
-      "model": "create:block/mechanical_piston/normal/head",
+      "model": "vs_clockwork:block/phys_piston/head",
       "x": 90,
       "y": 90
     },
     "facing=east,type=sticky": {
-      "model": "create:block/mechanical_piston/sticky/head",
+      "model": "vs_clockwork:block/phys_piston/sticky_head",
       "x": 90,
       "y": 90
     },
     "facing=north,type=normal": {
-      "model": "create:block/mechanical_piston/normal/head",
+      "model": "vs_clockwork:block/phys_piston/head",
       "x": 90
     },
     "facing=north,type=sticky": {
-      "model": "create:block/mechanical_piston/sticky/head",
+      "model": "vs_clockwork:block/phys_piston/sticky_head",
       "x": 90
     },
     "facing=south,type=normal": {
-      "model": "create:block/mechanical_piston/normal/head",
+      "model": "vs_clockwork:block/phys_piston/head",
       "x": 90,
       "y": 180
     },
     "facing=south,type=sticky": {
-      "model": "create:block/mechanical_piston/sticky/head",
+      "model": "vs_clockwork:block/phys_piston/sticky_head",
       "x": 90,
       "y": 180
     },
     "facing=up,type=normal": {
-      "model": "create:block/mechanical_piston/normal/head"
+      "model": "vs_clockwork:block/phys_piston/head"
     },
     "facing=up,type=sticky": {
-      "model": "create:block/mechanical_piston/sticky/head"
+      "model": "vs_clockwork:block/phys_piston/sticky_head"
     },
     "facing=west,type=normal": {
-      "model": "create:block/mechanical_piston/normal/head",
+      "model": "vs_clockwork:block/phys_piston/head",
       "x": 90,
       "y": 270
     },
     "facing=west,type=sticky": {
-      "model": "create:block/mechanical_piston/sticky/head",
+      "model": "vs_clockwork:block/phys_piston/sticky_head",
       "x": 90,
       "y": 270
     }

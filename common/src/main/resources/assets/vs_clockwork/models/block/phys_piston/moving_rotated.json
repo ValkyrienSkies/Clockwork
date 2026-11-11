@@ -1,0 +1,60 @@
+{
+  "parent": "minecraft:block/block",
+  "textures": {
+    "side": "vs_clockwork:block/phys_piston/physics_piston",
+    "casing": "create:block/brass_casing",
+    "base": "vs_clockwork:block/phys_piston/physics_piston_bottom",
+    "gearbox": "create:block/brass_gearbox",
+    "inner": "vs_clockwork:block/phys_piston/physics_piston_inner",
+    "particle": "#casing"
+  },
+  "elements": [
+    {
+      "name": "Bottom",
+      "from": [0, 0, 0],
+      "to": [16, 2, 16],
+      "faces": {
+        "east": { "uv": [0, 14, 16, 16], "texture": "#side" },
+        "south": { "uv": [0, 14, 16, 16], "texture": "#side" },
+        "west": { "uv": [0, 14, 16, 16], "texture": "#side" },
+        "north": { "uv": [0, 14, 16, 16], "texture": "#side" },
+        "up": { "uv": [0, 0, 16, 16], "texture": "#casing", "rotation": 90 },
+        "down": { "uv": [0, 0, 16, 16], "texture": "#base", "rotation": 270 }
+      }
+    },
+    {
+      "name": "Inner",
+      "from": [0.95, 2, 2],
+      "to": [15.05, 12, 14],
+      "faces": {
+        "east": { "uv": [2, 4, 14, 14], "texture": "#gearbox" },
+        "west": { "uv": [2, 4, 14, 14], "texture": "#gearbox" },
+        "up": { "uv": [2, 1, 14, 15], "texture": "#inner", "rotation": 90 }
+      }
+    },
+    {
+      "name": "Side",
+      "from": [0, 2, 0],
+      "to": [16, 12, 2],
+      "faces": {
+        "east": { "uv": [14, 4, 16, 14], "texture": "#side" },
+        "south": { "uv": [0, 4, 16, 14], "texture": "#side" },
+        "west": { "uv": [0, 4, 2, 14], "texture": "#side" },
+        "north": { "uv": [0, 4, 16, 14], "texture": "#side" },
+        "up": { "uv": [0, 16, 16, 14], "texture": "#casing" }
+      }
+    },
+    {
+      "name": "Side2",
+      "from": [0, 2, 14],
+      "to": [16, 12, 16],
+      "faces": {
+        "east": { "uv": [0, 4, 2, 14], "texture": "#side" },
+        "south": { "uv": [0, 4, 16, 14], "texture": "#side" },
+        "west": { "uv": [14, 4, 16, 14], "texture": "#side" },
+        "north": { "uv": [0, 4, 16, 14], "texture": "#side" },
+        "up": { "uv": [0, 14, 16, 16], "texture": "#casing" }
+      }
+    }
+  ]
+}

@@ -1,0 +1,37 @@
+{
+  "parent": "minecraft:block/block",
+  "credit": "Model generated using MrCrayfish's Model Creator (http://mrcrayfish.com/modelcreator/)",
+  "textures": {
+    "side": "vs_clockwork:block/phys_piston/physics_piston",
+    "top": "vs_clockwork:block/phys_gantry/physics_pinion_top",
+    "head_bottom": "vs_clockwork:block/phys_gantry/physics_pinion_bottom",
+    "pole": "minecraft:block/piston_side",
+    "particle": "#pole"
+  },
+  "elements": [
+    {
+      "name": "Top",
+      "from": [0, 12, 0],
+      "to": [16, 16, 16],
+      "faces": {
+        "north": { "uv": [0, 0, 16, 4], "texture": "#side" },
+        "east": { "uv": [0, 0, 16, 4], "texture": "#side" },
+        "south": { "uv": [0, 0, 16, 4], "texture": "#side" },
+        "west": { "uv": [0, 0, 16, 4], "texture": "#side" },
+        "up": { "uv": [0, 0, 16, 16], "texture": "#top" },
+        "down": { "uv": [0, 0, 16, 16], "texture": "#head_bottom" }
+      }
+    },
+    {
+      "name": "Pole",
+      "from": [6, 0, 6],
+      "to": [10, 16, 10],
+      "faces": {
+        "north": { "uv": [0, 0, 16, 4], "texture": "#pole", "rotation": 270 },
+        "east": { "uv": [0, 0, 16, 4], "texture": "#pole", "rotation": 270 },
+        "south": { "uv": [0, 0, 16, 4], "texture": "#pole", "rotation": 270 },
+        "west": { "uv": [0, 0, 16, 4], "texture": "#pole", "rotation": 270 }
+      }
+    }
+  ]
+}
