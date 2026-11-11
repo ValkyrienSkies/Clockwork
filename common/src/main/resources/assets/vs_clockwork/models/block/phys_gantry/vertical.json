@@ -1,0 +1,95 @@
+{
+  "parent": "minecraft:block/block",
+  "textures": {
+    "physics_pinion_bottom": "vs_clockwork:block/phys_gantry/physics_pinion_bottom",
+    "physics_pinion_side": "vs_clockwork:block/phys_gantry/physics_pinion_side",
+    "axis": "create:block/axis",
+    "pinion": "create:block/pinion",
+    "brass_gearbox": "create:block/brass_gearbox",
+    "physics_pinion_top": "vs_clockwork:block/phys_gantry/physics_pinion_top",
+    "particle": "#physics_pinion_side"
+  },
+  "elements": [
+    {
+      "name": "Bottom",
+      "from": [0, 0, 0],
+      "to": [16, 16, 4],
+      "faces": {
+        "north": { "uv": [0, 0, 16, 16], "texture": "#physics_pinion_bottom", "rotation": 270 },
+        "east": { "uv": [0, 12, 16, 16], "texture": "#physics_pinion_side", "rotation": 270 },
+        "south": { "uv": [0, 0, 16, 16], "texture": "#physics_pinion_bottom" },
+        "west": { "uv": [0, 12, 16, 16], "texture": "#physics_pinion_side", "rotation": 90 },
+        "up": { "uv": [0, 12, 16, 16], "texture": "#physics_pinion_side", "rotation": 180 },
+        "down": { "uv": [0, 12, 16, 16], "texture": "#physics_pinion_side" }
+      }
+    },
+    {
+      "name": "Bottom",
+      "from": [0, 6, -4],
+      "to": [16, 10, 0],
+      "faces": {
+        "north": { "uv": [6, 0, 10, 16], "texture": "#axis", "rotation": 270 },
+        "east": { "uv": [6, 12, 10, 16], "texture": "#pinion", "rotation": 270 },
+        "west": { "uv": [6, 12, 10, 16], "texture": "#pinion", "rotation": 90 },
+        "up": { "uv": [6, 0, 10, 16], "texture": "#axis", "rotation": 270 },
+        "down": { "uv": [6, 0, 10, 16], "texture": "#axis", "rotation": 90 }
+      }
+    },
+    {
+      "name": "Bottom",
+      "from": [6, 0, -4],
+      "to": [10, 16, 0],
+      "faces": {
+        "north": { "uv": [6, 0, 10, 16], "texture": "#axis" },
+        "east": { "uv": [6, 0, 10, 16], "texture": "#axis" },
+        "west": { "uv": [6, 0, 10, 16], "texture": "#axis", "rotation": 180 },
+        "up": { "uv": [10, 12, 14, 16], "texture": "#pinion", "rotation": 180 },
+        "down": { "uv": [6, 12, 10, 16], "texture": "#pinion" }
+      }
+    },
+    {
+      "name": "Core",
+      "from": [1, 0.95, 2],
+      "to": [15, 15.05, 12],
+      "faces": {
+        "up": { "uv": [1, 4, 15, 14], "texture": "#brass_gearbox", "rotation": 180 },
+        "down": { "uv": [1, 4, 15, 14], "texture": "#brass_gearbox" }
+      }
+    },
+    {
+      "name": "Top",
+      "from": [0, 0, 12],
+      "to": [16, 16, 16],
+      "faces": {
+        "north": { "uv": [0, 0, 16, 16], "texture": "#physics_pinion_bottom", "rotation": 180 },
+        "east": { "uv": [0, 0, 16, 4], "texture": "#physics_pinion_side", "rotation": 270 },
+        "south": { "uv": [0, 0, 16, 16], "texture": "#physics_pinion_top", "rotation": 90 },
+        "west": { "uv": [0, 0, 16, 4], "texture": "#physics_pinion_side", "rotation": 90 },
+        "up": { "uv": [0, 0, 16, 4], "texture": "#physics_pinion_side", "rotation": 180 },
+        "down": { "uv": [0, 0, 16, 4], "texture": "#physics_pinion_side" }
+      }
+    },
+    {
+      "name": "SideWest",
+      "from": [0, 0, 4],
+      "to": [2, 16, 12],
+      "faces": {
+        "east": { "uv": [0, 4, 16, 12], "texture": "#brass_gearbox", "rotation": 90 },
+        "west": { "uv": [0, 4, 16, 12], "texture": "#physics_pinion_side", "rotation": 90 },
+        "up": { "uv": [14, 4, 16, 12], "texture": "#brass_gearbox", "rotation": 180 },
+        "down": { "uv": [14, 4, 16, 12], "texture": "#brass_gearbox", "rotation": 180 }
+      }
+    },
+    {
+      "name": "SideEast",
+      "from": [14, 0, 4],
+      "to": [16, 16, 12],
+      "faces": {
+        "east": { "uv": [0, 4, 16, 12], "texture": "#physics_pinion_side", "rotation": 270 },
+        "west": { "uv": [0, 4, 16, 12], "texture": "#brass_gearbox", "rotation": 90 },
+        "up": { "uv": [0, 4, 2, 12], "texture": "#brass_gearbox", "rotation": 180 },
+        "down": { "uv": [0, 4, 2, 12], "texture": "#brass_gearbox", "rotation": 180 }
+      }
+    }
+  ]
+}

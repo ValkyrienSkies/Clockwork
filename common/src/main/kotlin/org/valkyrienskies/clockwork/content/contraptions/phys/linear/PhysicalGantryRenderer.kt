@@ -1,7 +1,6 @@
 package org.valkyrienskies.clockwork.content.contraptions.phys.linear
 
 import com.mojang.blaze3d.vertex.PoseStack
-import com.simibubi.create.AllPartialModels
 import com.simibubi.create.content.kinetics.base.DirectionalAxisKineticBlock.AXIS_ALONG_FIRST_COORDINATE
 import com.simibubi.create.content.kinetics.base.KineticBlockEntityRenderer
 import net.createmod.catnip.math.AngleHelper
@@ -13,6 +12,7 @@ import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider
 import net.minecraft.core.Direction
 import net.minecraft.world.level.block.state.BlockState
 import net.minecraft.world.level.block.state.properties.BlockStateProperties
+import org.valkyrienskies.clockwork.ClockworkPartials
 
 class PhysicalGantryRenderer(context: BlockEntityRendererProvider.Context) :
     KineticBlockEntityRenderer<PhysicalGantryBlockEntity>(context) {
@@ -24,7 +24,7 @@ class PhysicalGantryRenderer(context: BlockEntityRendererProvider.Context) :
         val state = be.blockState
         val facing = state.getValue(BlockStateProperties.FACING)
         val alongFirst = state.getValue(AXIS_ALONG_FIRST_COORDINATE)
-        val cogs = CachedBuffers.partial(AllPartialModels.GANTRY_COGS, state)
+        val cogs = CachedBuffers.partial(ClockworkPartials.PHYS_GANTRY_WHEELS, state)
         cogs.center()
             .rotateYDegrees(AngleHelper.horizontalAngle(facing))
             .rotateXDegrees(when (facing) {
@@ -34,6 +34,6 @@ class PhysicalGantryRenderer(context: BlockEntityRendererProvider.Context) :
             })
             .rotateYDegrees(if (alongFirst xor (facing.axis == Direction.Axis.X)) 0f else 90f)
             .uncenter()
-        cogs.light<SuperByteBuffer>(light).renderInto(pose, buffers.getBuffer(RenderType.solid()))
+        cogs.light<SuperByteBuffer>(light).renderInto(pose, buffers.getBuffer(RenderType.cutout()))
     }
 }

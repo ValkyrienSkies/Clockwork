@@ -1,51 +1,51 @@
 {
   "variants": {
     "axis_along_first=false,facing=down": {
-      "model": "create:block/gantry_carriage/horizontal",
+      "model": "vs_clockwork:block/phys_gantry/horizontal",
       "x": 270,
       "y": 90
     },
     "axis_along_first=false,facing=east": {
-      "model": "create:block/gantry_carriage/horizontal",
+      "model": "vs_clockwork:block/phys_gantry/horizontal",
       "y": 270
     },
     "axis_along_first=false,facing=north": {
-      "model": "create:block/gantry_carriage/vertical",
+      "model": "vs_clockwork:block/phys_gantry/vertical",
       "y": 180
     },
     "axis_along_first=false,facing=south": {
-      "model": "create:block/gantry_carriage/vertical"
+      "model": "vs_clockwork:block/phys_gantry/vertical"
     },
     "axis_along_first=false,facing=up": {
-      "model": "create:block/gantry_carriage/horizontal",
+      "model": "vs_clockwork:block/phys_gantry/horizontal",
       "x": 90,
       "y": 90
     },
     "axis_along_first=false,facing=west": {
-      "model": "create:block/gantry_carriage/horizontal",
+      "model": "vs_clockwork:block/phys_gantry/horizontal",
       "y": 90
     },
     "axis_along_first=true,facing=down": {
-      "model": "create:block/gantry_carriage/horizontal",
+      "model": "vs_clockwork:block/phys_gantry/horizontal",
       "x": 270
     },
     "axis_along_first=true,facing=east": {
-      "model": "create:block/gantry_carriage/vertical",
+      "model": "vs_clockwork:block/phys_gantry/vertical",
       "y": 270
     },
     "axis_along_first=true,facing=north": {
-      "model": "create:block/gantry_carriage/horizontal",
+      "model": "vs_clockwork:block/phys_gantry/horizontal",
       "y": 180
     },
     "axis_along_first=true,facing=south": {
-      "model": "create:block/gantry_carriage/horizontal"
+      "model": "vs_clockwork:block/phys_gantry/horizontal"
     },
     "axis_along_first=true,facing=up": {
-      "model": "create:block/gantry_carriage/horizontal",
+      "model": "vs_clockwork:block/phys_gantry/horizontal",
       "x": 90
     },
     "axis_along_first=true,facing=west": {
-      "model": "create:block/gantry_carriage/vertical",
+      "model": "vs_clockwork:block/phys_gantry/vertical",
       "y": 90
     }
   }
