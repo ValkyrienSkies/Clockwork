@@ -15,7 +15,6 @@ import org.valkyrienskies.clockwork.ClockworkMod.REGISTRATE
 import org.valkyrienskies.clockwork.content.contraptions.propeller.blades.item.BladeItem
 import org.valkyrienskies.clockwork.content.contraptions.propeller.blades.item.BladeItemRenderer
 import org.valkyrienskies.clockwork.content.curiosities.WanderliteCrystal
-import org.valkyrienskies.clockwork.content.curiosities.rope.RopeKnotItem
 import org.valkyrienskies.clockwork.content.curiosities.WanderliteCubeItemRenderer
 import org.valkyrienskies.clockwork.content.curiosities.WanderliteItem
 import org.valkyrienskies.clockwork.content.curiosities.WanderlustMusicDisc
@@ -42,13 +41,6 @@ import org.valkyrienskies.clockwork.util.builder.ClockworkRegistrate
 import java.util.function.Supplier
 
 object ClockworkItems {
-
-    @JvmField
-    val ROPE_KNOT: ItemEntry<RopeKnotItem> = REGISTRATE.item<RopeKnotItem>("rope_knot") { RopeKnotItem(it!!) }
-        .properties { it.stacksTo(16) }
-        .tab(ClockworkMod.BASE_CREATIVE_TABINFO)
-        .model(AssetLookup.existingItemModel())
-        .register()
 
     @JvmField
     val WANDERLUST_DISC: ItemEntry<WanderlustMusicDisc> =

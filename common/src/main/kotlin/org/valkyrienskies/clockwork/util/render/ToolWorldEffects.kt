@@ -9,7 +9,6 @@ import net.minecraft.client.renderer.MultiBufferSource
 import org.valkyrienskies.clockwork.ClockworkModClient
 import org.valkyrienskies.clockwork.content.curiosities.tools.gravitron.GravitronEffects
 import org.valkyrienskies.clockwork.content.contraptions.phys.infuser.InfuserEffects
-import org.valkyrienskies.clockwork.content.curiosities.rope.RopeKnotRenderer
 
 /** Draw world-space tool effects after vanilla translucency, before shader postprocessing. */
 object ToolWorldEffects {
@@ -26,7 +25,6 @@ object ToolWorldEffects {
             ClockworkModClient.WANDERWAND_EFFECT_RENDERER.render(poseStack, buffers, camera.position, partialTick)
             GravitronEffects.render(poseStack, buffers, partialTick)
             InfuserEffects.render(poseStack, buffers, camera.position, partialTick)
-            RopeKnotRenderer.renderEffects(poseStack, buffers, camera.position, partialTick)
             buffers.endBatch()
         } finally {
             RenderSystem.enableCull()

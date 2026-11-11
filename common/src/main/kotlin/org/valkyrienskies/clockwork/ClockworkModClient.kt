@@ -4,8 +4,6 @@ import com.mojang.blaze3d.platform.InputConstants
 import com.simibubi.create.content.equipment.armor.BacktankArmorLayer
 import dev.architectury.event.events.client.ClientTickEvent
 import dev.architectury.registry.ReloadListenerRegistry
-import dev.architectury.registry.client.level.entity.EntityRendererRegistry
-import org.valkyrienskies.clockwork.content.curiosities.rope.RopeKnotEntityRenderer
 import net.createmod.catnip.outliner.Outliner
 import net.createmod.ponder.foundation.PonderIndex
 import net.fabricmc.fabric.api.client.rendering.v1.LivingEntityFeatureRendererRegistrationCallback
@@ -95,7 +93,6 @@ object ClockworkModClient {
 
     @JvmStatic
     fun initClient() {
-        EntityRendererRegistry.register({ ClockworkEntities.ROPE_KNOT }, ::RopeKnotEntityRenderer)
         PonderIndex.addPlugin(ClockworkPonderPlugin())
         ClientTickEvent.CLIENT_LEVEL_POST.register {
             WANDERWAND_EFFECT_RENDERER.clientTick(it)

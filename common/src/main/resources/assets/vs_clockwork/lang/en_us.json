@@ -1,13 +1,4 @@
 {
-  "item.vs_clockwork.rope_knot": "Rope Knot",
-  "entity.vs_clockwork.rope_knot": "Rope Knot",
-  "item.vs_clockwork.rope_knot.controls": "Use on two block faces to tie a rope.",
-  "item.vs_clockwork.rope_knot.pending": "First end tied. Sneak and use in the air to cancel.",
-  "message.vs_clockwork.rope_knot.missing": "The first endpoint is missing or unloaded...",
-  "message.vs_clockwork.rope_knot.long": "The first endpoint is too far away...",
-  "message.vs_clockwork.rope_knot.duplicate": "Cannot tie a rope between these endpoints...",
-  "vs_clockwork.subtitle.rope_tie": "Rope tied",
-  "vs_clockwork.subtitle.rope_snap_1": "Rope snaps",
   "advancement.vs_clockwork.infuser.awakening": "Awakening",
   "advancement.vs_clockwork.infuser.awakening.description": "Activate a Physics Infuser.",
   "message.vs_clockwork.infuser.empty": "The wand has no eligible blocks selected. Check the selection and the infuser blacklist.",

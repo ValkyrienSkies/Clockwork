@@ -13,14 +13,12 @@ import org.valkyrienskies.mod.common.shipObjectWorld
 import org.valkyrienskies.clockwork.util.gtpa
 import org.valkyrienskies.clockwork.util.matchesByAnchors
 import org.valkyrienskies.clockwork.util.updateJoint
-import org.valkyrienskies.clockwork.content.curiosities.rope.RopeKnotPhysics
-import org.valkyrienskies.clockwork.content.curiosities.rope.RopeKnotServer
 import java.util.UUID
 
 /** The visual endpoints and joint blueprint are saved together; physics IDs are session-local. */
 class WandLinks : SavedData() {
     data class Link(val id: UUID, val a: WandAnchor, val b: WandAnchor, val rope: Boolean,
-                    val length: Double, var pose0: VSJointPose, var pose1: VSJointPose, val physical: Boolean = false) {
+                    val length: Double, var pose0: VSJointPose, var pose1: VSJointPose) {
         var jointId: Int? = null
         var pending = false
         var needsReframe = false
@@ -29,14 +27,9 @@ class WandLinks : SavedData() {
         var missingTicks = 0
         var suspended = false
         var mass = 100.0
-        var knotA: UUID? = null
-        var knotB: UUID? = null
-        var hits = 0
-        var lastHit = Long.MIN_VALUE
         fun save() = CompoundTag().also {
             it.putUUID("id", id); it.put("a", a.save()); it.put("b", b.save())
             it.putBoolean("rope", rope); it.putDouble("length", length)
-            it.putBoolean("physical", physical)
             it.put("pose0", savePose(pose0)); it.put("pose1", savePose(pose1))
             it.putBoolean("faceAligned", !needsReframe)
         }
@@ -52,7 +45,7 @@ class WandLinks : SavedData() {
         return tag
     }
 
-    fun add(level: ServerLevel, a: WandAnchor, b: WandAnchor, rope: Boolean, length: Double, physical: Boolean = false): Link? {
+    fun add(level: ServerLevel, a: WandAnchor, b: WandAnchor, rope: Boolean, length: Double): Link? {
         if (links.size >= 2048 || a == b) return null
         if (!rope && !WandLinkPhysics.canAttach(a, b)) return null
         if (links.values.any { it.rope == rope && ((it.a == a && it.b == b) || (it.a == b && it.b == a)) }) return null
@@ -60,18 +53,15 @@ class WandLinks : SavedData() {
         b.world(level) ?: return null
         fun ropePose(anchor: WandAnchor) = anchor.local().let { VSJointPose(Vector3d(it.x, it.y, it.z), Quaterniond()) }
         val poses = if (rope) ropePose(a) to ropePose(b) else facePoses(level, a, b)
-        val link = Link(UUID.randomUUID(), a, b, rope, length.coerceIn(0.5, 128.0), poses.first, poses.second, physical && rope)
+        val link = Link(UUID.randomUUID(), a, b, rope, length.coerceIn(0.5, 128.0), poses.first, poses.second)
         links[link.id] = link
         setDirty()
         ensureJoint(level, link)
-        if (link.physical) RopeKnotServer.ensureKnots(level, link)
         return link
     }
 
     fun remove(level: ServerLevel, link: Link) {
         links.remove(link.id)
-        link.knotA?.let { level.getEntity(it)?.discard() }
-        link.knotB?.let { level.getEntity(it)?.discard() }
         link.jointId?.let { level.gtpa.removeJoint(it) }
         setDirty()
     }
@@ -99,15 +89,14 @@ class WandLinks : SavedData() {
             val hasPhysics = link.a.shipId != link.b.shipId
             val missing = link.jointId != null && !link.pending && level.gtpa.getJointById(link.jointId!!) == null
             link.missingTicks = if (missing) link.missingTicks + 1 else 0
-            val overloaded = hasPhysics && if (link.physical) RopeKnotPhysics.overloaded(distance - link.length, speed)
-                else WandLinkPhysics.overloaded(link.rope, distance - if (link.rope) link.length else 0.01, speed, link.age)
+            val overloaded = hasPhysics && WandLinkPhysics.overloaded(link.rope,
+                distance - if (link.rope) link.length else 0.01, speed, link.age)
             if (invalid || overloaded || link.missingTicks > 10) {
                 remove(level, link)
                 WanderwandServer.breakEffect(level, link)
                 changed = true
             } else {
                 ensureJoint(level, link)
-                if (link.physical) RopeKnotServer.ensureKnots(level, link)
                 if (link.jointId != null) link.age++
             }
         }
@@ -134,10 +123,9 @@ class WandLinks : SavedData() {
             level.shipObjectWorld.loadedShips.getById(link.a.shipId)?.inertiaData?.mass,
             level.shipObjectWorld.loadedShips.getById(link.b.shipId)?.inertiaData?.mass)
         val joint: VSJoint = if (link.rope) VSDistanceJoint(a, link.pose0, b, link.pose1,
-            VSJointMaxForceTorque((link.mass * if (link.physical) RopeKnotPhysics.BREAK_ACCELERATION else WandLinkPhysics.ROPE_BREAK_ACCELERATION).toFloat(), Float.MAX_VALUE),
-            minDistance = 0f, maxDistance = link.length.toFloat(),
-            stiffness = (link.mass * if (link.physical) RopeKnotPhysics.STIFFNESS else WandLinkPhysics.ROPE_STIFFNESS).toFloat(),
-            damping = (link.mass * if (link.physical) RopeKnotPhysics.DAMPING else WandLinkPhysics.ROPE_DAMPING).toFloat())
+            VSJointMaxForceTorque((link.mass * WandLinkPhysics.ROPE_BREAK_ACCELERATION).toFloat(), Float.MAX_VALUE),
+            minDistance = 0f, maxDistance = link.length.toFloat(), stiffness = (link.mass * WandLinkPhysics.ROPE_STIFFNESS).toFloat(),
+            damping = (link.mass * WandLinkPhysics.ROPE_DAMPING).toFloat())
         else WandLinkPhysics.glueJoint(a, b, link.pose0, link.pose1, link.mass, link.age)
         link.jointId?.let { id ->
             val current = level.gtpa.getJointById(id)
@@ -168,8 +156,7 @@ class WandLinks : SavedData() {
                 val length = t.getDouble("length")
                 if (!length.isFinite()) continue
                 val link = Link(t.getUUID("id"), WandAnchor.load(t.getCompound("a")), WandAnchor.load(t.getCompound("b")),
-                    t.getBoolean("rope"), length.coerceIn(0.5, 128.0), loadPose(t.getCompound("pose0")), loadPose(t.getCompound("pose1")),
-                    t.getBoolean("physical") && t.getBoolean("rope"))
+                    t.getBoolean("rope"), length.coerceIn(0.5, 128.0), loadPose(t.getCompound("pose0")), loadPose(t.getCompound("pose1")))
                 link.needsReframe = !t.getBoolean("faceAligned") && !link.rope
                 data.links[link.id] = link
             }
