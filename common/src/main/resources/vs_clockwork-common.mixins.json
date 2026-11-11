@@ -41,6 +41,7 @@
     "content.wing.MixinAbstractCauldronBlock"
   ],
   "client": [
+    "content.lubricant.MixinMinecraft",
     "MixinLevelRenderer",
     "MixinLocalPlayer",
     "client.MixinCamera",

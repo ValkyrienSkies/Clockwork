@@ -21,6 +21,9 @@ import org.valkyrienskies.core.api.ships.Ship
 class LubricantData : SavedData() {
     private val sections = HashMap<Long, MutableMap<Long, Block>>()
     private val changed = HashSet<Long>()
+    private val areas = HashMap<Long, MutableSet<Long>>()
+    private val memberships = HashMap<Long, MutableSet<Long>>()
+    private var nextArea = 1L
     private var revision = 0L
     private val viewers = HashMap<java.util.UUID, Pair<Long, Long>>()
 
@@ -37,10 +40,64 @@ class LubricantData : SavedData() {
         } else {
             if (existing?.remove(key) == null) return false
             if (existing.isEmpty()) sections.remove(section)
+            forgetAreas(key)
         }
         revision++
         setDirty()
         return true
+    }
+
+    fun addArea(positions: Collection<BlockPos>) {
+        val blocks = positions.map { it.asLong() }.filter { sections[section(it)]?.containsKey(it) == true }.toSet()
+        if (blocks.isEmpty() || areas.values.any { it == blocks }) return
+        val id = nextArea++
+        areas[id] = blocks.toMutableSet()
+        for (pos in blocks) memberships.getOrPut(pos) { HashSet() }.add(id)
+        revision++
+        setDirty()
+    }
+
+    fun areaAt(pos: BlockPos): Set<Long> {
+        memberships[pos.asLong()]?.maxOrNull()?.let { return areas[it]?.toSet() ?: emptySet() }
+        val result = HashSet<Long>()
+        val queue = java.util.ArrayDeque<BlockPos>()
+        queue.add(pos)
+        while (queue.isNotEmpty()) {
+            val current = queue.removeFirst()
+            val key = current.asLong()
+            if (memberships.containsKey(key) || sections[section(key)]?.containsKey(key) != true || !result.add(key)) continue
+            for (direction in net.minecraft.core.Direction.values()) queue.add(current.relative(direction))
+        }
+        return result
+    }
+
+    fun removeArea(level: ServerLevel, pos: BlockPos, allowed: (BlockPos) -> Boolean): Int {
+        val id = memberships[pos.asLong()]?.maxOrNull()
+        val selected = areaAt(pos)
+        if (selected.isEmpty() || selected.any { !allowed(BlockPos.of(it)) }) return 0
+        for (key in selected) {
+            val block = sections[section(key)]?.get(key) ?: continue
+            if (id != null) {
+                memberships[key]?.remove(id)
+                if (memberships[key]?.isNotEmpty() == true) continue
+            }
+            val cursor = BlockPos.of(key)
+            set(cursor, block, false)
+            if (level.hasChunkAt(cursor) && level.getBlockState(cursor).block === block)
+                LubricantMaterials.refresh(level, cursor, false)
+        }
+        if (id != null) areas.remove(id)
+        revision++
+        setDirty()
+        return selected.size
+    }
+
+    private fun forgetAreas(pos: Long) {
+        for (id in memberships.remove(pos).orEmpty()) {
+            val members = areas[id] ?: continue
+            members.remove(pos)
+            if (members.isEmpty()) areas.remove(id)
+        }
     }
 
     fun blockChanged(pos: BlockPos) {
@@ -59,8 +116,13 @@ class LubricantData : SavedData() {
         if (from == to) return
         val block = sections[section(from.asLong())]?.get(from.asLong()) ?: return
         if (level.getBlockState(to).block !== block) return
+        val regionIds = memberships[from.asLong()]?.toSet().orEmpty()
         set(from, block, false)
         set(to, block, true)
+        for (id in regionIds) {
+            areas.getOrPut(id) { HashSet() }.add(to.asLong())
+            memberships.getOrPut(to.asLong()) { HashSet() }.add(id)
+        }
         changed.remove(to.asLong())
         LubricantMaterials.refresh(level, to, true)
     }
@@ -80,7 +142,7 @@ class LubricantData : SavedData() {
             level.isBlockInShipyard(pos) && level.getShipManagingPos(pos) == null
         }
         if (orphaned.isNotEmpty()) {
-            orphaned.forEach(sections::remove)
+            orphaned.forEach { key -> sections.remove(key)?.keys?.forEach(::forgetAreas) }
             revision++
             setDirty()
         }
@@ -101,7 +163,8 @@ class LubricantData : SavedData() {
                 }
                 if (visible.size >= MAX_VISIBLE) break
             }
-            ClockworkPackets.sendTo(LubricantSyncPacket(level.dimension().location(), visible.toLongArray()), player)
+            ClockworkPackets.sendTo(LubricantSyncPacket(level.dimension().location(), visible.toLongArray(),
+                visible.map { memberships[it]?.maxOrNull() ?: 0L }.toLongArray()), player)
             viewers[player.uuid] = key
         }
         viewers.keys.retainAll(active)
@@ -116,6 +179,13 @@ class LubricantData : SavedData() {
             })
         }
         tag.put("Blocks", entries)
+        tag.putLong("NextArea", nextArea)
+        tag.put("Areas", ListTag().apply {
+            for ((id, blocks) in areas) add(CompoundTag().apply {
+                putLong("Id", id)
+                putLongArray("Blocks", blocks.toLongArray())
+            })
+        })
         return tag
     }
 
@@ -133,6 +203,16 @@ class LubricantData : SavedData() {
                 if (!BuiltInRegistries.BLOCK.containsKey(id)) continue
                 val pos = data.getLong("Pos")
                 sections.getOrPut(section(pos)) { HashMap() }[pos] = BuiltInRegistries.BLOCK.get(id)
+            }
+            nextArea = maxOf(1L, tag.getLong("NextArea"))
+            for (entry in tag.getList("Areas", 10)) {
+                val area = entry as CompoundTag
+                val id = area.getLong("Id")
+                val blocks = area.getLongArray("Blocks").filter { sections[section(it)]?.containsKey(it) == true }.toMutableSet()
+                if (id <= 0 || blocks.isEmpty()) continue
+                areas[id] = blocks
+                for (pos in blocks) memberships.getOrPut(pos) { HashSet() }.add(id)
+                nextArea = maxOf(nextArea, id + 1)
             }
         }
 

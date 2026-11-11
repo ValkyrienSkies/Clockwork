@@ -7,6 +7,7 @@ import net.minecraft.world.entity.Entity
 import net.minecraft.world.level.Level
 import org.valkyrienskies.clockwork.client.render.BladeAngleSyncPacket
 import org.valkyrienskies.clockwork.content.curiosities.lubricant.LubricantSyncPacket
+import org.valkyrienskies.clockwork.content.curiosities.lubricant.LubricantRemovePacket
 import org.valkyrienskies.clockwork.client.render.airpocket.AirpocketSyncPacket
 import org.valkyrienskies.clockwork.content.contraptions.flap.smart_flap.FlapLinkedControllerBindPacket
 import org.valkyrienskies.clockwork.content.contraptions.phys.gimbal.quad_link.GimbalLinkedControllerBindPacket
@@ -52,6 +53,7 @@ enum class ClockworkPackets(
     private val factory: Function<FriendlyByteBuf, out CWPacket>
 ) {
     // Client to Server
+    LUBRICANT_REMOVE(LubricantRemovePacket::class.java, ::LubricantRemovePacket),
     UPDATE_SEAT_RULES(UpdateSeatRulesPacket::class.java, ::UpdateSeatRulesPacket),
     SEQUENCER_SEAT_DRIVING(SequencedSeatDrivingPacket::class.java, ::SequencedSeatDrivingPacket),
     UPDATE_ALT_METER(UpdateAltMeterPacket::class.java, ::UpdateAltMeterPacket),

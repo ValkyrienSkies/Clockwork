@@ -18,6 +18,10 @@ import org.joml.Vector3i
 import org.valkyrienskies.clockwork.ClockworkMod
 import org.valkyrienskies.clockwork.content.curiosities.lubricant.LubricantData
 import org.valkyrienskies.clockwork.content.curiosities.lubricant.LubricantMaterials
+import org.valkyrienskies.clockwork.content.curiosities.lubricant.LubricantRemovePacket
+import org.valkyrienskies.clockwork.ClockworkItems
+import net.minecraft.world.InteractionHand
+import net.minecraft.world.item.ItemStack
 import org.valkyrienskies.clockwork.content.contraptions.phys.bearing.PhysBearingAssembler
 import org.valkyrienskies.core.api.physics.blockstates.FluidBoundarySolidState
 import org.valkyrienskies.core.api.ships.ServerShip
@@ -159,23 +163,77 @@ class LubricantGameTests {
         @JvmStatic @GameTest(template = TEMPLATE, batch = "lubricant", timeoutTicks = 80)
         fun coatingFollowsTemplateAssemblyAndWeld(helper: GameTestHelper) = moveAndWeld(helper, 9)
 
+        @JvmStatic @GameTest(template = TEMPLATE, batch = "lubricant", timeoutTicks = 40)
+        fun leftClickRemovesAreaWithoutBreakingBlocks(helper: GameTestHelper) {
+            val level = helper.level
+            val pos = helper.absolutePos(BlockPos(1, 3, 1))
+            val data = LubricantData.get(level)
+            val selected = listOf(pos, pos.east())
+            val adjacent = listOf(pos.east(2), pos.east(3))
+            for (block in selected + adjacent) {
+                level.setBlockAndUpdate(block, Blocks.STONE.defaultBlockState())
+                data.set(block, Blocks.STONE, true)
+            }
+            data.addArea(selected)
+            data.addArea(adjacent)
+            val player = testPlayer(level, pos)
+            player.moveTo(pos.x + 0.5, pos.y + 0.5 - player.eyeHeight, pos.z - 2.5, 0f, 0f)
+            player.setItemInHand(InteractionHand.MAIN_HAND, ItemStack(ClockworkItems.LUBRICANT.get()))
+            player.mainHandItem.orCreateTag.putLong("Start", pos.asLong())
+            LubricantRemovePacket.remove(player)
+            helper.assertTrue(!player.mainHandItem.orCreateTag.contains("Start"), "Left-click did not cancel the pending selection")
+            helper.assertTrue(data.contains(pos.asLong(), Blocks.STONE), "Canceling a selection removed an area")
+            LubricantRemovePacket.remove(player)
+            for (block in selected) {
+                helper.assertTrue(!data.contains(block.asLong(), Blocks.STONE), "Left-click left part of the selected area coated")
+                helper.assertTrue(level.getBlockState(block).block === Blocks.STONE, "Left-click broke the underlying block")
+            }
+            for (block in adjacent) helper.assertTrue(data.contains(block.asLong(), Blocks.STONE), "Left-click removed an adjacent application")
+            helper.succeed()
+        }
+
+        @JvmStatic @GameTest(template = TEMPLATE, batch = "lubricant", timeoutTicks = 40)
+        fun overlappingAreasPersistAndRemoveIndependently(helper: GameTestHelper) {
+            val level = helper.level
+            val pos = helper.absolutePos(BlockPos(1, 3, 1))
+            val data = LubricantData()
+            for (block in listOf(pos, pos.east(), pos.east(2))) {
+                level.setBlockAndUpdate(block, Blocks.STONE.defaultBlockState())
+                data.set(block, Blocks.STONE, true)
+            }
+            data.addArea(listOf(pos, pos.east()))
+            data.addArea(listOf(pos.east(), pos.east(2)))
+            val restored = LubricantData.load(data.save(CompoundTag()))
+            helper.assertTrue(restored.removeArea(level, pos.east(2)) { it != pos.east() } == 0, "Removal bypassed a protected block")
+            helper.assertTrue(restored.removeArea(level, pos.east(2)) { true } == 2, "Saved area boundaries were lost")
+            helper.assertTrue(restored.contains(pos.east().asLong(), Blocks.STONE), "Removing overlap erased the other area's coating")
+            helper.assertTrue(!restored.contains(pos.east(2).asLong(), Blocks.STONE), "Selected area's exclusive coating survived removal")
+            helper.assertTrue(restored.removeArea(level, pos) { true } == 2, "The remaining area could not be removed")
+            helper.assertTrue(!restored.contains(pos.east().asLong(), Blocks.STONE), "Overlap stayed coated after both areas were removed")
+            helper.succeed()
+        }
+
+        @JvmStatic @GameTest(template = TEMPLATE, batch = "lubricant", timeoutTicks = 40)
+        fun olderCoatingsRemoveAsConnectedPatches(helper: GameTestHelper) {
+            val level = helper.level
+            val pos = helper.absolutePos(BlockPos(1, 3, 1))
+            val data = LubricantData()
+            for (block in listOf(pos, pos.east(), pos.east(3))) {
+                level.setBlockAndUpdate(block, Blocks.STONE.defaultBlockState())
+                data.set(block, Blocks.STONE, true)
+            }
+            val tag = data.save(CompoundTag()).apply { remove("Areas"); remove("NextArea") }
+            val restored = LubricantData.load(tag)
+            helper.assertTrue(restored.removeArea(level, pos) { true } == 2, "Legacy connected patch was not removed")
+            helper.assertTrue(restored.contains(pos.east(3).asLong(), Blocks.STONE), "Legacy removal crossed an uncoated gap")
+            helper.succeed()
+        }
+
         @JvmStatic @GameTest(template = TEMPLATE, batch = "lubricant", timeoutTicks = 160)
         fun coatedSurfacesSlideUnderLoadsThatNormalSurfacesHold(helper: GameTestHelper) {
             val level = helper.level
             val base = helper.absolutePos(BlockPos(1, 1, 1)).let { BlockPos(it.x, 180, it.z) }
-            val connection = object : Connection(PacketFlow.SERVERBOUND) {
-                override fun send(packet: Packet<*>, listener: PacketSendListener?) { listener?.onSuccess() }
-            }
-            val channel = EmbeddedChannel()
-            channel.pipeline().addLast("packet_handler", connection)
-            channel.pipeline().fireChannelActive()
-            channels.add(channel)
-            NetworkHooks.registerServerLoginChannel(connection, ClientIntentionPacket("localhost", 0, ConnectionProtocol.LOGIN))
-            val player = ServerPlayer(level.server, level, GameProfile(UUID.randomUUID(), "lubricant-test"))
-            level.server.playerList.placeNewPlayer(connection, player)
-            player.setPos(base.x.toDouble(), 185.0, base.z.toDouble())
-            player.setNoGravity(true); player.abilities.flying = true
-            players.add(player)
+            testPlayer(level, base.above(5))
             val data = LubricantData.get(level)
             val coatedFloor = mutableListOf<BlockPos>()
             val bodies = (0..1).map { lane ->
@@ -239,6 +297,7 @@ class LubricantGameTests {
                 data.set(pos, Blocks.STONE, true)
                 LubricantMaterials.refresh(level, pos, true)
             }
+            data.addArea(blocks)
             val assembled = ShipAssembler.batchAssembleToShips(level, listOf(blocks.map { it.mutable() }.toSet()), 1.0).single()
             assembled.ship.isStatic = true
             ships.add(assembled.ship)
@@ -247,10 +306,12 @@ class LubricantGameTests {
             helper.startSequence().thenIdle(5).thenExecute {
                 for (pos in blocks) helper.assertTrue(!data.contains(pos.asLong(), Blocks.STONE), "Coating remained at assembly origin")
                 for (pos in moved) helper.assertTrue(data.contains(pos.asLong(), Blocks.STONE), "Assembly lost a coated block")
+                helper.assertTrue(data.areaAt(moved.first()) == moved.map { it.asLong() }.toSet(), "Assembly lost the application boundary")
                 val destination = base.offset(0, 6, 0)
                 val moves = moved.associateWith { destination.offset(it.subtract(moved.first())) }
                 helper.assertTrue(PhysBearingAssembler.moveBlocksWithTransform(level, moves, assembled.ship, null,
                     moved.first(), destination, emptyList()), "Weld failed")
+                helper.assertTrue(data.areaAt(destination) == moves.values.map { it.asLong() }.toSet(), "Weld lost the application boundary")
                 for ((from, to) in moves) {
                     helper.assertTrue(!data.contains(from.asLong(), Blocks.STONE), "Weld left old coating behind")
                     helper.assertTrue(data.contains(to.asLong(), Blocks.STONE), "Weld lost coating")
@@ -258,6 +319,23 @@ class LubricantGameTests {
                     LubricantMaterials.refresh(level, to, false)
                 }
             }.thenSucceed()
+        }
+
+        private fun testPlayer(level: ServerLevel, pos: BlockPos): ServerPlayer {
+            val connection = object : Connection(PacketFlow.SERVERBOUND) {
+                override fun send(packet: Packet<*>, listener: PacketSendListener?) { listener?.onSuccess() }
+            }
+            val channel = EmbeddedChannel()
+            channel.pipeline().addLast("packet_handler", connection)
+            channel.pipeline().fireChannelActive()
+            channels.add(channel)
+            NetworkHooks.registerServerLoginChannel(connection, ClientIntentionPacket("localhost", 0, ConnectionProtocol.LOGIN))
+            return ServerPlayer(level.server, level, GameProfile(UUID.randomUUID(), "lubricant-test")).also {
+                level.server.playerList.placeNewPlayer(connection, it)
+                it.setPos(pos.x.toDouble(), pos.y.toDouble(), pos.z.toDouble())
+                it.setNoGravity(true); it.abilities.flying = true
+                players.add(it)
+            }
         }
     }
 }

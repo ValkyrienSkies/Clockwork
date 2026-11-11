@@ -34,9 +34,7 @@ class LubricantItem(properties: Properties) : Item(properties) {
             tag.putLong("Start", pos.asLong())
             tag.putLong("Ship", ship)
             tag.putString("Dimension", dimension)
-            tag.putBoolean("Remove", player.isShiftKeyDown)
-            player.displayClientMessage(Component.translatable("item.vs_clockwork.lubricant." +
-                if (player.isShiftKeyDown) "remove_start" else "start"), true)
+            player.displayClientMessage(Component.translatable("item.vs_clockwork.lubricant.start"), true)
             return InteractionResult.CONSUME
         }
         val start = BlockPos.of(tag.getLong("Start"))
@@ -48,27 +46,27 @@ class LubricantItem(properties: Properties) : Item(properties) {
             player.displayClientMessage(Component.translatable("item.vs_clockwork.lubricant.too_large"), true)
             return InteractionResult.FAIL
         }
-        val removing = tag.getBoolean("Remove")
         val data = LubricantData.get(level)
+        val area = ArrayList<BlockPos>()
         var changed = 0
         for (cursor in BlockPos.betweenClosed(start, pos)) {
             if (!level.hasChunkAt(cursor) || !level.mayInteract(player, cursor)) continue
             if ((level.getShipManagingPos(cursor)?.id ?: -1L) != ship) continue
             val state = level.getBlockState(cursor)
-            if (state.isAir || (!removing && state.getCollisionShape(level, cursor).isEmpty)) continue
-            if (data.set(cursor, state.block, !removing)) {
-                LubricantMaterials.refresh(level, cursor, !removing)
+            if (state.isAir || state.getCollisionShape(level, cursor).isEmpty) continue
+            area.add(cursor.immutable())
+            if (data.set(cursor, state.block, true)) {
+                LubricantMaterials.refresh(level, cursor, true)
                 changed++
             }
         }
+        if (changed > 0) data.addArea(area)
         clear(stack)
         if (changed > 0) {
-            val sound = if (removing) ClockworkSounds.LUBRICANT_REMOVE else ClockworkSounds.LUBRICANT_APPLY
-            sound.playOnServer(level, player.blockPosition(), 0.8f, 0.95f + level.random.nextFloat() * 0.1f)
-            if (!removing) stack.hurtAndBreak(1, player) { it.broadcastBreakEvent(context.hand) }
+            ClockworkSounds.LUBRICANT_APPLY.playOnServer(level, player.blockPosition(), 0.8f, 0.95f + level.random.nextFloat() * 0.1f)
+            stack.hurtAndBreak(1, player) { it.broadcastBreakEvent(context.hand) }
         }
-        player.displayClientMessage(Component.translatable("item.vs_clockwork.lubricant." +
-            if (removing) "removed" else "applied", changed), true)
+        player.displayClientMessage(Component.translatable("item.vs_clockwork.lubricant.applied", changed), true)
         return InteractionResult.CONSUME
     }
 

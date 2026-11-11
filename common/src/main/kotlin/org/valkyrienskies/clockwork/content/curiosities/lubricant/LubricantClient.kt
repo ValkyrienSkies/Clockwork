@@ -10,26 +10,39 @@ import net.minecraft.world.phys.AABB
 import net.minecraft.world.phys.BlockHitResult
 import net.minecraft.world.phys.HitResult
 import org.valkyrienskies.mod.common.getShipManagingPos
+import org.valkyrienskies.clockwork.ClockworkPackets
 
 object LubricantClient {
     private const val COLOR = 0x67E4A5
-    private const val DARK_COLOR = 0x2A6F6F
     private val preview = Any()
     private var level: ClientLevel? = null
     private var blocks = longArrayOf()
+    private var areas = longArrayOf()
     private var dimension: ResourceLocation? = null
-    private val clusters = HashMap<Long, List<BlockPos>>()
-    private val slots = HashMap<Long, Any>()
+    private val clusters = HashMap<Pair<Long, Long>, List<BlockPos>>()
+    private val slots = HashMap<Pair<Long, Long>, Any>()
     private var rebuild = true
 
-    fun accept(dimension: ResourceLocation, blocks: LongArray) {
+    @JvmStatic
+    fun holding() = Minecraft.getInstance().player?.mainHandItem?.item is LubricantItem
+
+    @JvmStatic
+    fun attack(): Boolean {
+        if (!holding()) return false
+        ClockworkPackets.sendToServer(LubricantRemovePacket())
+        Minecraft.getInstance().player?.swing(net.minecraft.world.InteractionHand.MAIN_HAND)
+        return true
+    }
+
+    fun accept(dimension: ResourceLocation, blocks: LongArray, areas: LongArray) {
         val current = Minecraft.getInstance().level ?: return
         if (current.dimension().location() != dimension) return
         if (level !== current) clear()
         level = current
-        if (this.dimension == dimension && this.blocks.contentEquals(blocks)) return
+        if (this.dimension == dimension && this.blocks.contentEquals(blocks) && this.areas.contentEquals(areas)) return
         this.dimension = dimension
         this.blocks = blocks
+        this.areas = areas
         rebuild = true
     }
 
@@ -48,7 +61,8 @@ object LubricantClient {
             slots.values.forEach(outliner::remove)
             slots.clear()
             clusters.clear()
-            clusters.putAll(blocks.map(BlockPos::of).groupBy { current.getShipManagingPos(it)?.id ?: -1L })
+            clusters.putAll(blocks.indices.groupBy { (current.getShipManagingPos(BlockPos.of(blocks[it]))?.id ?: -1L) to areas[it] }
+                .mapValues { (_, indices) -> indices.map { BlockPos.of(blocks[it]) } })
             for ((body, positions) in clusters) {
                 val slot = Any()
                 slots[body] = slot
@@ -67,9 +81,8 @@ object LubricantClient {
         val valid = LubricantItem.validSize(from, hit.blockPos) &&
             (!started || tag!!.getLong("Ship") == (current.getShipManagingPos(hit.blockPos)?.id ?: -1L))
         if (!valid) return
-        val removing = if (started) tag!!.getBoolean("Remove") else player.isShiftKeyDown
         outliner.showAABB(preview, AABB(from).minmax(AABB(hit.blockPos)))
-            .colored(if (removing) DARK_COLOR else COLOR).withFaceTexture(AllSpecialTextures.CUTOUT_CHECKERED)
+            .colored(COLOR).withFaceTexture(AllSpecialTextures.CUTOUT_CHECKERED)
             .lineWidth(1f / 32f).disableLineNormals()
     }
 
@@ -79,6 +92,7 @@ object LubricantClient {
         slots.clear()
         clusters.clear()
         blocks = longArrayOf()
+        areas = longArrayOf()
         dimension = null
         rebuild = true
     }
