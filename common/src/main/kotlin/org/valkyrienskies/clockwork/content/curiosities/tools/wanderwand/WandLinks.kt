@@ -64,6 +64,7 @@ class WandLinks : SavedData() {
     private var ropeLengthChanged = false
     private var massGraphTick = Long.MIN_VALUE
     private var massGraph: ConnectedShipMass? = null
+    private val removedJoints = HashSet<Int>()
     val sessions = mutableMapOf<UUID, WanderwandServer.Session>()
     // Riding is transient; only the rope itself is saved.
     val riders = mutableMapOf<UUID, WandRopeRiding.Ride>()
@@ -100,7 +101,6 @@ class WandLinks : SavedData() {
         ropeLengthChanged = true
         link.settingsDirty = true
         setDirty()
-        ensureJoint(level, link)
     }
 
     fun updateWinchRelease(level: ServerLevel, link: Link) {
@@ -130,12 +130,18 @@ class WandLinks : SavedData() {
     }
 
     fun remove(level: ServerLevel, link: Link) {
+        if (links[link.id] !== link) return
         links.remove(link.id)
         link.knotA?.let { level.getEntity(it)?.discard() }
         link.knotB?.let { level.getEntity(it)?.discard() }
-        link.jointId?.let { level.gtpa.removeJoint(it) }
-        link.alignmentId?.let { level.gtpa.removeJoint(it) }
+        link.jointId?.let { removeJoint(level, it) }
+        link.alignmentId?.let { removeJoint(level, it) }
         setDirty()
+    }
+
+    private fun removeJoint(level: ServerLevel, id: Int) {
+        if (removedJoints.add(id) && level.gtpa.getJointById(id) != null) level.gtpa.removeJoint(id)
+        massGraph = null
     }
 
     fun tick(level: ServerLevel): Boolean {
@@ -158,8 +164,8 @@ class WandLinks : SavedData() {
             if (link.suspended) {
                 if (link.jointId?.let { level.gtpa.getJointById(it) } == null ||
                     (link.spring && link.alignmentId?.let { level.gtpa.getJointById(it) } == null)) {
-                    link.jointId?.let { level.gtpa.removeJoint(it) }
-                    link.alignmentId?.let { level.gtpa.removeJoint(it) }
+                    link.jointId?.let { removeJoint(level, it) }
+                    link.alignmentId?.let { removeJoint(level, it) }
                     link.jointId = null
                     link.alignmentId = null
                 }
@@ -214,7 +220,9 @@ class WandLinks : SavedData() {
             fun position(id: Long?, pose: VSJointPose): Vector3d? =
                 if (id == null || id == ground) Vector3d(pose.pos)
                 else level.shipObjectWorld.loadedShips.getById(id)?.transform?.shipToWorld?.transformPosition(pose.pos, Vector3d())
-            massGraph = ConnectedShipMass(level.gtpa.getAllJoints().values, groundBody = ground, elastic = { joint ->
+            val joints = level.gtpa.getAllJoints()
+            removedJoints.retainAll(joints.keys)
+            massGraph = ConnectedShipMass(joints.filterKeys { it !in removedJoints }.values, groundBody = ground, elastic = { joint ->
                 when (joint) {
                     is VSSpringJoint -> true
                     is VSDistanceJoint -> {

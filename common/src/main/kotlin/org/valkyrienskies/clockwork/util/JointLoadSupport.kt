@@ -50,10 +50,8 @@ internal class ConnectedShipMass(joints: Collection<VSJoint>,
         results[left to right]?.let { return it }
         val leftBodies = connected(left, left, right)
         val rightBodies = connected(right, left, right)
-        fun load(bodies: Set<Component>) = Load(bodies.sumOf { it.load.mass },
-            bodies.any { it.load.anchored })
-        val loadA = load(leftBodies)
-        val loadB = load(rightBodies)
+        val loadA = Load(leftBodies.sumOf { it.load.mass }, left.load.anchored)
+        val loadB = Load(rightBodies.sumOf { it.load.mass }, right.load.anchored)
         val result = if (leftBodies.any(rightBodies::contains) || (loadA.anchored && loadB.anchored))
             left.load to right.load
         else loadA to loadB

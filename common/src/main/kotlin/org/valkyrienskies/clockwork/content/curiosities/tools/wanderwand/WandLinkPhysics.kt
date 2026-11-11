@@ -58,7 +58,7 @@ internal object WandLinkPhysics {
         val damping = mass * if (physical) RopeKnotPhysics.DAMPING else ROPE_DAMPING
         val classic = backend == ConfigPhysicsBackendType.KRUNCH_CLASSIC
         return VSDistanceJoint(a, poseA, b, poseB,
-            VSJointMaxForceTorque((mass * if (physical) RopeKnotPhysics.BREAK_ACCELERATION else ROPE_BREAK_ACCELERATION).toFloat(), Float.MAX_VALUE),
+            VSJointMaxForceTorque(Float.MAX_VALUE, Float.MAX_VALUE),
             compliance = if (classic) 1.0 / stiffness else VSJoint.DEFAULT_COMPLIANCE,
             maxDistance = length.toFloat(),
             stiffness = if (classic) null else stiffness.toFloat(),

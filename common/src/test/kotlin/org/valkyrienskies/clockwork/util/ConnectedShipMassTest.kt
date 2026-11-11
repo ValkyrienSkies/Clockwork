@@ -78,7 +78,7 @@ class ConnectedShipMassTest {
         spring(null, 1)
         val graph = ConnectedShipMass(joints, groundBody = 99) { ships[it] }
         assertEquals(103_000.0, mass(null, 1, graph))
-        assertEquals(102_000.0, mass(1, 2, graph))
+        assertEquals(1.0 / (1.0 / 1000 + 1.0 / 102_000), mass(1, 2, graph), 1e-9)
     }
 
     @Test fun parallelSpringsAndRopesRetainSeparateLoadsIncludingBranches() {
@@ -99,6 +99,22 @@ class ConnectedShipMassTest {
         val taut = ConnectedShipMass(joints, elastic = { it is VSSpringJoint || it is VSDistanceJoint }) { ships[it] }
         assertEquals(3000.0, mass(null, 1, slack))
         assertEquals(103_000.0, mass(null, 1, taut))
+    }
+
+    @Test fun tautWorldRopeDoesNotMakeLightSpringEndpointRigid() {
+        ships[1] = ConnectedShipMass.Load(500.0)
+        ships[2] = ConnectedShipMass.Load(200_000.0)
+        spring(1, 2)
+        val rope = VSDistanceJoint(null, pose, 1, pose, maxDistance = 4f)
+        joints.add(rope)
+        val freeMass = SpringJoints.effectiveMass(500.0, 200_000.0)
+        assertEquals(freeMass, mass(1, 2, graph()), 1e-9)
+        val taut = ConnectedShipMass(joints, elastic = { it is VSSpringJoint || it is VSDistanceJoint }) { ships[it] }
+        assertFalse(taut.endpoints(1, 2).first.anchored)
+        assertEquals(freeMass, mass(1, 2, taut), 1e-9)
+        assertEquals(200_500.0, mass(null, 1, taut), 1e-9)
+        joints.remove(rope)
+        assertEquals(freeMass, mass(1, 2, graph()), 1e-9)
     }
 
     @Test fun elasticLoopsFallBackToSeparateRigidLoadsWithoutCountingBodiesTwice() {

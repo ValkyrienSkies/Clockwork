@@ -31,7 +31,7 @@ internal object SpringJoints {
 
     fun create(a: Long, b: Long, poseA: VSJointPose, poseB: VSJointPose, length: Double, mass: Double, settings: SpringSettings = SpringSettings()): Pair<VSSpringJoint, VSD6Joint> {
         val effectiveMass = mass.coerceIn(100.0, 1.0e9)
-        val limits = VSJointMaxForceTorque((effectiveMass * BREAK_ACCELERATION).toFloat(), Float.MAX_VALUE)
+        val limits = VSJointMaxForceTorque(Float.MAX_VALUE, Float.MAX_VALUE)
         val spring = VSSpringJoint(a, poseA, b, poseB, limits,
             restLength = length.toFloat(), stiffness = (effectiveMass * STIFFNESS * settings.stiffness).toFloat(),
             damping = (effectiveMass * DAMPING * settings.damping).toFloat())

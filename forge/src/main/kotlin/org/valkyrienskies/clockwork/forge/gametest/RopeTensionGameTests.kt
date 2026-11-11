@@ -122,6 +122,115 @@ class RopeTensionGameTests {
         @JvmStatic @GameTest(template = TEMPLATE, batch = "rope_tension", timeoutTicks = 180)
         fun ropeAndSpringTrackSpringLinkedPayload(helper: GameTestHelper) = slack(helper, true, true, hanging = true, massChange = true, connectedLoad = true, springPayload = true)
 
+        @JvmStatic @GameTest(template = TEMPLATE, batch = "rope_tension", timeoutTicks = 200)
+        fun heavySpringStaysStableAsWorldWinchTightens(helper: GameTestHelper) = heavySpring(helper, false, false)
+
+        @JvmStatic @GameTest(template = TEMPLATE, batch = "rope_tension", timeoutTicks = 200)
+        fun heavySpringStaysStableAfterWinchRopeSnaps(helper: GameTestHelper) = heavySpring(helper, true, true)
+
+        @JvmStatic @GameTest(template = TEMPLATE, batch = "rope_tension", timeoutTicks = 200)
+        fun heavySpringStaysStableWhenWinchIsUnfrozen(helper: GameTestHelper) = heavySpring(helper, true, false)
+
+        @JvmStatic @GameTest(template = TEMPLATE, batch = "rope_tension", timeoutTicks = 200)
+        fun overloadedWinchRopeClearsItsJointAndSpringLoad(helper: GameTestHelper) = heavySpring(helper, true, true, overload = true)
+
+        private fun heavySpring(helper: GameTestHelper, shipWinch: Boolean, snap: Boolean, overload: Boolean = false) {
+            val level = helper.level
+            val base = helper.absolutePos(BlockPos(2, 0, 2)).let { BlockPos(it.x, 220, it.z) }
+            val connection = object : Connection(PacketFlow.SERVERBOUND) {
+                override fun send(packet: Packet<*>, listener: PacketSendListener?) { listener?.onSuccess() }
+            }
+            val channel = EmbeddedChannel()
+            channel.pipeline().addLast("packet_handler", connection)
+            channel.pipeline().fireChannelActive()
+            channels.add(channel)
+            NetworkHooks.registerServerLoginChannel(connection, ClientIntentionPacket("localhost", 0, ConnectionProtocol.LOGIN))
+            val player = ServerPlayer(level.server, level, GameProfile(UUID.randomUUID(), "spring-rope"))
+            level.server.playerList.placeNewPlayer(connection, player)
+            player.setPos(base.x.toDouble(), base.y + 5.0, base.z.toDouble())
+            player.setNoGravity(true); player.abilities.flying = true
+            players.add(player)
+            fun ship(pos: BlockPos, state: net.minecraft.world.level.block.state.BlockState): ServerShip {
+                level.setBlockAndUpdate(pos, state)
+                return ShipAssembler.assembleToShip(level, setOf(pos.mutable()), 1.0).also {
+                    it.isStatic = true
+                    ships.add(it)
+                    val box = it.shipAABB ?: error("Missing spring test ship bounds")
+                    val chunk = ChunkPos(BlockPos(box.minX(), box.minY(), box.minZ()))
+                    if (level.setChunkForced(chunk.x, chunk.z, true)) chunks.add(chunk)
+                }
+            }
+            fun anchor(ship: ServerShip, face: Direction): WandAnchor {
+                val box = ship.shipAABB!!
+                return WandAnchor(BlockPos(box.minX(), box.minY(), box.minZ()), face, ship.id)
+            }
+            val light = ship(base.below(4), Blocks.OAK_LOG.defaultBlockState())
+            val heavy = ship(base.below(8).east(), Blocks.NETHERITE_BLOCK.defaultBlockState())
+            val winchState = org.valkyrienskies.clockwork.ClockworkBlocks.ROPE_WINCH.getDefaultState()
+            val winchPos = if (overload) base.above(12) else base
+            val host = if (shipWinch) ship(winchPos, winchState) else null
+            if (host == null) level.setBlockAndUpdate(winchPos, winchState)
+            val winch = (host?.let { anchor(it, Direction.DOWN) } ?: WandAnchor(winchPos, Direction.DOWN)).copy(winch = true)
+            val a = anchor(light, Direction.DOWN)
+            val b = anchor(heavy, Direction.UP)
+            val data = WandLinks.get(level)
+            var spring: WandLinks.Link? = null
+            var rope: WandLinks.Link? = null
+            var taut = false
+            var released = false
+            var peakSpin = 0.0
+            fun stable() {
+                helper.assertTrue(light.velocity.isFinite && heavy.velocity.isFinite && light.angularVelocity.isFinite && heavy.angularVelocity.isFinite,
+                    "Spring developed nonfinite motion")
+                peakSpin = maxOf(peakSpin, light.angularVelocity.length(), heavy.angularVelocity.length())
+                helper.assertTrue(peakSpin < 12.0, "Spring spun out: peak=$peakSpin, springMass=${spring!!.mass}, rope=${data.links.containsKey(rope!!.id)}")
+                helper.assertTrue(light.velocity.distance(heavy.velocity) < if (released) 150.0 else 20.0,
+                    "Spring developed excessive relative velocity: ${light.velocity.distance(heavy.velocity)}, mass=${spring!!.mass}, ropeMass=${rope!!.mass}, spin=$peakSpin")
+                helper.assertTrue(data.links.containsKey(spring!!.id), "Spring broke during the stability fixture")
+            }
+            helper.startSequence().thenIdle(8).thenExecute {
+                helper.assertTrue(heavy.inertiaData.mass > light.inertiaData.mass * 10, "Fixture needs a large mass ratio")
+                spring = data.add(level, a, b, true, a.world(level)!!.distanceTo(b.world(level)!!), physical = true, spring = true)!!
+                rope = data.add(level, winch, a.copy(face = Direction.UP), true,
+                    winch.world(level)!!.distanceTo(a.copy(face = Direction.UP).world(level)!!) + 1.0, physical = true)!!
+                links.add(spring!!); links.add(rope!!)
+            }.thenWaitUntil {
+                helper.assertTrue(spring!!.jointId != null && spring!!.alignmentId != null && rope!!.jointId != null, "Fixture joints are not ready")
+            }.thenExecute {
+                light.isStatic = false
+                heavy.isStatic = false
+            }.thenExecuteFor(45) {
+                if (data.links.containsKey(rope!!.id)) {
+                    data.resizeRope(level, rope!!, maxOf(2.5, rope!!.length - 0.125))
+                    val distance = rope!!.a.world(level)!!.distanceTo(rope!!.b.world(level)!!)
+                    taut = taut || distance >= rope!!.length
+                }
+                stable()
+            }.thenExecute {
+                helper.assertTrue(taut, "Winch never took up its slack")
+                if (snap) {
+                    helper.assertTrue(data.links.containsKey(rope!!.id), "Winch rope snapped before the break test")
+                    if (overload) data.resizeRope(level, rope!!, 0.5)
+                    else level.gtpa.removeJoint(rope!!.jointId!!)
+                } else if (host != null) host.isStatic = false
+                released = snap || host != null
+            }.thenExecuteFor(50) {
+                stable()
+            }.thenExecute {
+                if (snap) {
+                    helper.assertTrue(!data.links.containsKey(rope!!.id), "Rope break did not clear the saved link")
+                    helper.assertTrue(level.gtpa.getJointById(rope!!.jointId!!) == null, "Broken rope retained its native joint")
+                    data.remove(level, rope!!)
+                }
+                helper.assertTrue(light.velocity.distance(heavy.velocity) < 10.0,
+                    "Spring motion did not settle after release: ${light.velocity.distance(heavy.velocity)}")
+                val maximumLoad = light.inertiaData.mass + if (!snap && host != null) host.inertiaData.mass else 0.0
+                val maximumMass = (1.0 / (1.0 / maximumLoad + 1.0 / heavy.inertiaData.mass)).coerceAtLeast(100.0)
+                helper.assertTrue(spring!!.mass <= maximumMass * 1.01,
+                    "Spring retained anchored mass: ${spring!!.mass} instead of at most $maximumMass")
+            }.thenSucceed()
+        }
+
         private fun slack(helper: GameTestHelper, vertical: Boolean, staticFirst: Boolean, hanging: Boolean = false, physical: Boolean = true, reeling: Boolean = false, release: Boolean = false, catchRelease: Boolean = true, massChange: Boolean = false, connectedLoad: Boolean = false, springPayload: Boolean = false) {
             val level = helper.level
             val base = helper.absolutePos(BlockPos(2, 0, 2)).let { BlockPos(it.x, 180, it.z) }
