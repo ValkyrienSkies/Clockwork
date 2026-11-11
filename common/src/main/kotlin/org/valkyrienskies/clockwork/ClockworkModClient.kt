@@ -5,6 +5,7 @@ import com.simibubi.create.content.equipment.armor.BacktankArmorLayer
 import dev.architectury.event.events.client.ClientTickEvent
 import dev.architectury.registry.ReloadListenerRegistry
 import dev.architectury.registry.client.level.entity.EntityRendererRegistry
+import org.valkyrienskies.clockwork.content.curiosities.lubricant.LubricantClient
 import org.valkyrienskies.clockwork.content.curiosities.rope.RopeKnotEntityRenderer
 import net.createmod.catnip.outliner.Outliner
 import net.createmod.ponder.foundation.PonderIndex
@@ -13,6 +14,7 @@ import net.minecraft.client.renderer.entity.EntityRendererProvider
 import net.minecraft.client.renderer.entity.LivingEntityRenderer
 import net.minecraft.client.Minecraft
 import net.minecraft.server.packs.PackType
+import org.valkyrienskies.clockwork.content.curiosities.tools.gravitron.GravitronControlsClient
 import org.valkyrienskies.clockwork.content.curiosities.tools.wanderwand.WanderwandEffectRenderer
 import java.util.*
 import dev.architectury.event.events.common.TickEvent
@@ -111,8 +113,8 @@ object ClockworkModClient {
         }
 
         ClientTickEvent.CLIENT_POST.register(ClientTickEvent.Client {
-            org.valkyrienskies.clockwork.content.curiosities.tools.gravitron.GravitronControlsClient.tick()
-            org.valkyrienskies.clockwork.content.curiosities.lubricant.LubricantClient.tick()
+            GravitronControlsClient.tick()
+            LubricantClient.tick()
             org.valkyrienskies.clockwork.content.curiosities.tools.wanderwand.WandRopeRidingClient.tick()
             org.valkyrienskies.clockwork.content.curiosities.tools.gravitron.GravitronEffects.tick()
             org.valkyrienskies.clockwork.content.curiosities.tools.wanderwand.WanderwandHandEffects.tick()
@@ -133,7 +135,7 @@ object ClockworkModClient {
 //        }
 
         KeyMappingRegistry.register(AERONAUT_GOGGLE_KEYBIND)
-        org.valkyrienskies.clockwork.content.curiosities.tools.gravitron.GravitronControlsClient.register()
+        GravitronControlsClient.register()
         KeyMappingRegistry.register(DEBUG_LIGHTNING_KEYBIND)
         ClientTickEvent.CLIENT_POST.register {
             while (AERONAUT_GOGGLE_KEYBIND.consumeClick()) {

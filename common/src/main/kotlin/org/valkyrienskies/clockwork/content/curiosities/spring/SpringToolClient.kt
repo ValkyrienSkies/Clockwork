@@ -21,15 +21,18 @@ object SpringToolClient {
         val mc = Minecraft.getInstance()
         val player = mc.player ?: return null
         if (mc.screen != null || !player.mayBuild() || player.isSpectator) return null
-        if (!SpringClipboard.isClipboard(player.mainHandItem) &&
-            !SpringControls.isTool(player.mainHandItem) && !SpringControls.isTool(player.offhandItem)) return null
-        return ((mc.hitResult as? EntityHitResult)?.entity as? RopeKnotEntity)?.takeIf { it.spring && it.distanceToSqr(player) <= 36 }
+        val endpoint = ((mc.hitResult as? EntityHitResult)?.entity as? RopeKnotEntity)
+            ?.takeIf { !it.winch && it.distanceToSqr(player) <= 36 } ?: return null
+        if (!(endpoint.spring && SpringClipboard.isClipboard(player.mainHandItem)) &&
+            !SpringControls.isTool(player.mainHandItem, endpoint.spring) &&
+            !SpringControls.isTool(player.offhandItem, endpoint.spring)) return null
+        return endpoint
     }
 
     fun scroll(delta: Double): Boolean {
         if (!delta.isFinite() || delta == 0.0) return false
-        if (Minecraft.getInstance().player?.mainHandItem?.let(SpringClipboard::isClipboard) == true) return false
         val endpoint = target() ?: return false
+        if (endpoint.spring && Minecraft.getInstance().player?.mainHandItem?.let(SpringClipboard::isClipboard) == true) return false
         ClockworkPackets.sendToServer(SpringAdjustPacket(endpoint.id, if (delta > 0) 1 else -1))
         return true
     }
@@ -40,9 +43,11 @@ object SpringToolClient {
         val endpoint = target() ?: return
         val link = RopeKnotRenderer.link(endpoint.linkId) ?: return
         val player = mc.player ?: return
-        val stack = player.mainHandItem.takeIf { SpringClipboard.isClipboard(it) || SpringControls.isTool(it) } ?: player.offhandItem
+        val stack = player.mainHandItem.takeIf { (endpoint.spring && SpringClipboard.isClipboard(it)) ||
+            SpringControls.isTool(it, endpoint.spring) } ?: player.offhandItem
         val tooltip = mutableListOf<Component>()
-        CreateLang.builder().add(Component.translatable("item.vs_clockwork.spring")).style(ChatFormatting.WHITE).forGoggles(tooltip)
+        CreateLang.builder().add(Component.translatable(if (endpoint.spring) "item.vs_clockwork.spring" else "item.vs_clockwork.rope_knot"))
+            .style(ChatFormatting.WHITE).forGoggles(tooltip)
         if (SpringClipboard.isClipboard(stack)) {
             CreateLang.builder().add(CreateLang.translateDirect("clipboard.to_copy", mc.options.keyUse.translatedKeyMessage))
                 .forGoggles(tooltip, 1)

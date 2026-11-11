@@ -3,6 +3,12 @@
   "package": "org.valkyrienskies.clockwork.mixin",
   "compatibilityLevel": "JAVA_17",
   "mixins": [
+    "content.wanderwand.MixinLinkRelocation",
+    "content.wanderwand.MixinLinkAssembly",
+    "content.wanderwand.MixinVdexLinks",
+    "content.wanderwand.MixinLinkWelding",
+    "content.wanderwand.WeldPlanAccessor",
+    "content.wanderwand.WeldMoveAccessor",
     "content.lubricant.MixinMassDatapackResolver",
     "content.lubricant.MixinBlockStateInfo",
     "content.lubricant.MixinTerrainUpdate",

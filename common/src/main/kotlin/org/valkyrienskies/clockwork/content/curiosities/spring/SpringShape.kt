@@ -1,7 +1,9 @@
 package org.valkyrienskies.clockwork.content.curiosities.spring
 
 import net.minecraft.world.phys.Vec3
+import kotlin.math.PI
 import kotlin.math.ceil
+import kotlin.math.sin
 
 internal object SpringShape {
     const val WIDTH = 12.0 / 16.0
@@ -27,6 +29,6 @@ internal object SpringShape {
         val p = progress.coerceIn(0.0, 1.0)
         val remaining = 1 - p
         return 0.5 * (remaining * remaining * remaining +
-            0.08 * kotlin.math.sin(p * kotlin.math.PI * 4) * remaining * remaining).coerceIn(0.0, 1.0)
+            0.08 * sin(p * PI * 4) * remaining * remaining).coerceIn(0.0, 1.0)
     }
 }

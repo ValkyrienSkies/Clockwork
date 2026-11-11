@@ -12,6 +12,7 @@ import org.valkyrienskies.core.api.ships.ShipPhysicsListener
 import org.valkyrienskies.core.api.world.PhysLevel
 import org.valkyrienskies.core.internal.world.VsiPhysLevel
 import org.valkyrienskies.clockwork.util.ConnectedShipMass
+import java.util.concurrent.ConcurrentHashMap
 
 class GravitronController : ShipPhysicsListener {
     @Volatile
@@ -74,7 +75,7 @@ class GravitronController : ShipPhysicsListener {
     }
 
     companion object {
-        private val timeSteps = java.util.concurrent.ConcurrentHashMap<String, Double>()
+        private val timeSteps = ConcurrentHashMap<String, Double>()
         fun timeStep(level: PhysLevel, delta: Double) {
             if (delta.isFinite() && delta > 0.0) timeSteps[level.dimension] = delta
         }

@@ -3,6 +3,7 @@ package org.valkyrienskies.clockwork.content.curiosities.rope
 import org.valkyrienskies.clockwork.content.curiosities.spring.SpringItem
 
 import net.minecraft.core.BlockPos
+import net.minecraft.core.Direction
 import net.minecraft.nbt.CompoundTag
 import net.minecraft.network.chat.Component
 import net.minecraft.server.level.ServerLevel
@@ -33,7 +34,7 @@ object RopeKnotServer {
         val candidate = if (stack.item !is SpringItem && !anchor.winch &&
             level.getBlockEntity(anchor.pos) is RopeWinchBlockEntity &&
             WandLinks.get(level).links.values.none { (it.a.winch && it.a.pos == anchor.pos) || (it.b.winch && it.b.pos == anchor.pos) })
-            anchor.copy(face = net.minecraft.core.Direction.DOWN, winch = true) else anchor
+            anchor.copy(face = Direction.DOWN, winch = true) else anchor
         if (candidate != anchor) { tie(player, stack, candidate); return }
         val end = anchor.world(level) ?: return
         val spring = stack.item is SpringItem

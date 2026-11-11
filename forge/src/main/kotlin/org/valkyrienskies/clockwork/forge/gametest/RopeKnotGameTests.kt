@@ -1,10 +1,15 @@
 package org.valkyrienskies.clockwork.forge.gametest
 
 import com.mojang.authlib.GameProfile
+import com.simibubi.create.AllBlocks
+import com.simibubi.create.AllItems
+import com.simibubi.create.content.kinetics.motor.CreativeMotorBlockEntity
 import net.minecraft.core.BlockPos
 import net.minecraft.core.Direction
 import net.minecraft.gametest.framework.GameTest
 import net.minecraft.gametest.framework.GameTestHelper
+import net.minecraft.nbt.CompoundTag
+import net.minecraft.nbt.Tag
 import net.minecraft.network.Connection
 import net.minecraft.network.PacketSendListener
 import net.minecraft.network.protocol.Packet
@@ -16,14 +21,18 @@ import net.minecraft.world.entity.item.ItemEntity
 import net.minecraft.world.item.ItemStack
 import net.minecraft.world.item.Items
 import net.minecraft.world.level.block.Blocks
+import net.minecraft.world.level.block.state.properties.BlockStateProperties
 import net.minecraft.world.phys.AABB
 import net.minecraftforge.gametest.GameTestHolder
 import net.minecraftforge.gametest.PrefixGameTestTemplate
+import org.valkyrienskies.clockwork.ClockworkBlocks
 import org.valkyrienskies.clockwork.ClockworkItems
 import org.valkyrienskies.clockwork.ClockworkMod
 import org.valkyrienskies.clockwork.content.curiosities.rope.RopeKnotEntity
 import org.valkyrienskies.clockwork.content.curiosities.rope.RopeKnotItem
 import org.valkyrienskies.clockwork.content.curiosities.rope.RopeKnotServer
+import org.valkyrienskies.clockwork.content.curiosities.rope.RopeWinchBlockEntity
+import org.valkyrienskies.clockwork.content.curiosities.spring.SpringControls
 import org.valkyrienskies.clockwork.content.curiosities.tools.wanderwand.WandAnchor
 import org.valkyrienskies.clockwork.content.curiosities.tools.wanderwand.WandLinks
 import java.util.UUID
@@ -65,12 +74,52 @@ class RopeKnotGameTests {
 
         @JvmStatic
         @GameTest(template = TEMPLATE, batch = "rope_knots")
+        fun wrenchAdjustsEitherKnotAndPersistsLength(helper: GameTestHelper) {
+            val player = player(helper)
+            val link = place(helper, player)
+            val data = WandLinks.get(helper.level)
+            val a = helper.level.getEntity(link.knotA!!) as RopeKnotEntity
+            val b = helper.level.getEntity(link.knotB!!) as RopeKnotEntity
+            val original = link.length
+            player.setItemInHand(InteractionHand.MAIN_HAND, AllItems.WRENCH.asStack())
+            helper.startSequence().thenExecute {
+                SpringControls.adjust(player, a, 1)
+                helper.assertTrue(link.length == original + 0.25 && link.settingsDirty, "Wrench did not resize the rope")
+                SpringControls.adjust(player, a, 1)
+                helper.assertTrue(link.length == original + 0.25, "Duplicate input bypassed rate limit")
+            }.thenIdle(1).thenExecute {
+                player.isShiftKeyDown = true
+                SpringControls.adjust(player, b, -1)
+                helper.assertTrue(link.length == original + 0.1875, "Other knot did not support fine adjustment")
+                val saved = data.save(CompoundTag()).getList("links", Tag.TAG_COMPOUND.toInt())
+                    .filterIsInstance<CompoundTag>().single { it.getUUID("id") == link.id }
+                helper.assertTrue(saved.getDouble("length") == link.length && saved.getBoolean("rope") && !saved.getBoolean("spring"),
+                    "Adjusted rope length was not saved")
+            }.thenIdle(1).thenExecute {
+                player.isShiftKeyDown = false
+                player.setItemInHand(InteractionHand.MAIN_HAND, ItemStack(ClockworkItems.SCREWDRIVER.get()))
+                SpringControls.adjust(player, a, 1)
+                helper.assertTrue(link.length == original + 0.1875, "Screwdriver adjusted a rope")
+                player.setItemInHand(InteractionHand.OFF_HAND, AllItems.WRENCH.asStack())
+                SpringControls.adjust(player, a, 1)
+                helper.assertTrue(link.length == original + 0.5, "Offhand wrench did not adjust the rope")
+            }.thenIdle(1).thenExecute {
+                player.setPos(player.x, player.y, player.z - 20)
+                SpringControls.adjust(player, a, -1)
+                helper.assertTrue(link.length == original + 0.5, "Wrench adjusted a rope out of reach")
+                helper.assertTrue(link.jointId == null, "World-to-world rope gained an unnecessary joint")
+                data.remove(helper.level, link)
+            }.thenSucceed()
+        }
+
+        @JvmStatic
+        @GameTest(template = TEMPLATE, batch = "rope_knots")
         fun winchCanBeEitherEndpointAndReused(helper: GameTestHelper) {
             val player = player(helper)
             val world = helper.level
             val pos = helper.absolutePos(BlockPos(2, 3, 2))
             val other = helper.absolutePos(BlockPos(5, 3, 2))
-            world.setBlockAndUpdate(pos, org.valkyrienskies.clockwork.ClockworkBlocks.ROPE_WINCH.getDefaultState())
+            world.setBlockAndUpdate(pos, ClockworkBlocks.ROPE_WINCH.getDefaultState())
             world.setBlockAndUpdate(other, Blocks.STONE.defaultBlockState())
             val data = WandLinks.get(world)
             for (first in listOf(true, false)) {
@@ -98,13 +147,13 @@ class RopeKnotGameTests {
             val world = helper.level
             val pos = helper.absolutePos(BlockPos(2, 3, 2))
             val other = helper.absolutePos(BlockPos(5, 3, 2))
-            world.setBlockAndUpdate(pos, org.valkyrienskies.clockwork.ClockworkBlocks.ROPE_WINCH.getDefaultState()
-                .setValue(net.minecraft.world.level.block.state.properties.BlockStateProperties.HORIZONTAL_AXIS, Direction.Axis.Z))
+            world.setBlockAndUpdate(pos, ClockworkBlocks.ROPE_WINCH.getDefaultState()
+                .setValue(BlockStateProperties.HORIZONTAL_AXIS, Direction.Axis.Z))
             world.setBlockAndUpdate(other, Blocks.STONE.defaultBlockState())
-            world.setBlockAndUpdate(pos.north(), com.simibubi.create.AllBlocks.CREATIVE_MOTOR.getDefaultState()
-                .setValue(net.minecraft.world.level.block.state.properties.BlockStateProperties.FACING, Direction.SOUTH))
-            val motor = world.getBlockEntity(pos.north()) as com.simibubi.create.content.kinetics.motor.CreativeMotorBlockEntity
-            val be = world.getBlockEntity(pos) as org.valkyrienskies.clockwork.content.curiosities.rope.RopeWinchBlockEntity
+            world.setBlockAndUpdate(pos.north(), AllBlocks.CREATIVE_MOTOR.getDefaultState()
+                .setValue(BlockStateProperties.FACING, Direction.SOUTH))
+            val motor = world.getBlockEntity(pos.north()) as CreativeMotorBlockEntity
+            val be = world.getBlockEntity(pos) as RopeWinchBlockEntity
             be.maximum.setValue(5)
             val data = WandLinks.get(world)
             val link = data.add(world, WandAnchor(pos, Direction.DOWN, winch = true),

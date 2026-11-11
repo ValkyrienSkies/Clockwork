@@ -4,11 +4,12 @@ import org.joml.Quaterniond
 import org.joml.Vector3d
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
+import kotlin.math.sin
 
 class SpringBendingTest {
     @Test fun expandedSettingsRetainPreviousMaximumBendingResponse() {
         val normal = Vector3d(1.0, 0.0, 0.0)
-        val direction = Vector3d(kotlin.math.cos(0.1), kotlin.math.sin(0.1), 0.0)
+        val direction = Vector3d(kotlin.math.cos(0.1), sin(0.1), 0.0)
         val torque = SpringBending.torque(normal, direction, Vector3d(0.0, 1.0, 0.0),
             Vector3d(0.0, 0.0, 0.2), 1000.0, SpringSettings(16.0, 4.0, 16.0))
         assertEquals(1000.0 * (56.0 * 4.0 * 0.1 - 10.5 * 2.0 * 0.2), torque.z, 1e-8)

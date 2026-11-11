@@ -2,6 +2,7 @@ package org.valkyrienskies.clockwork.content.contraptions.phys.bearing
 
 import net.minecraft.core.BlockPos
 import com.simibubi.create.content.contraptions.StructureTransform
+import org.valkyrienskies.clockwork.content.curiosities.tools.wanderwand.WandLinkTransfer
 import org.valkyrienskies.mod.util.updateBlock
 import net.minecraft.nbt.CompoundTag
 import net.minecraft.server.level.ServerLevel
@@ -39,7 +40,7 @@ object PhysBearingAssembler {
         tag = (if (block is ICopyableBlock) block.onPaste(level, to, rotatedState,
             ShipAssembler.SingleItemMap(originShip?.id ?: -1L, toShip?.id ?: -1L, -1L) {it}, // return actual change (originShip -> toShip), otherwise identity
             ShipAssembler.SingleItemMap(originShip?.id ?: -1L, Vector3d(centerPositions.first) to Vector3d(centerPositions.second), Vector3d() to Vector3d()),
-            tag
+            emptyMap(), tag
         ) else tag) ?: tag
 
         // Transfer pending schedule-ticks
@@ -137,6 +138,8 @@ object PhysBearingAssembler {
                 level.removeBlockEntity(itPos)
                 level.getChunk(itPos).setBlockState(itPos, Blocks.AIR.defaultBlockState(), true)
             }
+            WandLinkTransfer.moveRegion(
+                level, blocks.toSet(), originCenter, toCenter)
         }
 
         for (itPos in blocks) {

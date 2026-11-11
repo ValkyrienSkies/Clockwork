@@ -33,6 +33,7 @@ open class RopeKnotItem(properties: Properties) : CWItem(properties) {
 
     override fun appendHoverText(stack: ItemStack, level: Level?, lines: MutableList<Component>, flag: TooltipFlag) {
         lines.add(Component.translatable("item.vs_clockwork.rope_knot.controls").withStyle(ChatFormatting.GRAY))
+        lines.add(Component.translatable("item.vs_clockwork.rope_knot.adjust").withStyle(ChatFormatting.GRAY))
         if (stack.tag?.contains(START) == true)
             lines.add(Component.translatable("item.vs_clockwork.rope_knot.pending").withStyle(ChatFormatting.GRAY))
         super.appendHoverText(stack, level, lines, flag)

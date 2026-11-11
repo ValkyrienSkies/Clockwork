@@ -6,6 +6,7 @@ import net.minecraft.client.Minecraft
 import net.minecraft.client.multiplayer.ClientLevel
 import net.minecraft.core.BlockPos
 import net.minecraft.resources.ResourceLocation
+import net.minecraft.world.InteractionHand
 import net.minecraft.world.phys.AABB
 import net.minecraft.world.phys.BlockHitResult
 import net.minecraft.world.phys.HitResult
@@ -30,7 +31,7 @@ object LubricantClient {
     fun attack(): Boolean {
         if (!holding()) return false
         ClockworkPackets.sendToServer(LubricantRemovePacket())
-        Minecraft.getInstance().player?.swing(net.minecraft.world.InteractionHand.MAIN_HAND)
+        Minecraft.getInstance().player?.swing(InteractionHand.MAIN_HAND)
         return true
     }
 

@@ -1,6 +1,7 @@
 package org.valkyrienskies.clockwork.content.curiosities.lubricant
 
 import net.minecraft.core.BlockPos
+import net.minecraft.core.Direction
 import net.minecraft.core.SectionPos
 import net.minecraft.core.registries.BuiltInRegistries
 import net.minecraft.nbt.CompoundTag
@@ -17,6 +18,8 @@ import org.valkyrienskies.mod.common.getWorldCoordinates
 import org.valkyrienskies.mod.common.getShipManagingPos
 import org.valkyrienskies.mod.common.isBlockInShipyard
 import org.valkyrienskies.core.api.ships.Ship
+import java.util.ArrayDeque
+import java.util.UUID
 
 class LubricantData : SavedData() {
     private val sections = HashMap<Long, MutableMap<Long, Block>>()
@@ -25,7 +28,7 @@ class LubricantData : SavedData() {
     private val memberships = HashMap<Long, MutableSet<Long>>()
     private var nextArea = 1L
     private var revision = 0L
-    private val viewers = HashMap<java.util.UUID, Pair<Long, Long>>()
+    private val viewers = HashMap<UUID, Pair<Long, Long>>()
 
     fun contains(pos: Long, block: Block): Boolean = sections[section(pos)]?.get(pos) === block
     fun hasSection(x: Int, y: Int, z: Int) = sections.containsKey(SectionPos.asLong(x, y, z))
@@ -60,13 +63,13 @@ class LubricantData : SavedData() {
     fun areaAt(pos: BlockPos): Set<Long> {
         memberships[pos.asLong()]?.maxOrNull()?.let { return areas[it]?.toSet() ?: emptySet() }
         val result = HashSet<Long>()
-        val queue = java.util.ArrayDeque<BlockPos>()
+        val queue = ArrayDeque<BlockPos>()
         queue.add(pos)
         while (queue.isNotEmpty()) {
             val current = queue.removeFirst()
             val key = current.asLong()
             if (memberships.containsKey(key) || sections[section(key)]?.containsKey(key) != true || !result.add(key)) continue
-            for (direction in net.minecraft.core.Direction.values()) queue.add(current.relative(direction))
+            for (direction in Direction.values()) queue.add(current.relative(direction))
         }
         return result
     }
@@ -146,7 +149,7 @@ class LubricantData : SavedData() {
             revision++
             setDirty()
         }
-        val active = HashSet<java.util.UUID>()
+        val active = HashSet<UUID>()
         for (player in level.players()) {
             if (player.mainHandItem.item !is LubricantItem && player.offhandItem.item !is LubricantItem) continue
             active.add(player.uuid)

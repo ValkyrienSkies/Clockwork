@@ -34,6 +34,7 @@ import org.valkyrienskies.clockwork.content.contraptions.flap.FlapBearingBlock
 import org.valkyrienskies.clockwork.content.contraptions.flap.smart_flap.SmartFlapBearingBlock
 import org.valkyrienskies.clockwork.content.contraptions.phys.bearing.PhysBearingBlock
 import org.valkyrienskies.clockwork.content.contraptions.phys.gimbal.GimbalBearingBlock
+import org.valkyrienskies.clockwork.content.contraptions.phys.hinge.HingeBlock
 import org.valkyrienskies.clockwork.content.contraptions.phys.infuser.PhysicsInfuserBlock
 import org.valkyrienskies.clockwork.content.contraptions.phys.linear.PhysicalGantryBlock
 import org.valkyrienskies.clockwork.content.contraptions.phys.linear.PhysicalPistonBlock
@@ -49,7 +50,9 @@ import org.valkyrienskies.clockwork.content.curiosities.WanderliteOreBlock
 import org.valkyrienskies.clockwork.content.curiosities.altmeter.AltMeterBlock
 import org.valkyrienskies.clockwork.content.curiosities.clock.ClockBlock
 import org.valkyrienskies.clockwork.content.curiosities.debug.DebugLightningArcerBlock
+import org.valkyrienskies.clockwork.content.curiosities.grippad.GripPadBlock
 import org.valkyrienskies.clockwork.content.curiosities.meteor.MeteorTestBlock
+import org.valkyrienskies.clockwork.content.curiosities.rope.RopeWinchBlock
 import org.valkyrienskies.clockwork.content.curiosities.sensor.distance.DistanceSensorBlock
 import org.valkyrienskies.clockwork.content.curiosities.sensor.impact.ImpactSensorBlock
 import org.valkyrienskies.clockwork.content.curiosities.sensor.rotation.GyroscopicSensorBlock
@@ -760,8 +763,24 @@ object ClockworkBlocks {
             .register()
 
     @JvmField
+    val HINGE = REGISTRATE.block("hinge") { p: BlockBehaviour.Properties ->
+        HingeBlock(p, false)
+    }.initialProperties { SharedProperties.softMetal() }
+        .transform(axeOrPickaxe()).properties { it.noOcclusion() }
+        .addLayer { Supplier { RenderType.cutout() } }
+        .item().tab(ClockworkMod.PHYSICAL_CREATIVE_TABINFO).build().register()
+
+    @JvmField
+    val HINGE_ATTACHMENT = REGISTRATE.block("hinge_attachment") { p: BlockBehaviour.Properties ->
+        HingeBlock(p, true)
+    }.initialProperties { SharedProperties.softMetal() }
+        .transform(axeOrPickaxe()).properties { it.noOcclusion().forceSolidOff() }
+        .addLayer { Supplier { RenderType.cutout() } }
+        .register()
+
+    @JvmField
     val ROPE_WINCH = REGISTRATE.block("rope_winch") { p: BlockBehaviour.Properties ->
-        org.valkyrienskies.clockwork.content.curiosities.rope.RopeWinchBlock(p)
+        RopeWinchBlock(p)
     }.initialProperties { SharedProperties.softMetal() }
         .transform(axeOrPickaxe()).properties { it.noOcclusion() }
         .addLayer { Supplier { RenderType.cutout() } }
@@ -769,7 +788,7 @@ object ClockworkBlocks {
 
     @JvmField
     val GRIP_PAD = REGISTRATE.block("grip_pad") { p: BlockBehaviour.Properties ->
-        org.valkyrienskies.clockwork.content.curiosities.grippad.GripPadBlock(p)
+        GripPadBlock(p)
     }.initialProperties { SharedProperties.softMetal() }
         .transform(axeOrPickaxe()).properties { it.noOcclusion() }
         .addLayer { Supplier { RenderType.cutout() } }

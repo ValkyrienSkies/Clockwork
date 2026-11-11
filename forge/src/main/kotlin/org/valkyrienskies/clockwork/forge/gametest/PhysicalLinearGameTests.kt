@@ -87,7 +87,7 @@ class PhysicalLinearGameTests {
             forcedChunks.forEach { level.setChunkForced(it.x, it.z, false) }
             forcedChunks.clear()
             observers.forEach { (player, channel) ->
-                level.server.playerList.remove(player)
+                level.removeTestPlayer(player)
                 channel.finishAndReleaseAll()
             }
             observers.clear()

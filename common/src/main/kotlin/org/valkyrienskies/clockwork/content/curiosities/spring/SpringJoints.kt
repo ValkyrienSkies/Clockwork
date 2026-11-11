@@ -43,6 +43,8 @@ internal object SpringJoints {
             (effectiveMass * 60.0).toFloat())
         val alignment = VSD6Joint(a, poseA, b, poseB, motions = motions, drives = drives,
             drivePosition = VSD6Joint.DrivePosition(VSJointPose(Vector3d(), Quaterniond())))
+        spring.shouldBeSerialized = false
+        alignment.shouldBeSerialized = false
         return spring to alignment
     }
 

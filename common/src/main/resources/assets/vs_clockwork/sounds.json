@@ -1,4 +1,7 @@
 {
+  "hinge_assemble": {"sounds": ["vs_clockwork:hinge_assemble"], "subtitle": "vs_clockwork.subtitle.hinge_assemble"},
+  "hinge_disassemble": {"sounds": ["vs_clockwork:hinge_disassemble"], "subtitle": "vs_clockwork.subtitle.hinge_disassemble"},
+  "hinge_stress": {"sounds": ["vs_clockwork:hinge_stress"], "subtitle": "vs_clockwork.subtitle.hinge_stress"},
   "rope_overload": {"sounds": ["vs_clockwork:rope_overload"], "subtitle": "vs_clockwork.subtitle.rope_overload"},
   "spring_overload": {"sounds": ["vs_clockwork:spring_overload"], "subtitle": "vs_clockwork.subtitle.spring_overload"},
   "spring_attach_start": {"sounds": ["vs_clockwork:spring_attach_start"], "subtitle": "vs_clockwork.subtitle.spring_attach_start"},

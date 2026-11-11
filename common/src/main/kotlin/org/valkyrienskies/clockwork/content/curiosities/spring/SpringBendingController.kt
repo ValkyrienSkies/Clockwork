@@ -1,6 +1,7 @@
 package org.valkyrienskies.clockwork.content.curiosities.spring
 
 import org.joml.Vector3d
+import org.valkyrienskies.clockwork.content.curiosities.tools.wanderwand.WandAnchor
 import org.valkyrienskies.clockwork.content.curiosities.tools.wanderwand.WandLinks
 import org.valkyrienskies.core.api.ships.PhysShip
 import org.valkyrienskies.core.api.world.PhysLevel
@@ -14,7 +15,7 @@ internal object SpringBendingController {
     private val snapshots = ConcurrentHashMap<String, Snapshot>()
 
     fun publish(dimension: String, links: Collection<WandLinks.Link>) {
-        fun end(anchor: org.valkyrienskies.clockwork.content.curiosities.tools.wanderwand.WandAnchor): End {
+        fun end(anchor: WandAnchor): End {
             val p = anchor.local()
             val n = Vector3d(anchor.face.stepX.toDouble(), anchor.face.stepY.toDouble(), anchor.face.stepZ.toDouble())
             return End(anchor.shipId, Vector3d(p.x, p.y, p.z), n,

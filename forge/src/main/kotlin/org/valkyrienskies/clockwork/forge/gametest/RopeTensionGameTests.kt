@@ -18,12 +18,15 @@ import net.minecraft.server.level.ServerLevel
 import net.minecraft.server.level.ServerPlayer
 import net.minecraft.world.level.ChunkPos
 import net.minecraft.world.level.block.Blocks
+import net.minecraft.world.level.block.state.BlockState
 import net.minecraft.world.phys.Vec3
 import net.minecraftforge.gametest.GameTestHolder
 import net.minecraftforge.gametest.PrefixGameTestTemplate
 import net.minecraftforge.network.NetworkHooks
+import org.valkyrienskies.clockwork.ClockworkBlocks
 import org.valkyrienskies.clockwork.ClockworkMod
 import org.valkyrienskies.clockwork.content.curiosities.rope.RopeKnotPhysics
+import org.valkyrienskies.clockwork.content.curiosities.rope.RopeWinchBlockEntity
 import org.valkyrienskies.clockwork.util.gtpa
 import org.valkyrienskies.core.internal.joints.VSDistanceJoint
 import org.valkyrienskies.core.internal.joints.VSRevoluteJoint
@@ -66,7 +69,7 @@ class RopeTensionGameTests {
             links.forEach { WandLinks.get(level).remove(level, it) }; links.clear()
             ships.forEach { level.shipObjectWorld.deleteShip(it) }; ships.clear()
             chunks.forEach { level.setChunkForced(it.x, it.z, false) }; chunks.clear()
-            players.forEach { level.server.playerList.remove(it) }; players.clear()
+            players.forEach { level.removeTestPlayer(it) }; players.clear()
             channels.forEach { it.finishAndReleaseAll() }; channels.clear()
             VSCoreConfig.SERVER.pt.synchronizePhysics = previousSync
         }
@@ -150,7 +153,7 @@ class RopeTensionGameTests {
             player.setPos(base.x.toDouble(), base.y + 5.0, base.z.toDouble())
             player.setNoGravity(true); player.abilities.flying = true
             players.add(player)
-            fun ship(pos: BlockPos, state: net.minecraft.world.level.block.state.BlockState): ServerShip {
+            fun ship(pos: BlockPos, state: BlockState): ServerShip {
                 level.setBlockAndUpdate(pos, state)
                 return ShipAssembler.assembleToShip(level, setOf(pos.mutable()), 1.0).also {
                     it.isStatic = true
@@ -166,7 +169,7 @@ class RopeTensionGameTests {
             }
             val light = ship(base.below(4), Blocks.OAK_LOG.defaultBlockState())
             val heavy = ship(base.below(8).east(), Blocks.NETHERITE_BLOCK.defaultBlockState())
-            val winchState = org.valkyrienskies.clockwork.ClockworkBlocks.ROPE_WINCH.getDefaultState()
+            val winchState = ClockworkBlocks.ROPE_WINCH.getDefaultState()
             val winchPos = if (overload) base.above(12) else base
             val host = if (shipWinch) ship(winchPos, winchState) else null
             if (host == null) level.setBlockAndUpdate(winchPos, winchState)
@@ -277,8 +280,8 @@ class RopeTensionGameTests {
                     .forEach { level.setBlockAndUpdate(it, Blocks.IRON_BLOCK.defaultBlockState()) }
             }
             if (release || (massChange && physical)) {
-                level.setBlockAndUpdate(a.pos, org.valkyrienskies.clockwork.ClockworkBlocks.ROPE_WINCH.getDefaultState())
-                (level.getBlockEntity(a.pos) as org.valkyrienskies.clockwork.content.curiosities.rope.RopeWinchBlockEntity).maximum.setValue(if (catchRelease) 24 else 12)
+                level.setBlockAndUpdate(a.pos, ClockworkBlocks.ROPE_WINCH.getDefaultState())
+                (level.getBlockEntity(a.pos) as RopeWinchBlockEntity).maximum.setValue(if (catchRelease) 24 else 12)
             }
             var link: WandLinks.Link? = null
             var movingAnchor: WandAnchor? = null

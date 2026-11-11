@@ -102,6 +102,7 @@ class SpinoffBearingBlock(properties: Properties) : DirectionalBlock(properties)
         state: BlockState,
         oldShipIdToNewId: Map<Long, Long>,
         centerPositions: Map<Long, Pair<Vector3dc, Vector3dc>>,
+        oldJointIdToNewId: Map<Int, Int>,
         tag: CompoundTag?
     ): CompoundTag? {
         tag ?: return null
@@ -112,17 +113,18 @@ class SpinoffBearingBlock(properties: Properties) : DirectionalBlock(properties)
             val z = tag.getInt("partnerZ")
             var vectorPartner = Vector3d(x.toDouble(), y.toDouble(), z.toDouble()).add(0.5, 0.5, 0.5)
 
-            val partnerId = tag.getInt("partnerShipId").toLong()
+            val partnerId = tag.getLong("partnerShipId")
             val centerMigrate = centerPositions[partnerId] ?: return null
             vectorPartner = vectorPartner.sub(centerMigrate.first).add(centerMigrate.second)
             val bp = vectorPartner.floor().toMinecraft()
             tag.putInt("partnerX", bp.x)
             tag.putInt("partnerY", bp.y)
             tag.putInt("partnerZ", bp.z)
+            tag.putLong("partnerShipId", oldShipIdToNewId[partnerId] ?: -1)
 
             tag.putBoolean("overrideStatic", true)
 
-            tag.putInt("jointId", -1)
+            tag.putInt("jointId", oldJointIdToNewId[tag.getInt("jointId")] ?: -1)
             return tag
         }
 

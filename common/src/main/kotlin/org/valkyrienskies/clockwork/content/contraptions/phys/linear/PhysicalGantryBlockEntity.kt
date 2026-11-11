@@ -21,6 +21,7 @@ import org.valkyrienskies.clockwork.util.GlueAssembler
 import org.valkyrienskies.kelvin.util.KelvinExtensions.toMinecraft
 import org.valkyrienskies.mod.common.getLoadedShipManagingPos
 import org.valkyrienskies.mod.common.getShipManagingPos
+import java.util.Locale
 import kotlin.math.roundToInt
 
 class PhysicalGantryBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: BlockState) :
@@ -177,6 +178,6 @@ class PhysicalGantryBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: 
         FREE(AllIcons.I_MOVE_PLACE);
 
         override fun getIcon() = icon
-        override fun getTranslationKey() = "$MOD_ID.phys_gantry.movement_mode.${name.lowercase(java.util.Locale.ROOT)}"
+        override fun getTranslationKey() = "$MOD_ID.phys_gantry.movement_mode.${name.lowercase(Locale.ROOT)}"
     }
 }

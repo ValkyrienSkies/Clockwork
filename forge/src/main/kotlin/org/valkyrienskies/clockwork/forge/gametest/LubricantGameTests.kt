@@ -26,6 +26,7 @@ import org.valkyrienskies.clockwork.content.contraptions.phys.bearing.PhysBearin
 import org.valkyrienskies.core.api.physics.blockstates.FluidBoundarySolidState
 import org.valkyrienskies.core.api.ships.ServerShip
 import org.valkyrienskies.core.internal.world.chunks.VsiBlockType
+import org.valkyrienskies.core.internal.world.chunks.VsiTerrainUpdate
 import org.valkyrienskies.mod.common.BlockStateInfo
 import org.valkyrienskies.mod.common.assembly.ShipAssembler
 import org.valkyrienskies.mod.common.shipObjectWorld
@@ -45,6 +46,7 @@ import net.minecraft.server.level.ServerPlayer
 import net.minecraft.world.level.ChunkPos
 import net.minecraftforge.network.NetworkHooks
 import org.valkyrienskies.core.impl.config.VSCoreConfig
+import java.math.BigDecimal
 import java.util.UUID
 import java.util.concurrent.atomic.AtomicBoolean
 
@@ -69,7 +71,7 @@ class LubricantGameTests {
         fun cleanup(level: ServerLevel) {
             ships.forEach { ship -> level.shipObjectWorld.allShips.getById(ship.id)?.let { level.shipObjectWorld.deleteShip(it) } }
             ships.clear()
-            players.forEach { level.server.playerList.remove(it) }; players.clear()
+            players.forEach { level.removeTestPlayer(it) }; players.clear()
             channels.forEach { it.finishAndReleaseAll() }; channels.clear()
             chunks.forEach { level.setChunkForced(it.x, it.z, false) }; chunks.clear()
             VSCoreConfig.SERVER.pt.synchronizePhysics = previousSync
@@ -137,10 +139,10 @@ class LubricantGameTests {
             val data = LubricantData.get(level)
             data.set(pos, state.block, true)
             val sources = FractionalFluidSources.forLevel(level)!!
-            sources.setAmount(level.dimensionId, pos.x, pos.y, pos.z, "minecraft:water", java.math.BigDecimal(97))
+            sources.setAmount(level.dimensionId, pos.x, pos.y, pos.z, "minecraft:water", BigDecimal(97))
             val section = level.getChunkAt(pos).getSection(level.getSectionIndex(pos.y))
             val chunk = Vector3i(pos.x shr 4, pos.y shr 4, pos.z shr 4)
-            fun expected(coated: Boolean): org.valkyrienskies.core.internal.world.chunks.VsiTerrainUpdate {
+            fun expected(coated: Boolean): VsiTerrainUpdate {
                 val builder = vsCore.newDenseTerrainUpdateBuilder(chunk.x, chunk.y, chunk.z)
                 for (x in 0..15) for (y in 0..15) for (z in 0..15) {
                     val normal = BlockStateInfo.get(section.getBlockState(x, y, z))!!.second

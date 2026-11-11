@@ -102,6 +102,7 @@ class UniversalShaftBlock(properties: Properties?) : DirectionalKineticBlock(pro
         state: BlockState,
         oldShipIdToNewId: Map<Long, Long>,
         centerPositions: Map<Long, Pair<Vector3dc, Vector3dc>>,
+        oldJointIdToNewId: Map<Int, Int>,
         tag: CompoundTag?
     ): CompoundTag? {
         if (!(tag?.contains("otherPosXa") ?: false)) return tag
@@ -119,6 +120,7 @@ class UniversalShaftBlock(properties: Properties?) : DirectionalKineticBlock(pro
         tag.putInt("otherPosXr",newOffset.x)
         tag.putInt("otherPosYr",newOffset.y)
         tag.putInt("otherPosZr",newOffset.z)
+        tag.putLong("otherShipId", oldShipIdToNewId[oldId] ?: -1)
 
         return tag
     }

@@ -13,6 +13,7 @@ import org.valkyrienskies.clockwork.ClockworkPackets
 import net.minecraft.core.BlockPos
 import org.lwjgl.glfw.GLFW
 import org.valkyrienskies.clockwork.ClockworkModClient
+import org.valkyrienskies.clockwork.content.curiosities.spring.SpringToolClient
 import org.valkyrienskies.clockwork.content.curiosities.tools.wanderwand.tool.ToolType
 import org.valkyrienskies.clockwork.util.ClockworkHotbarSlotOverlays
 
@@ -70,7 +71,7 @@ open class WanderwandHandler {
     }
 
     fun render(poseStack: GuiGraphics, partialTicks: Float, width: Int, height: Int) {
-        org.valkyrienskies.clockwork.content.curiosities.spring.SpringToolClient.render(poseStack)
+        SpringToolClient.render(poseStack)
         if (Minecraft.getInstance().options.hideGui || !active) return
 
         if (activeSchematicItem != null && isRegular) {
@@ -163,7 +164,7 @@ open class WanderwandHandler {
     }
 
     fun mouseScrolled(delta: Double): Boolean {
-        if (org.valkyrienskies.clockwork.content.curiosities.spring.SpringToolClient.scroll(delta)) return true
+        if (SpringToolClient.scroll(delta)) return true
         if (!active || delta == 0.0) {
             return false
         }

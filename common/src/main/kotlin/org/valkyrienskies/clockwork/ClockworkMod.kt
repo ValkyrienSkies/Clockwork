@@ -26,12 +26,18 @@ import org.slf4j.LoggerFactory
 import org.valkyrienskies.clockwork.client.render.airpocket.AirpocketRenderer
 import org.valkyrienskies.clockwork.content.contraptions.flap.dual_link.DualLinkHandler
 import org.valkyrienskies.clockwork.content.contraptions.phys.gimbal.quad_link.QuadLinkHandler
+import org.valkyrienskies.clockwork.content.contraptions.phys.hinge.HingeLinks
 import org.valkyrienskies.clockwork.content.contraptions.phys.linear.PhysicalPistonBlock
+import org.valkyrienskies.clockwork.content.curiosities.grippad.GripPadController
+import org.valkyrienskies.clockwork.content.curiosities.lubricant.LubricantData
+import org.valkyrienskies.clockwork.content.curiosities.lubricant.LubricantItem
 import org.valkyrienskies.clockwork.content.curiosities.meteor.MeteorShipAttachment
 import org.valkyrienskies.clockwork.content.curiosities.meteor.MeteorStorm
+import org.valkyrienskies.clockwork.content.curiosities.spring.SpringBendingController
 import org.valkyrienskies.clockwork.content.events.CollisionSoundEffectHandler
 import org.valkyrienskies.clockwork.content.curiosities.tools.gravitron.GravitronFrozenShip
 import org.valkyrienskies.clockwork.content.forces.*
+import org.valkyrienskies.clockwork.content.forces.GravitronController
 import org.valkyrienskies.clockwork.content.forces.contraption.BearingController
 import org.valkyrienskies.clockwork.content.physicalities.gyro.GyroShipControl
 import org.valkyrienskies.clockwork.integration.cc.GenericPeripheralsCommon
@@ -159,7 +165,8 @@ object ClockworkMod {
         }
 
         TickEvent.SERVER_LEVEL_POST.register {
-            org.valkyrienskies.clockwork.content.curiosities.lubricant.LubricantData.get(it).tick(it)
+            HingeLinks.get(it).tick(it)
+            LubricantData.get(it).tick(it)
             org.valkyrienskies.clockwork.content.curiosities.tools.wanderwand.WanderwandServer.tick(it)
             for (ship in it.shipObjectWorld.loadedShips) {
                 GravitronFrozenShip.tick(it, ship)
@@ -176,7 +183,7 @@ object ClockworkMod {
         }
 
         InteractionEvent.RIGHT_CLICK_BLOCK.register(InteractionEvent.RightClickBlock { player, hand, pos, face ->
-            org.valkyrienskies.clockwork.content.curiosities.lubricant.LubricantItem.interact(player, hand, pos, face)
+            LubricantItem.interact(player, hand, pos, face)
         })
         InteractionEvent.RIGHT_CLICK_BLOCK.register(InteractionEvent.RightClickBlock { player, hand, pos, face ->
             DualLinkHandler.handler(player, hand, pos, face)
@@ -189,9 +196,9 @@ object ClockworkMod {
         vsApi.collisionStartEvent.on(MeteorStorm::onCollision)
 
         vsApi.physTickEvent.on {
-            org.valkyrienskies.clockwork.content.forces.GravitronController.timeStep(it.world, it.delta)
-            org.valkyrienskies.clockwork.content.curiosities.grippad.GripPadController.tick(it.world, it.delta)
-            org.valkyrienskies.clockwork.content.curiosities.spring.SpringBendingController.tick(it.world)
+            GravitronController.timeStep(it.world, it.delta)
+            GripPadController.tick(it.world, it.delta)
+            SpringBendingController.tick(it.world)
             val temp = mutableListOf<Pair<DimensionId, (PhysLevel, Double, () -> Unit) -> Unit>>()
             while (physTickOnce.isNotEmpty()) {
                 val (dimension, fn) = physTickOnce.poll() ?: continue

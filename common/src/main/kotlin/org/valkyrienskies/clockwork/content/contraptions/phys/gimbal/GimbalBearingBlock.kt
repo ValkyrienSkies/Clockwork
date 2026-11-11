@@ -50,6 +50,7 @@ class GimbalBearingBlock(properties: Properties) : BearingBlock(properties), IBE
         state: BlockState,
         oldShipIdToNewId: Map<Long, Long>,
         centerPositions: Map<Long, Pair<Vector3dc, Vector3dc>>,
+        oldJointIdToNewId: Map<Int, Int>,
         tag: CompoundTag?
     ): CompoundTag? {
         tag ?: return null
@@ -71,7 +72,7 @@ class GimbalBearingBlock(properties: Properties) : BearingBlock(properties), IBE
 
             tag.putLong("connectedShip", oldShipIdToNewId[partnerId] ?: -1)
 
-            tag.putInt("JointID", -1)
+            tag.putInt("JointID", oldJointIdToNewId[tag.getInt("JointID")] ?: -1)
             return tag
         }
 

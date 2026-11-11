@@ -8,6 +8,7 @@ import net.minecraft.world.level.Level
 import org.valkyrienskies.clockwork.client.render.BladeAngleSyncPacket
 import org.valkyrienskies.clockwork.content.curiosities.lubricant.LubricantSyncPacket
 import org.valkyrienskies.clockwork.content.curiosities.lubricant.LubricantRemovePacket
+import org.valkyrienskies.clockwork.content.curiosities.spring.SpringAdjustPacket
 import org.valkyrienskies.clockwork.content.curiosities.tools.gravitron.GravitronInputPacket
 import org.valkyrienskies.clockwork.client.render.airpocket.AirpocketSyncPacket
 import org.valkyrienskies.clockwork.content.contraptions.flap.smart_flap.FlapLinkedControllerBindPacket
@@ -103,7 +104,7 @@ enum class ClockworkPackets(
     WAND_STATE_PACKET(WanderwandStatePacket::class.java, ::WanderwandStatePacket),
     WAND_REEL_PACKET(WanderwandReelPacket::class.java, ::WanderwandReelPacket),
     WAND_ROPE_RIDE_PACKET(WandRopeRidePacket::class.java, ::WandRopeRidePacket),
-    SPRING_ADJUST_PACKET(org.valkyrienskies.clockwork.content.curiosities.spring.SpringAdjustPacket::class.java, { org.valkyrienskies.clockwork.content.curiosities.spring.SpringAdjustPacket(it) }),
+    SPRING_ADJUST_PACKET(SpringAdjustPacket::class.java, { SpringAdjustPacket(it) }),
     WAND_ROPE_RIDE_JUMP_PACKET(WandJumpPacket::class.java, ::WandJumpPacket),
 
     ;

@@ -51,10 +51,12 @@
     "vs_clockwork:smooth_wanderlite_slab",
     "vs_clockwork:smooth_wanderlite_stairs",
     "vs_clockwork:wanderlite_bricks",
-	"vs_clockwork:delivery_cannon",
-	"vs_clockwork:delivery_chute",
-	"vs_clockwork:universal_shaft",
-	"vs_clockwork:spinoff_bearing",
-	"vs_clockwork:wanderglass"
+    "vs_clockwork:delivery_cannon",
+    "vs_clockwork:delivery_chute",
+    "vs_clockwork:universal_shaft",
+    "vs_clockwork:spinoff_bearing",
+    "vs_clockwork:wanderglass",
+    "vs_clockwork:hinge",
+    "vs_clockwork:hinge_attachment"
   ]
 }

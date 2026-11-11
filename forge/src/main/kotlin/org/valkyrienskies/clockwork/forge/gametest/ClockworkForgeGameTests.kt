@@ -80,7 +80,7 @@ class ClockworkForgeGameTests {
             testShips.clear()
             for (chunk in testChunks) level.setChunkForced(chunk.x, chunk.z, false)
             testChunks.clear()
-            for (player in testPlayers) level.server.playerList.remove(player)
+            for (player in testPlayers) level.removeTestPlayer(player)
             testPlayers.clear()
             for (connection in testConnections) connection.finishAndReleaseAll()
             testConnections.clear()

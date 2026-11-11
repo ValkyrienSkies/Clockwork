@@ -17,13 +17,14 @@ import org.valkyrienskies.mod.common.world.clipIncludeShips
 object SpringControls {
     const val SELECTED = "SpringSetting"
     fun isWrench(stack: ItemStack) = AllItemTags.WRENCH.matches(stack)
-    fun isTool(stack: ItemStack) = isWrench(stack) || stack.item is ScrewdriverItem
+    fun isTool(stack: ItemStack, spring: Boolean = true) = isWrench(stack) || (spring && stack.item is ScrewdriverItem)
     fun selected(stack: ItemStack) = (stack.tag?.getInt(SELECTED) ?: 0).coerceIn(0, 2)
 
-    private fun link(player: ServerPlayer, endpoint: RopeKnotEntity): WandLinks.Link? {
+    private fun link(player: ServerPlayer, endpoint: RopeKnotEntity, springOnly: Boolean = true): WandLinks.Link? {
         if (!player.mayBuild() || player.isSpectator || !player.isAlive || endpoint.isRemoved) return null
         val level = player.serverLevel()
-        val link = endpoint.linkId?.let { WandLinks.get(level).links[it] }?.takeIf { it.physical && it.spring } ?: return null
+        val link = endpoint.linkId?.let { WandLinks.get(level).links[it] }
+            ?.takeIf { it.physical && it.rope && (!springOnly || it.spring) } ?: return null
         val anchor = if (endpoint.end == 0) link.a else link.b
         val point = anchor.world(level) ?: return null
         if (!level.mayInteract(player, anchor.pos) || point.distanceToSqr(player.eyePosition) > 36) return null
@@ -61,12 +62,17 @@ object SpringControls {
 
     fun adjust(player: ServerPlayer, endpoint: RopeKnotEntity, direction: Int) {
         if (direction != -1 && direction != 1) return
-        val stack = player.mainHandItem.takeIf { isTool(it) } ?: player.offhandItem.takeIf { isTool(it) } ?: return
-        val link = link(player, endpoint) ?: return
+        val link = link(player, endpoint, springOnly = false) ?: return
+        val stack = player.mainHandItem.takeIf { isTool(it, link.spring) }
+            ?: player.offhandItem.takeIf { isTool(it, link.spring) } ?: return
         val tick = player.level().gameTime
         if (link.lastAdjustment == tick) return
         link.lastAdjustment = tick
-        if (isWrench(stack)) link.length = SpringSettings.adjustLength(link.length, direction, player.isShiftKeyDown)
+        if (isWrench(stack)) {
+            val length = SpringSettings.adjustLength(link.length, direction, player.isShiftKeyDown)
+            if (link.spring) link.length = length
+            else WandLinks.get(player.serverLevel()).resizeRope(player.serverLevel(), link, length)
+        }
         else link.settings = link.settings.adjust(selected(stack), direction, player.isShiftKeyDown)
         changed(player, link)
     }

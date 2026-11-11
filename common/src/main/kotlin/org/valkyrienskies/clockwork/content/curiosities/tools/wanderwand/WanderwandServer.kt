@@ -15,6 +15,7 @@ import org.joml.primitives.AABBi
 import org.joml.primitives.AABBic
 import org.valkyrienskies.clockwork.ClockworkPackets
 import org.valkyrienskies.clockwork.ClockworkSounds
+import org.valkyrienskies.clockwork.content.curiosities.rope.RopeKnotServer
 import org.valkyrienskies.clockwork.content.curiosities.tools.wanderwand.tool.ToolType
 import org.valkyrienskies.clockwork.util.AABBHelper.mergeAdjacentFast
 import org.valkyrienskies.clockwork.util.AABBHelper.subtractWithAABB
@@ -269,7 +270,7 @@ object WanderwandServer {
         if (linksChanged || level.gameTime % 20L == 0L) syncLinks(level)
     }
 
-    private fun sync(player: ServerPlayer, s: Session) {
+    internal fun sync(player: ServerPlayer, s: Session) {
         val tag = CompoundTag()
         tag.putString("kind", "state"); tag.putUUID("owner", player.uuid); tag.putInt("tool", s.tool.ordinal)
         s.first?.let { tag.put("first", it.save()) }; s.rope?.let { tag.put("rope", it.save()) }
@@ -308,7 +309,7 @@ object WanderwandServer {
     }
 
     fun breakEffect(level: ServerLevel, link: WandLinks.Link, owner: UUID = UUID(0, 0)) {
-        if (link.physical) org.valkyrienskies.clockwork.content.curiosities.rope.RopeKnotServer.breakEffect(level, link)
+        if (link.physical) RopeKnotServer.breakEffect(level, link)
         else effect(level, owner, if (link.rope) "rope_break" else "attach_break", link.a, link.b)
     }
     private fun effect(level: ServerLevel, owner: UUID, action: String, anchor: WandAnchor, other: WandAnchor? = null) {

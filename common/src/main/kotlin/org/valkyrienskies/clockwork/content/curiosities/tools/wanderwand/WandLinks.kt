@@ -8,6 +8,7 @@ import net.minecraft.world.level.saveddata.SavedData
 import org.joml.Quaterniond
 import org.joml.Vector3d
 import org.valkyrienskies.core.internal.joints.*
+import org.valkyrienskies.clockwork.content.curiosities.spring.SpringBendingController
 import org.valkyrienskies.mod.common.dimensionId
 import org.valkyrienskies.mod.common.shipObjectWorld
 import org.valkyrienskies.mod.common.vsPipeline
@@ -24,7 +25,7 @@ import java.util.UUID
 
 /** The visual endpoints and joint blueprint are saved together; physics IDs are session-local. */
 class WandLinks : SavedData() {
-    data class Link(val id: UUID, val a: WandAnchor, val b: WandAnchor, val rope: Boolean,
+    data class Link(val id: UUID, var a: WandAnchor, var b: WandAnchor, val rope: Boolean,
                     var length: Double, var pose0: VSJointPose, var pose1: VSJointPose, val physical: Boolean = false, val spring: Boolean = false) {
         internal var settings = SpringSettings()
         var appliedLength = length
@@ -35,6 +36,7 @@ class WandLinks : SavedData() {
         var jointId: Int? = null
         var alignmentId: Int? = null
         var pending = false
+        var jointGeneration = 0
         var needsReframe = false
         var stress = 0f
         var sentStress = 0f
@@ -78,10 +80,10 @@ class WandLinks : SavedData() {
         if (links.size >= 2048 || a == b) return null
         for (anchor in listOf(a, b).filter { it.winch }) {
             if (!physical || !rope || spring ||
-                level.getBlockEntity(anchor.pos) !is org.valkyrienskies.clockwork.content.curiosities.rope.RopeWinchBlockEntity ||
+                level.getBlockEntity(anchor.pos) !is RopeWinchBlockEntity ||
                 links.values.any { (it.a.winch && it.a.pos == anchor.pos) || (it.b.winch && it.b.pos == anchor.pos) }) return null
         }
-        if ((!rope || spring) && !WandLinkPhysics.canAttach(a, b)) return null
+        if (!rope && !WandLinkPhysics.canAttach(a, b)) return null
         if (links.values.any { it.rope == rope && it.spring == spring && ((it.a == a && it.b == b) || (it.a == b && it.b == a)) }) return null
         a.world(level) ?: return null
         b.world(level) ?: return null
@@ -101,6 +103,16 @@ class WandLinks : SavedData() {
         ropeLengthChanged = true
         link.settingsDirty = true
         setDirty()
+    }
+
+    fun restore(level: ServerLevel, link: Link): Boolean {
+        if (links.size >= 2048 || links.containsKey(link.id) || link.a == link.b ||
+            listOf(link.a, link.b).any { !level.hasChunkAt(it.pos) || level.getBlockState(it.pos).isAir }) return false
+        links[link.id] = link
+        setDirty()
+        ensureJoint(level, link)
+        if (link.physical) RopeKnotServer.ensureKnots(level, link)
+        return true
     }
 
     fun updateWinchRelease(level: ServerLevel, link: Link) {
@@ -144,6 +156,18 @@ class WandLinks : SavedData() {
         massGraph = null
     }
 
+    fun resetJoints(level: ServerLevel, link: Link) {
+        link.jointGeneration++
+        link.jointId?.let { removeJoint(level, it) }
+        link.alignmentId?.let { removeJoint(level, it) }
+        link.jointId = null; link.alignmentId = null; link.pending = false
+        link.previousDistance = null; link.age = 0; link.missingTicks = 0
+        link.stress = 0f; link.sentStress = 0f; link.settingsDirty = true
+        link.releasedMaximum = null
+        massGraph = null
+        setDirty()
+    }
+
     fun tick(level: ServerLevel): Boolean {
         var changed = ropeLengthChanged && level.gameTime % 2L == 0L
         if (changed) ropeLengthChanged = false
@@ -152,7 +176,7 @@ class WandLinks : SavedData() {
             val a = link.a.world(level)
             val b = link.b.world(level)
             val invalidWinch = ends.any { it.winch && level.hasChunkAt(it.pos) &&
-                level.getBlockEntity(it.pos) !is org.valkyrienskies.clockwork.content.curiosities.rope.RopeWinchBlockEntity }
+                level.getBlockEntity(it.pos) !is RopeWinchBlockEntity }
             val invalid = invalidWinch || ends.any { it.shipId >= 0 && level.shipObjectWorld.allShips.getById(it.shipId) == null } ||
                 ends.any { it.world(level) != null && level.hasChunkAt(it.pos) && level.getBlockState(it.pos).isAir }
             if (!invalid && (a == null || b == null || ends.any { !level.hasChunkAt(it.pos) })) {
@@ -206,7 +230,7 @@ class WandLinks : SavedData() {
                 if (link.jointId != null) link.age++
             }
         }
-        org.valkyrienskies.clockwork.content.curiosities.spring.SpringBendingController.publish(level.dimensionId, links.values)
+        SpringBendingController.publish(level.dimensionId, links.values)
         return changed
     }
 
@@ -251,6 +275,7 @@ class WandLinks : SavedData() {
     private fun ensureJoint(level: ServerLevel, link: Link) {
         updateWinchRelease(level, link)
         if (link.a.shipId == link.b.shipId || link.pending) return
+        val generation = link.jointGeneration
         if (link.spring && link.jointId != null && !link.settingsDirty) return
         if (link.a.world(level) == null || link.b.world(level) == null) return
         if (!link.spring && link.jointId != null && !link.settingsDirty && (link.rope || link.age > WandLinkPhysics.GLUE_RAMP_TICKS || link.age % 2 != 0)) return
@@ -287,8 +312,8 @@ class WandLinks : SavedData() {
                 level.server.execute {
                     level.gtpa.addJoint(pair.second) { alignmentId ->
                         level.server.execute {
-                            link.pending = false
-                            if (links[link.id] !== link || springId < 0 || alignmentId < 0) {
+                            if (link.jointGeneration == generation) link.pending = false
+                            if (links[link.id] !== link || link.jointGeneration != generation || springId < 0 || alignmentId < 0) {
                                 if (springId >= 0) level.gtpa.removeJoint(springId)
                                 if (alignmentId >= 0) level.gtpa.removeJoint(alignmentId)
                             } else {
@@ -318,6 +343,10 @@ class WandLinks : SavedData() {
         level.gtpa.addJoint(joint) { id ->
             // GTPA invokes this on the physics thread. All record ownership stays on the server thread.
             level.server.execute {
+                if (link.jointGeneration != generation) {
+                    if (id >= 0) level.gtpa.removeJoint(id)
+                    return@execute
+                }
                 link.pending = false
                 if (id < 0) { link.age = 0; return@execute }
                 if (links[link.id] !== link) level.gtpa.removeJoint(id) else link.jointId = id

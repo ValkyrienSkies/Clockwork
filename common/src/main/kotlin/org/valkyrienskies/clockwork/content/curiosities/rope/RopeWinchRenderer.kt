@@ -1,6 +1,7 @@
 package org.valkyrienskies.clockwork.content.curiosities.rope
 
 import com.mojang.blaze3d.vertex.PoseStack
+import com.mojang.math.Axis
 import com.simibubi.create.content.kinetics.base.HorizontalAxisKineticBlock
 import com.simibubi.create.content.kinetics.base.KineticBlockEntityRenderer
 import net.createmod.catnip.render.CachedBuffers
@@ -37,7 +38,7 @@ class RopeWinchRenderer(context: BlockEntityRendererProvider.Context) : KineticB
         ms.pushPose()
         if (axis == Direction.Axis.Z) {
             ms.translate(0.5, 0.5, 0.5)
-            ms.mulPose(com.mojang.math.Axis.YP.rotationDegrees(90f))
+            ms.mulPose(Axis.YP.rotationDegrees(90f))
             ms.translate(-0.5, -0.5, -0.5)
         }
         val buffer = buffers.getBuffer(RenderType.cutoutMipped())

@@ -13,10 +13,11 @@ import net.minecraft.world.level.block.entity.BlockEntityType
 import net.minecraft.world.level.block.state.BlockState
 import net.minecraft.world.phys.Vec3
 import org.valkyrienskies.clockwork.content.curiosities.tools.wanderwand.WandLinks
+import java.util.UUID
 
 class RopeWinchBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: BlockState) : KineticBlockEntity(type, pos, state) {
     lateinit var maximum: ScrollValueBehaviour
-    private var ropeId: java.util.UUID? = null
+    private var ropeId: UUID? = null
 
     override fun addBehaviours(behaviours: MutableList<BlockEntityBehaviour>) {
         super.addBehaviours(behaviours)

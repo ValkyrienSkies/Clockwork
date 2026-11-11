@@ -24,6 +24,7 @@ import org.valkyrienskies.clockwork.content.contraptions.phys.bearing.PhysBearin
 import org.valkyrienskies.clockwork.content.contraptions.phys.bearing.PhysBearingRenderer
 import org.valkyrienskies.clockwork.content.contraptions.phys.gimbal.GimbalBearingBlockEntity
 import org.valkyrienskies.clockwork.content.contraptions.phys.gimbal.GimbalBearingRenderer
+import org.valkyrienskies.clockwork.content.contraptions.phys.hinge.HingeBlockEntity
 import org.valkyrienskies.clockwork.content.contraptions.phys.infuser.PhysicsInfuserBlockEntity
 import org.valkyrienskies.clockwork.content.contraptions.phys.infuser.PhysicsInfuserRenderer
 import org.valkyrienskies.clockwork.content.contraptions.phys.linear.PhysicalGantryBlockEntity
@@ -42,6 +43,10 @@ import org.valkyrienskies.clockwork.content.curiosities.altmeter.AltMeterRendere
 import org.valkyrienskies.clockwork.content.curiosities.clock.ClockBlockEntity
 import org.valkyrienskies.clockwork.content.curiosities.clock.ClockRenderer
 import org.valkyrienskies.clockwork.content.curiosities.debug.DebugLightningArcerBlockEntity
+import org.valkyrienskies.clockwork.content.curiosities.grippad.GripPadBlockEntity
+import org.valkyrienskies.clockwork.content.curiosities.grippad.GripPadRenderer
+import org.valkyrienskies.clockwork.content.curiosities.rope.RopeWinchBlockEntity
+import org.valkyrienskies.clockwork.content.curiosities.rope.RopeWinchRenderer
 import org.valkyrienskies.clockwork.content.curiosities.sensor.rotation.LodefocusBlockEntity
 import org.valkyrienskies.clockwork.content.curiosities.sensor.rotation.LodefocusRenderer
 import org.valkyrienskies.clockwork.content.curiosities.solver.SolverBlockEntity
@@ -234,6 +239,14 @@ object ClockworkBlockEntities {
         }
         .validBlocks(ClockworkBlocks.PHYS_PISTON)
         .renderer { NonNullFunction(::PhysicalPistonRenderer) }
+        .register()
+
+    @JvmField
+    val HINGE = ClockworkMod.REGISTRATE
+        .blockEntity("hinge") { type: BlockEntityType<HingeBlockEntity>, pos: BlockPos, state: BlockState ->
+            HingeBlockEntity(type, pos, state)
+        }
+        .validBlocks(ClockworkBlocks.HINGE, ClockworkBlocks.HINGE_ATTACHMENT)
         .register()
 
     @JvmField
@@ -871,20 +884,20 @@ object ClockworkBlockEntities {
 
     @JvmField
     val ROPE_WINCH = ClockworkMod.REGISTRATE
-        .blockEntity("rope_winch") { type: BlockEntityType<org.valkyrienskies.clockwork.content.curiosities.rope.RopeWinchBlockEntity>, pos: BlockPos, state: BlockState ->
-            org.valkyrienskies.clockwork.content.curiosities.rope.RopeWinchBlockEntity(type, pos, state)
+        .blockEntity("rope_winch") { type: BlockEntityType<RopeWinchBlockEntity>, pos: BlockPos, state: BlockState ->
+            RopeWinchBlockEntity(type, pos, state)
         }.validBlocks(ClockworkBlocks.ROPE_WINCH)
         .renderer { NonNullFunction { context: BlockEntityRendererProvider.Context ->
-            org.valkyrienskies.clockwork.content.curiosities.rope.RopeWinchRenderer(context)
+            RopeWinchRenderer(context)
         } }.register()
 
     @JvmField
     val GRIP_PAD = ClockworkMod.REGISTRATE
-        .blockEntity("grip_pad") { type: BlockEntityType<org.valkyrienskies.clockwork.content.curiosities.grippad.GripPadBlockEntity>, pos: BlockPos, state: BlockState ->
-            org.valkyrienskies.clockwork.content.curiosities.grippad.GripPadBlockEntity(type, pos, state)
+        .blockEntity("grip_pad") { type: BlockEntityType<GripPadBlockEntity>, pos: BlockPos, state: BlockState ->
+            GripPadBlockEntity(type, pos, state)
         }.validBlocks(ClockworkBlocks.GRIP_PAD)
         .renderer { NonNullFunction { context: BlockEntityRendererProvider.Context ->
-            org.valkyrienskies.clockwork.content.curiosities.grippad.GripPadRenderer(context)
+            GripPadRenderer(context)
         } }.register()
 
     @JvmField

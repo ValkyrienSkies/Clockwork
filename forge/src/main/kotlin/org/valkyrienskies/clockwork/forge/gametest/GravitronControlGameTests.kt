@@ -61,7 +61,7 @@ class GravitronControlGameTests {
             players.forEach { GrabTool.dropShip(it, false) }
             joints.forEach { level.gtpa.removeJoint(it) }; joints.clear()
             ships.forEach { ship -> level.shipObjectWorld.allShips.getById(ship.id)?.let { level.shipObjectWorld.deleteShip(it) } }; ships.clear()
-            players.forEach { level.server.playerList.remove(it) }; players.clear()
+            players.forEach { level.removeTestPlayer(it) }; players.clear()
             channels.forEach { it.finishAndReleaseAll() }; channels.clear()
             chunks.forEach { level.setChunkForced(it.x, it.z, false) }; chunks.clear()
             VSCoreConfig.SERVER.pt.synchronizePhysics = previousSync

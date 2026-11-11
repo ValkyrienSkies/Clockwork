@@ -1,0 +1,244 @@
+{
+  "variants": {
+    "facing=up,roll=0,assembled=false": {
+      "model": "vs_clockwork:block/hinge/attachment",
+      "x": 0,
+      "y": 0
+    },
+    "facing=up,roll=0,assembled=true": {
+      "model": "vs_clockwork:block/hinge/attachment",
+      "x": 0,
+      "y": 0
+    },
+    "facing=up,roll=1,assembled=false": {
+      "model": "vs_clockwork:block/hinge/attachment_roll1",
+      "x": 0,
+      "y": 0
+    },
+    "facing=up,roll=1,assembled=true": {
+      "model": "vs_clockwork:block/hinge/attachment_roll1",
+      "x": 0,
+      "y": 0
+    },
+    "facing=up,roll=2,assembled=false": {
+      "model": "vs_clockwork:block/hinge/attachment_roll2",
+      "x": 0,
+      "y": 0
+    },
+    "facing=up,roll=2,assembled=true": {
+      "model": "vs_clockwork:block/hinge/attachment_roll2",
+      "x": 0,
+      "y": 0
+    },
+    "facing=up,roll=3,assembled=false": {
+      "model": "vs_clockwork:block/hinge/attachment_roll3",
+      "x": 0,
+      "y": 0
+    },
+    "facing=up,roll=3,assembled=true": {
+      "model": "vs_clockwork:block/hinge/attachment_roll3",
+      "x": 0,
+      "y": 0
+    },
+    "facing=down,roll=0,assembled=false": {
+      "model": "vs_clockwork:block/hinge/attachment",
+      "x": 180,
+      "y": 0
+    },
+    "facing=down,roll=0,assembled=true": {
+      "model": "vs_clockwork:block/hinge/attachment",
+      "x": 180,
+      "y": 0
+    },
+    "facing=down,roll=1,assembled=false": {
+      "model": "vs_clockwork:block/hinge/attachment_roll1",
+      "x": 180,
+      "y": 0
+    },
+    "facing=down,roll=1,assembled=true": {
+      "model": "vs_clockwork:block/hinge/attachment_roll1",
+      "x": 180,
+      "y": 0
+    },
+    "facing=down,roll=2,assembled=false": {
+      "model": "vs_clockwork:block/hinge/attachment_roll2",
+      "x": 180,
+      "y": 0
+    },
+    "facing=down,roll=2,assembled=true": {
+      "model": "vs_clockwork:block/hinge/attachment_roll2",
+      "x": 180,
+      "y": 0
+    },
+    "facing=down,roll=3,assembled=false": {
+      "model": "vs_clockwork:block/hinge/attachment_roll3",
+      "x": 180,
+      "y": 0
+    },
+    "facing=down,roll=3,assembled=true": {
+      "model": "vs_clockwork:block/hinge/attachment_roll3",
+      "x": 180,
+      "y": 0
+    },
+    "facing=north,roll=0,assembled=false": {
+      "model": "vs_clockwork:block/hinge/attachment",
+      "x": 90,
+      "y": 0
+    },
+    "facing=north,roll=0,assembled=true": {
+      "model": "vs_clockwork:block/hinge/attachment",
+      "x": 90,
+      "y": 0
+    },
+    "facing=north,roll=1,assembled=false": {
+      "model": "vs_clockwork:block/hinge/attachment_roll1",
+      "x": 90,
+      "y": 0
+    },
+    "facing=north,roll=1,assembled=true": {
+      "model": "vs_clockwork:block/hinge/attachment_roll1",
+      "x": 90,
+      "y": 0
+    },
+    "facing=north,roll=2,assembled=false": {
+      "model": "vs_clockwork:block/hinge/attachment_roll2",
+      "x": 90,
+      "y": 0
+    },
+    "facing=north,roll=2,assembled=true": {
+      "model": "vs_clockwork:block/hinge/attachment_roll2",
+      "x": 90,
+      "y": 0
+    },
+    "facing=north,roll=3,assembled=false": {
+      "model": "vs_clockwork:block/hinge/attachment_roll3",
+      "x": 90,
+      "y": 0
+    },
+    "facing=north,roll=3,assembled=true": {
+      "model": "vs_clockwork:block/hinge/attachment_roll3",
+      "x": 90,
+      "y": 0
+    },
+    "facing=east,roll=0,assembled=false": {
+      "model": "vs_clockwork:block/hinge/attachment",
+      "x": 90,
+      "y": 90
+    },
+    "facing=east,roll=0,assembled=true": {
+      "model": "vs_clockwork:block/hinge/attachment",
+      "x": 90,
+      "y": 90
+    },
+    "facing=east,roll=1,assembled=false": {
+      "model": "vs_clockwork:block/hinge/attachment_roll1",
+      "x": 90,
+      "y": 90
+    },
+    "facing=east,roll=1,assembled=true": {
+      "model": "vs_clockwork:block/hinge/attachment_roll1",
+      "x": 90,
+      "y": 90
+    },
+    "facing=east,roll=2,assembled=false": {
+      "model": "vs_clockwork:block/hinge/attachment_roll2",
+      "x": 90,
+      "y": 90
+    },
+    "facing=east,roll=2,assembled=true": {
+      "model": "vs_clockwork:block/hinge/attachment_roll2",
+      "x": 90,
+      "y": 90
+    },
+    "facing=east,roll=3,assembled=false": {
+      "model": "vs_clockwork:block/hinge/attachment_roll3",
+      "x": 90,
+      "y": 90
+    },
+    "facing=east,roll=3,assembled=true": {
+      "model": "vs_clockwork:block/hinge/attachment_roll3",
+      "x": 90,
+      "y": 90
+    },
+    "facing=south,roll=0,assembled=false": {
+      "model": "vs_clockwork:block/hinge/attachment",
+      "x": 90,
+      "y": 180
+    },
+    "facing=south,roll=0,assembled=true": {
+      "model": "vs_clockwork:block/hinge/attachment",
+      "x": 90,
+      "y": 180
+    },
+    "facing=south,roll=1,assembled=false": {
+      "model": "vs_clockwork:block/hinge/attachment_roll1",
+      "x": 90,
+      "y": 180
+    },
+    "facing=south,roll=1,assembled=true": {
+      "model": "vs_clockwork:block/hinge/attachment_roll1",
+      "x": 90,
+      "y": 180
+    },
+    "facing=south,roll=2,assembled=false": {
+      "model": "vs_clockwork:block/hinge/attachment_roll2",
+      "x": 90,
+      "y": 180
+    },
+    "facing=south,roll=2,assembled=true": {
+      "model": "vs_clockwork:block/hinge/attachment_roll2",
+      "x": 90,
+      "y": 180
+    },
+    "facing=south,roll=3,assembled=false": {
+      "model": "vs_clockwork:block/hinge/attachment_roll3",
+      "x": 90,
+      "y": 180
+    },
+    "facing=south,roll=3,assembled=true": {
+      "model": "vs_clockwork:block/hinge/attachment_roll3",
+      "x": 90,
+      "y": 180
+    },
+    "facing=west,roll=0,assembled=false": {
+      "model": "vs_clockwork:block/hinge/attachment",
+      "x": 90,
+      "y": 270
+    },
+    "facing=west,roll=0,assembled=true": {
+      "model": "vs_clockwork:block/hinge/attachment",
+      "x": 90,
+      "y": 270
+    },
+    "facing=west,roll=1,assembled=false": {
+      "model": "vs_clockwork:block/hinge/attachment_roll1",
+      "x": 90,
+      "y": 270
+    },
+    "facing=west,roll=1,assembled=true": {
+      "model": "vs_clockwork:block/hinge/attachment_roll1",
+      "x": 90,
+      "y": 270
+    },
+    "facing=west,roll=2,assembled=false": {
+      "model": "vs_clockwork:block/hinge/attachment_roll2",
+      "x": 90,
+      "y": 270
+    },
+    "facing=west,roll=2,assembled=true": {
+      "model": "vs_clockwork:block/hinge/attachment_roll2",
+      "x": 90,
+      "y": 270
+    },
+    "facing=west,roll=3,assembled=false": {
+      "model": "vs_clockwork:block/hinge/attachment_roll3",
+      "x": 90,
+      "y": 270
+    },
+    "facing=west,roll=3,assembled=true": {
+      "model": "vs_clockwork:block/hinge/attachment_roll3",
+      "x": 90,
+      "y": 270
+    }
+  }
+}

@@ -57,7 +57,7 @@ class GripPadGameTests {
         fun cleanup(level: ServerLevel) {
             ships.forEach { level.shipObjectWorld.deleteShip(it) }; ships.clear()
             chunks.forEach { level.setChunkForced(it.x, it.z, false) }; chunks.clear()
-            players.forEach { level.server.playerList.remove(it) }; players.clear()
+            players.forEach { level.removeTestPlayer(it) }; players.clear()
             channels.forEach { it.finishAndReleaseAll() }; channels.clear()
             VSCoreConfig.SERVER.pt.synchronizePhysics = previousSync
         }

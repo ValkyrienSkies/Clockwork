@@ -38,6 +38,7 @@ class PhysBearingBlock(properties: Properties) : BearingBlock(properties), IBE<P
         state: BlockState,
         oldShipIdToNewId: Map<Long, Long>,
         centerPositions: Map<Long, Pair<Vector3dc, Vector3dc>>,
+        oldJointIdToNewId: Map<Int, Int>,
         tag: CompoundTag?
     ): CompoundTag? {
         tag ?: return null
@@ -45,11 +46,12 @@ class PhysBearingBlock(properties: Properties) : BearingBlock(properties), IBE<P
         if (tag.contains("partnerPosx")) {
             var newPartnerPos = tag.getVector3d("partnerPos")!!
 
-            val partnerId = tag.getInt("partnerShipId").toLong()
+            val partnerId = tag.getLong("partnerShipId")
             val centerMigrate = centerPositions[partnerId] ?: return null
             newPartnerPos = newPartnerPos.sub(centerMigrate.first).add(centerMigrate.second)
             tag.putVector3d("partnerPos", newPartnerPos)
-            tag.putInt("jointId", -1)
+            tag.putLong("partnerShipId", oldShipIdToNewId[partnerId] ?: -1)
+            tag.putInt("jointId", oldJointIdToNewId[tag.getInt("jointId")] ?: -1)
             return tag
         }
 
