@@ -14,6 +14,7 @@ import org.valkyrienskies.mod.common.vsPipeline
 import org.valkyrienskies.clockwork.util.gtpa
 import org.valkyrienskies.clockwork.util.matchesByAnchors
 import org.valkyrienskies.clockwork.util.updateJoint
+import org.valkyrienskies.clockwork.util.ConnectedShipMass
 import org.valkyrienskies.clockwork.content.curiosities.spring.SpringSettings
 import org.valkyrienskies.clockwork.content.curiosities.spring.SpringJoints
 import org.valkyrienskies.clockwork.content.curiosities.rope.RopeKnotPhysics
@@ -61,6 +62,8 @@ class WandLinks : SavedData() {
 
     val links = linkedMapOf<UUID, Link>()
     private var ropeLengthChanged = false
+    private var massGraphTick = Long.MIN_VALUE
+    private var massGraph: ConnectedShipMass? = null
     val sessions = mutableMapOf<UUID, WanderwandServer.Session>()
     // Riding is transient; only the rope itself is saved.
     val riders = mutableMapOf<UUID, WandRopeRiding.Ride>()
@@ -162,7 +165,7 @@ class WandLinks : SavedData() {
                 }
                 link.suspended = false
             }
-            if (link.spring || (link.rope && link.physical)) refreshPhysicalMass(level, link)
+            if (link.spring || link.rope) refreshConnectedMass(level, link)
             if (link.spring) {
                 val next = SpringSettings.easeLength(link.appliedLength, link.length)
                 if (next != link.appliedLength) {
@@ -205,11 +208,32 @@ class WandLinks : SavedData() {
         level.shipObjectWorld.loadedShips.getById(a.shipId)?.transform?.shipToWorldRotation ?: Quaterniond(),
         level.shipObjectWorld.loadedShips.getById(b.shipId)?.transform?.shipToWorldRotation ?: Quaterniond())
 
-    private fun refreshPhysicalMass(level: ServerLevel, link: Link) {
-        val shipA = level.shipObjectWorld.loadedShips.getById(link.a.shipId)
-        val shipB = level.shipObjectWorld.loadedShips.getById(link.b.shipId)
-        val mass = SpringJoints.effectiveMass(shipA?.inertiaData?.mass, shipB?.inertiaData?.mass,
-            fixedA = shipA?.isStatic == true, fixedB = shipB?.isStatic == true)
+    private fun refreshConnectedMass(level: ServerLevel, link: Link) {
+        if (massGraphTick != level.gameTime || massGraph == null) {
+            val ground = level.shipObjectWorld.dimensionToGroundBodyIdImmutable[level.dimensionId]
+            fun position(id: Long?, pose: VSJointPose): Vector3d? =
+                if (id == null || id == ground) Vector3d(pose.pos)
+                else level.shipObjectWorld.loadedShips.getById(id)?.transform?.shipToWorld?.transformPosition(pose.pos, Vector3d())
+            massGraph = ConnectedShipMass(level.gtpa.getAllJoints().values, groundBody = ground, elastic = { joint ->
+                when (joint) {
+                    is VSSpringJoint -> true
+                    is VSDistanceJoint -> {
+                        val a = position(joint.shipId0, joint.pose0)
+                        val b = position(joint.shipId1, joint.pose1)
+                        val distance = if (a != null && b != null) a.distance(b) else null
+                        distance != null && ((joint.maxDistance?.let { distance >= it - 0.01 } == true) ||
+                            (joint.minDistance?.let { distance <= it + 0.01 } == true))
+                    }
+                    else -> false
+                }
+            }) { id ->
+                if (id == ground) ConnectedShipMass.Load(0.0, true)
+                else level.shipObjectWorld.loadedShips.getById(id)?.let { ConnectedShipMass.Load(it.inertiaData.mass, it.isStatic) }
+            }
+            massGraphTick = level.gameTime
+        }
+        val (a, b) = massGraph!!.endpoints(link.a.shipId.takeIf { it >= 0 }, link.b.shipId.takeIf { it >= 0 })
+        val mass = SpringJoints.effectiveMass(a.mass, b.mass, fixedA = a.anchored, fixedB = b.anchored)
         if (kotlin.math.abs(mass - link.mass) > link.mass * 0.01) {
             link.mass = mass
             link.settingsDirty = true
@@ -230,8 +254,8 @@ class WandLinks : SavedData() {
             link.pose0 = poses.first; link.pose1 = poses.second; link.needsReframe = false
             setDirty()
         }
-        if ((link.spring || (link.rope && link.physical)) && link.jointId == null) refreshPhysicalMass(level, link)
-        if (!link.spring && !link.physical && link.jointId == null) {
+        if ((link.spring || link.rope) && link.jointId == null) refreshConnectedMass(level, link)
+        if (!link.spring && !link.rope && link.jointId == null) {
             val massA = level.shipObjectWorld.loadedShips.getById(link.a.shipId)?.inertiaData?.mass
             val massB = level.shipObjectWorld.loadedShips.getById(link.b.shipId)?.inertiaData?.mass
             link.mass = WandLinkPhysics.effectiveMass(massA, massB)

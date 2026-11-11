@@ -35,7 +35,7 @@ class RopeWinchBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: Block
         ropeId = link.id
         data.updateWinchRelease(world, link)
         if (link.releasedMaximum != null) return
-        val next = nextLength(link.length, speed.toDouble(), maximum.value)
+        val next = nextLength(link.length, getSpeed().toDouble(), maximum.value)
         if (next == link.length) return
         data.resizeRope(world, link, next)
     }

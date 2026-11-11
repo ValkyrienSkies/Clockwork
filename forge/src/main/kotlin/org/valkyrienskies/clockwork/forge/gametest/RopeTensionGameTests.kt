@@ -26,6 +26,12 @@ import org.valkyrienskies.clockwork.ClockworkMod
 import org.valkyrienskies.clockwork.content.curiosities.rope.RopeKnotPhysics
 import org.valkyrienskies.clockwork.util.gtpa
 import org.valkyrienskies.core.internal.joints.VSDistanceJoint
+import org.valkyrienskies.core.internal.joints.VSRevoluteJoint
+import org.valkyrienskies.core.internal.joints.VSSpringJoint
+import org.valkyrienskies.core.internal.joints.VSJointPose
+import org.valkyrienskies.core.internal.joints.VSJoint
+import org.joml.Vector3d
+import org.joml.Quaterniond
 import org.valkyrienskies.clockwork.content.curiosities.tools.wanderwand.WandAnchor
 import org.valkyrienskies.clockwork.content.curiosities.tools.wanderwand.WandLinks
 import org.valkyrienskies.core.api.ships.ServerShip
@@ -46,6 +52,7 @@ class RopeTensionGameTests {
         private val channels = mutableListOf<EmbeddedChannel>()
         private val chunks = mutableSetOf<ChunkPos>()
         private val links = mutableListOf<WandLinks.Link>()
+        private val payloadJoints = mutableListOf<Int>()
 
         @JvmStatic @BeforeBatch(batch = "rope_tension")
         fun prepare(level: ServerLevel) {
@@ -55,6 +62,7 @@ class RopeTensionGameTests {
 
         @JvmStatic @AfterBatch(batch = "rope_tension")
         fun cleanup(level: ServerLevel) {
+            payloadJoints.clear()
             links.forEach { WandLinks.get(level).remove(level, it) }; links.clear()
             ships.forEach { level.shipObjectWorld.deleteShip(it) }; ships.clear()
             chunks.forEach { level.setChunkForced(it.x, it.z, false) }; chunks.clear()
@@ -105,7 +113,16 @@ class RopeTensionGameTests {
         @JvmStatic @GameTest(template = TEMPLATE, batch = "rope_tension", timeoutTicks = 140)
         fun winchUpdatesMassWithSecondEndpointFixed(helper: GameTestHelper) = slack(helper, true, false, hanging = true, massChange = true)
 
-        private fun slack(helper: GameTestHelper, vertical: Boolean, staticFirst: Boolean, hanging: Boolean = false, physical: Boolean = true, reeling: Boolean = false, release: Boolean = false, catchRelease: Boolean = true, massChange: Boolean = false) {
+        @JvmStatic @GameTest(template = TEMPLATE, batch = "rope_tension", timeoutTicks = 180)
+        fun ropeAndSpringTrackConnectedPayload(helper: GameTestHelper) = slack(helper, true, true, hanging = true, massChange = true, connectedLoad = true)
+
+        @JvmStatic @GameTest(template = TEMPLATE, batch = "rope_tension", timeoutTicks = 180)
+        fun magicalRopeTracksConnectedPayload(helper: GameTestHelper) = slack(helper, true, false, hanging = true, physical = false, massChange = true, connectedLoad = true)
+
+        @JvmStatic @GameTest(template = TEMPLATE, batch = "rope_tension", timeoutTicks = 180)
+        fun ropeAndSpringTrackSpringLinkedPayload(helper: GameTestHelper) = slack(helper, true, true, hanging = true, massChange = true, connectedLoad = true, springPayload = true)
+
+        private fun slack(helper: GameTestHelper, vertical: Boolean, staticFirst: Boolean, hanging: Boolean = false, physical: Boolean = true, reeling: Boolean = false, release: Boolean = false, catchRelease: Boolean = true, massChange: Boolean = false, connectedLoad: Boolean = false, springPayload: Boolean = false) {
             val level = helper.level
             val base = helper.absolutePos(BlockPos(2, 0, 2)).let { BlockPos(it.x, 180, it.z) }
             val connection = object : Connection(PacketFlow.SERVERBOUND) {
@@ -131,6 +148,7 @@ class RopeTensionGameTests {
             val fixed = ship(base, true)
             val moving = ship(if (hanging) base.below(6) else if (vertical) base.above(6) else base.offset(6, 0, 0), true)
             val control = ship(base.offset(3, 6, 3), false)
+            val payload = if (connectedLoad) ship(base.offset(4, -6, 0), true) else null
             fun anchor(ship: ServerShip): WandAnchor {
                 val box = ship.shipAABB ?: error("Missing rope test ship bounds")
                 val pos = BlockPos(box.minX(), box.minY(), box.minZ())
@@ -138,10 +156,18 @@ class RopeTensionGameTests {
                 if (level.setChunkForced(chunk.x, chunk.z, true)) chunks.add(chunk)
                 return WandAnchor(pos, Direction.NORTH, ship.id)
             }
-            val a = anchor(fixed).let { if (release || massChange) it.copy(face = Direction.DOWN, winch = true) else it }
+            val a = anchor(fixed).let { if (release || (massChange && physical)) it.copy(face = Direction.DOWN, winch = true) else it }
             val b = anchor(moving)
             anchor(control)
-            if (release || massChange) {
+            var payloadPoint = Vector3d()
+            if (payload != null) {
+                val payloadAnchor = anchor(payload)
+                payloadAnchor.local().let { payloadPoint = Vector3d(it.x, it.y, it.z) }
+                BlockPos.betweenClosed(payloadAnchor.pos.offset(-1, -1, -1), payloadAnchor.pos.offset(1, 1, 1))
+                    .map { it.immutable() }.filter { it != payloadAnchor.pos }
+                    .forEach { level.setBlockAndUpdate(it, Blocks.IRON_BLOCK.defaultBlockState()) }
+            }
+            if (release || (massChange && physical)) {
                 level.setBlockAndUpdate(a.pos, org.valkyrienskies.clockwork.ClockworkBlocks.ROPE_WINCH.getDefaultState())
                 (level.getBlockEntity(a.pos) as org.valkyrienskies.clockwork.content.curiosities.rope.RopeWinchBlockEntity).maximum.setValue(if (catchRelease) 24 else 12)
             }
@@ -152,18 +178,27 @@ class RopeTensionGameTests {
             var originalLength = 0.0
             var originalMass = 0.0
             var originalJoint: Int? = null
+            var payloadJoint: Int? = null
+            var spring: WandLinks.Link? = null
             val ballast = BlockPos.betweenClosed(b.pos.offset(-1, -1, -1), b.pos.offset(1, 1, 1))
                 .map { it.immutable() }.filter { it != b.pos }
             fun assertUpdatedMass() {
-                val mass = moving.inertiaData.mass
+                val mass = moving.inertiaData.mass + if (payloadJoint != null) payload!!.inertiaData.mass else 0.0
                 helper.assertTrue(abs(link!!.mass - mass) < mass * 0.01, "Winch mass did not track its dynamic load: ${link!!.mass} / $mass")
                 helper.assertTrue(link!!.jointId == originalJoint, "Mass change replaced the rope joint")
                 val joint = level.gtpa.getJointById(link!!.jointId!!) as? VSDistanceJoint
                 helper.assertTrue(joint != null, "Winch joint disappeared after mass change")
                 val stiffness = joint!!.stiffness?.toDouble() ?: (1.0 / joint.compliance)
-                helper.assertTrue(abs(stiffness / mass - RopeKnotPhysics.STIFFNESS) < 0.1, "Native rope stiffness did not update with mass")
-                if (joint.damping != null) helper.assertTrue(abs(joint.damping!!.toDouble() / mass - RopeKnotPhysics.DAMPING) < 0.1,
+                helper.assertTrue(abs(stiffness / link!!.mass - if (physical) RopeKnotPhysics.STIFFNESS else 625.0) < 0.1,
+                    "Native rope stiffness did not update: stiffness=$stiffness, applied=${link!!.mass}, load=$mass, payload=$payloadJoint")
+                if (joint.damping != null) helper.assertTrue(abs(joint.damping!!.toDouble() / link!!.mass - if (physical) RopeKnotPhysics.DAMPING else 40.0) < 0.1,
                     "Native rope damping did not update with mass")
+                spring?.let {
+                    helper.assertTrue(abs(it.mass - mass) < mass * 0.01, "Spring and rope disagree on connected mass")
+                    val native = it.jointId?.let { id -> level.gtpa.getJointById(id) } as? VSSpringJoint
+                    helper.assertTrue(native != null && abs(native.stiffness.toDouble() / it.mass - 350.0) < 0.1,
+                        "Native spring stiffness did not track connected mass")
+                }
             }
             val stretchAllowance = if (release && catchRelease) 2.0 else 1.0
             helper.startSequence().thenIdle(8).thenWaitUntil {
@@ -225,15 +260,44 @@ class RopeTensionGameTests {
                     originalMass = moving.inertiaData.mass
                     originalJoint = link!!.jointId
                     assertUpdatedMass()
-                    ballast.forEach { level.setBlockAndUpdate(it, Blocks.IRON_BLOCK.defaultBlockState()) }
+                    if (connectedLoad) {
+                        val springA = a.copy(winch = false, face = Direction.DOWN)
+                        val springB = b.copy(face = Direction.UP)
+                        spring = WandLinks.get(level).add(level, springA, springB, true,
+                            springA.world(level)!!.distanceTo(springB.world(level)!!), physical = true, spring = true)
+                        helper.assertTrue(spring != null, "Failed to create parallel spring")
+                        links.add(spring!!)
+                        payload!!.isStatic = false
+                        val point = b.world(level)!!
+                        val local = b.local()
+                        val rootPose = VSJointPose(Vector3d(local.x, local.y, local.z), Quaterniond())
+                        val joint: VSJoint = if (springPayload) {
+                            val other = payload!!.transform.shipToWorld.transformPosition(payloadPoint, Vector3d())
+                            VSSpringJoint(moving.id, rootPose, payload!!.id, VSJointPose(payloadPoint, Quaterniond()),
+                                restLength = other.distance(point.x, point.y, point.z).toFloat(),
+                                stiffness = (payload!!.inertiaData.mass * 350.0).toFloat(), damping = (payload!!.inertiaData.mass * 28.0).toFloat())
+                        } else VSRevoluteJoint(moving.id, rootPose, payload!!.id,
+                            VSJointPose(payload!!.transform.worldToShip.transformPosition(Vector3d(point.x, point.y, point.z)), Quaterniond()))
+                        level.gtpa.addJoint(joint) { id -> level.server.execute {
+                            if (id >= 0) { payloadJoint = id; payloadJoints.add(id) }
+                        } }
+                    } else ballast.forEach { level.setBlockAndUpdate(it, Blocks.IRON_BLOCK.defaultBlockState()) }
                 }
             }.thenWaitUntil {
                 if (massChange) {
-                    helper.assertTrue(moving.inertiaData.mass > maxOf(25_000.0, originalMass * 2), "Ballast did not increase ship mass")
+                    if (connectedLoad) {
+                        helper.assertTrue(payloadJoint != null && payload!!.inertiaData.mass > 25_000.0,
+                            "Payload was not attached: joint=$payloadJoint, mass=${payload!!.inertiaData.mass}")
+                        helper.assertTrue(abs(moving.inertiaData.mass - originalMass) < 1.0, "Payload must remain a separate ship")
+                    } else helper.assertTrue(moving.inertiaData.mass > maxOf(25_000.0, originalMass * 2), "Ballast did not increase ship mass")
                     assertUpdatedMass()
                 }
             }.thenExecute {
-                if (massChange) ballast.forEach { level.removeBlock(it, false) }
+                if (connectedLoad) {
+                    level.gtpa.removeJoint(payloadJoint!!)
+                    payloadJoints.remove(payloadJoint!!)
+                    payloadJoint = null
+                } else if (massChange) ballast.forEach { level.removeBlock(it, false) }
             }.thenWaitUntil {
                 if (massChange) {
                     helper.assertTrue(abs(moving.inertiaData.mass - originalMass) < 1.0, "Removing ballast did not restore ship mass")

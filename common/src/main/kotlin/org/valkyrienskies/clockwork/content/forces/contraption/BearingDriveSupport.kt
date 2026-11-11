@@ -9,6 +9,7 @@ import org.valkyrienskies.core.impl.api_impl.config.ConfigPhysicsBackendType
 import org.valkyrienskies.core.impl.config.VSCoreConfig
 import org.valkyrienskies.core.internal.joints.*
 import org.valkyrienskies.core.internal.world.VsiPhysLevel
+import org.valkyrienskies.clockwork.util.carriesLinearLoad
 
 internal object BearingDriveSupport {
     private data class Load(val inertia: Double, val anchored: Boolean, val bodies: Set<Long>)
@@ -54,20 +55,12 @@ internal object BearingDriveSupport {
             for (jointId in level.getJointsFromShip(id)) {
                 if (jointId == excludedJoint) continue
                 val joint = level.getJointById(jointId) ?: continue
-                if (!supportsLoad(joint)) continue
+                if (!joint.carriesLinearLoad()) continue
                 val other = if (joint.shipId0 == id) joint.shipId1 else joint.shipId0
                 if (other == null) anchored = true else if (other !in visited) queue.add(other)
             }
         }
         return Load(sum, anchored, visited)
-    }
-
-    private fun supportsLoad(joint: VSJoint): Boolean = when (joint) {
-        is VSFixedJoint, is VSRevoluteJoint, is VSSphericalJoint -> true
-        is VSD6Joint -> listOf(VSD6Joint.D6Axis.X, VSD6Joint.D6Axis.Y, VSD6Joint.D6Axis.Z).all {
-            (joint.motions?.get(it) ?: VSD6Joint.D6Motion.LOCKED) == VSD6Joint.D6Motion.LOCKED
-        }
-        else -> false
     }
 
     private fun inertia(ship: PhysShip?, anchor: Vector3dc, axis: Vector3dc): Double {
