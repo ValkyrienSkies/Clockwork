@@ -159,6 +159,7 @@ object ClockworkMod {
         }
 
         TickEvent.SERVER_LEVEL_POST.register {
+            org.valkyrienskies.clockwork.content.curiosities.lubricant.LubricantData.get(it).tick(it)
             org.valkyrienskies.clockwork.content.curiosities.tools.wanderwand.WanderwandServer.tick(it)
             for (ship in it.shipObjectWorld.loadedShips) {
                 GravitronFrozenShip.tick(it, ship)
@@ -175,6 +176,9 @@ object ClockworkMod {
         }
 
         InteractionEvent.RIGHT_CLICK_BLOCK.register(InteractionEvent.RightClickBlock { player, hand, pos, face ->
+            org.valkyrienskies.clockwork.content.curiosities.lubricant.LubricantItem.interact(player, hand, pos, face)
+        })
+        InteractionEvent.RIGHT_CLICK_BLOCK.register(InteractionEvent.RightClickBlock { player, hand, pos, face ->
             DualLinkHandler.handler(player, hand, pos, face)
         })
         InteractionEvent.RIGHT_CLICK_BLOCK.register(InteractionEvent.RightClickBlock { player, hand, pos, face ->
@@ -185,6 +189,7 @@ object ClockworkMod {
         vsApi.collisionStartEvent.on(MeteorStorm::onCollision)
 
         vsApi.physTickEvent.on {
+            org.valkyrienskies.clockwork.content.curiosities.grippad.GripPadController.tick(it.world, it.delta)
             org.valkyrienskies.clockwork.content.curiosities.spring.SpringBendingController.tick(it.world)
             val temp = mutableListOf<Pair<DimensionId, (PhysLevel, Double, () -> Unit) -> Unit>>()
             while (physTickOnce.isNotEmpty()) {

@@ -1,6 +1,8 @@
 {
   "replace": false,
-  "values": ["vs_clockwork:rope_winch",
+  "values": [
+    "vs_clockwork:grip_pad",
+    "vs_clockwork:rope_winch",
     "vs_clockwork:brass_propeller_bearing",
     "vs_clockwork:juryrigged_propeller_bearing",
     "vs_clockwork:blade_controller",

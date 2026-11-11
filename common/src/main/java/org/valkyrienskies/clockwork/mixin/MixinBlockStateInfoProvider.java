@@ -12,6 +12,7 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 import org.valkyrienskies.clockwork.util.BlockUpdateCollector;
+import org.valkyrienskies.clockwork.content.curiosities.lubricant.LubricantData;
 import org.valkyrienskies.mod.common.BlockStateInfoProvider;
 
 @Mixin(LevelChunk.class)
@@ -24,6 +25,9 @@ public class MixinBlockStateInfoProvider {
     @Inject(method = "setBlockState", at = @At("TAIL"))
     private void vs_clockwork$postSetBlockState(BlockPos pos, BlockState state, boolean isMoving, CallbackInfoReturnable<BlockState> cir) {
         if (this.level instanceof ServerLevel serverLevel) {
+            BlockState previous = cir.getReturnValue();
+            if (previous != null && previous.getBlock() != state.getBlock())
+                LubricantData.get(serverLevel).blockChanged(pos);
             BlockUpdateCollector.INSTANCE.onSetBlock(serverLevel, pos, state, cir.getReturnValue());
         }
     }

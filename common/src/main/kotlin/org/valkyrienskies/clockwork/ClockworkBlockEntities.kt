@@ -879,6 +879,15 @@ object ClockworkBlockEntities {
         } }.register()
 
     @JvmField
+    val GRIP_PAD = ClockworkMod.REGISTRATE
+        .blockEntity("grip_pad") { type: BlockEntityType<org.valkyrienskies.clockwork.content.curiosities.grippad.GripPadBlockEntity>, pos: BlockPos, state: BlockState ->
+            org.valkyrienskies.clockwork.content.curiosities.grippad.GripPadBlockEntity(type, pos, state)
+        }.validBlocks(ClockworkBlocks.GRIP_PAD)
+        .renderer { NonNullFunction { context: BlockEntityRendererProvider.Context ->
+            org.valkyrienskies.clockwork.content.curiosities.grippad.GripPadRenderer(context)
+        } }.register()
+
+    @JvmField
     val EXTENDON: BlockEntityEntry<ExtendonBlockEntity> = ClockworkMod.REGISTRATE
         .blockEntity<ExtendonBlockEntity>(
             "extendon"

@@ -677,6 +677,21 @@
   "vs_clockwork.recipe.gas_crafting": "Gas Crafting",
   "vs_clockwork.subtitle.wand_weld": "Wanderwand welds",
 
+  "block.vs_clockwork.grip_pad": "Grip Pad",
+  "block.vs_clockwork.grip_pad.tooltip": "GRIP PAD",
+  "block.vs_clockwork.grip_pad.tooltip.summary": "Provides _traction_ on contact. _Redstone_ engages active grip; lifting the pad releases it. A _comparator_ detects contact.",
+
   "death.attack.gas_burn": "%s was singed to a crisp",
-  "death.attack.gas_explosion": "%s couldn't handle the pressure"
+  "death.attack.gas_explosion": "%s couldn't handle the pressure",
+  "item.vs_clockwork.lubricant": "Lubricant",
+  "item.vs_clockwork.lubricant.hint": "Right-click two corners to coat the blocks between them.",
+  "item.vs_clockwork.lubricant.remove_hint": "Sneak when starting to remove coating. Sneak-use in air to cancel.",
+  "item.vs_clockwork.lubricant.start": "Select the opposite corner to apply lubricant",
+  "item.vs_clockwork.lubricant.remove_start": "Select the opposite corner to remove lubricant",
+  "item.vs_clockwork.lubricant.same_body": "Both corners must be on the same ship or in the world",
+  "item.vs_clockwork.lubricant.too_large": "Select at most 4096 blocks, with no side longer than 64 blocks",
+  "item.vs_clockwork.lubricant.applied": "Coated %s blocks",
+  "item.vs_clockwork.lubricant.removed": "Removed coating from %s blocks",
+  "vs_clockwork.subtitle.lubricant_apply_1": "Lubricant applied",
+  "vs_clockwork.subtitle.lubricant_remove_1": "Lubricant removed"
 }

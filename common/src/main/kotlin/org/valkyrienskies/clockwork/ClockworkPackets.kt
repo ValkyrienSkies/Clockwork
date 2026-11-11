@@ -6,6 +6,7 @@ import net.minecraft.server.level.ServerPlayer
 import net.minecraft.world.entity.Entity
 import net.minecraft.world.level.Level
 import org.valkyrienskies.clockwork.client.render.BladeAngleSyncPacket
+import org.valkyrienskies.clockwork.content.curiosities.lubricant.LubricantSyncPacket
 import org.valkyrienskies.clockwork.client.render.airpocket.AirpocketSyncPacket
 import org.valkyrienskies.clockwork.content.contraptions.flap.smart_flap.FlapLinkedControllerBindPacket
 import org.valkyrienskies.clockwork.content.contraptions.phys.gimbal.quad_link.GimbalLinkedControllerBindPacket
@@ -63,6 +64,7 @@ enum class ClockworkPackets(
     WAND_SELECTION_PACKET(WandSelectionPacket::class.java, ::WandSelectionPacket),
 
     // Server to Client
+    LUBRICANT_SYNC(LubricantSyncPacket::class.java, ::LubricantSyncPacket),
     COLORBLOCKENTITY(BlockEntityColorPacket::class.java, ::BlockEntityColorPacket),
     SYNCABLESTORAGE(SyncableStoragePacket::class.java, ::SyncableStoragePacket),
     BLADEANGLESYNC(BladeAngleSyncPacket::class.java, ::BladeAngleSyncPacket),

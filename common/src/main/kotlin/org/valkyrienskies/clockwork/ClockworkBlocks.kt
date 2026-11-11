@@ -768,6 +768,14 @@ object ClockworkBlocks {
         .item().tab(ClockworkMod.BASE_CREATIVE_TABINFO).build().register()
 
     @JvmField
+    val GRIP_PAD = REGISTRATE.block("grip_pad") { p: BlockBehaviour.Properties ->
+        org.valkyrienskies.clockwork.content.curiosities.grippad.GripPadBlock(p)
+    }.initialProperties { SharedProperties.softMetal() }
+        .transform(axeOrPickaxe()).properties { it.noOcclusion() }
+        .addLayer { Supplier { RenderType.cutout() } }
+        .item().tab(ClockworkMod.BASE_CREATIVE_TABINFO).build().register()
+
+    @JvmField
     val EXTENDON: BlockEntry<ExtendonBlock> =
         REGISTRATE.block("extendon") { properties: BlockBehaviour.Properties? ->
             ExtendonBlock(properties!!)

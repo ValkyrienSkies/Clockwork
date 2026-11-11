@@ -60,6 +60,8 @@ internal class ConnectedShipMass(joints: Collection<VSJoint>,
         return result
     }
 
+    fun sameRigidComponent(a: Long?, b: Long?): Boolean = component(a) === component(b)
+
     private fun normalize(id: Long?): Long? = id.takeUnless { it == groundBody }
     private fun direct(id: Long?): Load = normalize(id)?.let { body(it) ?: Load(0.0) } ?: Load(0.0, true)
 

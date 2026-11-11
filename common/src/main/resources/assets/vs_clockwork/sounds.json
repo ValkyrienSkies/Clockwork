@@ -524,5 +524,20 @@
       }
     ],
     "subtitle": "vs_clockwork.subtitle.balloon_leaking_heavy"
-  }
+  },
+  "lubricant_apply_1": {
+  "subtitle": "vs_clockwork.subtitle.lubricant_apply_1",
+  "sounds": [
+    "vs_clockwork:lubricant_apply_1",
+    "vs_clockwork:lubricant_apply_2",
+    "vs_clockwork:lubricant_apply_3"
+  ]
+},
+  "lubricant_remove_1": {
+  "subtitle": "vs_clockwork.subtitle.lubricant_remove_1",
+  "sounds": [
+    "vs_clockwork:lubricant_remove_1",
+    "vs_clockwork:lubricant_remove_2"
+  ]
+}
 }

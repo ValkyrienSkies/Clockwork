@@ -18,6 +18,7 @@ import org.valkyrienskies.clockwork.content.contraptions.propeller.blades.item.B
 import org.valkyrienskies.clockwork.content.contraptions.propeller.blades.item.BladeItemRenderer
 import org.valkyrienskies.clockwork.content.curiosities.WanderliteCrystal
 import org.valkyrienskies.clockwork.content.curiosities.rope.RopeKnotItem
+import org.valkyrienskies.clockwork.content.curiosities.lubricant.LubricantItem
 import org.valkyrienskies.clockwork.content.curiosities.WanderliteCubeItemRenderer
 import org.valkyrienskies.clockwork.content.curiosities.WanderliteItem
 import org.valkyrienskies.clockwork.content.curiosities.WanderlustMusicDisc
@@ -44,6 +45,12 @@ import org.valkyrienskies.clockwork.util.builder.ClockworkRegistrate
 import java.util.function.Supplier
 
 object ClockworkItems {
+
+    @JvmField
+    val LUBRICANT = REGISTRATE.item<LubricantItem>("lubricant") {
+        LubricantItem(it!!)
+    }.properties { it.durability(256) }.tab(ClockworkMod.BASE_CREATIVE_TABINFO)
+        .model(AssetLookup.existingItemModel()).register()
 
     @JvmField
     val SPRING = REGISTRATE.item<SpringItem>("spring") {

@@ -23,6 +23,10 @@ import java.util.function.Supplier
 
 object ClockworkSounds {
     val ALL: MutableMap<ResourceLocation, SoundEntry> = HashMap()
+    val LUBRICANT_APPLY = create("lubricant_apply_1").addVariant("lubricant_apply_2").addVariant("lubricant_apply_3")
+        .subtitle("Lubricant applied").category(SoundSource.BLOCKS).build()
+    val LUBRICANT_REMOVE = create("lubricant_remove_1").addVariant("lubricant_remove_2")
+        .subtitle("Lubricant removed").category(SoundSource.BLOCKS).build()
     val ROPE_OVERLOAD = create("rope_overload").subtitle("Rope strains").category(SoundSource.BLOCKS).build()
     val SPRING_OVERLOAD = create("spring_overload").subtitle("Spring strains").category(SoundSource.BLOCKS).build()
     val SPRING_ATTACH_START = create("spring_attach_start").subtitle("Spring endpoint attached").category(SoundSource.BLOCKS).build()
