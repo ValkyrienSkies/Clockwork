@@ -237,8 +237,9 @@ class VdexFeatureGameTests {
                 val tag = level.getBlockEntity(origin(copyHost!!).east(2))!!.saveWithoutMetadata()
                 helper.assertTrue(tag.getLong(if (gimbal) "connectedShip" else "partnerShipId") in ids,
                     "Bearing kept an original ship reference")
-                helper.assertTrue(level.gtpa.getAllJoints().values.count { it.shipId0 in ids && it.shipId1 in ids } == 1,
-                    "Copied bearing did not restore exactly one joint")
+                val copiedJoints = level.gtpa.getAllJoints().filterValues { it.shipId0 in ids && it.shipId1 in ids }
+                helper.assertTrue(copiedJoints.size == 1,
+                    "Copied bearing did not restore exactly one joint: saved=${tag.getInt("jointId")}, copies=$ids, joints=${copiedJoints.keys}")
             }.thenIdle(10).thenExecute {
                 val ids = copies.map { it.id }
                 helper.assertTrue(level.gtpa.getAllJoints().values.count { it.shipId0 in ids && it.shipId1 in ids } == 1,

@@ -2,6 +2,7 @@ package org.valkyrienskies.clockwork.content.curiosities.tools.gravitron
 
 import org.joml.Quaterniond
 import org.joml.Vector2d
+import org.joml.Vector3d
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
 
@@ -49,4 +50,35 @@ class GravitronManipulationTest {
         assertEquals(1.0, GravitronManipulation.supportedGain(1000.0, 1000.0, 1000.0, 1.0 / 60))
         assertEquals(1.0, GravitronManipulation.supportedGain(1000.0, Double.NaN, 1000.0, 1.0 / 60))
     }
+    @Test fun dampingIncludesMotionAtAnOffCenterGrabPoint() {
+        val velocity = GravitronManipulation.pointVelocity(Vector3d(), Vector3d(0.0, 2.0, 0.0), Vector3d(3.0, 0.0, 0.0))
+        assertEquals(Vector3d(0.0, 0.0, -6.0), velocity)
+        val acceleration = GravitronManipulation.acceleration(Vector3d(), velocity, 1.0 / 60, 120.0)
+        assertTrue(acceleration.dot(velocity) < 0.0)
+    }
+
+    @Test fun correctionIsBoundedAndConvergesAcrossPhysicsRates() {
+        for (step in listOf(1.0 / 240, 1.0 / 60, .05)) {
+            var position = Vector3d(10.0, -3.0, 2.0)
+            val velocity = Vector3d()
+            repeat((4 / step).toInt()) {
+                val acceleration = GravitronManipulation.acceleration(Vector3d(position).negate(), velocity, step, 120.0)
+                assertTrue(acceleration.isFinite && acceleration.length() <= 120.000001)
+                velocity.fma(step, acceleration)
+                position.fma(step, velocity)
+            }
+            assertTrue(position.length() < .01)
+            assertTrue(velocity.length() < .01)
+        }
+        assertEquals(Vector3d(), GravitronManipulation.acceleration(Vector3d(Double.NaN, 0.0, 0.0), Vector3d(), .02, 120.0))
+    }
+
+    @Test fun distantTargetsStillBrakeExcessiveSpeed() {
+        for (step in listOf(1.0 / 240, 1.0 / 60, .05)) {
+            val velocity = Vector3d(40.0, 0.0, 0.0)
+            val acceleration = GravitronManipulation.acceleration(Vector3d(1000.0, 0.0, 0.0), velocity, step, 120.0)
+            assertTrue(acceleration.dot(velocity) < 0.0)
+        }
+    }
+
 }

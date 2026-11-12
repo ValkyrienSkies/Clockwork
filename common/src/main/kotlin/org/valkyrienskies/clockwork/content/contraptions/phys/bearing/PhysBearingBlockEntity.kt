@@ -37,6 +37,9 @@ import org.valkyrienskies.clockwork.content.forces.contraption.BearingData
 import org.valkyrienskies.clockwork.content.forces.contraption.BearingController
 import org.valkyrienskies.clockwork.platform.api.ContraptionController
 import org.valkyrienskies.clockwork.platform.api.ContraptionController.LockedMode
+import org.valkyrienskies.clockwork.util.BearingAttachmentGeometry
+import org.valkyrienskies.clockwork.util.findCompatiblePhysBearingJoint
+import org.valkyrienskies.clockwork.util.removeCompatiblePhysBearingJointsExcept
 import org.valkyrienskies.clockwork.util.GlueAssembler.collectGlued
 import org.valkyrienskies.clockwork.util.gtpa
 import org.valkyrienskies.clockwork.util.updateJoint
@@ -101,6 +104,8 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
 
     var partnerPos: BlockPos? = null
         private set
+    private var partnerAnchor: Vector3d? = null
+    @Volatile private var neutralRelativeRotation = Quaterniond()
 
     @Volatile
     private var queuedJointToAdd: VSJoint? = null
@@ -203,7 +208,7 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
         val level = level as ServerLevel
         val subShip = level.getShipManagingPos(partnerPos ?: return null) ?: return null
         val mainShip = level.getShipManagingPos(worldPosition)
-        return getAngle(originalFacing.normal.toJOMLD(), subShip.transform, mainShip?.transform)
+        return getAngle(originalFacing.normal.toJOMLD(), subShip.transform, mainShip?.transform, neutralRelativeRotation)
     }
 
     override fun getInterpolatedAngle(partialTicks: Float): Float {
@@ -244,7 +249,8 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
                     BearingController.getAngle(
                         originalFacing.normal.toJOMLD(),
                         subShip.transform,
-                        mainShip?.transform
+                        mainShip?.transform,
+                        neutralRelativeRotation
                     )
                 ).toFloat()
             }
@@ -287,11 +293,17 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
 
         partnerPos?.let { pos -> tag.putVector3d("partnerPos", pos.center.toJOML()) }
         tag.putLong("partnerShipId", partnerShipId)
+        partnerAnchor?.let { tag.putVector3d("PartnerAnchor", it) }
+        tag.putDouble("NeutralRotX", neutralRelativeRotation.x); tag.putDouble("NeutralRotY", neutralRelativeRotation.y)
+        tag.putDouble("NeutralRotZ", neutralRelativeRotation.z); tag.putDouble("NeutralRotW", neutralRelativeRotation.w)
     }
 
     override fun read(tag: CompoundTag, clientPacket: Boolean) {
         super.read(tag, clientPacket)
         if (tag.isEmpty) return
+        partnerAnchor = tag.getVector3d("PartnerAnchor")
+        neutralRelativeRotation = if (tag.contains("NeutralRotW")) Quaterniond(tag.getDouble("NeutralRotX"),
+            tag.getDouble("NeutralRotY"), tag.getDouble("NeutralRotZ"), tag.getDouble("NeutralRotW")) else Quaterniond()
         if (tag.contains("jointId")) {
             jointId = tag.getInt("jointId")
         }
@@ -366,8 +378,10 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
             ), false, shipOn?.id
         )
 
-        val otherShip = level.getLoadedShipManagingPos(otherHit.blockPos)
+        val otherShip = level.getLoadedShipManagingPos(otherHit.blockPos)?.takeUnless { it.id == shipOn?.id }
 
+        partnerAnchor = null
+        neutralRelativeRotation = Quaterniond()
         val newPartnerPos: BlockPos
         if (otherShip == null) {
             val selection: DenseBlockPosSet
@@ -396,6 +410,9 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
             newPartnerPos = BlockPos.containing(migratedPos.x, migratedPos.y, migratedPos.z)
         } else {
             newPartnerPos = otherHit.blockPos
+            partnerAnchor = BearingAttachmentGeometry.anchor(otherHit.blockPos, otherHit.direction, .5)
+            neutralRelativeRotation = BearingAttachmentGeometry.neutral(originalFacing, otherHit.direction,
+                shipOn?.transform?.shipToWorldRotation ?: Quaterniond(), otherShip.transform.shipToWorldRotation)
         }
 
         partnerPos = newPartnerPos
@@ -423,7 +440,7 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
         val mainShip = level.getLoadedShipManagingPos(worldPosition)
 
         val axis = originalFacing.normal.toJOMLD()
-        val angleDegrees = Math.toDegrees(BearingController.getAngle(axis, subShip.transform, mainShip?.transform))
+        val angleDegrees = Math.toDegrees(BearingController.getAngle(axis, subShip.transform, mainShip?.transform, neutralRelativeRotation))
 
         if (abs(angleDegrees) > DISASSEMBLE_ANGLE_TOLERANCE_DEGREES) {
             if (!aligning) {
@@ -483,6 +500,8 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
         jointId = -1
         queuedJointToAdd = null
         partnerPos = null
+        partnerAnchor = null
+        neutralRelativeRotation = Quaterniond()
     }
 
     fun updateJoint(level: ServerLevel? = this.level as? ServerLevel) {
@@ -490,6 +509,8 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
         val updatedJoint = buildJoint()
 
         if (jointId != -1 && updatedJoint != null) {
+            queuedJointToAdd = null
+            level.gtpa.getJointById(jointId)?.let { level.gtpa.removeCompatiblePhysBearingJointsExcept(it, jointId) }
             level.gtpa.updateJoint(jointId, updatedJoint)
         } else {
             queuedJointToAdd = updatedJoint
@@ -600,6 +621,7 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
         val serverLevel = level as? ServerLevel ?: return
         val controller = BearingController.getOrCreate(serverLevel.getLoadedShipManagingPos(partnerPos ?: return) ?: return)
 
+        data.neutralRelativeRotation = Quaterniond(neutralRelativeRotation)
         data.jointId = jointId
         controller.setData(partnerPos!!, data)
     }
@@ -617,20 +639,21 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
 
     @PhysTickOnly
     private fun checkToAddJoint(physLevel: PhysLevel) {
-        queuedJointToAdd ?: return
+        val requested = queuedJointToAdd ?: return
 
         physLevel as VsiPhysLevel
         // If either ship isn't loaded, skip
         if (
-            queuedJointToAdd!!.shipId0 != null && physLevel.getShipById(queuedJointToAdd!!.shipId0!!) == null ||
-            queuedJointToAdd!!.shipId1 != null && physLevel.getShipById(queuedJointToAdd!!.shipId1!!) == null
+            requested.shipId0 != null && physLevel.getShipById(requested.shipId0!!) == null ||
+            requested.shipId1 != null && physLevel.getShipById(requested.shipId1!!) == null
         ) return
 
-        val id = physLevel.addJoint(queuedJointToAdd!!)
+        val id = physLevel.findCompatiblePhysBearingJoint(requested)?.jointId ?: physLevel.addJoint(requested)
         if (id == -1) {
             return
         }
         jointId = id
+        physLevel.removeCompatiblePhysBearingJointsExcept(requested, id)
         queuedJointToAdd = null
     }
 
@@ -660,6 +683,7 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
             originalFacing.normal.z * s,
             org.joml.Math.cosFromSin(s, angle * 0.5)
         ).mul(getHingeRotation(originalFacing))
+        Quaterniond(neutralRelativeRotation).invert().mul(fRot2, fRot2)
         val fRot1 = getHingeRotation(originalFacing)
 
         val updatedJoint = VSFixedJoint(
@@ -711,7 +735,8 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
         val thisShipId = level.getShipManagingPos(worldPosition)?.id
 
         val pose0 = VSJointPose(worldPosition.center.toJOML(), getHingeRotation(originalFacing))
-        val pose1 = VSJointPose(partnerPos.relative(originalFacing.opposite).center.toJOML(), getHingeRotation(originalFacing))
+        val pose1 = VSJointPose(partnerAnchor ?: partnerPos.relative(originalFacing.opposite).center.toJOML(),
+            Quaterniond(neutralRelativeRotation).invert().mul(getHingeRotation(originalFacing)))
 
         // If we're in FOLLOW_ANGLE, this joint will be replaced next physics tick
         val joint = VSRevoluteJoint(thisShipId, pose0, partnerShipId, pose1, compliance = 1e-100, driveFreeSpin = true)

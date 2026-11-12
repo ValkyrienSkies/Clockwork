@@ -55,4 +55,17 @@ class HingeGeometryTest {
         assertEquals(-30, loaded.lower); assertEquals(120, loaded.upper); assertFalse(loaded.connected)
         assertNull(loaded.jointId); assertFalse(loaded.pending)
     }
+    @Test fun reconnectRampsStiffnessBeforeBreakChecksStart() {
+        assertTrue(HingeGeometry.MAX_FORCE >= 100_000_000f)
+        assertTrue(HingeGeometry.MAX_TORQUE >= 50_000_000f)
+        var previous = HingeGeometry.compliance(0)
+        for (tick in 1..HingeGeometry.SETTLE_TICKS) {
+            val compliance = HingeGeometry.compliance(tick)
+            assertTrue(compliance <= previous && compliance >= HingeGeometry.COMPLIANCE)
+            previous = compliance
+        }
+        assertEquals(HingeGeometry.COMPLIANCE, previous)
+        assertTrue(HingeGeometry.BREAK_GRACE_TICKS > HingeGeometry.SETTLE_TICKS)
+    }
+
 }

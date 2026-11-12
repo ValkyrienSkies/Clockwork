@@ -163,8 +163,8 @@ class HingeGameTests {
             var rotation = Quaterniond()
             val loadTicks = AtomicInteger()
             val applied = AtomicInteger()
-            val load = AtomicReference(2_000_000.0)
-            helper.startSequence().thenIdle(25).thenExecute {
+            val load = AtomicReference(25_000_000.0)
+            helper.startSequence().thenIdle(75).thenExecute {
                 helper.assertTrue(link.jointId != null, "Hinge never acquired a joint")
                 val ship = level.shipObjectWorld.loadedShips.getById(link.b.shipId)!!
                 helper.assertTrue(!ship.isStatic, "The hinge payload is static")
@@ -181,7 +181,7 @@ class HingeGameTests {
                     }
                 }
             }.thenIdle(12).thenExecute {
-                helper.assertTrue(link.connected, "The strengthened hinge broke under twice its former force limit")
+                helper.assertTrue(link.connected, "The strengthened hinge broke under a sustained load below its new force limit")
                 load.set(HingeGeometry.MAX_FORCE * 20.0)
             }.thenWaitUntil {
                 helper.assertTrue(!link.connected, "Overloading did not break the hinge after ${applied.get()} force applications; gap=${HingeLinks.worldPoint(level, link.a)!!.distanceTo(HingeLinks.worldPoint(level, link.b)!!)}")

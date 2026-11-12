@@ -9,6 +9,7 @@ import org.joml.Vector3f
 import org.joml.Vector3d
 import org.joml.Vector3dc
 import org.valkyrienskies.clockwork.ClockworkConfig
+import org.valkyrienskies.clockwork.util.BearingAttachmentGeometry
 import org.valkyrienskies.clockwork.util.minus
 import org.valkyrienskies.clockwork.util.times
 import org.valkyrienskies.core.api.VsBeta
@@ -39,6 +40,7 @@ data class BearingData(
     var actualAngle: Double = 0.0,
     var lastLockedTorque: Double = 0.0,
     var jointId: Int = -1,
+    var neutralRelativeRotation: Quaterniondc = Quaterniond(),
 )
 
 @JsonAutoDetect(fieldVisibility = JsonAutoDetect.Visibility.ANY)
@@ -100,7 +102,7 @@ class BearingController : ShipPhysicsListener {
         mainShip?.transform?.shipToWorldRotation?.transform(worldAxis)
         val inertia = BearingDriveSupport.effectiveInertia(physics, data.jointId, current, worldAxis)
         if (inertia <= 0.0) return !BearingDriveSupport.clearDrive(physics, data.jointId)
-        data.actualAngle = getAngle(axis, subShip.transform, mainShip?.transform)
+        data.actualAngle = getAngle(axis, subShip.transform, mainShip?.transform, data.neutralRelativeRotation)
         if (!data.actualAngle.isFinite() || !data.bearingAngle.isFinite() || !data.angularSpeed.isFinite()) {
             BearingDriveSupport.clearDrive(physics, data.jointId)
             return true
@@ -152,7 +154,7 @@ class BearingController : ShipPhysicsListener {
     ): Vector3dc {
         val prevRPM = data.angularSpeed
         val prevAngle = data.bearingAngle
-        data.actualAngle = getAngle(data.bearingAxis!!, physShip.transform, otherPhysShip?.transform)
+        data.actualAngle = getAngle(data.bearingAxis!!, physShip.transform, otherPhysShip?.transform, data.neutralRelativeRotation)
         if (!java.lang.Double.isFinite(data.actualAngle) || !java.lang.Double.isFinite(data.bearingAngle) || !Float.isFinite(data.angularSpeed)) {
             return Vector3d()
         }
@@ -357,31 +359,11 @@ class BearingController : ShipPhysicsListener {
 
     companion object {
         @JvmStatic
-        fun getAngle(bearingAxis: Vector3dc, physShipTransform: ShipTransform, otherPhysShipTransform: ShipTransform?): Double {
-            val bearingAxisInGlobal = bearingAxis.get(Vector3d())
-            otherPhysShipTransform?.shipToWorldRotation?.transform(bearingAxisInGlobal)
-
-            // Only apply torque on the bearing axis
-            // Proportional
-            val perpendicularAxis = when {
-                abs(bearingAxis.x()) == 1.0 -> Vector3d(0.0, 1.0, 0.0)
-                abs(bearingAxis.y()) == 1.0 -> Vector3d(1.0, 0.0, 0.0)
-                abs(bearingAxis.z()) == 1.0 -> Vector3d(0.0, 1.0, 0.0)
-                else -> throw RuntimeException("incorrect data")
-            }
-            var perpAfterRot: Vector3dc = perpendicularAxis.rotate(physShipTransform.shipToWorldRotation, Vector3d())
-            perpAfterRot = otherPhysShipTransform?.shipToWorldRotation?.transformInverse(perpAfterRot, Vector3d()) ?: perpAfterRot
-
-            val perpAfterRotInPlane: Vector3dc = perpAfterRot.sub(bearingAxis.mul(bearingAxis.dot(perpAfterRot), Vector3d()), Vector3d())
-            val angleBTShipInRadians = perpAfterRotInPlane.angle(perpendicularAxis)
-            val crossOfYourMother: Vector3dc = perpAfterRotInPlane.cross(perpendicularAxis, Vector3d())
-            val angleWRespectToBearingAxis: Double = if (crossOfYourMother.lengthSquared() > 1e-12) {
-                angleBTShipInRadians * sign(crossOfYourMother.dot(bearingAxis)) * -1
-                // bro what do you expect me to do :sus:
-            } else {
-                0.0
-            }
-            return angleWRespectToBearingAxis
+        fun getAngle(bearingAxis: Vector3dc, physShipTransform: ShipTransform, otherPhysShipTransform: ShipTransform?,
+                     neutral: Quaterniondc = Quaterniond()): Double {
+            val relative = Quaterniond(otherPhysShipTransform?.shipToWorldRotation ?: Quaterniond()).invert()
+                .mul(physShipTransform.shipToWorldRotation)
+            return BearingAttachmentGeometry.angle(bearingAxis, relative, neutral)
         }
 
         @OptIn(VsBeta::class)

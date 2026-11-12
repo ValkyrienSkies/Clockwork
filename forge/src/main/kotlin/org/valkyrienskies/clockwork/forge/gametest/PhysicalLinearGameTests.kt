@@ -438,7 +438,7 @@ class PhysicalLinearGameTests {
 
         @JvmStatic
         @GameTest(batch = BATCH, template = TEMPLATE, timeoutTicks = 160)
-        fun gimbalPreservesExistingShipOrientation(helper: GameTestHelper) {
+        fun gimbalAlignsExistingShipOnRotatedHost(helper: GameTestHelper) {
             val level = helper.level
             val start = fixturePosition(helper)
             observe(level, start)
@@ -466,25 +466,30 @@ class PhysicalLinearGameTests {
             }.thenIdle(3).thenExecute {
                 targetPosition = host.transform.shipToWorld.transformPosition(base.east().center.toJOML())
                 level.shipObjectWorld.teleportShip(target, vsCore.newShipTeleportData(newPos = targetPosition, newRot = targetRotation))
-            }.thenIdle(3).thenExecute { bearing.assembleNextTick = true }.thenWaitUntil {
+            }.thenIdle(3).thenExecute {
+                bearing.maxAngleBehaviour!!.setValue(0)
+                bearing.assembleNextTick = true
+            }.thenWaitUntil {
                 helper.assertTrue(bearing.isRunning, "Gimbal did not attach")
             }.thenExecute {
                 helper.assertTrue(bearing.connectedShipId == target.id, "Gimbal attached to the wrong ship")
                 helper.assertTrue(abs(target.transform.shipToWorldRotation.dot(targetRotation)) > .999999, "Gimbal rotated the existing ship on attachment")
                 helper.assertTrue(target.transform.positionInWorld.distance(targetPosition) < .001, "Gimbal teleported the existing ship on attachment")
+                target.isStatic = false
+            }.thenIdle(35).thenExecute {
                 val joint = bearing.joint as VSD6Joint
                 val subAnchor = target.transform.shipToWorld.transformPosition(joint.pose0.pos, Vector3d())
                 val hostAnchor = host.transform.shipToWorld.transformPosition(joint.pose1.pos, Vector3d())
-                helper.assertTrue(subAnchor.distance(hostAnchor) < .001, "Gimbal started with separated anchors")
-                val subFrame = Quaterniond(targetRotation).mul(joint.pose0.rot)
+                helper.assertTrue(subAnchor.distance(hostAnchor) < .01, "Gimbal did not bring the attachment anchors together")
+                val subFrame = Quaterniond(target.transform.shipToWorldRotation).mul(joint.pose0.rot)
                 val hostFrame = Quaterniond(hostRotation).mul(joint.pose1.rot)
-                helper.assertTrue(abs(subFrame.dot(hostFrame)) > .999999, "Gimbal started with mismatched angular frames")
+                helper.assertTrue(abs(subFrame.dot(hostFrame)) > .999, "Gimbal did not align its attachment frames")
                 val data = bearing.saveWithoutMetadata()
                 bearing.load(data)
                 val localAxis = bearing.getRenderBearingAxisLocal()
-                val actualAxis = targetRotation.transform(localAxis)
+                val actualAxis = target.transform.shipToWorldRotation.transform(localAxis)
                 val expectedAxis = hostRotation.transform(Vector3d(1.0, 0.0, 0.0))
-                helper.assertTrue(actualAxis.distance(expectedAxis) < .001, "Gimbal lost its attachment orientation on reload")
+                helper.assertTrue(actualAxis.distance(expectedAxis) < .01, "Gimbal lost its attachment orientation on reload")
                 level.removeBlock(base, false)
             }.thenSucceed()
         }

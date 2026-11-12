@@ -11,10 +11,12 @@ import java.util.EnumMap
 import kotlin.math.atan2
 
 object HingeGeometry {
-    const val MAX_FORCE = 5_000_000f
-    const val MAX_TORQUE = 2_500_000f
+    const val MAX_FORCE = 100_000_000f
+    const val MAX_TORQUE = 50_000_000f
     const val RECONNECT_DISTANCE = 2.5
-    const val COMPLIANCE = 1e-7
+    const val COMPLIANCE = 5e-9
+    const val SETTLE_TICKS = 10
+    const val BREAK_GRACE_TICKS = 40
 
     fun orientation(facing: Direction, roll: Int): Quaterniond {
         val result = when (facing) {
@@ -35,14 +37,19 @@ object HingeGeometry {
         Direction.getNearest(it.x, it.y, it.z)
     }
 
-    fun joint(a: Long?, b: Long?, poseA: VSJointPose, poseB: VSJointPose, lower: Int, upper: Int): VSD6Joint {
+    fun joint(a: Long?, b: Long?, poseA: VSJointPose, poseB: VSJointPose, lower: Int, upper: Int, age: Int = SETTLE_TICKS): VSD6Joint {
         val motions = EnumMap<VSD6Joint.D6Axis, VSD6Joint.D6Motion>(VSD6Joint.D6Axis::class.java)
         VSD6Joint.D6Axis.values().forEach { motions[it] = VSD6Joint.D6Motion.LOCKED }
         if (lower != 0 || upper != 0) motions[VSD6Joint.D6Axis.TWIST] = VSD6Joint.D6Motion.LIMITED
         return VSD6Joint(a, poseA, b, poseB, VSJointMaxForceTorque(Float.MAX_VALUE, Float.MAX_VALUE),
-            compliance = COMPLIANCE, motions = motions, twistLimit = if (lower == 0 && upper == 0) null else VSD6Joint.AngularLimitPair(
+            compliance = compliance(age), motions = motions, twistLimit = if (lower == 0 && upper == 0) null else VSD6Joint.AngularLimitPair(
                 Math.toRadians(lower.coerceIn(-180, 0).toDouble()).toFloat(),
                 Math.toRadians(upper.coerceIn(0, 180).toDouble()).toFloat())).also { it.shouldBeSerialized = false }
+    }
+
+    fun compliance(age: Int): Double {
+        val progress = (age.toDouble() / SETTLE_TICKS).coerceIn(0.0, 1.0)
+        return COMPLIANCE + (1e-7 - COMPLIANCE) * (1.0 - progress) * (1.0 - progress)
     }
 
     fun angle(a: Quaterniond, b: Quaterniond): Double {

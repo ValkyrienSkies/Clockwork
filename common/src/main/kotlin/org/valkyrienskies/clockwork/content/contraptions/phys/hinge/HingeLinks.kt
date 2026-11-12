@@ -29,6 +29,7 @@ class HingeLinks : SavedData() {
         var dirty = true
         var missing = 0
         var age = 0
+        var overloadedTicks = 0
         var appliedLower = lower
         var appliedUpper = upper
         fun save() = CompoundTag().also {
@@ -54,7 +55,7 @@ class HingeLinks : SavedData() {
         if (level.hasChunkAt(link.a.pos)) (level.getBlockEntity(link.a.pos) as? HingeBlockEntity)?.updateStrain(false)
         link.generation++
         link.jointId?.let { if (level.gtpa.getJointById(it) != null) level.gtpa.removeJoint(it) }
-        link.jointId = null; link.pending = false; link.dirty = true; link.missing = 0; link.age = 0
+        link.jointId = null; link.pending = false; link.dirty = true; link.missing = 0; link.age = 0; link.overloadedTicks = 0
     }
 
     fun remove(level: ServerLevel, link: Link) {
@@ -120,9 +121,9 @@ class HingeLinks : SavedData() {
             val stateB = level.getBlockState(link.b.pos)
             val poseA = VSJointPose(center(link.a.pos), HingeGeometry.orientation(stateA))
             val poseB = VSJointPose(center(link.b.pos), HingeGeometry.orientation(stateB))
-            if (link.jointId == null || link.dirty) {
+            if (link.jointId == null || link.dirty || link.age <= HingeGeometry.SETTLE_TICKS) {
                 val joint = HingeGeometry.joint(link.a.shipId.takeIf { it >= 0 }, link.b.shipId.takeIf { it >= 0 },
-                    poseA, poseB, link.appliedLower, link.appliedUpper)
+                    poseA, poseB, link.appliedLower, link.appliedUpper, link.age)
                 link.dirty = false
                 if (link.jointId != null) level.gtpa.updateJoint(link.jointId!!, joint) else {
                     val generation = link.generation
@@ -138,7 +139,7 @@ class HingeLinks : SavedData() {
                 }
             }
             link.age++
-            if (link.age > 10) {
+            if (link.age > HingeGeometry.BREAK_GRACE_TICKS) {
                 val a = worldPoint(level, link.a) ?: continue
                 val b = worldPoint(level, link.b) ?: continue
                 val qa = worldRotation(level, link.a)
@@ -149,6 +150,9 @@ class HingeLinks : SavedData() {
                 if (a.distanceTo(b) > HingeGeometry.MAX_FORCE * HingeGeometry.COMPLIANCE ||
                     Math.toDegrees(acos(axisAlignment.coerceIn(-1.0, 1.0))) > angularSlack ||
                     angle < link.appliedLower - angularSlack || angle > link.appliedUpper + angularSlack) {
+                    link.overloadedTicks++
+                } else link.overloadedTicks = 0
+                if (link.overloadedTicks >= 3) {
                     breakLink(level, link)
                     continue
                 }

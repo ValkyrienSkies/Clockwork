@@ -2,7 +2,6 @@ package org.valkyrienskies.clockwork.content.forces
 
 import org.joml.Quaterniond
 import org.joml.Vector3d
-import org.joml.Vector3dc
 import org.valkyrienskies.clockwork.content.curiosities.tools.gravitron.GravitronForceInducerData
 import org.valkyrienskies.clockwork.content.curiosities.tools.gravitron.GravitronManipulation
 import org.valkyrienskies.core.api.attachment.getAttachment
@@ -29,49 +28,26 @@ class GravitronController : ShipPhysicsListener {
             connected?.rigidMass(physShip.id) ?: physShip.mass,
             timeSteps[physLevel.dimension] ?: (1.0 / 60.0))
 
-        run {
-            val pConst = 160.0
-            val dConst = 20.0
+        if (physShip.isStatic || !physShip.mass.isFinite() || physShip.mass <= 0.0) return
+        val step = timeSteps[physLevel.dimension] ?: (1.0 / 60.0)
+        val grabWorld = physShip.transform.shipToWorld.transformPosition(dataCopy.grabbedPos, Vector3d())
+        val grabOffset = Vector3d(grabWorld).sub(physShip.transform.positionInWorld)
+        val velocity = GravitronManipulation.pointVelocity(physShip.velocity, physShip.angularVelocity, grabOffset)
+        val error = dataCopy.idealPos.sub(grabWorld, Vector3d())
+        val acceleration = GravitronManipulation.acceleration(error, velocity, step, 120.0)
+        val force = acceleration.mul(physShip.mass * gain)
+        if (force.isFinite) physShip.applyWorldForceToBodyPos(force)
 
-            val localGrabPos: Vector3dc =
-                physShip.transform.shipToWorld.transformPosition(dataCopy.grabbedPos, Vector3d())
-            val idealPosDif: Vector3dc = dataCopy.idealPos.sub(localGrabPos, Vector3d())
-
-            val posDif: Vector3d = idealPosDif.mul(pConst, Vector3d())
-            val mass = physShip.mass
-
-            // Integrate
-            posDif.sub(physShip.velocity.mul(dConst, Vector3d()))
-
-            val force = posDif.mul(mass * gain, Vector3d())
-            physShip.applyWorldForceToBodyPos(force)
-        }
-
-        run {
-            val pConst = 160.0
-            val dConst = 20.0
-            val rotDif =
-                dataCopy.idealRot.mul(physShip.transform.shipToWorldRotation.invert(Quaterniond()), Quaterniond())
-                    .normalize().invert()
-            val rotDifVector = Vector3d(rotDif.x() * 2.0, rotDif.y() * 2.0, rotDif.z() * 2.0).mul(pConst)
-            if (rotDif.w() < 0) {
-                rotDifVector.mul(-1.0)
-            }
-            rotDifVector.mul(-1.0)
-
-            // Integrate
-            rotDifVector.sub(physShip.angularVelocity.mul(dConst, Vector3d()))
-
-            val torque = physShip.transform.shipToWorldRotation.transform(
-                physShip.momentOfInertia.transform(
-                    physShip.transform.shipToWorldRotation.transformInverse(
-                        rotDifVector,
-                        Vector3d()
-                    )
-                )
-            )
-            physShip.applyWorldTorque(torque.mul(gain))
-        }
+        val rotationError = dataCopy.idealRot.mul(physShip.transform.shipToWorldRotation.invert(Quaterniond()), Quaterniond())
+        if (!rotationError.isFinite || rotationError.lengthSquared() < 1e-12) return
+        rotationError.normalize()
+        val sign = if (rotationError.w < 0.0) -2.0 else 2.0
+        val angularError = Vector3d(rotationError.x, rotationError.y, rotationError.z).mul(sign)
+        val angularAcceleration = GravitronManipulation.acceleration(angularError, physShip.angularVelocity, step, 30.0)
+        val localAcceleration = physShip.transform.shipToWorldRotation.transformInverse(angularAcceleration, Vector3d())
+        val torque = physShip.transform.shipToWorldRotation.transform(physShip.momentOfInertia.transform(localAcceleration))
+            .mul(gain)
+        if (torque.isFinite) physShip.applyWorldTorque(torque)
     }
 
     companion object {

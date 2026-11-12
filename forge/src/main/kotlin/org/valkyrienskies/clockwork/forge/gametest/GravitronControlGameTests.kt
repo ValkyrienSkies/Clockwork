@@ -115,12 +115,17 @@ class GravitronControlGameTests {
         @JvmStatic @GameTest(template = TEMPLATE, batch = "gravitron_controls", timeoutTicks = 160)
         fun connectedMassStaysStableWithRopePayload(helper: GameTestHelper) = connected(helper, "rope")
 
-        private fun connected(helper: GameTestHelper, kind: String) {
+        @JvmStatic @GameTest(template = TEMPLATE, batch = "gravitron_controls", timeoutTicks = 180)
+        fun localMassStaysStableWithJointedPayload(helper: GameTestHelper) = connected(helper, "revolute", false)
+
+        private fun connected(helper: GameTestHelper, kind: String, fullMass: Boolean = true) {
             val level = helper.level
             val base = helper.absolutePos(BlockPos(1, 1, 1)).let { BlockPos(it.x, 220, it.z) }
             val player = player(level, base)
             val root = assemble(level, base, false)
             val payload = assemble(level, base.below(3), true)
+            val extraPayloads = if (fullMass) emptyList() else listOf(6, 9).map { assemble(level, base.below(it), true) }
+            val extraJoints = mutableListOf<Int>()
             val pos = anchor(root)
             val rootMass = root.inertiaData.mass
             val payloadMass = payload.inertiaData.mass
@@ -129,28 +134,43 @@ class GravitronControlGameTests {
                 val point = Vector3d(root.transform.positionInWorld)
                 val poseA = VSJointPose(root.worldToShip.transformPosition(point, Vector3d()), Quaterniond())
                 val poseB = VSJointPose(payload.worldToShip.transformPosition(
-                    if (kind == "fixed") point else payload.transform.positionInWorld, Vector3d()), Quaterniond())
+                    if (kind == "fixed" || kind == "revolute") point else payload.transform.positionInWorld, Vector3d()), Quaterniond())
                 val joint = when (kind) {
                     "fixed" -> VSFixedJoint(root.id, poseA, payload.id, poseB)
+                    "revolute" -> VSRevoluteJoint(root.id, poseA, payload.id, poseB)
                     "spring" -> VSSpringJoint(root.id, poseA, payload.id, poseB, restLength = 3f,
                         stiffness = (rootMass * 350).toFloat(), damping = (rootMass * 28).toFloat())
                     else -> VSDistanceJoint(root.id, poseA, payload.id, poseB, maxDistance = 3f)
                 }
                 level.gtpa.addJoint(joint) { id -> level.server.execute { jointId = id; joints.add(id) } }
+                (listOf(payload) + extraPayloads).zipWithNext().forEach { (a, b) ->
+                    val pivot = Vector3d(a.transform.positionInWorld).lerp(b.transform.positionInWorld, .5)
+                    level.gtpa.addJoint(VSRevoluteJoint(a.id,
+                        VSJointPose(a.worldToShip.transformPosition(pivot, Vector3d()), Quaterniond()), b.id,
+                        VSJointPose(b.worldToShip.transformPosition(pivot, Vector3d()), Quaterniond()))) { id ->
+                        level.server.execute { extraJoints.add(id); joints.add(id) }
+                    }
+                }
             }.thenWaitUntil {
-                helper.assertTrue(jointId != null, "Joint has not been created")
+                helper.assertTrue(jointId != null && extraJoints.size == extraPayloads.size, "Joint has not been created")
             }.thenExecute {
                 GrabTool.updateEquipment(player)
-                helper.assertTrue(GrabTool.tryGrabShip(level, player, pos, Vec3.atCenterOf(pos), true), "Could not grab connected root")
+                helper.assertTrue(GrabTool.tryGrabShip(level, player, pos, Vec3.atCenterOf(pos).add(if (fullMass) 0.0 else .45, .0, .0), true), "Could not grab connected root")
                 payload.isStatic = false
+                extraPayloads.forEach { it.isStatic = false }
                 helper.assertTrue(GravitronLoad.mass(level, root, player.mainHandItem) == rootMass, "Default mode counted other ships")
-                GravitronInputPacket(GravitronInputPacket.Action.CONNECTED_MASS).apply(player)
-                helper.assertTrue(GravitronLoad.enabled(player.mainHandItem), "Mass toggle did not turn on")
-                helper.assertTrue(kotlin.math.abs(GravitronLoad.mass(level, root, player.mainHandItem) - rootMass - payloadMass) < 0.01,
+                if (fullMass) GravitronInputPacket(GravitronInputPacket.Action.CONNECTED_MASS).apply(player)
+                helper.assertTrue(GravitronLoad.enabled(player.mainHandItem) == fullMass, "Wrong mass mode")
+                helper.assertTrue(kotlin.math.abs(GravitronLoad.mass(level, root, player.mainHandItem) - rootMass - (if (fullMass) payloadMass else 0.0)) < 0.01,
                     "Connected mode did not count the payload")
-            }.thenExecuteFor(35) { GrabTool.tick(player) }.thenExecute {
+            }.thenExecuteFor(35) {
+                if (!fullMass) player.yRot = (kotlin.math.sin(level.gameTime * .15) * 25).toFloat()
+                GrabTool.tick(player)
+                helper.assertTrue(root.velocity.isFinite && root.angularVelocity.isFinite && root.velocity.length() < 30 && root.angularVelocity.length() < 10,
+                    "Moving a jointed load caused unstable motion")
+            }.thenExecute {
                 val data = level.shipObjectWorld.loadedShips.getById(root.id)?.getAttachment(GravitronController::class.java)?.data
-                helper.assertTrue(data != null && kotlin.math.abs(data.supportedMass - rootMass - payloadMass) < 0.01, "Force controller did not receive the connected load")
+                helper.assertTrue(data != null && kotlin.math.abs(data.supportedMass - rootMass - (if (fullMass) payloadMass else 0.0)) < 0.01, "Force controller did not receive the connected load")
                 helper.assertTrue(root.velocity.isFinite && root.velocity.length() < 30 && root.angularVelocity.length() < 10, "Connected load destabilized the grabbed ship")
                 helper.assertTrue(kotlin.math.abs(root.inertiaData.mass - rootMass) < 0.01, "Mass compensation changed the actual ship mass")
                 level.gtpa.removeJoint(jointId!!)
@@ -159,7 +179,7 @@ class GravitronControlGameTests {
             }.thenExecuteFor(10) { GrabTool.tick(player) }.thenExecute {
                 helper.assertTrue(GravitronLoad.mass(level, root, player.mainHandItem) == rootMass, "Disconnected payload still contributes mass")
                 helper.assertTrue(level.shipObjectWorld.loadedShips.getById(root.id)?.getAttachment(GravitronController::class.java)?.data?.supportedMass == rootMass, "Force controller retained stale connected mass")
-                GravitronInputPacket(GravitronInputPacket.Action.CONNECTED_MASS).apply(player)
+                if (fullMass) GravitronInputPacket(GravitronInputPacket.Action.CONNECTED_MASS).apply(player)
                 helper.assertTrue(!GravitronLoad.enabled(player.mainHandItem), "Mass toggle did not turn off")
                 helper.assertTrue(root.velocity.isFinite && root.velocity.length() < 30, "Removing a joint left unstable motion")
             }.thenSucceed()

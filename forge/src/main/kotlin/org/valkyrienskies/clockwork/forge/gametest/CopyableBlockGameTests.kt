@@ -135,6 +135,7 @@ class CopyableBlockGameTests {
                     }
                     ClockworkBlocks.PHYS_BEARING.get() -> {
                         tag.putVector3d("partnerPos", Vector3d(103.25, 52.75, 201.125))
+                        tag.putVector3d("PartnerAnchor", Vector3d(103.5, 52.5, 200.5))
                         tag.putLong("partnerShipId", oldShip); tag.putInt("jointId", 7)
                     }
                     else -> {
@@ -159,6 +160,8 @@ class CopyableBlockGameTests {
                         helper.assertTrue(tag.getLong("partnerShipId") == newShip && tag.getInt("jointId") == 17 &&
                             tag.getVector3d("partnerPos")!!.distance(Vector3d(303.25, 82.75, 401.125)) < 1e-9,
                             "Physical bearing did not remap its precise anchor and joint")
+                        helper.assertTrue(tag.getVector3d("PartnerAnchor")!!.distance(Vector3d(303.5, 82.5, 400.5)) < 1e-9,
+                            "Physical bearing kept its original face anchor")
                     }
                     else -> {
                         helper.assertTrue(tag.getLong("connectedShip") == newShip && tag.getInt("JointID") == 17 &&
