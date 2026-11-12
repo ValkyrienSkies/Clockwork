@@ -23,6 +23,14 @@ import java.util.function.Supplier
 
 object ClockworkSounds {
     val ALL: MutableMap<ResourceLocation, SoundEntry> = HashMap()
+    val THINKABLE_ATTACH = create("thinkable_attach").subtitle("Thinkable attached").category(SoundSource.BLOCKS).build()
+    val THINKABLE_DATA = create("thinkable_data_1").addVariant("thinkable_data_2").addVariant("thinkable_data_3")
+        .subtitle("Thinkable transmits data").category(SoundSource.BLOCKS).build()
+    val COMBOBULATOR_DATA = create("combobulator_data_1").addVariant("combobulator_data_2")
+        .subtitle("Combobulator receives data").category(SoundSource.BLOCKS).build()
+    val THINKABLE_SNAP = create("thinkable_snap_1").addVariant("thinkable_snap_2")
+        .subtitle("Thinkable snaps").category(SoundSource.BLOCKS).build()
+    val THINKABLE_OVERLOAD = create("thinkable_overload").subtitle("Thinkable strains").category(SoundSource.BLOCKS).build()
     val GRAVITRON_MASSMODE_ON = create("gravitron_massmode_on").subtitle("Gravitron connected mass enabled").category(SoundSource.PLAYERS).build()
     val GRAVITRON_MASSMODE_OFF = create("gravitron_massmode_off").subtitle("Gravitron connected mass disabled").category(SoundSource.PLAYERS).build()
     val LUBRICANT_APPLY = create("lubricant_apply_1").addVariant("lubricant_apply_2").addVariant("lubricant_apply_3")

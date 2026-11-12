@@ -16,6 +16,7 @@ import org.joml.Quaterniondc
 import org.joml.Vector3d
 import org.valkyrienskies.clockwork.ClockworkMod
 import org.valkyrienskies.clockwork.content.curiosities.tools.wanderwand.WandAnchor
+import org.valkyrienskies.clockwork.content.curiosities.tools.wanderwand.WandRopeCurve
 import org.valkyrienskies.core.api.ships.ClientShip
 import org.valkyrienskies.mod.common.shipObjectWorld
 import kotlin.math.*
@@ -23,8 +24,12 @@ import kotlin.math.*
 object SpringRenderer {
     private val type = RenderType.entityCutoutNoCull(ClockworkMod.asResource("textures/entity/spring.png"))
     private val capType = RenderType.entityCutoutNoCull(ClockworkMod.asResource("textures/entity/spring_end.png"))
+    private val thinkableType = RenderType.entityCutoutNoCull(ClockworkMod.asResource("textures/entity/thinkable_side.png"))
+    private val thinkableCap = RenderType.entityCutoutNoCull(ClockworkMod.asResource("textures/entity/thinkable_end.png"))
+    private val thinkableGlow = RenderType.eyes(ClockworkMod.asResource("textures/entity/thinkable_side.png"))
+    private val thinkableCapGlow = RenderType.eyes(ClockworkMod.asResource("textures/entity/thinkable_end.png"))
     private data class Snap(val a: WandAnchor?, val b: WandAnchor?, val start: Vec3, val end: Vec3,
-                            val restLength: Double, val born: Long)
+                            val restLength: Double, val born: Long, val thinkable: Boolean)
     private val snaps = mutableListOf<Snap>()
     private var world: ClientLevel? = null
 
@@ -65,14 +70,32 @@ object SpringRenderer {
             restLength, 1.0, origin, pose, buffers)
     }
 
-    fun preview(level: ClientLevel, anchor: WandAnchor, end: Vec3, origin: Vec3, pose: PoseStack, buffers: MultiBufferSource) {
+    fun preview(level: ClientLevel, anchor: WandAnchor, end: Vec3, origin: Vec3, pose: PoseStack,
+                buffers: MultiBufferSource, thinkable: Boolean = false) {
         checkWorld(level)
         val start = anchor.world(level, true) ?: return
         if (start.distanceToSqr(end) < 1e-8) return
         val na = normal(level, anchor)
         val direction = end.subtract(start).normalize()
         strand(level, SpringShape.points(start, end, na, direction.scale(-1.0)), na, direction, side(level, anchor), 0.0,
-            start.distanceTo(end), 1.0, origin, pose, buffers)
+            start.distanceTo(end), if (thinkable) 10.0 / 12.0 else 1.0, origin, pose, buffers, thinkable = thinkable)
+    }
+
+    fun renderThinkable(level: ClientLevel, a: WandAnchor, b: WandAnchor, length: Double, pulse: Double,
+                        origin: Vec3, pose: PoseStack, buffers: MultiBufferSource) {
+        val start = a.world(level, true) ?: return
+        val end = b.world(level, true) ?: return
+        if (start.distanceToSqr(end) < 1e-8) return
+        val na = normal(level, a)
+        val nb = normal(level, b)
+        val curve = SpringShape.points(start, end, na, nb)
+        val sag = WandRopeCurve(start, end, length).sag
+        val points = curve.mapIndexed { i, point ->
+            val t = ((i - 1).toDouble() / (curve.lastIndex - 2)).coerceIn(0.0, 1.0)
+            point.add(0.0, -sag * sin(t * PI).pow(2), 0.0)
+        }
+        strand(level, points, na, nb.scale(-1.0), side(level, a), 0.0,
+            length, 10.0 / 12.0, origin, pose, buffers, thinkable = true, pulse = pulse)
     }
 
     fun acceptBreak(level: ClientLevel, tag: CompoundTag) {
@@ -83,7 +106,8 @@ object SpringRenderer {
         if (!length.isFinite() || length <= 0) return
         if (snaps.size >= 32) snaps.removeAt(0)
         snaps.add(Snap(if (tag.contains("a")) WandAnchor.load(tag.getCompound("a")) else null,
-            if (tag.contains("b")) WandAnchor.load(tag.getCompound("b")) else null, start, end, length, level.gameTime))
+            if (tag.contains("b")) WandAnchor.load(tag.getCompound("b")) else null, start, end, length, level.gameTime,
+            tag.getBoolean("thinkable")))
         if (!tag.getBoolean("untied")) {
             val center = start.lerp(end, 0.5)
             repeat(10) {
@@ -117,7 +141,9 @@ object SpringRenderer {
                 val anchor = if (endpoint == 0) snap.a else snap.b
                 val basis = anchor?.let { side(level, it) } ?: perpendicular(n)
                 strand(level, points, n, points.last().subtract(points[points.lastIndex - 1]).normalize(), basis, 0.0,
-                    snap.restLength * 0.5, ((1 - progress) / 0.2).coerceIn(0.0, 1.0), origin, pose, buffers, capEnd = false)
+                    snap.restLength * 0.5, ((1 - progress) / 0.2).coerceIn(0.0, 1.0) *
+                        (if (snap.thinkable) 10.0 / 12.0 else 1.0), origin, pose, buffers, capEnd = false,
+                    thinkable = snap.thinkable)
             }
         }
     }
@@ -127,7 +153,8 @@ object SpringRenderer {
 
     private fun strand(level: ClientLevel, points: List<Vec3>, startNormal: Vec3, endNormal: Vec3,
                        initialSide: Vec3, twist: Double, restLength: Double, scale: Double,
-                       origin: Vec3, pose: PoseStack, buffers: MultiBufferSource, capEnd: Boolean = true) {
+                       origin: Vec3, pose: PoseStack, buffers: MultiBufferSource, capEnd: Boolean = true,
+                       thinkable: Boolean = false, pulse: Double = -1.0) {
         if (points.first().distanceToSqr(points.last()) < 1e-10) return
         val tangents = points.indices.map { i ->
             when {
@@ -158,27 +185,55 @@ object SpringRenderer {
         for (i in 1..points.lastIndex) lengths[i] = lengths[i - 1] + points[i].distanceTo(points[i - 1])
         val total = lengths.last().coerceAtLeast(1e-6)
         val transform = pose.last()
-        fun vertex(consumer: VertexConsumer, point: Vec3, u: Float, v: Float, light: Int, normal: Vec3) {
+        fun vertex(consumer: VertexConsumer, point: Vec3, u: Float, v: Float, light: Int, normal: Vec3, brightness: Double = 1.0) {
             val local = point.subtract(origin)
+            val color = (brightness.coerceIn(0.0, 1.0) * 255).roundToInt()
             consumer.vertex(transform.pose(), local.x.toFloat(), local.y.toFloat(), local.z.toFloat())
-                .color(255, 255, 255, 255).uv(u, v).overlayCoords(OverlayTexture.NO_OVERLAY).uv2(light)
+                .color(color, color, color, 255)
+                .uv(u, v).overlayCoords(OverlayTexture.NO_OVERLAY).uv2(light)
                 .normal(transform.normal(), normal.x.toFloat(), normal.y.toFloat(), normal.z.toFloat()).endVertex()
         }
-        val consumer = buffers.getBuffer(type)
+        val consumer = buffers.getBuffer(if (thinkable) thinkableType else type)
         for (i in 0 until points.lastIndex) {
             val light = LevelRenderer.getLightColor(level, BlockPos.containing(points[i]))
-            val v0 = (lengths[i] / total * restLength / SpringShape.REPEAT_LENGTH).toFloat()
-            val v1 = (lengths[i + 1] / total * restLength / SpringShape.REPEAT_LENGTH).toFloat()
+            val repeat = if (thinkable) 10.0 / 16.0 else SpringShape.REPEAT_LENGTH
+            val v0 = (lengths[i] / total * restLength / repeat).toFloat()
+            val v1 = (lengths[i + 1] / total * restLength / repeat).toFloat()
             for (face in 0..3) {
                 val next = (face + 1) % 4
                 val n = rings[i][face].add(rings[i][next]).scale(0.5).subtract(points[i]).normalize()
                 vertex(consumer, rings[i][face], 0f, v0, light, n)
-                vertex(consumer, rings[i + 1][face], 0f, v1, light, n)
-                vertex(consumer, rings[i + 1][next], 1f, v1, light, n)
                 vertex(consumer, rings[i][next], 1f, v0, light, n)
+                vertex(consumer, rings[i + 1][next], 1f, v1, light, n)
+                vertex(consumer, rings[i + 1][face], 0f, v1, light, n)
             }
         }
-        val caps = buffers.getBuffer(capType)
+        fun pulseBrightness(distance: Double): Double {
+            val falloff = (1.0 - abs(distance - pulse * total) / 0.9).coerceIn(0.0, 1.0)
+            val smooth = falloff * falloff * (3.0 - 2.0 * falloff)
+            return smooth * smooth
+        }
+        if (thinkable && pulse in 0.0..1.0) {
+            val brightness = lengths.map(::pulseBrightness)
+            val glowRings = rings.mapIndexed { i, ring ->
+                ring.map { point -> points[i].add(point.subtract(points[i]).scale(1.0 + 0.08 * brightness[i])) }
+            }
+            val glow = buffers.getBuffer(thinkableGlow)
+            for (i in 0 until points.lastIndex) {
+                if (brightness[i] == 0.0 && brightness[i + 1] == 0.0) continue
+                val v0 = (lengths[i] / total * restLength * 1.6).toFloat()
+                val v1 = (lengths[i + 1] / total * restLength * 1.6).toFloat()
+                for (face in 0..3) {
+                    val next = (face + 1) % 4
+                    val n = rings[i][face].add(rings[i][next]).scale(0.5).subtract(points[i]).normalize()
+                    vertex(glow, glowRings[i][face], 0f, v0, 0xf000f0, n, brightness[i])
+                    vertex(glow, glowRings[i][next], 1f, v0, 0xf000f0, n, brightness[i])
+                    vertex(glow, glowRings[i + 1][next], 1f, v1, 0xf000f0, n, brightness[i + 1])
+                    vertex(glow, glowRings[i + 1][face], 0f, v1, 0xf000f0, n, brightness[i + 1])
+                }
+            }
+        }
+        val caps = buffers.getBuffer(if (thinkable) thinkableCap else capType)
         fun cap(index: Int) {
             val ring = rings[index]
             val first = index == 0
@@ -192,5 +247,16 @@ object SpringRenderer {
         }
         cap(0)
         if (capEnd) cap(rings.lastIndex)
+        if (thinkable && pulse in 0.0..1.0) {
+            val brightness = pulseBrightness(total)
+            val glow = buffers.getBuffer(thinkableCapGlow)
+            val corners = rings.last().map { point ->
+                points.last().add(point.subtract(points.last()).scale(1.0 + 0.08 * brightness)).add(endNormal.scale(0.002))
+            }
+            vertex(glow, corners[0], 0f, 1f, 0xf000f0, endNormal, brightness)
+            vertex(glow, corners[1], 1f, 1f, 0xf000f0, endNormal, brightness)
+            vertex(glow, corners[2], 1f, 0f, 0xf000f0, endNormal, brightness)
+            vertex(glow, corners[3], 0f, 0f, 0xf000f0, endNormal, brightness)
+        }
     }
 }

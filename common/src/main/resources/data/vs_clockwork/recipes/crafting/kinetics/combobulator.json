@@ -1,0 +1,11 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [" R ", "LCL", " P "],
+  "key": {
+    "R": { "item": "minecraft:redstone" },
+    "L": { "item": "create:redstone_link" },
+    "C": { "item": "create:brass_casing" },
+    "P": { "item": "create:precision_mechanism" }
+  },
+  "result": { "item": "vs_clockwork:combobulator" }
+}

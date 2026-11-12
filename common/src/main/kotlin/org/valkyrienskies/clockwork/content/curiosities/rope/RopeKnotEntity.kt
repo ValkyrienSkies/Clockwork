@@ -16,6 +16,7 @@ import net.minecraft.world.level.Level
 import org.valkyrienskies.clockwork.content.curiosities.spring.SpringClipboard
 import org.valkyrienskies.clockwork.content.curiosities.spring.SpringControls
 import org.valkyrienskies.clockwork.content.curiosities.tools.wanderwand.WandLinks
+import org.valkyrienskies.clockwork.content.kinetics.combobulator.ThinkableItem
 import java.util.UUID
 import java.util.Optional
 
@@ -72,6 +73,12 @@ class RopeKnotEntity(type: EntityType<*>, level: Level) : Entity(type, level) {
 
     override fun interact(player: Player, hand: InteractionHand): InteractionResult {
         val stack = player.getItemInHand(hand)
+        val thinkable = stack.item as? ThinkableItem
+        if (thinkable != null) {
+            if (player !is ServerPlayer) return InteractionResult.SUCCESS
+            val link = linkId?.let { WandLinks.get(player.serverLevel()).links[it] } ?: return InteractionResult.PASS
+            return thinkable.useAnchor(player, stack, if (end == 0) link.a else link.b)
+        }
         if (spring && hand == InteractionHand.MAIN_HAND && SpringClipboard.isClipboard(stack)) {
             if (player is ServerPlayer) SpringControls.copyToClipboard(player, this, stack)
             return InteractionResult.sidedSuccess(level().isClientSide)

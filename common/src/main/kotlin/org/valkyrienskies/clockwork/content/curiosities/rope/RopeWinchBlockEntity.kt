@@ -13,11 +13,33 @@ import net.minecraft.world.level.block.entity.BlockEntityType
 import net.minecraft.world.level.block.state.BlockState
 import net.minecraft.world.phys.Vec3
 import org.valkyrienskies.clockwork.content.curiosities.tools.wanderwand.WandLinks
+import org.valkyrienskies.clockwork.content.kinetics.combobulator.IThinkable
+import org.valkyrienskies.clockwork.content.kinetics.combobulator.ThinkableConnections
 import java.util.UUID
 
-class RopeWinchBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: BlockState) : KineticBlockEntity(type, pos, state) {
+class RopeWinchBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: BlockState) : KineticBlockEntity(type, pos, state), IThinkable {
     lateinit var maximum: ScrollValueBehaviour
     private var ropeId: UUID? = null
+
+    override fun acceptsThinkable(side: Direction) = side == Direction.UP
+    override fun providesThinkable(side: Direction) = side.axis.isHorizontal &&
+        side.axis != blockState.getValue(HorizontalAxisKineticBlock.HORIZONTAL_AXIS)
+    override fun thinkablePortName(side: Direction): Component? = when {
+        acceptsThinkable(side) -> Component.translatable("thinkable.vs_clockwork.port.rope_target")
+        providesThinkable(side) -> Component.translatable("thinkable.vs_clockwork.port.rope_length")
+        else -> null
+    }
+    override fun thinkableValue(side: Direction): Double? {
+        val world = level as? ServerLevel ?: return null
+        return rope(WandLinks.get(world))?.takeUnless { it.suspended }?.length?.takeIf { providesThinkable(side) }
+    }
+
+    private fun rope(data: WandLinks): WandLinks.Link? {
+        val link = data.links[ropeId] ?: data.links.values.firstOrNull { !it.spring && !it.thinkable && it.physical &&
+            ((it.a.winch && it.a.pos == blockPos) || (it.b.winch && it.b.pos == blockPos)) }
+        ropeId = link?.id
+        return link
+    }
 
     override fun addBehaviours(behaviours: MutableList<BlockEntityBehaviour>) {
         super.addBehaviours(behaviours)
@@ -31,12 +53,12 @@ class RopeWinchBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: Block
         super.tick()
         val world = level as? ServerLevel ?: return
         val data = WandLinks.get(world)
-        val link = data.links[ropeId] ?: data.links.values.firstOrNull { !it.spring && it.physical &&
-            ((it.a.winch && it.a.pos == blockPos) || (it.b.winch && it.b.pos == blockPos)) } ?: return
-        ropeId = link.id
+        val link = rope(data) ?: return
         data.updateWinchRelease(world, link)
         if (link.releasedMaximum != null) return
-        val next = nextLength(link.length, getSpeed().toDouble(), maximum.value)
+        val input = ThinkableConnections.input(world, blockPos, Direction.UP)
+        val next = if (input == null) nextLength(link.length, getSpeed().toDouble(), maximum.value)
+            else nextTargetLength(link.length, getSpeed().toDouble(), maximum.value, input.value)
         if (next == link.length) return
         data.resizeRope(world, link, next)
     }
@@ -53,6 +75,12 @@ class RopeWinchBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: Block
     }
 
     companion object {
+        fun nextTargetLength(length: Double, rpm: Double, maximum: Int, target: Double?): Double {
+            if (!rpm.isFinite() || target == null || !target.isFinite()) return length
+            val step = (kotlin.math.abs(rpm) / 512.0).coerceAtMost(0.25)
+            return length + (target.coerceIn(0.5, maximum.toDouble()) - length).coerceIn(-step, step)
+        }
+
         fun releasedLength(length: Double, distance: Double, maximum: Double): Double =
             if (!distance.isFinite()) length else maxOf(length, distance.coerceAtMost(maximum))
 

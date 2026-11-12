@@ -30,6 +30,7 @@ import org.joml.Vector3dc
 import org.valkyrienskies.clockwork.ClockworkConfig
 import org.valkyrienskies.clockwork.ClockworkMod.MOD_ID
 import org.valkyrienskies.clockwork.ClockworkSounds
+import org.valkyrienskies.clockwork.content.kinetics.combobulator.IThinkable
 import org.valkyrienskies.clockwork.content.contraptions.flap.dual_link.DualLinkBehaviour
 import org.valkyrienskies.clockwork.content.forces.contraption.BearingController.Companion.getAngle
 import org.valkyrienskies.clockwork.content.forces.contraption.BearingData
@@ -73,7 +74,16 @@ import kotlin.math.sin
 
 class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: BlockState?) :
     GeneratingKineticBlockEntity(type, pos, state), IBearingBlockEntity, IDisplayAssemblyExceptions,
-    ContraptionController, BlockEntityPhysicsListener {
+    ContraptionController, BlockEntityPhysicsListener, IThinkable {
+
+    override fun providesThinkable(side: Direction) = side.axis != facing.axis
+    override fun thinkablePortName(side: Direction): Component? =
+        Component.translatable("thinkable.vs_clockwork.port.angle").takeIf { providesThinkable(side) }
+    override fun thinkableValue(side: Direction): Double? {
+        val world = level as? ServerLevel ?: return null
+        if (!providesThinkable(side) || !isRunning || world.getLoadedShipManagingPos(partnerPos ?: return null) == null) return null
+        return getActualAngle()?.let(Math::toDegrees)
+    }
 
     var movementMode: ScrollOptionBehaviour<LockedMode>? = null
 

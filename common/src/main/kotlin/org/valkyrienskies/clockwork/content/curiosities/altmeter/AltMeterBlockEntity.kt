@@ -3,16 +3,27 @@ package org.valkyrienskies.clockwork.content.curiosities.altmeter
 import com.simibubi.create.foundation.blockEntity.SmartBlockEntity
 import com.simibubi.create.foundation.blockEntity.behaviour.BlockEntityBehaviour
 import net.minecraft.core.BlockPos
+import net.minecraft.core.Direction
 import net.minecraft.nbt.CompoundTag
+import net.minecraft.network.chat.Component
 import net.minecraft.world.level.block.entity.BlockEntityType
 import net.minecraft.world.level.block.state.BlockState
+import net.minecraft.world.phys.Vec3
+import org.valkyrienskies.clockwork.content.kinetics.combobulator.IThinkable
 import org.valkyrienskies.clockwork.util.ClockworkConstants
 import org.valkyrienskies.kelvin.util.KelvinExtensions.toVector3d
 import org.valkyrienskies.mod.common.getShipManagingPos
+import org.valkyrienskies.mod.common.toWorldCoordinates
 import kotlin.math.absoluteValue
 
 class AltMeterBlockEntity(typeIn: BlockEntityType<*>?, pos: BlockPos, state: BlockState) :
-    SmartBlockEntity(typeIn, pos, state) {
+    SmartBlockEntity(typeIn, pos, state), IThinkable {
+
+    override fun providesThinkable(side: Direction) = true
+    override fun thinkablePortName(side: Direction): Component = Component.translatable("thinkable.vs_clockwork.port.altitude")
+
+    override fun thinkableValue(side: Direction): Double? =
+        level?.toWorldCoordinates(Vec3.atCenterOf(blockPos))?.y
     internal var triggerHeight: Int = 0
     internal var triggerSensitivity: Int = 1
     internal var triggerDirection: AltMeterDirection = AltMeterDirection.UP;

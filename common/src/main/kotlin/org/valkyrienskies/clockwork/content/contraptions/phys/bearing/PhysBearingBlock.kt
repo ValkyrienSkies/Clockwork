@@ -23,6 +23,7 @@ import net.minecraft.world.phys.shapes.CollisionContext
 import net.minecraft.world.phys.shapes.VoxelShape
 import org.joml.Vector3dc
 import org.valkyrienskies.clockwork.ClockworkBlockEntities
+import org.valkyrienskies.clockwork.content.kinetics.combobulator.ThinkableItem
 import org.valkyrienskies.clockwork.ClockworkConfig
 import org.valkyrienskies.core.api.ships.ServerShip
 import org.valkyrienskies.mod.common.assembly.ICopyableBlock
@@ -64,6 +65,7 @@ class PhysBearingBlock(properties: Properties) : BearingBlock(properties), IBE<P
     }
 
     override fun use(state: BlockState, worldIn: Level, pos: BlockPos, player: Player, handIn: InteractionHand, hit: BlockHitResult): InteractionResult {
+        if (player.getItemInHand(handIn).item is ThinkableItem) return InteractionResult.PASS
         if (!player.mayBuild()) return InteractionResult.FAIL
         if (player.isShiftKeyDown) return InteractionResult.FAIL
         if (handIn == InteractionHand.OFF_HAND) return InteractionResult.FAIL

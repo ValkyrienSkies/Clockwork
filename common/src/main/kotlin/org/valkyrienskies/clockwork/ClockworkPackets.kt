@@ -31,6 +31,7 @@ import org.valkyrienskies.clockwork.content.curiosities.tools.wanderwand.Wanderw
 import org.valkyrienskies.clockwork.content.curiosities.tools.wanderwand.WandRopeRidePacket
 import org.valkyrienskies.clockwork.content.kinetics.sequenced_seat.SequencedSeatDrivingPacket
 import org.valkyrienskies.clockwork.content.kinetics.sequenced_seat.UpdateSeatRulesPacket
+import org.valkyrienskies.clockwork.content.kinetics.combobulator.ConfigureCombobulatorPacket
 import org.valkyrienskies.clockwork.content.logistics.gas.duct.DuctEdgeSyncPacket
 import org.valkyrienskies.clockwork.content.logistics.gas.filter.FilterClosePacket
 import org.valkyrienskies.clockwork.content.logistics.gas.filter.FilterScreenOpenPacket
@@ -106,6 +107,7 @@ enum class ClockworkPackets(
     WAND_ROPE_RIDE_PACKET(WandRopeRidePacket::class.java, ::WandRopeRidePacket),
     SPRING_ADJUST_PACKET(SpringAdjustPacket::class.java, { SpringAdjustPacket(it) }),
     WAND_ROPE_RIDE_JUMP_PACKET(WandJumpPacket::class.java, ::WandJumpPacket),
+    CONFIGURE_COMBOBULATOR(ConfigureCombobulatorPacket::class.java, ::ConfigureCombobulatorPacket),
 
     ;
 

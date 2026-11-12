@@ -143,6 +143,9 @@ class PhysicalLinearGameTests {
                     helper.assertTrue(level.gtpa.getAllJoints().values.any { it.shipId1 == ship.id && it is VSFixedJoint },
                         "Locked gantry did not hold its position after the shaft stopped")
                     helper.assertTrue(abs(height(level, carriage.blockPos) - stoppedHeight) < .15, "Locked gantry moved after the shaft stopped")
+                    val reading = carriage.thinkableValue(Direction.UP)
+                    helper.assertTrue(reading != null && abs(reading - (height(level, carriage.blockPos) - start.y - .5)) < .05,
+                        "Gantry Thinkable did not report actual travel: $reading")
                     carriage.getBehaviour(ScrollValueBehaviour.TYPE).setValue(1)
                 }
                 .thenWaitUntil {
@@ -265,6 +268,9 @@ class PhysicalLinearGameTests {
                 .thenIdle(10)
                 .thenExecute {
                     helper.assertTrue(abs(height(level, origin) - stoppedHeight) < .15, "Unpowered piston brake slipped")
+                    val reading = piston.thinkableValue(Direction.NORTH)
+                    helper.assertTrue(reading != null && abs(reading - (height(level, origin) - base.y - .5)) < .05,
+                        "Piston Thinkable did not report actual travel: $reading")
                     level.setBlockAndUpdate(redstone, Blocks.REDSTONE_BLOCK.defaultBlockState())
                 }
                 .thenWaitUntil {

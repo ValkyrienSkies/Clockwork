@@ -285,7 +285,15 @@ object WanderwandServer {
             data.links.values.asSequence().filter {
                 (it.a.world(level)?.distanceToSqr(player.position()) ?: Double.MAX_VALUE) < 192 * 192 ||
                     (it.b.world(level)?.distanceToSqr(player.position()) ?: Double.MAX_VALUE) < 192 * 192
-            }.take(256).forEach { link -> list.add(link.save().also { it.putFloat("stress", link.stress) }) }
+            }.take(256).forEach { link -> list.add(link.save().also {
+                it.putFloat("stress", link.stress)
+                if (link.thinkable) {
+                    it.putLong("pulseStart", link.pulseStart)
+                    it.putInt("pulseDuration", link.pulseDuration)
+                    it.putInt("pulseAge", if (link.pulseStart < 0) -1 else
+                        (level.gameTime - link.pulseStart).coerceIn(0, Int.MAX_VALUE.toLong()).toInt())
+                }
+            }) }
             ClockworkPackets.sendTo(WanderwandStatePacket(CompoundTag().also { it.putString("kind", "links"); it.put("links", list) }), player)
         }
     }

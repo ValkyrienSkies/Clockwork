@@ -7,6 +7,7 @@ import com.simibubi.create.content.kinetics.base.KineticBlockEntity
 import net.minecraft.core.BlockPos
 import net.minecraft.core.Direction
 import net.minecraft.nbt.CompoundTag
+import net.minecraft.network.chat.Component
 import net.minecraft.server.level.ServerLevel
 import net.minecraft.world.level.block.entity.BlockEntityType
 import net.minecraft.world.level.block.state.BlockState
@@ -16,6 +17,7 @@ import org.joml.Vector3d
 import org.joml.Vector3i
 import org.valkyrienskies.clockwork.util.alignAssembledShip
 import org.valkyrienskies.clockwork.util.gtpa
+import org.valkyrienskies.clockwork.content.kinetics.combobulator.IThinkable
 import org.valkyrienskies.core.api.ships.PhysShip
 import org.valkyrienskies.core.api.ships.ServerShip
 import org.valkyrienskies.core.api.world.PhysLevel
@@ -42,7 +44,22 @@ private const val DRIVE_POSITION_GAIN = 600.0
 private const val MAX_DRIVE_ACCELERATION = 360.0
 
 abstract class PhysicalLinearBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: BlockState) :
-    KineticBlockEntity(type, pos, state), IDisplayAssemblyExceptions, BlockEntityPhysicsListener {
+    KineticBlockEntity(type, pos, state), IDisplayAssemblyExceptions, BlockEntityPhysicsListener, IThinkable {
+
+    override fun providesThinkable(side: Direction) = side.axis != facing.axis
+    override fun thinkablePortName(side: Direction): Component? =
+        Component.translatable("thinkable.vs_clockwork.port.displacement").takeIf { providesThinkable(side) }
+
+    @Synchronized
+    override fun thinkableValue(side: Direction): Double? {
+        val world = level as? ServerLevel ?: return null
+        val current = slide ?: return null
+        if (!providesThinkable(side) || !isAssembled) return null
+        val child = world.getLoadedShipManagingPos(current.childAnchor)?.takeIf { it.id == current.childId } ?: return null
+        val parent = if (current.parentId == null) null else
+            world.getLoadedShipManagingPos(current.parentAnchor)?.takeIf { it.id == current.parentId } ?: return null
+        return displacement(parent, child, current.parentAnchor, current.childAnchor, current.axis)
+    }
 
     protected val facing: Direction get() = blockState.getValue(BlockStateProperties.FACING)
     internal abstract val isAssembled: Boolean

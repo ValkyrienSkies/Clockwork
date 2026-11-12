@@ -19,6 +19,7 @@ import net.minecraft.world.level.block.state.BlockState
 import net.minecraft.world.level.block.state.StateDefinition
 import net.minecraft.world.phys.BlockHitResult
 import org.valkyrienskies.clockwork.ClockworkBlockEntities
+import org.valkyrienskies.clockwork.content.kinetics.combobulator.ThinkableItem
 import java.util.function.Consumer
 
 open class FlapBearingBlock(properties: Properties?) : BearingBlock(properties), IBE<FlapBearingBlockEntity>,
@@ -48,6 +49,7 @@ open class FlapBearingBlock(properties: Properties?) : BearingBlock(properties),
         handIn: InteractionHand,
         hit: BlockHitResult
     ): InteractionResult {
+        if (player.getItemInHand(handIn).item is ThinkableItem) return InteractionResult.PASS
         if (!player.mayBuild()) return InteractionResult.FAIL
         if (player.isShiftKeyDown) return InteractionResult.FAIL
         if (player.getItemInHand(handIn).isEmpty) {

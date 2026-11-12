@@ -1,0 +1,8 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "ingredients": [
+    { "item": "vs_clockwork:spring" },
+    { "item": "minecraft:redstone" }
+  ],
+  "result": { "item": "vs_clockwork:thinkable" }
+}

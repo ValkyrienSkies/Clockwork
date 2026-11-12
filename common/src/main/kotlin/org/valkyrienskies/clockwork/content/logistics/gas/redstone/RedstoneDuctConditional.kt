@@ -13,12 +13,17 @@ class RedstoneDuctConditional (var type: ConditionalType, var moreThan: Boolean,
 
 
     fun passes(network: DuctNetwork<*>, ductNodePos: DuctNodePos): Boolean {
-        if (type.isNone()) return false
+        val value = measurement(network, ductNodePos) ?: return false
+        return (moreThan && value > comparisonValue) || (!moreThan && value < comparisonValue)
+    }
+
+    fun measurement(network: DuctNetwork<*>, ductNodePos: DuctNodePos): Double? {
+        if (type.isNone() || network.getNodeAt(ductNodePos) == null) return null
         val gasMasses = network.getGasMassAt(ductNodePos)
         val filteredGasMasses = gasMasses.filter { (filter.contains(it.key) && !filterBlacklist) || (!filter.contains(it.key) && filterBlacklist)  }
 
 
-        val toCompare = when (type) {
+        return when (type) {
             ConditionalType.TEMPERATURE -> network.getTemperatureAt(ductNodePos)
             ConditionalType.HEAT_ENERGY -> network.getHeatEnergy(ductNodePos)
             ConditionalType.PRESSURE ->  {
@@ -27,15 +32,13 @@ class RedstoneDuctConditional (var type: ConditionalType, var moreThan: Boolean,
                 val totalMoles = gasMasses.entries.sumOf { it.key.massToMoles(it.value) }
                 val filteredMoles = filteredGasMasses.entries.sumOf { it.key.massToMoles(it.value) }
 
-                (pressure * filteredMoles / totalMoles)
+                if (totalMoles > 0.0) pressure * filteredMoles / totalMoles else 0.0
             }
             ConditionalType.MASS -> {
                 filteredGasMasses.values.sum()
             }
             ConditionalType.NONE -> 0.0
-        }
-
-        return (moreThan && toCompare > comparisonValue) || (!moreThan && toCompare < comparisonValue)
+        }.takeIf { it.isFinite() }
 
     }
 

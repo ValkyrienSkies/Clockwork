@@ -14,6 +14,7 @@ import net.minecraft.core.BlockPos
 import org.lwjgl.glfw.GLFW
 import org.valkyrienskies.clockwork.ClockworkModClient
 import org.valkyrienskies.clockwork.content.curiosities.spring.SpringToolClient
+import org.valkyrienskies.clockwork.content.kinetics.combobulator.ThinkableClient
 import org.valkyrienskies.clockwork.content.curiosities.tools.wanderwand.tool.ToolType
 import org.valkyrienskies.clockwork.util.ClockworkHotbarSlotOverlays
 
@@ -72,6 +73,7 @@ open class WanderwandHandler {
 
     fun render(poseStack: GuiGraphics, partialTicks: Float, width: Int, height: Int) {
         SpringToolClient.render(poseStack)
+        ThinkableClient.render(poseStack)
         if (Minecraft.getInstance().options.hideGui || !active) return
 
         if (activeSchematicItem != null && isRegular) {

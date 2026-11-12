@@ -16,17 +16,30 @@ import net.minecraft.core.BlockPos
 import net.minecraft.core.Direction
 import net.minecraft.core.Direction.Axis
 import net.minecraft.nbt.CompoundTag
+import net.minecraft.network.chat.Component
 import net.minecraft.world.level.block.entity.BlockEntityType
 import net.minecraft.world.level.block.state.BlockState
 import net.minecraft.world.level.block.state.properties.BlockStateProperties
 import org.valkyrienskies.clockwork.ClockworkBlockEntities
 import org.valkyrienskies.clockwork.ClockworkConfig
 import org.valkyrienskies.clockwork.ClockworkMod
+import org.valkyrienskies.clockwork.content.kinetics.combobulator.IThinkable
+import org.valkyrienskies.clockwork.content.kinetics.combobulator.ThinkableConnections
 import org.valkyrienskies.clockwork.content.contraptions.flap.contraption.FlapContraption
 import org.valkyrienskies.core.impl.shadow.re
 
 open class FlapBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos, state: BlockState) :
-    KineticBlockEntity(type, pos, state), IBearingBlockEntity, IDisplayAssemblyExceptions {
+    KineticBlockEntity(type, pos, state), IBearingBlockEntity, IDisplayAssemblyExceptions, IThinkable {
+
+    override fun acceptsThinkable(side: Direction) = side == getPowerDirection()
+    override fun providesThinkable(side: Direction) = side == getPowerDirection().opposite
+    override fun thinkableValue(side: Direction): Double? =
+        bearingAngle.value.toDouble().takeIf { providesThinkable(side) && isRunning }
+    override fun thinkablePortName(side: Direction): Component? = when {
+        acceptsThinkable(side) -> Component.translatable("thinkable.vs_clockwork.port.flap_target")
+        providesThinkable(side) -> Component.translatable("thinkable.vs_clockwork.port.angle")
+        else -> null
+    }
 
     var isRunning = false
         private set
@@ -75,11 +88,15 @@ open class FlapBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos, stat
         lastPower = currentPower
         currentPower = getPower()
 
-        bearingAngle.chase(currentPower * 22.5 / 15, angularSpeed, chaser)
+        val input = ThinkableConnections.input(level, blockPos, getPowerDirection())
+        val target = if (input != null) (input.value ?: bearingAngle.value.toDouble()).coerceIn(-22.5, 22.5)
+            else currentPower * 22.5 / 15
+        val changed = bearingAngle.chaseTarget != target.toFloat()
+        bearingAngle.chase(target, angularSpeed, chaser)
 
 
 
-        if (lastPower != currentPower) sendData()
+        if (lastPower != currentPower || changed) sendData()
     }
 
     override fun read(tag: CompoundTag, clientPacket: Boolean) {

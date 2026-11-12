@@ -1,5 +1,6 @@
 package org.valkyrienskies.clockwork.content.curiosities.altmeter
 
+import org.valkyrienskies.clockwork.content.kinetics.combobulator.ThinkableItem
 import com.simibubi.create.foundation.block.IBE
 import net.createmod.catnip.gui.ScreenOpener
 import net.fabricmc.api.EnvType
@@ -38,6 +39,7 @@ class AltMeterBlock(properties: Properties) : Block(properties), IBE<AltMeterBlo
         hand: InteractionHand,
         hit: BlockHitResult
     ): InteractionResult {
+        if (player.getItemInHand(hand).item is ThinkableItem) return InteractionResult.PASS
         if (!player.isShiftKeyDown) {
             if (level.isClientSide) {
                 withBlockEntityDo(level, pos) { te: AltMeterBlockEntity ->
@@ -71,6 +73,8 @@ class AltMeterBlock(properties: Properties) : Block(properties), IBE<AltMeterBlo
 
     @OptIn(ExperimentalStdlibApi::class)
     override fun onRemove(state: BlockState, level: Level, pos: BlockPos, newState: BlockState, isMoving: Boolean) {
+        IBE.onRemove(state, level, pos, newState)
+        super.onRemove(state, level, pos, newState, isMoving)
         if (isMoving) {
             return
         }

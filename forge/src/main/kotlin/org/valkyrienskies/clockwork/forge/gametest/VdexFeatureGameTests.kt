@@ -34,6 +34,10 @@ import org.valkyrienskies.clockwork.ClockworkItems
 import org.valkyrienskies.clockwork.ClockworkMod
 import org.valkyrienskies.clockwork.content.contraptions.flap.FlapBearingBlockEntity
 import org.valkyrienskies.clockwork.content.contraptions.phys.bearing.PhysBearingBlockEntity
+import org.valkyrienskies.clockwork.content.kinetics.combobulator.IThinkable
+import org.valkyrienskies.clockwork.content.kinetics.combobulator.ThinkableConnections
+import org.valkyrienskies.clockwork.content.kinetics.combobulator.ThinkableItem
+import org.valkyrienskies.clockwork.content.kinetics.combobulator.ThinkableRelayBlockEntity
 import org.valkyrienskies.clockwork.content.contraptions.phys.gimbal.GimbalBearingBlockEntity
 import org.valkyrienskies.clockwork.content.contraptions.phys.hinge.HingeBlockEntity
 import org.valkyrienskies.clockwork.content.contraptions.phys.infuser.PhysicsInfuserBlockEntity
@@ -44,6 +48,12 @@ import org.valkyrienskies.clockwork.content.curiosities.lubricant.LubricantData
 import org.valkyrienskies.clockwork.content.curiosities.rope.RopeWinchBlockEntity
 import org.valkyrienskies.clockwork.content.curiosities.tools.gravitron.GravitronFrozenShip
 import org.valkyrienskies.clockwork.content.curiosities.tools.wanderwand.WanderwandItem
+import org.valkyrienskies.clockwork.content.curiosities.tools.wanderwand.WandAnchor
+import org.valkyrienskies.clockwork.content.curiosities.tools.wanderwand.WandLinks
+import org.valkyrienskies.clockwork.content.kinetics.combobulator.CombobulatorBlockEntity
+import org.valkyrienskies.clockwork.content.kinetics.combobulator.CombobulatorProgram
+import org.valkyrienskies.clockwork.content.kinetics.combobulator.CombobulatorChannel
+import org.valkyrienskies.clockwork.content.kinetics.combobulator.CombobulatorFace
 import org.valkyrienskies.clockwork.content.forces.BalloonController
 import org.valkyrienskies.clockwork.content.forces.SugarRocketController
 import org.valkyrienskies.clockwork.content.forces.data.BalloonData
@@ -117,6 +127,75 @@ class VdexFeatureGameTests {
 
         @JvmStatic @GameTest(template = TEMPLATE, batch = BATCH, timeoutTicks = 240)
         fun assembledPhysicalBearingRoundTrip(helper: GameTestHelper) = bearingRoundTrip(helper, false)
+
+        @JvmStatic @GameTest(template = TEMPLATE, batch = BATCH, timeoutTicks = 240)
+        fun thinkableAssemblyAndVdexRestoreBothShipsAndOneRope(helper: GameTestHelper) = thinkableRoundTrip(helper, false)
+
+        @JvmStatic @GameTest(template = TEMPLATE, batch = BATCH, timeoutTicks = 240)
+        fun relayAssemblyAndVdexRestoreInputFaceAndCable(helper: GameTestHelper) = thinkableRoundTrip(helper, true)
+
+        private fun thinkableRoundTrip(helper: GameTestHelper, relay: Boolean) {
+            val level = helper.level
+            val base = start(helper)
+            val sensor = base.east(4)
+            force(level, base)
+            force(level, sensor)
+            level.setBlockAndUpdate(base, if (relay) ClockworkBlocks.THINKABLE_RELAY.defaultState.setValue(FACING, Direction.UP)
+                else ClockworkBlocks.COMBOBULATOR.defaultState)
+            level.setBlockAndUpdate(sensor, ClockworkBlocks.ALT_METER.defaultState)
+            if (!relay) {
+                val controller = level.getBlockEntity(base) as CombobulatorBlockEntity
+                controller.updateProgram(CombobulatorProgram.controller().copy(channels = listOf(
+                    CombobulatorChannel(0, "Altitude", true, face = CombobulatorFace.TOP, thinkable = true),
+                    CombobulatorChannel(1, "Offset", true, constant = 0.125),
+                    CombobulatorChannel(3, "Output", false, face = CombobulatorFace.FRONT, device = true))), controller.revision)
+            }
+            helper.assertTrue(ThinkableConnections.connect(level, WandAnchor.at(level, sensor, Direction.UP), WandAnchor.at(level, base, Direction.UP)), "Thinkable did not connect")
+            val original = WandLinks.get(level).links.values.single { it.thinkable && it.b.pos == base }
+            val host = ShipAssembler.assembleToShip(level, setOf(base), 1.0)
+            val source = ShipAssembler.assembleToShip(level, setOf(sensor), 1.0)
+            host.isStatic = true
+            source.isStatic = true
+            remember(level, host)
+            remember(level, source)
+            val filename = name(level)
+            var copies = emptyList<ServerShip>()
+            helper.startSequence().thenWaitUntil {
+                helper.assertTrue(original.a.shipId == source.id && original.b.shipId == host.id, "Assembly did not remap Thinkable endpoints")
+                helper.assertTrue(original.jointId?.let { level.gtpa.getJointById(it) } != null, "Thinkable did not create its rope joint")
+                val moved = level.getBlockEntity(original.b.pos) as? IThinkable
+                helper.assertTrue(moved?.thinkableValue(Direction.NORTH)?.isFinite() == true, "Assembled Thinkable lost its reading")
+            }.thenExecute {
+                VdexWrapper.saveShip(level, host, filename)
+                copies = paste(helper, filename)
+                helper.assertTrue(copies.size == 2, "VDex did not include the Thinkable source ship")
+            }.thenWaitUntil {
+                val ids = copies.map { it.id }.toSet()
+                val copied = WandLinks.get(level).links.values.filter { it.thinkable && it.a.shipId in ids && it.b.shipId in ids }
+                helper.assertTrue(copied.size == 1, "VDex did not restore exactly one Thinkable")
+                val link = copied.single()
+                helper.assertTrue(link.id != original.id && link.length == original.length, "VDex lost Thinkable identity or length")
+                helper.assertTrue(link.a.pos != original.a.pos && link.b.pos != original.b.pos, "VDex kept original endpoint positions")
+                if (relay) {
+                    val copiedRelay = level.getBlockEntity(link.b.pos) as? ThinkableRelayBlockEntity
+                    val sourceValue = ThinkableItem.source(level, link.a)
+                    helper.assertTrue(copiedRelay?.inputSide == Direction.UP, "VDex lost the relay input face")
+                    helper.assertTrue(sourceValue != null && copiedRelay?.thinkableValue(Direction.NORTH) == sourceValue,
+                        "Copied relay cannot read its copied source")
+                } else {
+                    val copiedController = level.getBlockEntity(link.b.pos) as CombobulatorBlockEntity
+                    helper.assertTrue(copiedController.value(0).isFinite(), "Copied Combobulator cannot read its copied source")
+                    helper.assertTrue(copiedController.value(3) == copiedController.value(0) + 0.125,
+                        "VDex did not preserve the controller function and constant")
+                }
+                helper.assertTrue(level.gtpa.getAllJoints().values.count { it.shipId0 in ids && it.shipId1 in ids } == 1,
+                    "VDex did not restore exactly one Thinkable rope joint")
+            }.thenIdle(10).thenExecute {
+                val ids = copies.map { it.id }.toSet()
+                helper.assertTrue(level.gtpa.getAllJoints().values.count { it.shipId0 in ids && it.shipId1 in ids } == 1,
+                    "Copied Thinkable duplicated its rope joint")
+            }.thenSucceed()
+        }
 
         @JvmStatic @GameTest(template = TEMPLATE, batch = BATCH, timeoutTicks = 240)
         fun assembledGimbalRoundTrip(helper: GameTestHelper) = bearingRoundTrip(helper, true)

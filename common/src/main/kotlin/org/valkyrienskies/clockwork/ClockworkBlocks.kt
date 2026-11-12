@@ -61,6 +61,8 @@ import org.valkyrienskies.clockwork.content.curiosities.solver.SolverBlock
 import org.valkyrienskies.clockwork.content.kinetics.casing.ExtendedEncasedShaftBlock
 import org.valkyrienskies.clockwork.content.kinetics.resistor.RedstoneResistorBlock
 import org.valkyrienskies.clockwork.content.kinetics.sequenced_seat.SequencedSeatBlock
+import org.valkyrienskies.clockwork.content.kinetics.combobulator.CombobulatorBlock
+import org.valkyrienskies.clockwork.content.kinetics.combobulator.ThinkableRelayBlock
 import org.valkyrienskies.clockwork.content.kinetics.universal_shaft.UniversalShaftBlock
 import org.valkyrienskies.clockwork.content.logistics.gas.backtank.GasBacktankBlock
 import org.valkyrienskies.clockwork.content.logistics.gas.crafter.GasCrafterBlock
@@ -366,6 +368,30 @@ object ClockworkBlocks {
                 )
             )
             .register()
+
+    @JvmField
+    val COMBOBULATOR: BlockEntry<CombobulatorBlock> = REGISTRATE.block("combobulator", ::CombobulatorBlock)
+        .initialProperties(AllBlocks.BRASS_CASING)
+        .properties { it.noOcclusion().isRedstoneConductor { _, _, _ -> false } }
+        .transform(axeOrPickaxe())
+        .blockstate { _: DataGenContext<Block?, CombobulatorBlock>, _: RegistrateBlockstateProvider -> }
+        .item()
+        .tab(ClockworkMod.BASE_CREATIVE_TABINFO)
+        .model(AssetLookup.customBlockItemModel("combobulator", "block"))
+        .build()
+        .register()
+
+    @JvmField
+    val THINKABLE_RELAY: BlockEntry<ThinkableRelayBlock> = REGISTRATE.block("thinkable_relay", ::ThinkableRelayBlock)
+        .initialProperties(AllBlocks.BRASS_CASING)
+        .properties { it.noOcclusion().isRedstoneConductor { _, _, _ -> false } }
+        .transform(axeOrPickaxe())
+        .blockstate { _: DataGenContext<Block?, ThinkableRelayBlock>, _: RegistrateBlockstateProvider -> }
+        .item()
+        .tab(ClockworkMod.BASE_CREATIVE_TABINFO)
+        .model(AssetLookup.customBlockItemModel("combobulator", "relay"))
+        .build()
+        .register()
 
     @JvmField
     val COMMAND_SEAT: BlockEntry<SequencedSeatBlock> =

@@ -7,8 +7,8 @@ import net.minecraft.world.phys.Vec3
 import org.valkyrienskies.clockwork.ClockworkSounds
 import org.valkyrienskies.clockwork.content.curiosities.rope.LinkStressWarning
 
-class LinkStressSoundInstance(spring: Boolean, private val state: () -> State?) : AbstractTickableSoundInstance(
-    (if (spring) ClockworkSounds.SPRING_OVERLOAD else ClockworkSounds.ROPE_OVERLOAD).mainEvent!!,
+class LinkStressSoundInstance(spring: Boolean, thinkable: Boolean = false, private val state: () -> State?) : AbstractTickableSoundInstance(
+    (if (thinkable) ClockworkSounds.THINKABLE_OVERLOAD else if (spring) ClockworkSounds.SPRING_OVERLOAD else ClockworkSounds.ROPE_OVERLOAD).mainEvent!!,
     SoundSource.BLOCKS, RandomSource.create()) {
     data class State(val position: Vec3, val stress: Float)
 

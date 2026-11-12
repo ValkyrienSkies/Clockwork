@@ -7,6 +7,21 @@ import org.junit.jupiter.api.Test
 import org.valkyrienskies.clockwork.content.curiosities.tools.wanderwand.WandAnchor
 
 class RopeWinchTest {
+    @Test fun `thinkable target uses available speed and stops without overshoot`() {
+        assertEquals(7.875, RopeWinchBlockEntity.nextTargetLength(8.0, 64.0, 32, 4.25))
+        assertEquals(8.125, RopeWinchBlockEntity.nextTargetLength(8.0, -64.0, 32, 10.25))
+        assertEquals(8.0625, RopeWinchBlockEntity.nextTargetLength(8.0, 64.0, 32, 8.0625))
+        assertEquals(8.0, RopeWinchBlockEntity.nextTargetLength(8.0, 0.0, 32, 4.25))
+        assertEquals(8.0, RopeWinchBlockEntity.nextTargetLength(8.0, 128.0, 32, null))
+        assertEquals(8.0, RopeWinchBlockEntity.nextTargetLength(8.0, 128.0, 32, Double.NaN))
+    }
+
+    @Test fun `thinkable target respects spool limits without teleporting`() {
+        assertEquals(0.5, RopeWinchBlockEntity.nextTargetLength(0.6, 128.0, 32, -3.0))
+        assertEquals(32.0, RopeWinchBlockEntity.nextTargetLength(31.9, 128.0, 32, 64.0))
+        assertEquals(63.75, RopeWinchBlockEntity.nextTargetLength(64.0, 128.0, 32, 48.0))
+    }
+
     @Test fun `spool interpolates payout and reversal without snapping`() {
         val spool = RopeWinchAnimation(8.0)
         assertEquals(8.0, spool.sample(8.0, 20.0))

@@ -1,0 +1,95 @@
+{
+  "format_version": "1.9.0",
+  "credit": "Made with Blockbench",
+  "texture_size": [
+    64,
+    64
+  ],
+  "textures": {
+    "particle": "vs_clockwork:block/combobulator"
+  },
+  "elements": [
+    {
+      "name": "corner",
+      "from": [
+        0,
+        14,
+        0
+      ],
+      "to": [
+        2,
+        16,
+        2
+      ],
+      "rotation": {
+        "angle": 0,
+        "axis": "y",
+        "origin": [
+          0,
+          16,
+          0
+        ]
+      },
+      "faces": {
+        "north": {
+          "uv": [
+            6.5,
+            6,
+            6,
+            6.5
+          ],
+          "rotation": 180,
+          "texture": "#particle"
+        },
+        "east": {
+          "uv": [
+            6.5,
+            4,
+            6,
+            4.5
+          ],
+          "rotation": 180,
+          "texture": "#particle"
+        },
+        "south": {
+          "uv": [
+            6.5,
+            3,
+            6,
+            3.5
+          ],
+          "rotation": 180,
+          "texture": "#particle"
+        },
+        "west": {
+          "uv": [
+            6.5,
+            5,
+            6,
+            5.5
+          ],
+          "rotation": 180,
+          "texture": "#particle"
+        },
+        "up": {
+          "uv": [
+            6,
+            4.5,
+            6.5,
+            4
+          ],
+          "texture": "#particle"
+        },
+        "down": {
+          "uv": [
+            6,
+            4,
+            6.5,
+            3.5
+          ],
+          "texture": "#particle"
+        }
+      }
+    }
+  ]
+}

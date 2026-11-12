@@ -1,4 +1,9 @@
 {
+  "thinkable_attach": {"sounds": ["vs_clockwork:thinkable_attach"], "subtitle": "vs_clockwork.subtitle.thinkable_attach"},
+  "thinkable_data_1": {"sounds": ["vs_clockwork:thinkable_data_1", "vs_clockwork:thinkable_data_2", "vs_clockwork:thinkable_data_3"], "subtitle": "vs_clockwork.subtitle.thinkable_data_1"},
+  "combobulator_data_1": {"sounds": ["vs_clockwork:combobulator_data_1", "vs_clockwork:combobulator_data_2"], "subtitle": "vs_clockwork.subtitle.combobulator_data_1"},
+  "thinkable_snap_1": {"sounds": ["vs_clockwork:thinkable_snap_1", "vs_clockwork:thinkable_snap_2"], "subtitle": "vs_clockwork.subtitle.thinkable_snap_1"},
+  "thinkable_overload": {"sounds": ["vs_clockwork:thinkable_overload"], "subtitle": "vs_clockwork.subtitle.thinkable_overload"},
   "hinge_assemble": {"sounds": ["vs_clockwork:hinge_assemble"], "subtitle": "vs_clockwork.subtitle.hinge_assemble"},
   "hinge_disassemble": {"sounds": ["vs_clockwork:hinge_disassemble"], "subtitle": "vs_clockwork.subtitle.hinge_disassemble"},
   "hinge_stress": {"sounds": ["vs_clockwork:hinge_stress"], "subtitle": "vs_clockwork.subtitle.hinge_stress"},

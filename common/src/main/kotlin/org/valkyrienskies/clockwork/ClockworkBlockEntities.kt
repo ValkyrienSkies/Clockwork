@@ -55,6 +55,8 @@ import org.valkyrienskies.clockwork.content.generic.ColorBlockEntity
 import org.valkyrienskies.clockwork.content.kinetics.resistor.RedstoneResistorBlockEntity
 import org.valkyrienskies.clockwork.content.kinetics.resistor.RedstoneResistorRenderer
 import org.valkyrienskies.clockwork.content.kinetics.sequenced_seat.SequencedSeatBlockEntity
+import org.valkyrienskies.clockwork.content.kinetics.combobulator.CombobulatorBlockEntity
+import org.valkyrienskies.clockwork.content.kinetics.combobulator.ThinkableRelayBlockEntity
 import org.valkyrienskies.clockwork.content.kinetics.sequenced_seat.SequencedSeatRenderer
 import org.valkyrienskies.clockwork.content.kinetics.universal_shaft.UniversalShaftBlockEntity
 import org.valkyrienskies.clockwork.content.kinetics.universal_shaft.UniversalShaftRenderer
@@ -268,6 +270,18 @@ object ClockworkBlockEntities {
                 )
             }
         }
+        .register()
+
+    @JvmField
+    val COMBOBULATOR: BlockEntityEntry<CombobulatorBlockEntity> = ClockworkMod.REGISTRATE
+        .blockEntity("combobulator", ::CombobulatorBlockEntity)
+        .validBlocks(ClockworkBlocks.COMBOBULATOR)
+        .register()
+
+    @JvmField
+    val THINKABLE_RELAY: BlockEntityEntry<ThinkableRelayBlockEntity> = ClockworkMod.REGISTRATE
+        .blockEntity("thinkable_relay", ::ThinkableRelayBlockEntity)
+        .validBlocks(ClockworkBlocks.THINKABLE_RELAY)
         .register()
 
     @JvmField

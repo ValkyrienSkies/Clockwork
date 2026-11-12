@@ -116,6 +116,7 @@ class WanderwandEffectRenderer {
     }
     fun clientTick(clientLevel: ClientLevel) {
         val level = checkWorld() ?: return
+        RopeKnotRenderer.clientTick()
         val player = Minecraft.getInstance().player ?: return
         pulses.removeAll { level.gameTime - it.born > 16 }
         blocks.tickPulses(level)

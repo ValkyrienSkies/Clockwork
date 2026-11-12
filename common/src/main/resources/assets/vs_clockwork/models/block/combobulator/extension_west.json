@@ -1,0 +1,82 @@
+{
+  "textures": {
+    "6": "vs_clockwork:block/combobulator",
+    "particle": "vs_clockwork:block/combobulator"
+  },
+  "elements": [
+    {
+      "from": [
+        0,
+        2,
+        2
+      ],
+      "to": [
+        2,
+        14,
+        14
+      ],
+      "faces": {
+        "south": {
+          "uv": [
+            3,
+            1.25,
+            6,
+            1.75
+          ],
+          "texture": "#6",
+          "rotation": 270
+        },
+        "down": {
+          "uv": [
+            3,
+            1.25,
+            6,
+            1.75
+          ],
+          "texture": "#6",
+          "rotation": 270
+        },
+        "north": {
+          "uv": [
+            3,
+            1.25,
+            6,
+            1.75
+          ],
+          "texture": "#6",
+          "rotation": 90
+        },
+        "up": {
+          "uv": [
+            3,
+            1.25,
+            6,
+            1.75
+          ],
+          "texture": "#6",
+          "rotation": 270
+        },
+        "west": {
+          "uv": [
+            0,
+            3,
+            3,
+            6
+          ],
+          "texture": "#6",
+          "rotation": 90
+        },
+        "east": {
+          "uv": [
+            3,
+            0,
+            6,
+            3
+          ],
+          "texture": "#6",
+          "rotation": 90
+        }
+      }
+    }
+  ]
+}

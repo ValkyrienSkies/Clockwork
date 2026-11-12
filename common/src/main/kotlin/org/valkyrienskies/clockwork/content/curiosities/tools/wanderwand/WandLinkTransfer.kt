@@ -11,6 +11,7 @@ import org.joml.Quaterniondc
 import org.joml.Vector3d
 import org.valkyrienskies.clockwork.content.contraptions.phys.hinge.HingeLinks
 import org.valkyrienskies.clockwork.content.curiosities.rope.RopeKnotItem
+import org.valkyrienskies.clockwork.content.kinetics.combobulator.ThinkableItem
 import org.valkyrienskies.core.internal.joints.VSJointPose
 import org.valkyrienskies.mod.common.getShipManagingPos
 
@@ -82,7 +83,7 @@ object WandLinkTransfer {
             if (first != null || rope != null) level.server.playerList.getPlayer(id)?.let { WanderwandServer.sync(it, session) }
         }
         for (player in level.players()) for (stack in player.inventory.items + player.inventory.offhand) {
-            if (stack.item !is RopeKnotItem) continue
+            if (stack.item !is RopeKnotItem && stack.item !is ThinkableItem) continue
             val start = RopeKnotItem.start(stack, level) ?: continue
             destination(start)?.let { RopeKnotItem.setStart(stack, level, it.anchor) }
         }

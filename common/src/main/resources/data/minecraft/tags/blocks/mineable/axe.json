@@ -1,6 +1,8 @@
 {
   "replace": false,
   "values": [
+    "vs_clockwork:thinkable_relay",
+    "vs_clockwork:combobulator",
     "vs_clockwork:grip_pad",
     "vs_clockwork:brass_propeller_bearing",
     "vs_clockwork:juryrigged_propeller_bearing",

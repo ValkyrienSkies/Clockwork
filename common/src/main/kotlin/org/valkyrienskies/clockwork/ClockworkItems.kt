@@ -18,6 +18,7 @@ import org.valkyrienskies.clockwork.content.contraptions.propeller.blades.item.B
 import org.valkyrienskies.clockwork.content.contraptions.propeller.blades.item.BladeItemRenderer
 import org.valkyrienskies.clockwork.content.curiosities.WanderliteCrystal
 import org.valkyrienskies.clockwork.content.curiosities.rope.RopeKnotItem
+import org.valkyrienskies.clockwork.content.kinetics.combobulator.ThinkableItem
 import org.valkyrienskies.clockwork.content.curiosities.lubricant.LubricantItem
 import org.valkyrienskies.clockwork.content.curiosities.WanderliteCubeItemRenderer
 import org.valkyrienskies.clockwork.content.curiosities.WanderliteItem
@@ -57,6 +58,13 @@ object ClockworkItems {
         SpringItem(it!!)
     }.properties { it.stacksTo(16) }.tab(ClockworkMod.BASE_CREATIVE_TABINFO)
         .model(AssetLookup.existingItemModel()).register()
+
+    @JvmField
+    val THINKABLE: ItemEntry<ThinkableItem> = REGISTRATE.item("thinkable", ::ThinkableItem)
+        .properties { it.stacksTo(1) }
+        .tab(ClockworkMod.BASE_CREATIVE_TABINFO)
+        .model(AssetLookup.existingItemModel())
+        .register()
 
     @JvmField
     val ROPE_KNOT: ItemEntry<RopeKnotItem> = REGISTRATE.item<RopeKnotItem>("rope_knot") { RopeKnotItem(it!!) }

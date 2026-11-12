@@ -47,7 +47,8 @@ object WandRopeRidingClient {
             ropes.clear()
             for (entry in data.getList("links", Tag.TAG_COMPOUND.toInt()).take(256)) {
                 val tag = entry as CompoundTag
-                if (tag.getBoolean("rope") && !tag.getBoolean("spring") && tag.hasUUID("id")) readRope(tag).let { ropes[it.id] = it }
+                if (tag.getBoolean("rope") && !tag.getBoolean("spring") && !tag.getBoolean("thinkable") && tag.hasUUID("id"))
+                    readRope(tag).let { ropes[it.id] = it }
             }
             return
         }

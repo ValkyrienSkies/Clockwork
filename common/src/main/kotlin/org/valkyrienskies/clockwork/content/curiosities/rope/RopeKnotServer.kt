@@ -23,6 +23,7 @@ import org.valkyrienskies.clockwork.content.curiosities.tools.wanderwand.WandAnc
 import org.valkyrienskies.clockwork.content.curiosities.tools.wanderwand.WandLinks
 import org.valkyrienskies.clockwork.content.curiosities.tools.wanderwand.WanderwandServer
 import org.valkyrienskies.clockwork.content.curiosities.tools.wanderwand.WanderwandStatePacket
+import org.valkyrienskies.clockwork.content.kinetics.combobulator.ThinkableItem
 import org.valkyrienskies.mod.common.world.clipIncludeShips
 import java.util.UUID
 
@@ -94,17 +95,18 @@ object RopeKnotServer {
             hit.location.distanceTo(player.eyePosition) + 0.3 < point.distanceTo(player.eyePosition)) return false
         val stack = player.mainHandItem
         val cutting = stack.`is`(ItemTags.SWORDS) || stack.`is`(ItemTags.AXES)
-        if (!cutting && !stack.isEmpty && stack.item !is RopeKnotItem) return false
+        if (!cutting && !stack.isEmpty && stack.item !is RopeKnotItem && stack.item !is ThinkableItem) return false
         if (!cutting && link.lastHit != Long.MIN_VALUE && level.gameTime - link.lastHit < RopeKnotPhysics.HIT_INTERVAL) return false
         link.lastHit = level.gameTime
         link.hits++
         if (!RopeKnotPhysics.breaksOnHit(link.hits, cutting)) {
-            (if (link.spring) ClockworkSounds.SPRING_ATTACH_START else ClockworkSounds.ROPE_TIE).play(level, null, point, 0.4f, 0.8f + link.hits * 0.12f)
+            (if (link.thinkable) ClockworkSounds.THINKABLE_ATTACH else if (link.spring) ClockworkSounds.SPRING_ATTACH_START else ClockworkSounds.ROPE_TIE)
+                .play(level, null, point, 0.4f, 0.8f + link.hits * 0.12f)
             return true
         }
         data.remove(level, link)
         if (cutting) stack.hurtAndBreak(1, player) { it.broadcastBreakEvent(InteractionHand.MAIN_HAND) }
-        else if (!player.abilities.instabuild) {
+        else if (!player.abilities.instabuild && !link.thinkable) {
             val drop = ItemEntity(level, point.x, point.y, point.z, ItemStack(if (link.spring) ClockworkItems.SPRING.get() else ClockworkItems.ROPE_KNOT.get()))
             drop.setDefaultPickUpDelay()
             level.addFreshEntity(drop)
@@ -118,18 +120,21 @@ object RopeKnotServer {
         val a = link.a.world(level)
         val b = link.b.world(level)
         val point = soundPosition ?: a ?: b ?: return
-        if (untied) (if (link.spring) ClockworkSounds.SPRING_ATTACH_END else ClockworkSounds.ROPE_TIE).play(level, null, point, 0.85f, 0.8f)
-        else (if (link.spring) ClockworkSounds.SPRING_SNAP else ClockworkSounds.ROPE_SNAP).play(level, null, point, 1f, 0.9f + level.random.nextFloat() * 0.2f)
+        val snapSound = if (link.thinkable) ClockworkSounds.THINKABLE_SNAP else if (link.spring) ClockworkSounds.SPRING_SNAP else ClockworkSounds.ROPE_SNAP
+        if (untied) (if (link.thinkable) ClockworkSounds.THINKABLE_ATTACH else if (link.spring) ClockworkSounds.SPRING_ATTACH_END else ClockworkSounds.ROPE_TIE)
+            .play(level, null, point, 0.85f, 0.8f)
+        else snapSound.play(level, null, point, 1f, 0.9f + level.random.nextFloat() * 0.2f)
         if (soundPosition == null && b != null && b.distanceToSqr(point) > 16 * 16)
-            (if (link.spring) ClockworkSounds.SPRING_SNAP else ClockworkSounds.ROPE_SNAP).play(level, null, b, 1f, 0.9f + level.random.nextFloat() * 0.2f)
+            snapSound.play(level, null, b, 1f, 0.9f + level.random.nextFloat() * 0.2f)
         if (a == null || b == null) return
         val tag = CompoundTag().also {
             it.putString("kind", "physical_rope_break"); it.putUUID("id", link.id)
             it.putDouble("ax", a.x); it.putDouble("ay", a.y); it.putDouble("az", a.z)
             it.putDouble("bx", b.x); it.putDouble("by", b.y); it.putDouble("bz", b.z)
-            if (link.spring) { it.put("a", link.a.save()); it.put("b", link.b.save()) }
+            if (link.spring || link.thinkable) { it.put("a", link.a.save()); it.put("b", link.b.save()) }
             it.putDouble("length", if (link.spring) link.appliedLength else link.length)
             it.putBoolean("untied", untied); it.putBoolean("spring", link.spring)
+            it.putBoolean("thinkable", link.thinkable)
         }
         for (player in level.players()) if (minOf(a.distanceToSqr(player.position()), b.distanceToSqr(player.position())) < 192 * 192)
             ClockworkPackets.sendTo(WanderwandStatePacket(tag), player)

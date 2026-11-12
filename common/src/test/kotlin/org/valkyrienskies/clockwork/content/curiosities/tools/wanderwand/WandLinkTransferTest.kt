@@ -12,6 +12,37 @@ import org.valkyrienskies.core.internal.joints.VSJointPose
 import java.util.UUID
 
 class WandLinkTransferTest {
+    @Test fun thinkablesSaveAndPasteWithNewEndpointsAndNoStalePulseOrJoint() {
+        val a = WandAnchor(BlockPos(10000, 82, -20000), Direction.DOWN, 41)
+        val b = WandAnchor(BlockPos(30000, 78, -40000), Direction.UP, 42)
+        fun pose(anchor: WandAnchor) = anchor.local().let { VSJointPose(Vector3d(it.x, it.y, it.z), Quaterniond()) }
+        val link = WandLinks.Link(UUID.randomUUID(), a, b, true, 7.25, pose(a), pose(b), physical = true, thinkable = true)
+        link.jointId = 90
+        link.pulseStart = 120
+        link.pulseDuration = 15
+        val data = WandLinks().also { it.links[link.id] = link }
+        val loaded = WandLinks.load(data.save(net.minecraft.nbt.CompoundTag())).links.getValue(link.id)
+        assertTrue(loaded.thinkable && loaded.physical && loaded.rope && !loaded.spring)
+        assertEquals(a, loaded.a)
+        assertEquals(b, loaded.b)
+        assertEquals(7.25, loaded.length)
+        assertNull(loaded.jointId)
+        assertEquals(-1L, loaded.pulseStart)
+        val saved = WandLinkSchematics.encode(listOf(loaded), mapOf(41L to a.pos.below(2), 42L to b.pos.below(3)))
+        val pasted = WandLinkSchematics.decode(saved, mapOf(
+            41L to (71L to BlockPos(90000, 100, 10000)), 42L to (72L to BlockPos(120000, 100, 30000)))).single()
+        assertTrue(pasted.thinkable && pasted.physical && pasted.rope && !pasted.spring)
+        assertNotEquals(link.id, pasted.id)
+        assertEquals(71L, pasted.a.shipId)
+        assertEquals(72L, pasted.b.shipId)
+        assertEquals(BlockPos(90000, 102, 10000), pasted.a.pos)
+        assertEquals(BlockPos(120000, 103, 30000), pasted.b.pos)
+        assertEquals(a.face, pasted.a.face)
+        assertEquals(b.face, pasted.b.face)
+        assertEquals(7.25, pasted.length)
+        assertNull(pasted.jointId)
+    }
+
     @Test fun everyGridRotationCarriesTheJointFrameWithItsBlockFace() {
         val from = WandAnchor(BlockPos(100, 80, -200), Direction.NORTH, 4)
         val originalRotation = Quaterniond().rotationXYZ(0.2, 0.4, 0.6)

@@ -3,15 +3,27 @@ package org.valkyrienskies.clockwork.content.logistics.gas.redstone
 import com.simibubi.create.foundation.blockEntity.behaviour.BlockEntityBehaviour
 import net.createmod.catnip.gui.ScreenOpener
 import net.minecraft.core.BlockPos
+import net.minecraft.core.Direction
+import net.minecraft.network.chat.Component
+import net.minecraft.world.level.block.RotatedPillarBlock
 import net.minecraft.nbt.CompoundTag
 import net.minecraft.world.entity.player.Player
 import net.minecraft.world.level.block.entity.BlockEntityType
 import net.minecraft.world.level.block.state.BlockState
 import org.valkyrienskies.clockwork.ClockworkMod
+import org.valkyrienskies.clockwork.content.kinetics.combobulator.IThinkable
 import org.valkyrienskies.clockwork.content.logistics.gas.IConnectable
 import org.valkyrienskies.clockwork.util.kelvin.KNodeBlockEntity
 
-class RedstoneDuctBlockEntity(type: BlockEntityType<*>?, pos: BlockPos, state: BlockState) : KNodeBlockEntity(type, pos, state), IConnectable {
+class RedstoneDuctBlockEntity(type: BlockEntityType<*>?, pos: BlockPos, state: BlockState) : KNodeBlockEntity(type, pos, state), IConnectable, IThinkable {
+
+    override fun providesThinkable(side: Direction) = side.axis != blockState.getValue(RotatedPillarBlock.AXIS)
+    override fun thinkablePortName(side: Direction): Component? = if (providesThinkable(side))
+        Component.translatable("thinkable.vs_clockwork.port.gas.${conditional?.type?.name?.lowercase() ?: "none"}") else null
+    override fun thinkableValue(side: Direction): Double? {
+        if (level?.isClientSide != false || !providesThinkable(side)) return null
+        return conditional?.measurement(ClockworkMod.getKelvin(level), getDuctNodePosition())
+    }
 
     override fun addBehaviours(behaviours: List<BlockEntityBehaviour?>?) { }
 
