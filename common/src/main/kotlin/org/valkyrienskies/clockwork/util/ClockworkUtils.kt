@@ -20,10 +20,8 @@ import org.joml.primitives.AABBic
 import org.valkyrienskies.clockwork.ClockworkAugmentations
 import org.valkyrienskies.clockwork.ClockworkMod
 import org.valkyrienskies.clockwork.content.curiosities.tools.wanderwand.SelectedAreaToolkit
-import org.valkyrienskies.clockwork.content.forces.WanderShipControl
 import org.valkyrienskies.clockwork.util.MathFunctions.chunkPos
 import org.valkyrienskies.clockwork.util.MathFunctions.toVector3i
-import org.valkyrienskies.core.api.attachment.getAttachment
 import org.valkyrienskies.core.api.ships.ServerShip
 import org.valkyrienskies.core.api.ships.properties.ChunkClaim
 import org.valkyrienskies.core.api.world.connectivity.DoubleComponentAugmentation
@@ -38,10 +36,7 @@ import org.valkyrienskies.mod.api.positionToWorld
 import org.valkyrienskies.mod.api.toBlockPos
 import org.valkyrienskies.mod.api.toJOML
 import org.valkyrienskies.mod.api.vsApi
-import org.valkyrienskies.mod.common.BlockStateInfo
-import org.valkyrienskies.mod.common.config.MassDatapackResolver
 import org.valkyrienskies.mod.common.dimensionId
-import org.valkyrienskies.mod.common.getLoadedShipManagingPos
 import org.valkyrienskies.mod.common.getShipObjectManagingPos
 import org.valkyrienskies.mod.common.shipObjectWorld
 import org.valkyrienskies.mod.common.toWorldCoordinates
@@ -53,22 +48,6 @@ import kotlin.collections.HashMap
 
 
 object ClockworkUtils {
-
-    val wanderliteNodesToAdd: HashMap<BlockPos, Double> = HashMap()
-
-    @JvmStatic
-    fun tick(level: ServerLevel) {
-        val successfullyAdded = HashSet<BlockPos>()
-        wanderliteNodesToAdd.forEach { (pos, force) ->
-            val ship = level.getLoadedShipManagingPos(BlockPos(pos.x, pos.y, pos.z))
-            if (ship != null) {
-                val weight = MassDatapackResolver.getBlockStateMass(level.getBlockState(pos)) ?: return@forEach
-                ship.getAttachment<WanderShipControl>()?.addBlock(pos, weight) ?: return@forEach
-                successfullyAdded.add(pos)
-            }
-        }
-        successfullyAdded.forEach { wanderliteNodesToAdd.remove(it) }
-    }
 
     fun getDuctNodePos(blockPos: BlockPos, level: Level?): DuctNodePos {
         if (level == null) return DuctNodePos(blockPos.x.toDouble(), blockPos.y.toDouble(), blockPos.z.toDouble())
