@@ -10,6 +10,11 @@ import net.minecraft.world.level.block.state.BlockState
 import net.minecraft.world.level.block.state.properties.BlockStateProperties
 import org.valkyrienskies.clockwork.ClockworkConfig
 import org.valkyrienskies.clockwork.ClockworkMod
+import org.valkyrienskies.clockwork.content.curiosities.aeronaut.AeronautForceTelemetry
+import org.valkyrienskies.clockwork.content.curiosities.aeronaut.AeronautForceSource
+import org.valkyrienskies.clockwork.content.curiosities.aeronaut.AeronautForceAccumulator
+import net.minecraft.server.level.ServerLevel
+import org.valkyrienskies.core.api.ships.LoadedServerShip
 import org.valkyrienskies.clockwork.ClockworkSoundScapes
 import org.valkyrienskies.clockwork.util.ClockworkConstants
 import org.valkyrienskies.clockwork.util.kelvin.KNodeBlockEntity
@@ -34,7 +39,7 @@ import org.valkyrienskies.mod.common.util.toJOMLD
 import kotlin.math.*
 
 @OptIn(VsBeta::class)
-class GasThrusterBlockEntity(type: BlockEntityType<*>?, pos: BlockPos, state: BlockState) : KNodeBlockEntity(type, pos, state), BlockEntityPhysicsListener {
+class GasThrusterBlockEntity(type: BlockEntityType<*>?, pos: BlockPos, state: BlockState) : KNodeBlockEntity(type, pos, state), BlockEntityPhysicsListener, AeronautForceSource {
 
     @Volatile
     override lateinit var dimension: DimensionId
@@ -171,6 +176,16 @@ class GasThrusterBlockEntity(type: BlockEntityType<*>?, pos: BlockPos, state: Bl
         if (blockState.block !is GasThrusterBlock) return
         val force = blockState.getValue(BlockStateProperties.FACING).normal.toJOMLD().mul(thrust)
         physShip.applyModelForce(force, blockPos.toJOMLD().add(0.5,0.5,0.5))
+        val source = "gas:${blockPos.asLong()}"
+        val readout = AeronautForceTelemetry.begin(physShip.id, source)
+        readout?.add(blockPos.toJOMLD().add(0.5, 0.5, 0.5), force)
+        AeronautForceTelemetry.publish(physShip.id, source, readout)
+    }
+
+    override fun addPotentialForces(level: ServerLevel, ship: LoadedServerShip, thrust: AeronautForceAccumulator) {
+        // Gas jets have no nameplate thrust: available output depends on their gas supply.
+        thrust.add(blockPos.toJOMLD().add(0.5, 0.5, 0.5),
+            blockState.getValue(BlockStateProperties.FACING).normal.toJOMLD().mul(this.thrust))
     }
 
 

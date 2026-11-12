@@ -52,6 +52,9 @@ object ClockworkConfig {
     }
 
     class Server {
+        @ConfigEntry(description = "Force multiplier for permanent magnets and electromagnets")
+        var magnetForceMultiplier = 1.0
+
 
         @ConfigCategory(title = "Kelvin")
         val kelvin = Kelvin()

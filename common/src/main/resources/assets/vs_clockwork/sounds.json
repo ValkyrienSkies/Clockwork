@@ -1,4 +1,5 @@
 {
+  "polaritron_hum": {"sounds": ["vs_clockwork:polaritron_hum"], "subtitle": "vs_clockwork.subtitle.polaritron_hum"},
   "thinkable_attach": {"sounds": ["vs_clockwork:thinkable_attach"], "subtitle": "vs_clockwork.subtitle.thinkable_attach"},
   "thinkable_data_1": {"sounds": ["vs_clockwork:thinkable_data_1", "vs_clockwork:thinkable_data_2", "vs_clockwork:thinkable_data_3"], "subtitle": "vs_clockwork.subtitle.thinkable_data_1"},
   "combobulator_data_1": {"sounds": ["vs_clockwork:combobulator_data_1", "vs_clockwork:combobulator_data_2"], "subtitle": "vs_clockwork.subtitle.combobulator_data_1"},

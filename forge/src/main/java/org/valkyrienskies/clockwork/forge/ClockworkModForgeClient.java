@@ -1,5 +1,7 @@
 package org.valkyrienskies.clockwork.forge;
 
+import org.valkyrienskies.clockwork.client.render.goggles.AeronautGoggleOverlayRenderer;
+
 import org.valkyrienskies.clockwork.content.schematics.VdexPlacementClient;
 
 import com.simibubi.create.AllParticleTypes;
@@ -69,6 +71,8 @@ public class ClockworkModForgeClient {
     public static void onRegisterGuiOverlays(RegisterGuiOverlaysEvent event) {
         event.registerAbove(VanillaGuiOverlay.HOTBAR.id(), "vdex_placement",
                 (gui, graphics, partialTicks, width, height) -> VdexPlacementClient.renderHud(graphics, partialTicks));
+        event.registerAboveAll("aeronaut_goggles", (gui, graphics, partialTick, width, height) ->
+                AeronautGoggleOverlayRenderer.render(graphics));
         event.registerAbove(VanillaGuiOverlay.HOTBAR.id(), "gravitron",
                 ClockworkModForgeClient.GRAVITRON_HANDLER.getOverlayRenderer());
         event.registerAbove(VanillaGuiOverlay.HOTBAR.id(), "wanderwand",

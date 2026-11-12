@@ -8,6 +8,7 @@ import org.valkyrienskies.clockwork.content.schematics.VdexBlueprintCapturePacke
 import org.valkyrienskies.clockwork.content.schematics.VdexBlueprintSavePacket
 import org.valkyrienskies.clockwork.content.schematics.VdexBlueprintSaveResultPacket
 import org.valkyrienskies.clockwork.content.schematics.VdexBuildEffectPacket
+import org.valkyrienskies.clockwork.content.curiosities.magnet.MagneticFieldPacket
 import net.minecraft.core.BlockPos
 import net.minecraft.network.FriendlyByteBuf
 import net.minecraft.server.level.ServerPlayer
@@ -22,6 +23,9 @@ import org.valkyrienskies.clockwork.client.render.airpocket.AirpocketSyncPacket
 import org.valkyrienskies.clockwork.content.contraptions.flap.smart_flap.FlapLinkedControllerBindPacket
 import org.valkyrienskies.clockwork.content.contraptions.phys.gimbal.quad_link.GimbalLinkedControllerBindPacket
 import org.valkyrienskies.clockwork.content.curiosities.altmeter.UpdateAltMeterPacket
+import org.valkyrienskies.clockwork.content.curiosities.aeronaut.AeronautGogglesTogglePacket
+import org.valkyrienskies.clockwork.content.curiosities.aeronaut.AeronautShipRequestPacket
+import org.valkyrienskies.clockwork.content.curiosities.aeronaut.AeronautShipReadoutPacket
 import org.valkyrienskies.clockwork.content.curiosities.meteor.MeteorShipSyncPacket
 import org.valkyrienskies.clockwork.content.contraptions.phys.infuser.PhysicsInfuserSyncPacket
 import org.valkyrienskies.clockwork.content.contraptions.phys.slicker.SlickerAttachmentSyncPacket
@@ -123,7 +127,11 @@ enum class ClockworkPackets(
     VDEX_BUILD_EFFECT(VdexBuildEffectPacket::class.java, ::VdexBuildEffectPacket),
     VDEX_CAPTURE(VdexBlueprintCapturePacket::class.java, ::VdexBlueprintCapturePacket),
     VDEX_SAVE(VdexBlueprintSavePacket::class.java, ::VdexBlueprintSavePacket),
-    VDEX_SAVE_RESULT(VdexBlueprintSaveResultPacket::class.java, ::VdexBlueprintSaveResultPacket);
+    VDEX_SAVE_RESULT(VdexBlueprintSaveResultPacket::class.java, ::VdexBlueprintSaveResultPacket),
+    AERONAUT_GOGGLES_TOGGLE_PACKET(AeronautGogglesTogglePacket::class.java, ::AeronautGogglesTogglePacket),
+    AERONAUT_SHIP_REQUEST_PACKET(AeronautShipRequestPacket::class.java, ::AeronautShipRequestPacket),
+    AERONAUT_SHIP_READOUT_PACKET(AeronautShipReadoutPacket::class.java, ::AeronautShipReadoutPacket),
+    MAGNETIC_FIELD_PACKET(MagneticFieldPacket::class.java, ::MagneticFieldPacket);
 
     init {
         packetChannel.registerPacket(type as Class<CWPacket>, factory as Function<FriendlyByteBuf, CWPacket>)

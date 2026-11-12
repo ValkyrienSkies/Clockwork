@@ -1,5 +1,9 @@
 package org.valkyrienskies.clockwork
 
+import org.valkyrienskies.clockwork.content.curiosities.magnet.MagneticFieldView
+import org.valkyrienskies.clockwork.content.curiosities.magnet.PolaritronSound
+import org.valkyrienskies.clockwork.client.render.goggles.AeronautGoggleOverlayRenderer
+
 import org.valkyrienskies.clockwork.content.schematics.VdexBlueprintClient
 import com.mojang.blaze3d.platform.InputConstants
 import com.simibubi.create.content.equipment.armor.BacktankArmorLayer
@@ -25,7 +29,6 @@ import net.minecraft.client.KeyMapping
 import net.minecraft.core.BlockPos
 import net.minecraft.server.packs.resources.ResourceManager
 import net.minecraft.server.packs.resources.ResourceManagerReloadListener
-import net.minecraft.sounds.SoundSource
 import net.minecraft.world.entity.EntityType
 import net.minecraft.world.entity.EquipmentSlot
 import net.minecraft.world.entity.LivingEntity
@@ -35,11 +38,10 @@ import org.valkyrienskies.clockwork.content.contraptions.flap.dual_link.DualLink
 import org.valkyrienskies.clockwork.content.contraptions.phys.gimbal.quad_link.QuadLinkRenderer
 import org.valkyrienskies.clockwork.content.contraptions.propeller.blades.SecondScrollValueRenderer
 import org.valkyrienskies.clockwork.content.curiosities.IArcConnector
-import org.valkyrienskies.clockwork.content.curiosities.aeronaut.AeronautGogglesState
-import org.valkyrienskies.clockwork.content.curiosities.aeronaut.IAeronautEquipment.Companion.wearingAeronautInSlot
+import org.valkyrienskies.clockwork.content.curiosities.aeronaut.AeronautGogglesItem
+import org.valkyrienskies.clockwork.content.curiosities.aeronaut.AeronautGogglesTogglePacket
 import org.valkyrienskies.clockwork.content.curiosities.meteor.MeteorRenderer
 import org.valkyrienskies.clockwork.content.logistics.solid.delivery.frequency_slot.FrequencySlotGlobals
-import org.valkyrienskies.clockwork.mixinduck.MixinPlayerDuck
 import org.valkyrienskies.clockwork.util.arc.LightningManager
 import org.valkyrienskies.clockwork.util.arc.LightningRenderer
 import org.valkyrienskies.clockwork.util.render.VirtualDuctNetwork
@@ -117,6 +119,9 @@ object ClockworkModClient {
             GravitronControlsClient.tick()
             LubricantClient.tick()
             VdexBlueprintClient.tick()
+            AeronautGoggleOverlayRenderer.tick()
+            MagneticFieldView.tick()
+            PolaritronSound.tickSounds()
             org.valkyrienskies.clockwork.content.curiosities.tools.wanderwand.WandRopeRidingClient.tick()
             org.valkyrienskies.clockwork.content.curiosities.tools.gravitron.GravitronEffects.tick()
             org.valkyrienskies.clockwork.content.curiosities.tools.wanderwand.WanderwandHandEffects.tick()
@@ -142,33 +147,8 @@ object ClockworkModClient {
         ClientTickEvent.CLIENT_POST.register {
             while (AERONAUT_GOGGLE_KEYBIND.consumeClick()) {
                 val player = Minecraft.getInstance().player
-                if (player != null && player.wearingAeronautInSlot(EquipmentSlot.HEAD)) {
-                    val level = player.level()
-                    if (level != null) {
-                        val duck = (player as MixinPlayerDuck)
-                        duck.gogglesNeedRefresh = true
-                        if (!AeronautGogglesState.getState(player).gogglesDown) {
-                            level.playSound(
-                                player,
-                                player.blockPosition(),
-                                ClockworkSounds.GOGGLES_EQUIP.mainEvent!!,
-                                SoundSource.PLAYERS,
-                                1.0f,
-                                1.0f
-                            )
-                            AeronautGogglesState.getState(player).gogglesDown = true
-                        } else {
-                            level.playSound(
-                                player,
-                                player.blockPosition(),
-                                ClockworkSounds.GOGGLES_UNEQUIP.mainEvent!!,
-                                SoundSource.PLAYERS,
-                                1.0f,
-                                1.0f
-                            )
-                            AeronautGogglesState.getState(player).gogglesDown = false
-                        }
-                    }
+                if (player != null && player.getItemBySlot(EquipmentSlot.HEAD).item is AeronautGogglesItem) {
+                    ClockworkPackets.sendToServer(AeronautGogglesTogglePacket())
                 }
             }
             while (DEBUG_LIGHTNING_KEYBIND.consumeClick()) {

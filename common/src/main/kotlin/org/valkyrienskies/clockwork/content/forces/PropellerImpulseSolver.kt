@@ -12,7 +12,8 @@ internal object PropellerImpulseSolver {
 
     fun solve(
         rotors: List<PropellerAerodynamics.PreparedRotor>, mass: Double, inertiaWorld: Matrix3dc,
-        maxForce: Double = 0.0, maxTorque: Double = 0.0
+        maxForce: Double = 0.0, maxTorque: Double = 0.0,
+        reportForce: ((Int, Vector3dc) -> Unit)? = null
     ): Pair<Vector3dc, Vector3dc> {
         fun zero() = Vector3d() to Vector3d()
         if (rotors.isEmpty() || !mass.isFinite() || mass <= 0.0 || !inertiaWorld.isFinite ||
@@ -86,6 +87,14 @@ internal object PropellerImpulseSolver {
             }
             if (maxForce > 0.0 && force.length() > maxForce) fraction = min(fraction, maxForce / force.length())
             if (maxTorque > 0.0 && torque.length() > maxTorque) fraction = min(fraction, maxTorque / torque.length())
+        }
+        if (reportForce != null) rotors.forEachIndexed { index, rotor ->
+            val applied = Vector3d(rotor.force)
+            for (section in rotor.sections) {
+                deltaOmega.cross(section.lever, pointVelocity).add(deltaVelocity)
+                applied.add(section.response.transform(pointVelocity, sectionForce))
+            }
+            reportForce(index, applied.mul(fraction))
         }
         val force = deltaVelocity.mul(mass * fraction / STEP)
         val torque = inertiaWorld.transform(deltaOmega, Vector3d()).mul(fraction / STEP)

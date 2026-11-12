@@ -1,5 +1,7 @@
 package org.valkyrienskies.clockwork.fabric;
 
+import org.valkyrienskies.clockwork.client.render.goggles.AeronautGoggleOverlayRenderer;
+
 import org.valkyrienskies.clockwork.content.schematics.VdexPlacementClient;
 
 import com.mojang.blaze3d.platform.Window;
@@ -84,6 +86,7 @@ public class ClockworkModFabricClient implements ClientModInitializer {
         WorldRenderEvents.AFTER_TRANSLUCENT.register(FabricClockworkClientEvents::onRenderWorld);
         HudRenderCallback.EVENT.register((graphics, partialTicks) -> {
             VdexPlacementClient.renderHud(graphics, partialTicks);
+            AeronautGoggleOverlayRenderer.render(graphics);
             Window window = Minecraft.getInstance().getWindow();
             GRAVITRON_HANDLER.render(graphics, partialTicks, window.getWidth(), window.getHeight());
             WANDERWAND_HANDLER.render(graphics, partialTicks, window.getWidth(), window.getHeight());

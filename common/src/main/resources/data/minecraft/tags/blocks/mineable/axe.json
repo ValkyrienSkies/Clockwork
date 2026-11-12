@@ -19,6 +19,8 @@
 	"vs_clockwork:clock",
 	"vs_clockwork:delivery_cannon",
 	"vs_clockwork:delivery_chute",
-    "vs_clockwork:clampotron"
+    "vs_clockwork:clampotron",
+    "vs_clockwork:magnet",
+    "vs_clockwork:electromagnet"
   ]
 }

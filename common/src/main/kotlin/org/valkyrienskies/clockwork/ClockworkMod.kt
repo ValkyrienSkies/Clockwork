@@ -1,5 +1,8 @@
 package org.valkyrienskies.clockwork
 
+import org.valkyrienskies.clockwork.content.curiosities.aeronaut.AeronautShipReadout
+
+import org.valkyrienskies.clockwork.content.curiosities.magnet.Magnetism
 import org.valkyrienskies.clockwork.content.curiosities.clampotron.ClampotronController
 import com.mojang.logging.LogUtils
 import com.simibubi.create.AllBlocks
@@ -65,7 +68,7 @@ object ClockworkMod {
 
     // versioning
     const val BUILD_VERSION = 1
-    const val NETWORK_VERSION = 1
+    const val NETWORK_VERSION = 2
     const val NETWORK_VERSION_STR = NETWORK_VERSION.toString()
 
     val NETWORK_CHANNEL: ResourceLocation = asResource("main")
@@ -109,6 +112,7 @@ object ClockworkMod {
     @JvmStatic
     fun init() {
         ClockworkPackets.init()
+        LifecycleEvent.SERVER_STOPPED.register { AeronautShipReadout.clear() }
         ClockworkTags.init()
         ClockworkRecipes.init()
         TAB_REGISTRY.register()
@@ -168,7 +172,10 @@ object ClockworkMod {
             ClockworkAugmentations.registerSumAugmentation("sealed", it.shipObjectWorld)
         }
 
+        LifecycleEvent.SERVER_STOPPED.register { Magnetism.clear() }
+
         TickEvent.SERVER_LEVEL_POST.register {
+            Magnetism.tick(it)
             VdexBlueprintLibrary.tick(it)
             HingeLinks.get(it).tick(it)
             LubricantData.get(it).tick(it)
@@ -203,6 +210,7 @@ object ClockworkMod {
 
         vsApi.physTickEvent.on {
             GravitronController.timeStep(it.world, it.delta)
+            Magnetism.physicsTick(it.world)
             GripPadController.tick(it.world, it.delta)
             SpringBendingController.tick(it.world)
             val temp = mutableListOf<Pair<DimensionId, (PhysLevel, Double, () -> Unit) -> Unit>>()

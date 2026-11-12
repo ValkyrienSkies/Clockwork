@@ -11,6 +11,8 @@ import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+import org.valkyrienskies.clockwork.content.curiosities.magnet.Magnetism;
 import org.valkyrienskies.clockwork.util.BlockUpdateCollector;
 import org.valkyrienskies.clockwork.content.curiosities.lubricant.LubricantData;
 import org.valkyrienskies.mod.common.BlockStateInfoProvider;
@@ -21,6 +23,12 @@ public class MixinBlockStateInfoProvider {
     @Final
     @Shadow
     Level level;
+
+    @Inject(method = "setLoaded", at = @At("TAIL"))
+    private void clockwork$magneticChunk(boolean loaded, CallbackInfo ci) {
+        if (level instanceof ServerLevel serverLevel)
+            Magnetism.INSTANCE.chunkLoaded(serverLevel, (LevelChunk) (Object) this, loaded);
+    }
 
     @Inject(method = "setBlockState", at = @At("TAIL"))
     private void vs_clockwork$postSetBlockState(BlockPos pos, BlockState state, boolean isMoving, CallbackInfoReturnable<BlockState> cir) {

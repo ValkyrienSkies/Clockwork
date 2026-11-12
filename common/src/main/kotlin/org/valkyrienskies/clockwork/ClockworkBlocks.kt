@@ -1,5 +1,6 @@
 package org.valkyrienskies.clockwork
 
+import org.valkyrienskies.clockwork.content.curiosities.magnet.MagnetBlock
 import org.valkyrienskies.clockwork.content.curiosities.clampotron.ClampotronBlock
 import com.simibubi.create.AllBlocks
 import com.simibubi.create.AllTags
@@ -804,6 +805,16 @@ object ClockworkBlocks {
         .transform(axeOrPickaxe()).properties { it.noOcclusion().forceSolidOff() }
         .addLayer { Supplier { RenderType.cutout() } }
         .register()
+
+    @JvmField
+    val MAGNET = REGISTRATE.block("magnet") { p: BlockBehaviour.Properties -> MagnetBlock(p, false) }
+        .initialProperties { SharedProperties.softMetal() }.transform(axeOrPickaxe())
+        .item().tab(ClockworkMod.BASE_CREATIVE_TABINFO).build().register()
+
+    @JvmField
+    val ELECTROMAGNET = REGISTRATE.block("electromagnet") { p: BlockBehaviour.Properties -> MagnetBlock(p, true) }
+        .initialProperties { SharedProperties.softMetal() }.transform(axeOrPickaxe())
+        .item().tab(ClockworkMod.BASE_CREATIVE_TABINFO).build().register()
 
     @JvmField
     val CLAMPOTRON = REGISTRATE.block("clampotron") { p: BlockBehaviour.Properties ->

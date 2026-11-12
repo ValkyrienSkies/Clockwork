@@ -1,5 +1,6 @@
 package org.valkyrienskies.clockwork.util.render
 
+import org.valkyrienskies.clockwork.content.curiosities.magnet.MagneticFieldView
 import org.valkyrienskies.clockwork.content.curiosities.clampotron.ClampotronClient
 import org.valkyrienskies.clockwork.content.schematics.VdexBuildEffects
 import org.valkyrienskies.clockwork.content.schematics.VdexBlueprintPreview
@@ -33,6 +34,7 @@ object ToolWorldEffects {
             RopeKnotRenderer.renderEffects(poseStack, buffers, camera.position, partialTick)
             VdexBlueprintPreview.renderWorld(poseStack, buffers, camera.position)
             VdexBuildEffects.render(poseStack, buffers, camera.position, partialTick)
+            MagneticFieldView.render(poseStack, buffers, camera.position, partialTick)
             buffers.endBatch()
         } finally {
             RenderSystem.enableCull()

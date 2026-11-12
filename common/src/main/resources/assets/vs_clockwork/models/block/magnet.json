@@ -1,0 +1,12 @@
+{
+  "parent": "minecraft:block/cube",
+  "textures": {
+    "particle": "vs_clockwork:block/magnet_side",
+    "up": "vs_clockwork:block/magnet_red",
+    "down": "vs_clockwork:block/magnet_blue",
+    "north": "vs_clockwork:block/magnet_side",
+    "south": "vs_clockwork:block/magnet_side",
+    "east": "vs_clockwork:block/magnet_side",
+    "west": "vs_clockwork:block/magnet_side"
+  }
+}
