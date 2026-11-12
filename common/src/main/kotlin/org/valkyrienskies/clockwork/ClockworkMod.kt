@@ -43,7 +43,6 @@ import org.valkyrienskies.clockwork.content.forces.GravitronController
 import org.valkyrienskies.clockwork.content.forces.contraption.BearingController
 import org.valkyrienskies.clockwork.content.physicalities.gyro.GyroShipControl
 import org.valkyrienskies.clockwork.integration.cc.GenericPeripheralsCommon
-import org.valkyrienskies.clockwork.util.ClockworkUtils
 import org.valkyrienskies.clockwork.util.builder.ClockworkExpandedCreateRegistrate
 import org.valkyrienskies.clockwork.util.gui.DuctStats
 import org.valkyrienskies.clockwork.util.render.VirtualDuctNetwork
@@ -135,7 +134,7 @@ object ClockworkMod {
             //TODO: UNCOMMENT WHEN POCKET FORCES IS FIXED
             //PocketForcesController.getOrCreate(ship)
             //DragController.getOrCreate(ship)
-            WanderShipControl.getOrCreate(ship)
+            WanderShipControl.getOrCreate(ship).onShipLoad()
 
             //TODO remove when attachment bug is fixed
 //            GasThrusterController.getOrCreate(ship)
@@ -173,6 +172,7 @@ object ClockworkMod {
             LubricantData.get(it).tick(it)
             org.valkyrienskies.clockwork.content.curiosities.tools.wanderwand.WanderwandServer.tick(it)
             for (ship in it.shipObjectWorld.loadedShips) {
+                ship.getAttachment(WanderShipControl::class.java)?.reconcileBlocks(it, ship)
                 VdexConstruction.tick(it, ship)
                 GravitronFrozenShip.tick(it, ship)
                 //TODO: UNCOMMENT WHEN POCKET FORCES IS FIXED
@@ -180,7 +180,6 @@ object ClockworkMod {
                 ship.getAttachment(BalloonController::class.java)?.gameTick(it, ship)
             }
 
-            ClockworkUtils.tick(it)
             if (ClockworkConfig.CLIENT.debugRender) AirpocketRenderer.tick(it)
             CollisionSoundEffectHandler.tick(it)
             MeteorStorm.tick(it)
