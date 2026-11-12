@@ -34,6 +34,8 @@ import org.valkyrienskies.clockwork.util.ClockworkShipSchematics
 import org.valkyrienskies.clockwork.util.gtpa
 import org.valkyrienskies.core.api.ships.LoadedServerShip
 import org.valkyrienskies.core.api.ships.ServerShip
+import org.valkyrienskies.core.api.ships.ShipTeleportData
+import org.valkyrienskies.core.internal.ships.VsiServerShip
 import org.valkyrienskies.mod.common.assembly.ICopyableBlock
 import org.valkyrienskies.mod.common.dimensionId
 import org.valkyrienskies.mod.common.safeRenameTo
@@ -159,9 +161,10 @@ class VdexCannonBuild(val saved: CompoundTag) {
         VdexConstruction.reserve(level, ship.id, cannon, source.entry.isStatic)
         ship.isStatic = true
         ship.safeRenameTo(level, source.entry.name)
-        ship.unsafeSetTransform(vsCore.newBodyTransform(point, Quaterniond(rotation).mul(source.entry.relativeRot), Vector3d(source.entry.scale), ship.transform.positionInModel))
         val center = ship.chunkClaim.getCenterBlockCoordinates(level.yRange, Vector3i())
         val corner = BlockPos(center.x - source.size.x / 2, center.y - source.size.y / 2, center.z - source.size.z / 2)
+        ship.unsafeSetTransform(vsCore.newBodyTransform(point, Quaterniond(rotation).mul(source.entry.relativeRot),
+            Vector3d(source.entry.scale), Vector3d(source.pivot).add(corner.x.toDouble(), corner.y.toDouble(), corner.z.toDouble())))
         val ids = saved.getCompound("Ships"); ids.putLong(index.toString(), ship.id); saved.put("Ships", ids)
         val corners = saved.getCompound("Corners"); corners.putLong(index.toString(), corner.asLong()); saved.put("Corners", corners)
         return ship
@@ -169,8 +172,9 @@ class VdexCannonBuild(val saved: CompoundTag) {
 
     private fun worldTarget(level: ServerLevel, step: VdexBuildPlan.Step): Vec3 {
         if (step.link >= 0) return links(level)[step.link].a.world(level) ?: position
-        val p = step.block?.pos?.let { Vector3d(it.x + .5, it.y + .5, it.z + .5) } ?: Vector3d()
-        plan(level).blueprint.ships[step.ship].relativePoint(p).rotate(rotation).add(position.x, position.y, position.z)
+        val p = step.block?.pos?.let { Vector3d(it.x + .5, it.y + .5, it.z + .5) }
+            ?: step.entity?.getList("pos", 6)?.let { Vector3d(it.getDouble(0), it.getDouble(1), it.getDouble(2)) } ?: Vector3d()
+        plan(level).blueprint.ships[step.ship].worldPoint(p, position, rotation)
         return Vec3(p.x, p.y, p.z)
     }
 
@@ -211,6 +215,7 @@ class VdexCannonBuild(val saved: CompoundTag) {
                 template.load(level.holderLookup(Registries.BLOCK), source)
                 template.placeInWorld(level, origin, origin, StructurePlaceSettings(), level.random, Block.UPDATE_CLIENTS or Block.UPDATE_KNOWN_SHAPE)
             }
+            alignShip(level, step.ship, ship)
             (ship as? LoadedServerShip)?.let { protect(level, cannon.blockPos, step.ship, it) }
         }
         saved.putBoolean("Paid", false); saved.remove("PaidItems"); saved.putInt("Cursor", cursor + 1)
@@ -224,7 +229,31 @@ class VdexCannonBuild(val saved: CompoundTag) {
             if (level.gameTime % 10L == 0L) ship.activeChunksSet.forEach { x, z ->
                 level.chunkSource.addRegionTicket(BUILD_TICKET, ChunkPos(x, z), 2, cannon)
             }
-            level.shipObjectWorld.loadedShips.getById(ship.id)?.let { protect(level, cannon, key.toInt(), it) }
+            level.shipObjectWorld.loadedShips.getById(ship.id)?.let {
+                alignShip(level, key.toInt(), it)
+                protect(level, cannon, key.toInt(), it)
+            }
+        }
+    }
+
+    private fun alignShip(level: ServerLevel, index: Int, ship: ServerShip) {
+        if (ship.inertiaData.mass <= 0.0) return
+        val source = plan(level).blueprint.ships[index]
+        val origin = corner(index)
+        val center = Vector3d(ship.inertiaData.centerOfMass)
+        val point = source.worldPoint(Vector3d(center).sub(origin.x.toDouble(), origin.y.toDouble(), origin.z.toDouble()), position, rotation)
+        val orientation = Quaterniond(rotation).mul(source.entry.relativeRot)
+        if (level.shipObjectWorld.loadedShips.getById(ship.id) == null) {
+            val transform = vsCore.newBodyTransform(point, orientation, Vector3d(source.entry.scale), center)
+            (ship as VsiServerShip).unsafeSetKinematics(vsCore.newBodyKinematics(Vector3d(), Vector3d(), transform))
+        } else if (ship.transform.shipToWorld.transformPosition(center, Vector3d()).distanceSquared(point) > 1e-8 ||
+            1.0 - kotlin.math.abs(ship.transform.rotation.dot(orientation)) > 1e-8) {
+            val oldPivot = source.worldPoint(Vector3d(ship.transform.positionInModel)
+                .sub(origin.x.toDouble(), origin.y.toDouble(), origin.z.toDouble()), position, rotation)
+            val teleport = vsCore.newShipTeleportData(newPos = oldPivot, newRot = orientation, newPosInShip = center, newScale = source.entry.scale)
+            level.shipObjectWorld.teleportShip(ship, object : ShipTeleportData by teleport {
+                override val shouldTeleportJointedShips = false
+            })
         }
     }
 

@@ -20,6 +20,7 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 import org.valkyrienskies.clockwork.content.curiosities.tools.wanderwand.WandLinkSchematics;
 import org.valkyrienskies.clockwork.util.ClockworkSchematicConnections;
+import org.valkyrienskies.clockwork.content.schematics.VdexBlueprintData;
 import org.valkyrienskies.mod.common.util.GameToPhysicsAdapter;
 import org.valkyrienskies.core.api.ships.ServerShip;
 import org.valkyrienskies.mod.common.schematic.*;
@@ -35,7 +36,7 @@ public class MixinVdexLinks {
     @WrapOperation(method = "saveShip", at = @At(value = "INVOKE", target = "Lorg/valkyrienskies/mod/common/schematic/VdexIO;write(Ljava/nio/file/Path;Lorg/valkyrienskies/mod/common/schematic/VdexMetadata;Ljava/util/List;Ljava/util/Map;)V"))
     private void clockwork$saveLinks(VdexIO io, Path path, VdexMetadata metadata, List<VdexModEntry> mods,
             Map<String, CompoundTag> blocks, Operation<Void> original, @Local(argsOnly = true) ServerLevel level) {
-        VdexData captured = WandLinkSchematics.capture(level, metadata, mods, blocks);
+        VdexData captured = WandLinkSchematics.capture(level, metadata, mods, VdexBlueprintData.capturePivots(level, metadata, blocks));
         original.call(io, path, captured.getMetadata(), captured.getModList(), captured.getNbtData());
     }
 

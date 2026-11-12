@@ -10,6 +10,12 @@ import net.minecraft.resources.ResourceLocation
 import net.minecraft.world.level.block.state.BlockState
 import net.minecraft.world.phys.AABB
 import org.joml.Vector3d
+import org.joml.Quaterniondc
+import net.minecraft.world.phys.Vec3
+import net.minecraft.server.level.ServerLevel
+import org.valkyrienskies.mod.common.BlockStateInfo
+import org.valkyrienskies.mod.common.schematic.VdexMetadata
+import org.valkyrienskies.mod.common.shipObjectWorld
 import org.valkyrienskies.mod.common.schematic.VdexData
 import org.valkyrienskies.mod.common.schematic.VdexIO
 import org.valkyrienskies.mod.common.schematic.VdexShipEntry
@@ -22,10 +28,13 @@ import java.util.zip.ZipInputStream
 
 class VdexBlueprintData(val data: VdexData, val ships: List<Ship>) {
     data class Block(val pos: BlockPos, val state: BlockState, val nbt: CompoundTag?)
-    data class Ship(val entry: VdexShipEntry, val size: BlockPos, val blocks: List<Block>, val entities: List<CompoundTag>) {
-        val pivot = Vector3d(size.x / 2 + .5, size.y / 2 + .5, size.z / 2 + .5)
+    data class Ship(val entry: VdexShipEntry, val size: BlockPos, val blocks: List<Block>, val entities: List<CompoundTag>,
+                    val pivot: Vector3d = massCenter(blocks, size)) {
         fun relativePoint(point: Vector3d): Vector3d = point.sub(pivot).mul(entry.scale)
             .rotate(entry.relativeRot).add(entry.relativePos)
+
+        fun worldPoint(point: Vector3d, position: Vec3, rotation: Quaterniondc): Vector3d =
+            relativePoint(point).rotate(rotation).add(position.x, position.y, position.z)
     }
 
     val blockCount = ships.sumOf { it.blocks.size }
@@ -41,6 +50,34 @@ class VdexBlueprintData(val data: VdexData, val ships: List<Ship>) {
     }
 
     companion object {
+        private const val PIVOT = "ClockworkPivot"
+
+        @JvmStatic
+        fun capturePivots(level: ServerLevel, metadata: VdexMetadata, blocks: Map<String, CompoundTag>): Map<String, CompoundTag> {
+            val captured = blocks.toMutableMap()
+            for (entry in metadata.ships) {
+                val ship = level.shipObjectWorld.allShips.getById(entry.previousId) ?: continue
+                val bounds = ship.shipAABB ?: continue
+                val tag = blocks[entry.nbtFile]?.copy() ?: continue
+                val pivot = Vector3d(ship.transform.positionInModel).sub(bounds.minX().toDouble(), bounds.minY().toDouble(), bounds.minZ().toDouble())
+                tag.put(PIVOT, CompoundTag().apply { putDouble("X", pivot.x); putDouble("Y", pivot.y); putDouble("Z", pivot.z) })
+                captured[entry.nbtFile] = tag
+            }
+            return captured
+        }
+
+        private fun massCenter(blocks: List<Block>, size: BlockPos): Vector3d {
+            val center = Vector3d()
+            var total = 0.0
+            for (block in blocks) {
+                val mass = BlockStateInfo.get(block.state)?.first ?: continue
+                if (!mass.isFinite() || mass <= 0.0) continue
+                center.add((block.pos.x + .5) * mass, (block.pos.y + .5) * mass, (block.pos.z + .5) * mass)
+                total += mass
+            }
+            return if (total > 0.0) center.div(total) else Vector3d(size.x / 2.0, size.y / 2.0, size.z / 2.0)
+        }
+
         const val MAX_FILE_BYTES = 8 * 1024 * 1024
         const val MAX_EXPANDED_BYTES = 64 * 1024 * 1024
         const val MAX_BLOCKS = 131072
@@ -117,7 +154,11 @@ class VdexBlueprintData(val data: VdexData, val ships: List<Ship>) {
                 require(blocks.isNotEmpty()) { "Empty blueprint ship" }
                 val entities = tag.getList("entities", 10)
                 require(entities.size <= 512) { "Too many schematic entities" }
-                Ship(entry, size, blocks.sortedWith(compareBy({ it.pos.y }, { it.pos.z }, { it.pos.x })), entities.map { (it as CompoundTag).copy() })
+                val pivot = if (tag.contains(PIVOT, 10)) tag.getCompound(PIVOT).let {
+                    Vector3d(it.getDouble("X"), it.getDouble("Y"), it.getDouble("Z"))
+                } else massCenter(blocks, size)
+                require(pivot.isFinite && pivot.lengthSquared() <= 4096.0 * 4096.0) { "Invalid ship pivot" }
+                Ship(entry, size, blocks.sortedWith(compareBy({ it.pos.y }, { it.pos.z }, { it.pos.x })), entities.map { (it as CompoundTag).copy() }, pivot)
             }
             for (constraint in data.metadata.constraints) {
                 require(constraint.metadata.shipIndex0 in ships.indices && constraint.metadata.shipIndex1 in ships.indices &&
