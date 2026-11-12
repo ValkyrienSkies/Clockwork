@@ -15,6 +15,7 @@ import net.minecraft.server.Bootstrap
 import net.minecraft.server.MinecraftServer
 import net.minecraft.server.level.ServerLevel
 import net.minecraft.world.level.Level
+import net.minecraft.world.level.block.Blocks
 import net.minecraft.world.level.block.state.BlockState
 import org.joml.Matrix4d
 import org.joml.Vector3d
@@ -53,12 +54,12 @@ class BalloonRegressionTest {
         var reads = 0
         var loadChecks = 0
         val solid = mockk<BlockState> {
-            every { block } returns mockk()
+            every { block } returns Blocks.STONE
             every { isAir } returns false
             every { isCollisionShapeFullBlock(any(), any()) } returns true
         }
         val air = mockk<BlockState> {
-            every { block } returns mockk()
+            every { block } returns Blocks.AIR
             every { isAir } returns true
         }
         val level: Level = if (server) mockk<ServerLevel>(relaxed = true, moreInterfaces = arrayOf(DimensionIdProvider::class)) else mockk<Level>()
