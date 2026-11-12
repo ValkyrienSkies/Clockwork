@@ -1,5 +1,6 @@
 package org.valkyrienskies.clockwork
 
+import org.valkyrienskies.clockwork.content.curiosities.clampotron.ClampotronBlock
 import com.simibubi.create.AllBlocks
 import com.simibubi.create.AllTags
 import com.simibubi.create.api.behaviour.display.DisplaySource.displaySource
@@ -803,6 +804,14 @@ object ClockworkBlocks {
         .transform(axeOrPickaxe()).properties { it.noOcclusion().forceSolidOff() }
         .addLayer { Supplier { RenderType.cutout() } }
         .register()
+
+    @JvmField
+    val CLAMPOTRON = REGISTRATE.block("clampotron") { p: BlockBehaviour.Properties ->
+        ClampotronBlock(p)
+    }.initialProperties { SharedProperties.softMetal() }
+        .transform(axeOrPickaxe()).properties { it.noOcclusion() }
+        .addLayer { Supplier { RenderType.cutout() } }
+        .item().tab(ClockworkMod.BASE_CREATIVE_TABINFO).build().register()
 
     @JvmField
     val ROPE_WINCH = REGISTRATE.block("rope_winch") { p: BlockBehaviour.Properties ->

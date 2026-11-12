@@ -18,6 +18,7 @@
 	"vs_clockwork:redstone_resistor",
 	"vs_clockwork:clock",
 	"vs_clockwork:delivery_cannon",
-	"vs_clockwork:delivery_chute"
+	"vs_clockwork:delivery_chute",
+    "vs_clockwork:clampotron"
   ]
 }

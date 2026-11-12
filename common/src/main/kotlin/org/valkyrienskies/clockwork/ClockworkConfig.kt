@@ -97,6 +97,12 @@ object ClockworkConfig {
         @ConfigEntry(description = "Max Gravitron mass in 1000 kg")
         var maxGravitronMass = 256
 
+        @ConfigEntry(description = "Clampotron held mass in kg per additional stress impact (SU per RPM)", min = 1.0)
+        var clampotronMassPerStress = 64000.0
+
+        @ConfigEntry(description = "Clampotron maximum holding force in newtons per RPM", min = 1.0)
+        var clampotronForcePerRpm = 160000.0
+
         @ConfigEntry(description = "Sets the gas retention efficiency of the balloon material; lower values simulate airtight rubber/synthetic, while higher values represent porous fabrics. Default 0.001.", min = 0.0, max = 1.0)
         var permeabilityConstant = 0.01
 

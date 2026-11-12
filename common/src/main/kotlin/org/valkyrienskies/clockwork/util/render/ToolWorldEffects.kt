@@ -1,5 +1,6 @@
 package org.valkyrienskies.clockwork.util.render
 
+import org.valkyrienskies.clockwork.content.curiosities.clampotron.ClampotronClient
 import org.valkyrienskies.clockwork.content.schematics.VdexBuildEffects
 import org.valkyrienskies.clockwork.content.schematics.VdexBlueprintPreview
 import com.mojang.blaze3d.systems.RenderSystem
@@ -27,6 +28,7 @@ object ToolWorldEffects {
         try {
             ClockworkModClient.WANDERWAND_EFFECT_RENDERER.render(poseStack, buffers, camera.position, partialTick)
             GravitronEffects.render(poseStack, buffers, partialTick)
+            ClampotronClient.render(poseStack, buffers, camera.position, partialTick)
             InfuserEffects.render(poseStack, buffers, camera.position, partialTick)
             RopeKnotRenderer.renderEffects(poseStack, buffers, camera.position, partialTick)
             VdexBlueprintPreview.renderWorld(poseStack, buffers, camera.position)

@@ -1,5 +1,7 @@
 package org.valkyrienskies.clockwork
 
+import org.valkyrienskies.clockwork.content.curiosities.clampotron.ClampotronBlockEntity
+import org.valkyrienskies.clockwork.content.curiosities.clampotron.ClampotronRenderer
 import com.simibubi.create.AllPartialModels
 import com.simibubi.create.content.contraptions.bearing.BearingRenderer
 import com.simibubi.create.content.contraptions.bearing.BearingVisual
@@ -897,6 +899,15 @@ object ClockworkBlockEntities {
         }
         .validBlocks(ClockworkBlocks.UNIVERSAL_SHAFT)
         .register()
+
+    @JvmField
+    val CLAMPOTRON = ClockworkMod.REGISTRATE
+        .blockEntity("clampotron") { type: BlockEntityType<ClampotronBlockEntity>, pos: BlockPos, state: BlockState ->
+            ClampotronBlockEntity(type, pos, state)
+        }.validBlocks(ClockworkBlocks.CLAMPOTRON)
+        .renderer { NonNullFunction { context: BlockEntityRendererProvider.Context ->
+            ClampotronRenderer(context)
+        } }.register()
 
     @JvmField
     val ROPE_WINCH = ClockworkMod.REGISTRATE

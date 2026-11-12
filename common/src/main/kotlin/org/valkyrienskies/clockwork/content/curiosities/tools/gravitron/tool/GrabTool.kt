@@ -1,5 +1,7 @@
 package org.valkyrienskies.clockwork.content.curiosities.tools.gravitron.tool
 
+import org.valkyrienskies.clockwork.content.curiosities.clampotron.ClampotronController
+import org.valkyrienskies.core.api.attachment.getAttachment
 import net.minecraft.ChatFormatting
 import net.minecraft.client.Minecraft
 import org.valkyrienskies.clockwork.content.schematics.VdexConstruction
@@ -232,6 +234,7 @@ class GrabTool : GravitronToolBase() {
 
             val ship = level.getShipManagingPos(clickedPos)
             if (VdexConstruction.locked(level, clickedPos)) return false
+            if (ship is LoadedServerShip && ship.getAttachment<ClampotronController>()?.active() == true) return false
             val grabPosInShip: Vector3dc = clickLocation.toJOML()
             val grabPosInWorld = Vector3d(grabPosInShip)
 

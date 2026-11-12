@@ -52,6 +52,7 @@ class GravitronController : ShipPhysicsListener {
 
     companion object {
         private val timeSteps = ConcurrentHashMap<String, Double>()
+        fun timeStep(level: PhysLevel): Double = timeSteps[level.dimension] ?: (1.0 / 60.0)
         fun timeStep(level: PhysLevel, delta: Double) {
             if (delta.isFinite() && delta > 0.0) timeSteps[level.dimension] = delta
         }

@@ -1,5 +1,6 @@
 package org.valkyrienskies.clockwork
 
+import org.valkyrienskies.clockwork.content.curiosities.clampotron.ClampotronController
 import com.mojang.logging.LogUtils
 import com.simibubi.create.AllBlocks
 import com.simibubi.create.api.boiler.BoilerHeater
@@ -122,6 +123,7 @@ object ClockworkMod {
         vsCore.registerAttachment(GyroShipControl::class.java)
         vsCore.registerAttachment(SugarRocketController::class.java)
         vsCore.registerAttachment(GravitronController::class.java) { useTransientSerializer() }
+        vsCore.registerAttachment(ClampotronController::class.java) { useTransientSerializer() }
         vsCore.registerAttachment(VdexConstruction::class.java) { useJacksonSerializer() }
         vsCore.registerAttachment(GravitronFrozenShip::class.java) {
             useJacksonSerializer()

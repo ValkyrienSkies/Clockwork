@@ -549,5 +549,72 @@
   ]
 },
   "gravitron_massmode_on": {"sounds": ["vs_clockwork:gravitron_massmode_on"], "subtitle": "vs_clockwork.subtitle.gravitron_massmode_on"},
-  "gravitron_massmode_off": {"sounds": ["vs_clockwork:gravitron_massmode_off"], "subtitle": "vs_clockwork.subtitle.gravitron_massmode_off"}
+  "gravitron_massmode_off": {"sounds": ["vs_clockwork:gravitron_massmode_off"], "subtitle": "vs_clockwork.subtitle.gravitron_massmode_off"},
+  "clampotron_hold_loop": {
+    "subtitle": "vs_clockwork.subtitle.clampotron_hold_loop",
+    "sounds": [
+      {
+        "name": "vs_clockwork:clampotron_hold_loop",
+        "attenuation_distance": 24
+      }
+    ]
+  },
+  "clampotron_overload": {
+    "subtitle": "vs_clockwork.subtitle.clampotron_overload",
+    "sounds": [
+      {
+        "name": "vs_clockwork:clampotron_overload",
+        "attenuation_distance": 24
+      }
+    ]
+  },
+  "clampotron_power_on": {
+    "subtitle": "vs_clockwork.subtitle.clampotron_power_on",
+    "sounds": [
+      {
+        "name": "vs_clockwork:clampotron_power_on",
+        "attenuation_distance": 24
+      }
+    ]
+  },
+  "clampotron_power_off": {
+    "subtitle": "vs_clockwork.subtitle.clampotron_power_off",
+    "sounds": [
+      {
+        "name": "vs_clockwork:clampotron_power_off",
+        "attenuation_distance": 24
+      }
+    ]
+  },
+  "clampotron_grab": {
+    "subtitle": "vs_clockwork.subtitle.clampotron_grab",
+    "sounds": [
+      {
+        "name": "vs_clockwork:clampotron_grab",
+        "attenuation_distance": 24
+      }
+    ]
+  },
+  "clampotron_release": {
+    "subtitle": "vs_clockwork.subtitle.clampotron_release",
+    "sounds": [
+      {
+        "name": "vs_clockwork:clampotron_release",
+        "attenuation_distance": 24
+      }
+    ]
+  },
+  "clampotron_snap_1": {
+    "subtitle": "vs_clockwork.subtitle.clampotron_snap_1",
+    "sounds": [
+      {
+        "name": "vs_clockwork:clampotron_snap_1",
+        "attenuation_distance": 24
+      },
+      {
+        "name": "vs_clockwork:clampotron_snap_2",
+        "attenuation_distance": 24
+      }
+    ]
+  }
 }

@@ -970,5 +970,19 @@
   "message.vs_clockwork.blueprint.pasted": "Blueprint pasted",
   "create.schematicannon.status.vdexConnections": "Installing connections",
   "create.schematicannon.status.vdexError": "Blueprint cannot be built",
-  "create.schematicannon.status.vdexOutputFull": "Remove finished blueprint"
+  "create.schematicannon.status.vdexOutputFull": "Remove finished blueprint",
+  "block.vs_clockwork.clampotron": "Clampotron",
+  "item.vs_clockwork.clampotron": "Clampotron",
+  "block.vs_clockwork.clampotron.reach": "Holding distance",
+  "thinkable.vs_clockwork.port.clampotron_enable": "In: enable grip",
+  "thinkable.vs_clockwork.port.clampotron_reach": "In: holding distance (1-32 blocks)",
+  "thinkable.vs_clockwork.port.clampotron_holding": "Out: holding object (0/15)",
+  "thinkable.vs_clockwork.port.clampotron_error": "Out: position error (blocks)",
+  "vs_clockwork.subtitle.clampotron_hold_loop": "Clampotron holding",
+  "vs_clockwork.subtitle.clampotron_overload": "Clampotron strains",
+  "vs_clockwork.subtitle.clampotron_power_on": "Clampotron powers on",
+  "vs_clockwork.subtitle.clampotron_power_off": "Clampotron powers off",
+  "vs_clockwork.subtitle.clampotron_grab": "Clampotron grabs",
+  "vs_clockwork.subtitle.clampotron_release": "Clampotron releases",
+  "vs_clockwork.subtitle.clampotron_snap_1": "Clampotron grip breaks"
 }
