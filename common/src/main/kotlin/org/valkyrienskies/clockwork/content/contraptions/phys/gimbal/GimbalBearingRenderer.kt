@@ -166,11 +166,12 @@ class GimbalBearingRenderer(context: BlockEntityRendererProvider.Context) : Smar
         val savedAxis = be.getRenderBearingAxisLocal()
         val axisLocal = if (savedAxis.lengthSquared() > 1e-12) savedAxis else direction.normal.toJOMLD()
         val localBasis = basisForDirection(direction)
+        val hostToSub = be.getRenderHostToSubRotation()
 
         val faceCenterWorld = subShip.renderTransform.shipToWorld.transformPosition(be.getRenderBearingPosInSub(), Vector3d())
         val normalWorld = subShip.renderTransform.rotation.transform(axisLocal, Vector3d()).normalize()
-        val uWorld = subShip.renderTransform.rotation.transform(localBasis.u, Vector3d()).normalize()
-        val vWorld = subShip.renderTransform.rotation.transform(localBasis.v, Vector3d()).normalize()
+        val uWorld = subShip.renderTransform.rotation.transform(hostToSub.transform(localBasis.u, Vector3d()), Vector3d()).normalize()
+        val vWorld = subShip.renderTransform.rotation.transform(hostToSub.transform(localBasis.v, Vector3d()), Vector3d()).normalize()
 
         return RenderPose(
             worldPointToRenderLocal(be, hostShip, faceCenterWorld),

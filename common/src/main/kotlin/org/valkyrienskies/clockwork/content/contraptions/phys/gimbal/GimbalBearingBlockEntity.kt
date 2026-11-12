@@ -60,8 +60,7 @@ import org.valkyrienskies.core.util.datastructures.DenseBlockPosSet
 import org.valkyrienskies.kelvin.util.KelvinExtensions.toMinecraft
 import org.valkyrienskies.mod.api.BlockEntityPhysicsListener
 import org.valkyrienskies.mod.common.*
-import org.valkyrienskies.mod.common.assembly.ShipAssembler.assembleToShip
-import org.valkyrienskies.mod.common.assembly.VSAssemblyEvents
+import org.valkyrienskies.mod.common.assembly.ShipAssembler.assembleToShipFull
 import org.valkyrienskies.mod.common.util.SplittingDisablerAttachment
 import org.valkyrienskies.mod.common.util.toJOML
 import org.valkyrienskies.mod.common.util.toJOMLD
@@ -100,6 +99,8 @@ class GimbalBearingBlockEntity(type: net.minecraft.world.level.block.entity.Bloc
 
     @Volatile private var bearingAxisLocal: Vector3d = Vector3d(0.0, 1.0, 0.0)
     @Volatile private var bearingPosInSub: Vector3d = Vector3d()
+    @Volatile private var neutralRelativeRotation: Quaterniond = Quaterniond()
+    private var attachedBlock: BlockPos? = null
     @Volatile private var assemblyHostRotation: Quaterniond = Quaterniond()
     @Volatile private var lastJointMaxAngleDeg: Int = DEFAULT_MAX_ANGLE_DEG
 
@@ -164,6 +165,8 @@ class GimbalBearingBlockEntity(type: net.minecraft.world.level.block.entity.Bloc
     fun getMaxAngleDeg(): Int = (maxAngleBehaviour?.value ?: DEFAULT_MAX_ANGLE_DEG).coerceIn(0, MAX_ANGLE_LIMIT_DEG)
 
     fun getMode(): GimbalMode = modeBehaviour?.get() ?: GimbalMode.LOCKED
+
+    fun getRenderHostToSubRotation(): Quaterniond = Quaterniond(neutralRelativeRotation).invert()
 
     fun getRenderBearingAxisLocal(): Vector3d = Vector3d(bearingAxisLocal)
 
@@ -237,11 +240,14 @@ class GimbalBearingBlockEntity(type: net.minecraft.world.level.block.entity.Bloc
     fun setSecondSignal(power: Int) = setFrequencySignal(2, power)
 
     //region Custom Propagation
+    private fun getAttachedBlock(): BlockPos = attachedBlock ?: Vector3d(bearingPosInSub)
+        .add(originalDirection?.normal?.toJOMLD() ?: Vector3d()).floor().toMinecraft()
+
     override fun propagateRotationTo(
         target: KineticBlockEntity, stateFrom: BlockState, stateTo: BlockState, diff: BlockPos,
         connectedViaAxes: Boolean, connectedViaCogs: Boolean
     ): Float {
-        if (joint == null || target.blockPos != Vector3d(bearingPosInSub).add(originalDirection?.normal?.toJOMLD() ?: Vector3d()).floor().toMinecraft()) return 0f
+        if (joint == null || target.blockPos != getAttachedBlock()) return 0f
 
         return 1f
     }
@@ -251,7 +257,7 @@ class GimbalBearingBlockEntity(type: net.minecraft.world.level.block.entity.Bloc
         state: BlockState,
         neighbours: MutableList<BlockPos>
     ): List<BlockPos> {
-        if (joint != null) neighbours.add(Vector3d(bearingPosInSub).add(originalDirection?.normal?.toJOMLD() ?: Vector3d()).floor().toMinecraft())
+        if (joint != null) neighbours.add(getAttachedBlock())
         return neighbours
     }
 
@@ -368,6 +374,11 @@ class GimbalBearingBlockEntity(type: net.minecraft.world.level.block.entity.Bloc
         tag.putDouble("AssyHostRotZ", assemblyHostRotation.z)
         tag.putDouble("AssyHostRotW", assemblyHostRotation.w)
 
+        tag.putDouble("NeutralRotX", neutralRelativeRotation.x)
+        tag.putDouble("NeutralRotY", neutralRelativeRotation.y)
+        tag.putDouble("NeutralRotZ", neutralRelativeRotation.z)
+        tag.putDouble("NeutralRotW", neutralRelativeRotation.w)
+        attachedBlock?.let { tag.putLong("AttachedBlock", it.asLong()) }
         writeGimbalDebug(tag)
     }
 
@@ -407,6 +418,10 @@ class GimbalBearingBlockEntity(type: net.minecraft.world.level.block.entity.Bloc
             )
         }
 
+        neutralRelativeRotation = if (tag.contains("NeutralRotW")) Quaterniond(
+            tag.getDouble("NeutralRotX"), tag.getDouble("NeutralRotY"),
+            tag.getDouble("NeutralRotZ"), tag.getDouble("NeutralRotW")) else Quaterniond()
+        attachedBlock = if (tag.contains("AttachedBlock")) BlockPos.of(tag.getLong("AttachedBlock")) else null
         readGimbalDebug(tag)
         lastJointMaxAngleDeg = getMaxAngleDeg()
     }
@@ -519,7 +534,7 @@ class GimbalBearingBlockEntity(type: net.minecraft.world.level.block.entity.Bloc
 
         joint = VSD6Joint(
             shipId0 = connectedShipId,
-            pose0 = VSJointPose(getSubJointAnchorLocal(), shipRot),
+            pose0 = VSJointPose(getSubJointAnchorLocal(), Quaterniond(neutralRelativeRotation).invert().mul(shipRot)),
             shipId1 = serverLevel.getShipObjectManagingPos(worldPosition)?.id,
             pose1 = VSJointPose(getOwnerJointAnchorLocal(), shipRot),
             compliance = 1e-100,
@@ -558,7 +573,6 @@ class GimbalBearingBlockEntity(type: net.minecraft.world.level.block.entity.Bloc
         val worldPos: Vector3dc = worldPosition.center.toJOML()
         val axis = direction.normal.toJOMLD()
         val shipOn = level.getShipObjectManagingPos(worldPosition)
-        val ownerFaceAnchor = Vector3d(worldPos).fma(0.5, axis)
         val ownerJointAnchor = Vector3d(worldPos)
 
         val startPos = Vector3d(worldPos).fma(0.5, axis)
@@ -576,7 +590,7 @@ class GimbalBearingBlockEntity(type: net.minecraft.world.level.block.entity.Bloc
             ), false, shipOn?.id
         )
 
-        val otherShip = level.getShipObjectManagingPos(otherPos.blockPos)
+        val otherShip = level.getShipObjectManagingPos(otherPos.blockPos)?.takeUnless { it.id == shipOn?.id }
 
         val (otherShipCenterPos, newOtherShip) = if (otherShip == null) {
             val selection: DenseBlockPosSet?
@@ -591,49 +605,33 @@ class GimbalBearingBlockEntity(type: net.minecraft.world.level.block.entity.Bloc
             }
             if (selection == null) return
 
-            var centerPositions: Pair<Vector3d, Vector3d> = Pair(Vector3d(), Vector3d())
-            val event = VSAssemblyEvents.onPasteBeforeBlocksAreLoaded.on {
-                centerPositions = it.centerPosition.first.get(Vector3d()) to it.centerPosition.second.get(Vector3d())
-            }
-            val ship = assembleToShip(
-                level,
-                selection.toSet().map { it.toMinecraft() }.toSet(),
-                1.0
-            )
-            event.unregister()
-
-            val newPos = Vector3d(ownerJointAnchor).sub(centerPositions.first).add(centerPositions.second)
-            connectedShipId = ship.id
-            Pair(newPos, ship)
+            val assembly = assembleToShipFull(level, selection.toSet().map { it.toMinecraft() }.toSet())
+            val bounds = assembly.ship.shipAABB!!
+            val sourceMin = Vector3d(selection.minOf { it.x() }.toDouble(),
+                selection.minOf { it.y() }.toDouble(), selection.minOf { it.z() }.toDouble())
+            val delta = Vector3d(bounds.minX().toDouble(), bounds.minY().toDouble(), bounds.minZ().toDouble()).sub(sourceMin)
+            val newPos = Vector3d(ownerJointAnchor).add(delta)
+            attachedBlock = Vector3d(attachPoint.center.toJOML()).add(delta).let { BlockPos.containing(it.x, it.y, it.z) }
+            alignAssembledShip(assembly.ship, shipOn, ownerJointAnchor, Vector3d(newPos).fma(-0.15, axis))
+            Pair(newPos, assembly.ship)
         } else {
-            connectedShipId = otherShip.id
-            val bp = Vector3d(
-                otherPos.blockPos.x.toDouble() + 0.5,
-                otherPos.blockPos.y.toDouble() + 0.5,
-                otherPos.blockPos.z.toDouble() + 0.5
-            )
-            Pair(bp, otherShip)
+            attachedBlock = otherPos.blockPos.immutable()
+            val anchorWorld = shipOn?.transform?.shipToWorld?.transformPosition(ownerJointAnchor, Vector3d())
+                ?: Vector3d(ownerJointAnchor)
+            val anchorLocal = otherShip.transform.worldToShip.transformPosition(anchorWorld, Vector3d())
+            Pair(anchorLocal, otherShip)
         }
 
-        val shipOnID = shipOn?.id
-        val subJointAnchor = Vector3d(otherShipCenterPos).fma(-0.15, axis)
-
-        val posInWorld = shipOn?.transform?.shipToWorld?.transformPosition(
-            Vector3d(ownerJointAnchor).sub(subJointAnchor).add(newOtherShip.inertiaData.centerOfMass), Vector3d()
-        ) ?: Vector3d(ownerJointAnchor).sub(subJointAnchor).add(newOtherShip.inertiaData.centerOfMass)
+        connectedShipId = newOtherShip.id
         val rotInWorld = shipOn?.transform?.shipToWorldRotation?.let { Quaterniond(it) } ?: Quaterniond()
-        val scaling = shipOn?.transform?.shipToWorldScaling ?: Vector3d(1.0, 1.0, 1.0)
-
-        newOtherShip.unsafeSetTransform(
-            BodyTransformFactory.create(
-                posInWorld, rotInWorld, scaling, newOtherShip.transform.positionInModel
-            )
-        )
-
-        val ship1rot = directionHingeRotation(direction)
-        val ship2rot = directionHingeRotation(direction)
-        val pose0 = VSJointPose(subJointAnchor, ship1rot)
-        val pose1 = VSJointPose(ownerJointAnchor, ship2rot)
+        neutralRelativeRotation = Quaterniond(rotInWorld).invert().mul(newOtherShip.transform.shipToWorldRotation)
+        bearingAxisLocal = neutralRelativeRotation.transformInverse(axis, Vector3d())
+        val subJointAnchor = if (otherShip == null) Vector3d(otherShipCenterPos).fma(-0.15, bearingAxisLocal)
+            else Vector3d(otherShipCenterPos)
+        bearingPosInSub = Vector3d(subJointAnchor).fma(0.15, bearingAxisLocal)
+        val hostFrame = directionHingeRotation(direction)
+        val pose0 = VSJointPose(subJointAnchor, Quaterniond(neutralRelativeRotation).invert().mul(hostFrame))
+        val pose1 = VSJointPose(ownerJointAnchor, hostFrame)
 
         val maxAngle = getMaxAngleDeg()
         val limitRad = Math.toRadians(maxAngle.toDouble()).toFloat().coerceAtLeast(MIN_LIMIT_RAD)
@@ -642,14 +640,12 @@ class GimbalBearingBlockEntity(type: net.minecraft.world.level.block.entity.Bloc
         joint = VSD6Joint(
             shipId0 = connectedShipId,
             pose0 = pose0,
-            shipId1 = shipOnID,
+            shipId1 = shipOn?.id,
             pose1 = pose1,
             compliance = 1e-100,
             motions = motions,
             swingLimit = VSD6Joint.LimitCone(limitRad,limitRad)
         )
-        bearingAxisLocal = axis
-        bearingPosInSub = otherShipCenterPos
         assemblyHostRotation = rotInWorld
         lastJointMaxAngleDeg = maxAngle
 
@@ -682,19 +678,18 @@ class GimbalBearingBlockEntity(type: net.minecraft.world.level.block.entity.Bloc
         }
         val mainShip = level.getShipObjectManagingPos(worldPosition)
         val direction = originalDirection ?: blockState.getValue(BearingBlock.FACING)
-        val ownerAnchor = Vector3d(worldPosition.center.toJOML())
 
         val targetRot = mainShip?.transform?.shipToWorldRotation?.let { Quaterniond(it) } ?: Quaterniond()
         val scaling = mainShip?.transform?.shipToWorldScaling ?: Vector3d(1.0, 1.0, 1.0)
         val posInWorld = mainShip?.transform?.shipToWorld?.transformPosition(
-            Vector3d(ownerAnchor).sub(bearingPosInSub).add(subShip.inertiaData.centerOfMass), Vector3d()
-        ) ?: Vector3d(ownerAnchor).sub(bearingPosInSub).add(subShip.inertiaData.centerOfMass)
+            Vector3d(worldPosition.relative(direction).center.toJOML()).sub(getAttachedBlock().center.toJOML()).add(subShip.inertiaData.centerOfMass), Vector3d()
+        ) ?: Vector3d(worldPosition.relative(direction).center.toJOML()).sub(getAttachedBlock().center.toJOML()).add(subShip.inertiaData.centerOfMass)
         subShip.unsafeSetTransform(
-            BodyTransformFactory.create(posInWorld, targetRot, scaling, subShip.transform.positionInModel)
+            BodyTransformFactory.create(posInWorld, targetRot, scaling, subShip.inertiaData.centerOfMass)
         )
 
         val inMain = worldPosition.relative(direction, 1)
-        val inSubship = Vector3d(bearingPosInSub).fma(0.5, bearingAxisLocal).let { BlockPos.containing(it.x, it.y, it.z) }
+        val inSubship = getAttachedBlock()
 
         val aabb = subShip.shipAABB!!
         val blocks = DenseBlockPosSet()
@@ -723,6 +718,8 @@ class GimbalBearingBlockEntity(type: net.minecraft.world.level.block.entity.Bloc
     }
 
     private fun resetState() {
+        attachedBlock = null
+        neutralRelativeRotation = Quaterniond()
         connectedShipId = -1L
         isRunning = false
         assembleNextTick = false
@@ -980,7 +977,7 @@ class GimbalBearingBlockEntity(type: net.minecraft.world.level.block.entity.Bloc
         targetAxisWorld: Vector3dc
     ): Vector3d {
         if (rsLen > 1e-6) {
-            val tiltDirLocal = Vector3d(rsLocal).normalize()
+            val tiltDirLocal = neutralRelativeRotation.transformInverse(rsLocal, Vector3d()).normalize()
             val swingAxisLocal = Vector3d(bearingAxisLocal).cross(tiltDirLocal, Vector3d())
             val axisLen = swingAxisLocal.length()
             if (axisLen > 1e-9) return swingAxisLocal.div(axisLen)
@@ -1007,10 +1004,10 @@ class GimbalBearingBlockEntity(type: net.minecraft.world.level.block.entity.Bloc
     }
 
     private fun getTargetRotation(refRot: Quaterniond, rsLocal: Vector3dc, rsLen: Double, tiltAngleRad: Double): Quaterniond {
-        val targetRot = Quaterniond(refRot)
+        val targetRot = Quaterniond(refRot).mul(neutralRelativeRotation)
         if (rsLen <= 1e-6 || tiltAngleRad <= 1e-9) return targetRot
 
-        val tiltDirLocal = Vector3d(rsLocal).normalize()
+        val tiltDirLocal = neutralRelativeRotation.transformInverse(rsLocal, Vector3d()).normalize()
         val tiltAxisLocal = Vector3d(bearingAxisLocal).cross(tiltDirLocal, Vector3d())
         val axisLen = tiltAxisLocal.length()
         if (axisLen < 1e-9) return targetRot
