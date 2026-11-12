@@ -69,18 +69,7 @@ object GlueAssembler {
 
             val glued = SuperGlueEntity.isGlued(level, pos, direction, glueCache)
 
-            // Slime blocks and such
-            var sticky = !BlockMovementChecks.isBrittle(newState) &&
-                    SuperGlueEntity.isSideSticky(level, pos, direction) &&
-                    state.canStickTo(newState) && newState.canStickTo(state)
-
-            if (sticky) {
-                if (state.pistonPushReaction == PushReaction.PUSH_ONLY ||
-                    newState.pistonPushReaction == PushReaction.PUSH_ONLY
-                ) sticky = false
-                if (BlockMovementChecks.isNotSupportive(state, direction)) sticky = false
-                if (BlockMovementChecks.isNotSupportive(newState, direction.opposite)) sticky = false
-            }
+            val sticky = isStuckTogether(level, pos, state, direction, newPos, newState)
 
             // Torches, buttons, carpets, etc get glued automatically
             val attached = BlockMovementChecks.isBlockAttachedTowards(
@@ -91,21 +80,36 @@ object GlueAssembler {
         }
     }
 
+    private fun isStuckTogether(
+        level: Level,
+        pos: BlockPos,
+        state: BlockState,
+        direction: Direction,
+        newPos: BlockPos,
+        newState: BlockState,
+    ): Boolean {
+        if (BlockMovementChecks.isBrittle(newState)) return false
+
+        // Either side might be sticky
+        val sticky = SuperGlueEntity.isSideSticky(level, pos, direction) ||
+                SuperGlueEntity.isSideSticky(level, newPos, direction.opposite)
+        if (!sticky) return false
+
+        // Slime / honey but not both
+        val slimeHoney =
+            (state.`is`(Blocks.SLIME_BLOCK) && newState.`is`(Blocks.HONEY_BLOCK)) ||
+                    (state.`is`(Blocks.HONEY_BLOCK) && newState.`is`(Blocks.SLIME_BLOCK))
+        if (slimeHoney) return false
+
+        if (state.pistonPushReaction == PushReaction.PUSH_ONLY ||
+            newState.pistonPushReaction == PushReaction.PUSH_ONLY
+        ) return false
+
+        return true
+    }
+
     private fun isAllowed(state: BlockState): Boolean {
         val key = BuiltInRegistries.BLOCK.getKey(state.block).toString()
         return !ClockworkConfig.SERVER.blockBlacklist.contains(key)
-    }
-
-    private fun isStickyBlock(state: BlockState): Boolean =
-        state.`is`(Blocks.SLIME_BLOCK) || state.`is`(Blocks.HONEY_BLOCK)
-
-    /**
-     * Same as vanilla PistonStructureResolver.canStickToEachOther but thats private.
-     * Also similar to IBlockStateExtension.canStickTo but thats forge-only
-     */
-    private fun BlockState.canStickTo(second: BlockState): Boolean {
-        if (this.`is`(Blocks.HONEY_BLOCK) && second.`is`(Blocks.SLIME_BLOCK)) return false
-        if (this.`is`(Blocks.SLIME_BLOCK) && second.`is`(Blocks.HONEY_BLOCK)) return false
-        return isStickyBlock(this) || isStickyBlock(second)
     }
 }
