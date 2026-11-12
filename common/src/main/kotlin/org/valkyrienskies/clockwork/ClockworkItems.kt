@@ -1,7 +1,6 @@
 package org.valkyrienskies.clockwork
 
 import org.valkyrienskies.clockwork.content.schematics.VdexBlueprintItem
-import org.valkyrienskies.clockwork.content.schematics.VdexBlueprintItemRenderer
 import org.valkyrienskies.clockwork.content.curiosities.spring.SpringItem
 
 import com.simibubi.create.AllTags
@@ -51,7 +50,6 @@ object ClockworkItems {
     @JvmField
     val VDEX_BLUEPRINT = REGISTRATE.item<VdexBlueprintItem>("vdex_blueprint") { VdexBlueprintItem(it!!) }
         .properties { it.stacksTo(1) }.tab(ClockworkMod.BASE_CREATIVE_TABINFO)
-        .transform(ClockworkRegistrate.customRenderedItem { Supplier { VdexBlueprintItemRenderer() } })
         .model(AssetLookup.existingItemModel()).register()
 
 

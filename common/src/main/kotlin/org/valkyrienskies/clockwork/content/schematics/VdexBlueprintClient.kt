@@ -95,6 +95,7 @@ object VdexBlueprintClient {
         if (lastLevel !== mc.level) {
             lastLevel = mc.level
             downloads.clear(); outgoing.clear(); requested.clear()
+            VdexBlueprintPreview.clear()
         }
         VdexBlueprintPreview.tick()
         val stack = mc.player?.mainHandItem

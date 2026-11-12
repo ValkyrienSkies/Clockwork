@@ -1,6 +1,3 @@
 {
-  "parent": "minecraft:item/generated",
-  "textures": {
-    "layer0": "vs_clockwork:item/vdex_blueprint"
-  }
+  "parent": "create:item/schematic"
 }
