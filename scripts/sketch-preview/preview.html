@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="en"><meta charset="utf-8"><title>Clockwork sketch tuning</title>
+<style>
+body{margin:0;background:#20272b;color:#e7edf0;font:15px system-ui}main{max-width:1260px;margin:32px auto;padding:0 24px}h1{font-size:24px;margin-bottom:8px}p{color:#acbec7;line-height:1.5}section{display:flex;gap:24px;align-items:start}canvas{width:min(70vw,768px);height:auto;background:#e3f5fa;border:1px solid #607582}aside{min-width:230px}label{display:block;margin:20px 0}input{display:block;width:100%;margin-top:8px}button,select{background:#34454e;color:#eef4f7;border:1px solid #6d818c;border-radius:4px;padding:8px;margin:4px}button.active{border-color:#b9e6f5;background:#456573}output{float:right}pre{white-space:pre-wrap;font-size:13px}table{border-collapse:collapse;width:100%;margin-top:25px}td,th{padding:8px;text-align:left}td img{width:100%;border:1px solid #607582}small{color:#adc0c9}#error{color:#ffa9a9}
+</style>
+<main><h1>Clockwork sketch tuning</h1><p>Live rendering of the blueprint shader. These procedural fixtures test dense geometry and thin details; they are not captures of Minecraft block models. No game launch needed.</p>
+<section><canvas id="view" width="576" height="432"></canvas><aside>
+<select id="fixture"><option value="dense">Dense machinery</option><option value="mechanism">Simple mechanism</option><option value="connections">Springs, ropes and Thinkables</option></select>
+<div id="presets"><button data-style="current">Previous</button><button data-style="clear" class="active">Default</button><button data-style="light">Light</button></div>
+<label>Line width <output id="o0"></output><input id="p0" type="range" min="0.25" max="1.2" step="0.01" value="0.86"></label>
+<label>Interior lines <output id="o1"></output><input id="p1" type="range" min="0.1" max="1" step="0.01" value="0.25"></label>
+<label>Retracing <output id="o2"></output><input id="p2" type="range" min="0" max="1" step="0.01" value="0.75"></label>
+<label>Graphite shading <output id="o3"></output><input id="p3" type="range" min="0.2" max="1.2" step="0.01" value="1.20"></label>
+<button id="replay">Draw again</button><button id="erase">Erase and redraw</button>
+<button id="save">Save PNG</button><pre id="values"></pre><p id="error"></p></aside></section>
+<h2>Rendered comparisons</h2><small>Same geometry, camera, adaptive tone range, and output resolution in every column.</small>
+<table><thead><tr><th>Previous</th><th>Current default</th><th>Light</th></tr></thead><tbody>
+<tr><td><img src="dense-current.png" alt="Previous dense sketch"></td><td><img src="dense-clear.png" alt="Clear dense sketch"></td><td><img src="dense-light.png" alt="Light dense sketch"></td></tr>
+<tr><td><img src="mechanism-current.png" alt="Previous mechanism sketch"></td><td><img src="mechanism-clear.png" alt="Clear mechanism sketch"></td><td><img src="mechanism-light.png" alt="Light mechanism sketch"></td></tr>
+<tr><td><img src="connections-current.png" alt="Connection ink, previous block shading"></td><td><img src="connections-clear.png" alt="Connection ink, default block shading"></td><td><img src="connections-light.png" alt="Connection ink, light block shading"></td></tr></tbody></table></main>
+<script>
+const fragment=__FRAGMENT_SHADER__,fixtures=__FIXTURES__,revealShader=__REVEAL_SHADER__;
+const canvas=document.querySelector('#view'), display=canvas.getContext('2d'), renderCanvas=document.createElement('canvas');renderCanvas.width=canvas.width;renderCanvas.height=canvas.height;
+const gl=renderCanvas.getContext('webgl2',{alpha:false,preserveDrawingBuffer:true});
+const inputs=[0,1,2,3].map(i=>document.querySelector('#p'+i));
+const styles={current:[1,1,1,1],clear:[.86,.25,.75,1.20],light:[.42,.38,.25,.65]};
+let current, animation=0, reveal=[1,0], generation=0;
+try{
+ if(!gl)throw new Error('WebGL 2 is required for live tuning. The rendered comparisons below still work.');
+ function compile(type,source){const s=gl.createShader(type);gl.shaderSource(s,source);gl.compileShader(s);if(!gl.getShaderParameter(s,gl.COMPILE_STATUS))throw new Error(gl.getShaderInfoLog(s));return s;}
+ const program=gl.createProgram();gl.attachShader(program,compile(gl.VERTEX_SHADER,'#version 300 es\nin vec2 position;out vec2 uv;void main(){uv=position*.5+.5;gl_Position=vec4(position,0.,1.);}'));gl.attachShader(program,compile(gl.FRAGMENT_SHADER,fragment));gl.linkProgram(program);if(!gl.getProgramParameter(program,gl.LINK_STATUS))throw new Error(gl.getProgramInfoLog(program));gl.useProgram(program);
+ const buffer=gl.createBuffer();gl.bindBuffer(gl.ARRAY_BUFFER,buffer);gl.bufferData(gl.ARRAY_BUFFER,new Float32Array([-1,-1,1,-1,-1,1,-1,1,1,-1,1,1]),gl.STATIC_DRAW);const pos=gl.getAttribLocation(program,'position');gl.enableVertexAttribArray(pos);gl.vertexAttribPointer(pos,2,gl.FLOAT,false,0,0);
+ const texture=gl.createTexture();gl.bindTexture(gl.TEXTURE_2D,texture);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MIN_FILTER,gl.NEAREST);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MAG_FILTER,gl.NEAREST);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_S,gl.CLAMP_TO_EDGE);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_T,gl.CLAMP_TO_EDGE);gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL,false);gl.pixelStorei(gl.UNPACK_COLORSPACE_CONVERSION_WEBGL,gl.NONE);gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL,true);
+ const inkTexture=gl.createTexture();gl.bindTexture(gl.TEXTURE_2D,inkTexture);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MIN_FILTER,gl.LINEAR);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MAG_FILTER,gl.LINEAR);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_S,gl.CLAMP_TO_EDGE);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_T,gl.CLAMP_TO_EDGE);
+ const inkProgram=gl.createProgram();gl.attachShader(inkProgram,compile(gl.VERTEX_SHADER,'#version 300 es\nin vec2 position;out vec2 uv;void main(){uv=position*.5+.5;gl_Position=vec4(position,0.,1.);}'));gl.attachShader(inkProgram,compile(gl.FRAGMENT_SHADER,'#version 300 es\nprecision highp float;\n'+revealShader+'\nuniform sampler2D image;uniform vec2 Reveal;in vec2 uv;out vec4 fragColor;void main(){vec4 c=texture(image,uv);fragColor=vec4(c.rgb,c.a*blueprintReveal(uv,vec2(576.,432.),3.,Reveal));}'));gl.linkProgram(inkProgram);if(!gl.getProgramParameter(inkProgram,gl.LINK_STATUS))throw new Error(gl.getProgramInfoLog(inkProgram));
+ const uniform=n=>gl.getUniformLocation(program,n);
+ gl.uniform1i(uniform('Sampler0'),0);gl.uniform2f(uniform('SketchSize'),576,432);gl.uniform1f(uniform('PixelScale'),3);
+ function draw(){if(!current)return;gl.useProgram(program);gl.bindTexture(gl.TEXTURE_2D,texture);gl.enableVertexAttribArray(pos);gl.vertexAttribPointer(pos,2,gl.FLOAT,false,0,0);gl.uniform2fv(uniform('Reveal'),reveal);const style=inputs.map(i=>+i.value);style.forEach((v,i)=>document.querySelector('#o'+i).textContent=v.toFixed(2));document.querySelector('#values').textContent='StrokeStyle: ['+style.map(v=>v.toFixed(2)).join(', ')+']';gl.uniform4fv(uniform('StrokeStyle'),style);gl.uniform2fv(uniform('ToneRange'),current.tones);gl.clearColor(227/255,245/255,250/255,1);gl.clear(gl.COLOR_BUFFER_BIT);gl.enable(gl.BLEND);gl.blendFunc(gl.SRC_ALPHA,gl.ONE_MINUS_SRC_ALPHA);gl.drawArrays(gl.TRIANGLES,0,6);gl.useProgram(inkProgram);gl.bindTexture(gl.TEXTURE_2D,inkTexture);const ip=gl.getAttribLocation(inkProgram,'position');gl.enableVertexAttribArray(ip);gl.vertexAttribPointer(ip,2,gl.FLOAT,false,0,0);gl.uniform1i(gl.getUniformLocation(inkProgram,'image'),0);gl.uniform2fv(gl.getUniformLocation(inkProgram,'Reveal'),reveal);gl.drawArrays(gl.TRIANGLES,0,6);display.clearRect(0,0,canvas.width,canvas.height);display.drawImage(renderCanvas,0,0);}
+ function replay(erasing=false){cancelAnimationFrame(animation);const start=performance.now();const step=now=>{const elapsed=now-start;if(erasing&&elapsed<650)reveal=[1,elapsed/650];else reveal=[Math.min(1,(elapsed-(erasing?650:0))/1450),0];draw();if(elapsed<(erasing?2100:1450))animation=requestAnimationFrame(step);};animation=requestAnimationFrame(step);}
+ function load(){const ticket=++generation,selected=fixtures[document.querySelector('#fixture').value],img=new Image(),ink=new Image();let ready=0;const loaded=()=>{if(++ready<2||ticket!==generation)return;current=selected;gl.bindTexture(gl.TEXTURE_2D,texture);gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,gl.RGBA,gl.UNSIGNED_BYTE,img);gl.bindTexture(gl.TEXTURE_2D,inkTexture);gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,gl.RGBA,gl.UNSIGNED_BYTE,ink);replay();};img.onload=loaded;ink.onload=loaded;img.src=selected.image;ink.src=selected.ink;}
+ document.querySelector('#replay').onclick=()=>replay();document.querySelector('#erase').onclick=()=>replay(true);
+ inputs.forEach(input=>input.oninput=()=>{document.querySelectorAll('#presets button').forEach(b=>b.classList.remove('active'));draw();});document.querySelector('#fixture').onchange=load;
+ document.querySelectorAll('#presets button').forEach(button=>button.onclick=()=>{styles[button.dataset.style].forEach((v,i)=>inputs[i].value=v);document.querySelectorAll('#presets button').forEach(b=>b.classList.toggle('active',b===button));draw();});
+ document.querySelector('#save').onclick=()=>{const link=document.createElement('a');link.href=canvas.toDataURL('image/png');link.download='clockwork-sketch-tune.png';link.click();};load();
+}catch(e){document.querySelector('#error').textContent=e.message;}
+</script></html>

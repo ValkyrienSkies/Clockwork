@@ -1,5 +1,7 @@
 package org.valkyrienskies.clockwork.forge;
 
+import org.valkyrienskies.clockwork.content.schematics.VdexPlacementClient;
+
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
 import net.createmod.catnip.animation.AnimationTickHolder;
@@ -93,7 +95,7 @@ public class ClockworkClientEvents {
         }
 
         double delta = event.getScrollDelta();
-        boolean cancelled = ClockworkModForgeClient.GRAVITRON_HANDLER.mouseScrolled(delta) || ClockworkModForgeClient.WANDERWAND_HANDLER.mouseScrolled(delta);
+        boolean cancelled = VdexPlacementClient.mouseScrolled(delta) || ClockworkModForgeClient.GRAVITRON_HANDLER.mouseScrolled(delta) || ClockworkModForgeClient.WANDERWAND_HANDLER.mouseScrolled(delta);
         event.setCanceled(cancelled);
     }
 
@@ -104,6 +106,8 @@ public class ClockworkClientEvents {
 
         int button = event.getButton();
         boolean pressed = !(event.getAction() == 0);
+
+        if (VdexPlacementClient.onMouseInput(button, pressed)) { event.setCanceled(true); return; }
 
         if (ClockworkModForgeClient.GRAVITRON_HANDLER.onMouseInput(button, pressed)) {
             event.setCanceled(true);

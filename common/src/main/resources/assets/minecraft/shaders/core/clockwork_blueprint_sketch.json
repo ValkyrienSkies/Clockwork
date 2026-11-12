@@ -8,6 +8,9 @@
   "samplers": [
     {
       "name": "Sampler0"
+    },
+    {
+      "name": "Sampler1"
     }
   ],
   "uniforms": [
@@ -73,13 +76,48 @@
       "values": [
         2
       ]
+    },
+    {
+      "name": "ToneRange",
+      "type": "float",
+      "count": 2,
+      "values": [
+        0,
+        1
+      ]
+    },
+    {
+      "name": "StrokeStyle",
+      "type": "float",
+      "count": 4,
+      "values": [
+        0.86,
+        0.25,
+        0.75,
+        1.2
+      ]
+    },
+    {
+      "name": "Reveal",
+      "type": "float",
+      "count": 2,
+      "values": [
+        1,
+        0
+      ]
+    },
+    {
+      "name": "WorldPreview",
+      "type": "float",
+      "count": 1,
+      "values": [
+        0
+      ]
     }
   ],
   "blend": {
     "func": "add",
     "srcrgb": "srcalpha",
-    "dstrgb": "1-srcalpha",
-    "srcalpha": "one",
-    "dstalpha": "1-srcalpha"
+    "dstrgb": "1-srcalpha"
   }
 }

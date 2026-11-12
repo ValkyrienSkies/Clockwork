@@ -1,5 +1,7 @@
 package org.valkyrienskies.clockwork.forge;
 
+import org.valkyrienskies.clockwork.content.schematics.VdexPlacementClient;
+
 import com.simibubi.create.AllParticleTypes;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.resources.model.ModelResourceLocation;
@@ -65,6 +67,8 @@ public class ClockworkModForgeClient {
 
     @SubscribeEvent
     public static void onRegisterGuiOverlays(RegisterGuiOverlaysEvent event) {
+        event.registerAbove(VanillaGuiOverlay.HOTBAR.id(), "vdex_placement",
+                (gui, graphics, partialTicks, width, height) -> VdexPlacementClient.renderHud(graphics, partialTicks));
         event.registerAbove(VanillaGuiOverlay.HOTBAR.id(), "gravitron",
                 ClockworkModForgeClient.GRAVITRON_HANDLER.getOverlayRenderer());
         event.registerAbove(VanillaGuiOverlay.HOTBAR.id(), "wanderwand",

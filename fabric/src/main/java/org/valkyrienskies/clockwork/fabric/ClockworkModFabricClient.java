@@ -1,5 +1,7 @@
 package org.valkyrienskies.clockwork.fabric;
 
+import org.valkyrienskies.clockwork.content.schematics.VdexPlacementClient;
+
 import com.mojang.blaze3d.platform.Window;
 import com.mojang.blaze3d.vertex.DefaultVertexFormat;
 import io.github.fabricators_of_create.porting_lib.event.client.KeyInputCallback;
@@ -81,6 +83,7 @@ public class ClockworkModFabricClient implements ClientModInitializer {
         ClientTickEvents.START_CLIENT_TICK.register(FabricClockworkClientEvents::onTickStart);
         WorldRenderEvents.AFTER_TRANSLUCENT.register(FabricClockworkClientEvents::onRenderWorld);
         HudRenderCallback.EVENT.register((graphics, partialTicks) -> {
+            VdexPlacementClient.renderHud(graphics, partialTicks);
             Window window = Minecraft.getInstance().getWindow();
             GRAVITRON_HANDLER.render(graphics, partialTicks, window.getWidth(), window.getHeight());
             WANDERWAND_HANDLER.render(graphics, partialTicks, window.getWidth(), window.getHeight());

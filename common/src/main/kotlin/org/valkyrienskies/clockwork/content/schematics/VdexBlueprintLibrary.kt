@@ -5,11 +5,13 @@ import net.minecraft.nbt.CompoundTag
 import net.minecraft.network.chat.Component
 import net.minecraft.server.level.ServerLevel
 import net.minecraft.server.level.ServerPlayer
+import net.minecraft.world.InteractionHand
 import net.minecraft.world.item.ItemStack
 import net.minecraft.world.phys.Vec3
 import org.joml.Quaterniond
 import org.joml.Vector3d
 import org.valkyrienskies.clockwork.ClockworkMod
+import org.valkyrienskies.clockwork.ClockworkItems
 import org.valkyrienskies.clockwork.ClockworkPackets
 import org.valkyrienskies.core.api.ships.ServerShip
 import org.valkyrienskies.mod.common.shipObjectWorld
@@ -22,7 +24,10 @@ import java.util.UUID
 
 object VdexBlueprintLibrary {
     private data class Upload(val id: String, val name: String, val total: Int, val started: Long, val bytes: ByteArrayOutputStream)
-    private data class Download(val id: String, val name: String, val bytes: ByteArray, var offset: Int = 0)
+    private data class Download(val id: String, val name: String, val bytes: ByteArray, val preview: Boolean = false, var offset: Int = 0)
+    private data class Capture(val id: String, val bytes: ByteArray, val level: ServerLevel, val expires: Long,
+                               val slot: Int, val stack: ItemStack)
+    private val captures = HashMap<UUID, Capture>()
     private val downloads = HashMap<UUID, Download>()
     private val uploads = HashMap<UUID, Upload>()
     private val cache = object : LinkedHashMap<Path, VdexBlueprintData>(16, .75f, true) {
@@ -55,9 +60,12 @@ object VdexBlueprintLibrary {
         return id
     }
 
-    fun capture(player: ServerPlayer, ship: ServerShip, stack: ItemStack) = guarded(player) {
+    fun beginCapture(player: ServerPlayer, ship: ServerShip) = guarded(player) {
+        val stack = player.mainHandItem
+        if (stack.item !is EmptyBlueprintItem || !player.mayBuild() || player.isSpectator) return@guarded
         val level = player.serverLevel()
         require(!VdexConstruction.locked(level.shipObjectWorld.loadedShips.getById(ship.id))) { "Finish construction before saving this ship" }
+        require(captures.size < 16 || captures.containsKey(player.uuid)) { "Blueprint captures are busy" }
         val name = ship.slug?.take(80) ?: "Ship"
         val temporaryName = "clockwork-capture-${UUID.randomUUID()}"
         val file = VdexWrapper.getSchematicDirectory(level.server).resolve("$temporaryName.vdex")
@@ -65,11 +73,55 @@ object VdexBlueprintLibrary {
             VdexWrapper.saveShip(level, ship, temporaryName, player.scoreboardName)
             val saved = VdexBlueprintData.read(file).data
             VdexIO.write(file, saved.metadata.copy(social = saved.metadata.social.copy(name = name)), saved.modList, saved.nbtData)
-            val id = install(level, Files.readAllBytes(file))
-            select(stack, id, name)
-            download(player, id)
-            player.displayClientMessage(Component.translatable("message.vs_clockwork.blueprint.saved", name), true)
+            val bytes = Files.readAllBytes(file)
+            VdexBlueprintData.validateArchive(bytes)
+            val id = VdexBlueprintData.hash(bytes)
+            captures[player.uuid] = Capture(id, bytes, level, level.gameTime + 12000, player.inventory.selected, stack)
+            downloads[player.uuid] = Download(id, name, bytes, true)
+            ClockworkPackets.sendTo(VdexBlueprintCapturePacket(id, name, player.scoreboardName), player)
         } finally { Files.deleteIfExists(file) }
+    }
+
+    fun cancelCapture(player: ServerPlayer, id: String) {
+        if (captures[player.uuid]?.id != id) return
+        captures.remove(player.uuid)
+        if (downloads[player.uuid]?.let { it.id == id && it.preview } == true) downloads.remove(player.uuid)
+    }
+
+    fun saveCapture(player: ServerPlayer, packet: VdexBlueprintSavePacket) {
+        if (!packet.save) { cancelCapture(player, packet.id); return }
+        var success = false
+        guarded(player) {
+            val capture = captures[player.uuid] ?: error("This capture has expired; use an empty blueprint on the ship again")
+            require(capture.id == packet.id && capture.level === player.serverLevel() && player.serverLevel().gameTime < capture.expires &&
+                capture.slot == player.inventory.selected && capture.stack === player.mainHandItem &&
+                player.mainHandItem.item is EmptyBlueprintItem && player.mayBuild() && !player.isSpectator) { "The empty blueprint is no longer held" }
+            val temporary = VdexWrapper.getSchematicDirectory(player.server).resolve("clockwork-author-${UUID.randomUUID()}.vdex")
+            try {
+                Files.write(temporary, capture.bytes)
+                val data = packet.authoring.apply(VdexIO.read(temporary))
+                VdexIO.write(temporary, data.metadata, data.modList, data.nbtData)
+                val id = install(player.serverLevel(), Files.readAllBytes(temporary))
+                val name = data.metadata.social.name
+                selectHeld(player, capture.stack, id, name)
+                captures.remove(player.uuid)
+                download(player, id)
+                ClockworkPackets.sendTo(VdexBlueprintNoticePacket(Component.translatable("message.vs_clockwork.blueprint.saved", name)), player)
+                success = true
+            } finally { Files.deleteIfExists(temporary) }
+        }
+        ClockworkPackets.sendTo(VdexBlueprintSaveResultPacket(packet.id, success), player)
+    }
+
+    private fun selectHeld(player: ServerPlayer, stack: ItemStack, id: String, name: String) {
+        if (stack.item is EmptyBlueprintItem) {
+            val filled = ClockworkItems.VDEX_BLUEPRINT.asStack()
+            select(filled, id, name)
+            stack.shrink(1)
+            player.setItemInHand(InteractionHand.MAIN_HAND, filled)
+            if (!stack.isEmpty && !player.inventory.add(stack)) player.drop(stack, false)
+        } else select(stack, id, name)
+        player.inventory.setChanged()
     }
 
     fun select(stack: ItemStack, id: String, name: String) {
@@ -82,7 +134,8 @@ object VdexBlueprintLibrary {
     fun held(player: ServerPlayer): ItemStack? = player.mainHandItem.takeIf { it.item is VdexBlueprintItem && player.mayBuild() && !player.isSpectator }
 
     fun upload(player: ServerPlayer, packet: VdexBlueprintUploadPacket) = guarded(player) {
-        val stack = held(player) ?: return@guarded
+        val stack = player.mainHandItem.takeIf { (it.item is VdexBlueprintItem || it.item is EmptyBlueprintItem) &&
+            player.mayBuild() && !player.isSpectator } ?: return@guarded
         val now = player.serverLevel().gameTime
         uploads.entries.removeIf { now - it.value.started > 1200 }
         require(VdexBlueprintData.validId(packet.id) && packet.total in 1..VdexBlueprintData.MAX_FILE_BYTES &&
@@ -101,9 +154,9 @@ object VdexBlueprintLibrary {
             require(VdexBlueprintData.hash(bytes) == pending.id) { "Blueprint checksum mismatch" }
             val id = install(player.serverLevel(), bytes)
             val blueprint = load(player.serverLevel(), id)
-            select(stack, id, pending.name.ifBlank { blueprint.data.metadata.social.name })
-            player.inventory.setChanged()
-            ClockworkPackets.sendTo(VdexBlueprintNoticePacket(Component.translatable("message.vs_clockwork.blueprint.loaded", stack.tag!!.getString("VdexName"))), player)
+            val name = pending.name.ifBlank { blueprint.data.metadata.social.name }
+            selectHeld(player, stack, id, name)
+            ClockworkPackets.sendTo(VdexBlueprintNoticePacket(Component.translatable("message.vs_clockwork.blueprint.loaded", name)), player)
         }
     }
 
@@ -117,13 +170,20 @@ object VdexBlueprintLibrary {
 
     fun tick(level: ServerLevel) {
         downloads.keys.removeIf { level.server.playerList.getPlayer(it) == null }
+        captures.entries.removeIf { (id, capture) ->
+            val player = level.server.playerList.getPlayer(id)
+            val expired = player == null || player.serverLevel() !== capture.level || capture.level.gameTime >= capture.expires ||
+                player.inventory.selected != capture.slot || player.mainHandItem !== capture.stack
+            if (expired && downloads[id]?.preview == true) downloads.remove(id)
+            expired
+        }
         for (player in level.players()) {
             val transfer = downloads[player.uuid] ?: continue
             repeat(2) {
                 if (transfer.offset >= transfer.bytes.size) return@repeat
                 val end = minOf(transfer.bytes.size, transfer.offset + VdexBlueprintData.CHUNK_BYTES)
                 ClockworkPackets.sendTo(VdexBlueprintDownloadPacket(transfer.id, transfer.name, transfer.offset, transfer.bytes.size,
-                    transfer.bytes.copyOfRange(transfer.offset, end)), player)
+                    transfer.bytes.copyOfRange(transfer.offset, end), transfer.preview), player)
                 transfer.offset = end
             }
             if (transfer.offset == transfer.bytes.size) downloads.remove(player.uuid)

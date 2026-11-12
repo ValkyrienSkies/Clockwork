@@ -616,5 +616,21 @@
         "attenuation_distance": 24
       }
     ]
+  },
+  "vdex_scribble": {
+    "subtitle": "vs_clockwork.subtitle.vdex_scribble",
+    "sounds": [
+      {
+        "name": "vs_clockwork:vdex_scribble",
+        "stream": true
+      }
+    ]
+  },
+  "vdex_erase_1": {
+    "subtitle": "vs_clockwork.subtitle.vdex_erase_1",
+    "sounds": [
+      "vs_clockwork:vdex_erase_1",
+      "vs_clockwork:vdex_erase_2"
+    ]
   }
 }

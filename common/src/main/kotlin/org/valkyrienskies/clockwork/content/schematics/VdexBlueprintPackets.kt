@@ -45,14 +45,49 @@ class VdexBlueprintUploadPacket(val id: String, val name: String, val offset: In
     }
 }
 
-class VdexBlueprintDownloadPacket(val id: String, val name: String, val offset: Int, val total: Int, val bytes: ByteArray) : S2CCWPacket {
+class VdexBlueprintDownloadPacket(val id: String, val name: String, val offset: Int, val total: Int, val bytes: ByteArray, val preview: Boolean = false) : S2CCWPacket {
     override var player: Player? = null
-    constructor(buffer: FriendlyByteBuf) : this(buffer.readUtf(64), buffer.readUtf(80), buffer.readVarInt(), buffer.readVarInt(), buffer.readByteArray(VdexBlueprintData.CHUNK_BYTES))
+    constructor(buffer: FriendlyByteBuf) : this(buffer.readUtf(64), buffer.readUtf(80), buffer.readVarInt(), buffer.readVarInt(), buffer.readByteArray(VdexBlueprintData.CHUNK_BYTES), buffer.readBoolean())
     override fun write(buffer: FriendlyByteBuf) {
-        buffer.writeUtf(id, 64); buffer.writeUtf(name, 80); buffer.writeVarInt(offset); buffer.writeVarInt(total); buffer.writeByteArray(bytes)
+        buffer.writeUtf(id, 64); buffer.writeUtf(name, 80); buffer.writeVarInt(offset); buffer.writeVarInt(total); buffer.writeByteArray(bytes); buffer.writeBoolean(preview)
     }
     override fun handle(context: ClientNetworkContext) {
         context.enqueueWork { VdexBlueprintClient.accept(this) }
+        context.setPacketHandled(true)
+    }
+}
+
+class VdexBlueprintCapturePacket(val id: String, val name: String, val author: String) : S2CCWPacket {
+    override var player: Player? = null
+    constructor(buffer: FriendlyByteBuf) : this(buffer.readUtf(64), buffer.readUtf(80), buffer.readUtf(80))
+    override fun write(buffer: FriendlyByteBuf) { buffer.writeUtf(id, 64); buffer.writeUtf(name, 80); buffer.writeUtf(author, 80) }
+    override fun handle(context: ClientNetworkContext) {
+        context.enqueueWork { VdexBlueprintClient.acceptCapture(this) }
+        context.setPacketHandled(true)
+    }
+}
+
+class VdexBlueprintSavePacket(val id: String, val save: Boolean, val authoring: VdexBlueprintAuthoring = VdexBlueprintAuthoring("", "", "")) : C2SCWPacket {
+    constructor(buffer: FriendlyByteBuf) : this(buffer.readUtf(64), buffer.readBoolean(), VdexBlueprintAuthoring(
+        buffer.readUtf(VdexBlueprintAuthoring.NAME_LIMIT), buffer.readUtf(VdexBlueprintAuthoring.AUTHOR_LIMIT), buffer.readUtf(VdexBlueprintAuthoring.DESCRIPTION_LIMIT)))
+    override fun write(buffer: FriendlyByteBuf) {
+        buffer.writeUtf(id, 64); buffer.writeBoolean(save)
+        buffer.writeUtf(authoring.name, VdexBlueprintAuthoring.NAME_LIMIT)
+        buffer.writeUtf(authoring.author, VdexBlueprintAuthoring.AUTHOR_LIMIT)
+        buffer.writeUtf(authoring.description, VdexBlueprintAuthoring.DESCRIPTION_LIMIT)
+    }
+    override fun handle(context: ServerNetworkContext) {
+        context.enqueueWork { VdexBlueprintLibrary.saveCapture(context.sender, this) }
+        context.setPacketHandled(true)
+    }
+}
+
+class VdexBlueprintSaveResultPacket(val id: String, val success: Boolean) : S2CCWPacket {
+    override var player: Player? = null
+    constructor(buffer: FriendlyByteBuf) : this(buffer.readUtf(64), buffer.readBoolean())
+    override fun write(buffer: FriendlyByteBuf) { buffer.writeUtf(id, 64); buffer.writeBoolean(success) }
+    override fun handle(context: ClientNetworkContext) {
+        context.enqueueWork { VdexBlueprintClient.saved(this) }
         context.setPacketHandled(true)
     }
 }

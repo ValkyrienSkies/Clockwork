@@ -4,6 +4,9 @@ import org.valkyrienskies.clockwork.content.schematics.VdexBlueprintActionPacket
 import org.valkyrienskies.clockwork.content.schematics.VdexBlueprintUploadPacket
 import org.valkyrienskies.clockwork.content.schematics.VdexBlueprintDownloadPacket
 import org.valkyrienskies.clockwork.content.schematics.VdexBlueprintNoticePacket
+import org.valkyrienskies.clockwork.content.schematics.VdexBlueprintCapturePacket
+import org.valkyrienskies.clockwork.content.schematics.VdexBlueprintSavePacket
+import org.valkyrienskies.clockwork.content.schematics.VdexBlueprintSaveResultPacket
 import org.valkyrienskies.clockwork.content.schematics.VdexBuildEffectPacket
 import net.minecraft.core.BlockPos
 import net.minecraft.network.FriendlyByteBuf
@@ -117,7 +120,10 @@ enum class ClockworkPackets(
     VDEX_UPLOAD(VdexBlueprintUploadPacket::class.java, ::VdexBlueprintUploadPacket),
     VDEX_DOWNLOAD(VdexBlueprintDownloadPacket::class.java, ::VdexBlueprintDownloadPacket),
     VDEX_NOTICE(VdexBlueprintNoticePacket::class.java, ::VdexBlueprintNoticePacket),
-    VDEX_BUILD_EFFECT(VdexBuildEffectPacket::class.java, ::VdexBuildEffectPacket);
+    VDEX_BUILD_EFFECT(VdexBuildEffectPacket::class.java, ::VdexBuildEffectPacket),
+    VDEX_CAPTURE(VdexBlueprintCapturePacket::class.java, ::VdexBlueprintCapturePacket),
+    VDEX_SAVE(VdexBlueprintSavePacket::class.java, ::VdexBlueprintSavePacket),
+    VDEX_SAVE_RESULT(VdexBlueprintSaveResultPacket::class.java, ::VdexBlueprintSaveResultPacket);
 
     init {
         packetChannel.registerPacket(type as Class<CWPacket>, factory as Function<FriendlyByteBuf, CWPacket>)

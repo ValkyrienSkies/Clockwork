@@ -23,6 +23,8 @@ import java.util.function.Supplier
 
 object ClockworkSounds {
     val ALL: MutableMap<ResourceLocation, SoundEntry> = HashMap()
+    val VDEX_SCRIBBLE = create("vdex_scribble").subtitle("Blueprint sketched").category(SoundSource.MASTER).build()
+    val VDEX_ERASE = create("vdex_erase_1").addVariant("vdex_erase_2").subtitle("Blueprint erased").category(SoundSource.MASTER).build()
     val THINKABLE_ATTACH = create("thinkable_attach").subtitle("Thinkable attached").category(SoundSource.BLOCKS).build()
     val THINKABLE_DATA = create("thinkable_data_1").addVariant("thinkable_data_2").addVariant("thinkable_data_3")
         .subtitle("Thinkable transmits data").category(SoundSource.BLOCKS).build()

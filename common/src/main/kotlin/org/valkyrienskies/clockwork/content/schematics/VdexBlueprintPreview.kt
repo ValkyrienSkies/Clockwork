@@ -8,7 +8,6 @@ import com.mojang.blaze3d.vertex.VertexBuffer
 import com.mojang.blaze3d.vertex.VertexFormat
 import net.minecraft.client.Minecraft
 import net.minecraft.client.renderer.MultiBufferSource
-import net.minecraft.client.renderer.texture.TextureAtlas
 import net.minecraft.core.BlockPos
 import net.minecraft.core.Direction
 import net.minecraft.nbt.CompoundTag
@@ -17,7 +16,6 @@ import net.minecraft.world.phys.Vec3
 import org.joml.Matrix4f
 import org.joml.Quaternionf
 import org.joml.Vector3d
-import org.valkyrienskies.clockwork.ClockworkShaders
 import org.valkyrienskies.clockwork.content.curiosities.tools.wanderwand.WandAnchor
 import org.valkyrienskies.clockwork.content.curiosities.tools.wanderwand.WandLinks
 import org.valkyrienskies.clockwork.content.curiosities.tools.wanderwand.WandLinkSchematics
@@ -37,6 +35,9 @@ object VdexBlueprintPreview {
         private var quads = 0
         var buffer: VertexBuffer? = null
             private set
+        var connectionBuffer: VertexBuffer? = null
+            private set
+        val ink by lazy { VdexSketchInk.collect(data) }
         val progress get() = processed.toFloat() / data.blockCount
 
         init { builder.begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.NEW_ENTITY) }
@@ -76,8 +77,12 @@ object VdexBlueprintPreview {
                 if (block == source.blocks.size) { ship++; block = 0 }
             }
             if (ship == data.ships.size) {
-                connections()
                 buffer = VertexBuffer(VertexBuffer.Usage.STATIC).also { it.bind(); it.upload(builder.end()); VertexBuffer.unbind() }
+                builder.begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.NEW_ENTITY)
+                connections()
+                val vertices = builder.end()
+                if (vertices.isEmpty) vertices.release()
+                else connectionBuffer = VertexBuffer(VertexBuffer.Usage.STATIC).also { it.bind(); it.upload(vertices); VertexBuffer.unbind() }
             }
         }
 
@@ -119,9 +124,10 @@ object VdexBlueprintPreview {
             }
         }
 
-        override fun close() { buffer?.close(); builder.discard() }
+        override fun close() { buffer?.close(); connectionBuffer?.close(); builder.discard() }
     }
 
+    private val worldSketch = VdexWorldSketchRenderer()
     private val meshes = LinkedHashMap<VdexBlueprintData, Mesh>(4, .75f, true)
     internal fun mesh(data: VdexBlueprintData): Mesh = meshes.getOrPut(data) {
         if (meshes.size == 2) { val entry = meshes.entries.first(); entry.value.close(); meshes.remove(entry.key) }
@@ -129,23 +135,22 @@ object VdexBlueprintPreview {
     }
 
     fun tick() { meshes.values.forEach { it.advance(512 / meshes.size.coerceAtLeast(1)) } }
-    fun clear() { meshes.values.forEach { it.close() }; meshes.clear() }
+    fun clear() { meshes.values.forEach { it.close() }; meshes.clear(); worldSketch.close() }
 
     fun renderWorld(pose: PoseStack, buffers: MultiBufferSource, camera: Vec3) {
         val stack = Minecraft.getInstance().player?.mainHandItem ?: return
         if (stack.item !is VdexBlueprintItem) return
         val tag = stack.tag ?: return
-        if (!tag.getBoolean("Deployed")) return
+        val view = VdexPlacementClient.view() ?: if (tag.getBoolean("Deployed"))
+            VdexPlacement(Vec3(tag.getDouble("VdexX"), tag.getDouble("VdexY"), tag.getDouble("VdexZ")), tag.getFloat("VdexYaw")) else return
         val data = VdexBlueprintClient.get(tag.getString("VdexFile")) ?: return
-        val buffer = mesh(data).buffer ?: return
-        val shader = ClockworkShaders.blueprintGhost() ?: return
+        val mesh = mesh(data)
+        if (mesh.buffer == null) return
         if (buffers is MultiBufferSource.BufferSource) buffers.endBatch()
         val model = Matrix4f(RenderSystem.getModelViewMatrix()).mul(pose.last().pose())
-            .translate((tag.getDouble("VdexX") - camera.x).toFloat(), (tag.getDouble("VdexY") - camera.y).toFloat(), (tag.getDouble("VdexZ") - camera.z).toFloat())
-            .rotate(Quaternionf().rotationY(Math.toRadians(tag.getFloat("VdexYaw").toDouble()).toFloat()))
-        RenderSystem.setShaderTexture(0, TextureAtlas.LOCATION_BLOCKS)
-        RenderSystem.enableBlend(); RenderSystem.defaultBlendFunc(); RenderSystem.enableDepthTest(); RenderSystem.depthMask(false)
-        try { buffer.bind(); buffer.drawWithShader(model, RenderSystem.getProjectionMatrix(), shader) }
-        finally { VertexBuffer.unbind(); RenderSystem.depthMask(true); RenderSystem.disableBlend() }
+            .translate((view.position.x - camera.x).toFloat(), (view.position.y - camera.y).toFloat(), (view.position.z - camera.z).toFloat())
+            .rotate(Quaternionf().rotationY(Math.toRadians(view.yaw.toDouble()).toFloat()))
+        worldSketch.render(mesh, model, RenderSystem.getProjectionMatrix())
+        VdexPlacementClient.renderOutline(pose, camera)
     }
 }

@@ -12,9 +12,11 @@ object ClockworkShaders {
     private var blueprintGeometry: ShaderInstance? = null
     private var blueprintSketch: ShaderInstance? = null
     private var blueprintGhost: ShaderInstance? = null
+    private var blueprintInk: ShaderInstance? = null
     fun blueprintGeometry() = blueprintGeometry
     fun blueprintSketch() = blueprintSketch
     fun blueprintGhost() = blueprintGhost
+    fun blueprintInk() = blueprintInk
 
     private var crystal: ShaderInstance? = null
     private var heat: ShaderInstance? = null
@@ -80,6 +82,7 @@ object ClockworkShaders {
                 }
                 shadersSink.registerShader(ShaderInstance(resourceProvider, "clockwork_blueprint_sketch", DefaultVertexFormat.POSITION_TEX)) { blueprintSketch = it }
                 shadersSink.registerShader(ShaderInstance(resourceProvider, "clockwork_blueprint_ghost", DefaultVertexFormat.NEW_ENTITY)) { blueprintGhost = it }
+                shadersSink.registerShader(ShaderInstance(resourceProvider, "clockwork_blueprint_ink", DefaultVertexFormat.POSITION_COLOR_TEX)) { blueprintInk = it }
                 shadersSink.registerShader(
                     ShaderInstance(resourceProvider, "clockwork_gravitron_surface", DefaultVertexFormat.NEW_ENTITY)
                 ) { inst ->
