@@ -2,11 +2,9 @@ package org.valkyrienskies.clockwork.content.schematics
 
 import com.simibubi.create.content.schematics.SchematicPrinter
 import com.simibubi.create.content.schematics.requirement.ItemRequirement
-import net.createmod.catnip.nbt.NBTProcessors
 import net.minecraft.core.BlockPos
 import net.minecraft.core.registries.BuiltInRegistries
 import net.minecraft.nbt.CompoundTag
-import net.minecraft.nbt.ListTag
 import net.minecraft.nbt.NbtUtils
 import net.minecraft.server.level.ServerLevel
 import net.minecraft.world.entity.EntityType
@@ -40,7 +38,8 @@ class VdexBuildPlan(val blueprint: VdexBlueprintData, level: ServerLevel) {
             }
             for (saved in ship.entities) {
                 val entity = saved.copy()
-                val nbt = entity.getCompound("nbt")
+                val nbt = VdexSafeNbt.entity(entity.getCompound("nbt"), level)
+                entity.put("nbt", nbt)
                 val cost = if (nbt.contains("Contraption")) {
                     val contraption = nbt.getCompound("Contraption")
                     val blockTag = contraption.getCompound("Blocks")
@@ -59,9 +58,6 @@ class VdexBuildPlan(val blueprint: VdexBlueprintData, level: ServerLevel) {
                         require(!partCost.isInvalid) { "Cannot build ${state.block.name.string} in survival" }
                         requirements.addAll(partCost.requiredItems)
                     }
-                    for (key in listOf("Storage", "StorageV2", "Passengers", "SubContraptions", "Actors")) contraption.remove(key)
-                    contraption.putBoolean("BottomlessSupply", false)
-                    stripContents(contraption)
                     ItemRequirement(requirements)
                 } else {
                     nbt.remove("Passengers")
@@ -94,26 +90,8 @@ class VdexBuildPlan(val blueprint: VdexBlueprintData, level: ServerLevel) {
     }
 
     companion object {
-        fun safeBlockData(state: BlockState, pos: BlockPos, original: CompoundTag?): CompoundTag? {
-            if (original == null) return null
-            val be = (state.block as? EntityBlock)?.newBlockEntity(pos, state) ?: return null
-            require(!be.onlyOpCanSetNbt()) { "Cannot build ${state.block.name.string} in survival" }
-            val tag = NBTProcessors.process(state, be, original.copy(), true) ?: return null
-            tag.remove("ClockworkVdex")
-            stripContents(tag)
-            return tag
-        }
-
-        fun stripContents(tag: CompoundTag) {
-            val contents = setOf("items", "inventory", "inventories", "iteminventory", "fluidinventory", "fluids", "tanks", "tankcontent", "fluidcontent", "energy", "currentgasmasses", "gasmasses", "heatenergy", "forgecaps", "loottable", "loottableseed")
-            for (key in tag.allKeys.toList()) {
-                if (key.lowercase() in contents) { tag.remove(key); continue }
-                when (val child = tag.get(key)) {
-                    is CompoundTag -> stripContents(child)
-                    is ListTag -> child.filterIsInstance<CompoundTag>().forEach(::stripContents)
-                }
-            }
-        }
+        fun safeBlockData(state: BlockState, pos: BlockPos, original: CompoundTag?): CompoundTag? =
+            VdexSafeNbt.block(state, pos, original)
 
         fun requirement(block: VdexBlueprintData.Block): ItemRequirement {
             val state = block.state

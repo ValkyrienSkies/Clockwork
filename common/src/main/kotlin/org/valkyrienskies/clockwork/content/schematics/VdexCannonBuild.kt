@@ -46,6 +46,7 @@ import org.valkyrienskies.mod.common.yRange
 import java.util.UUID
 
 class VdexCannonBuild(val saved: CompoundTag) {
+    internal val flights = Flights(saved)
     private var planCache: VdexBuildPlan? = null
     private var inFlightJoint = false
     private var lastTick = Long.MIN_VALUE
@@ -93,15 +94,12 @@ class VdexCannonBuild(val saved: CompoundTag) {
             }
             val plan = plan(level)
             cannon.blocksToPlace = plan.steps.size
-            cannon.blocksPlaced = cursor
-            if (saved.getInt("Flight") > 0) {
-                saved.putInt("Flight", saved.getInt("Flight") - 1)
-                cannon.setChanged()
-                if (saved.getInt("Flight") == 0) deliver(level, cannon, plan.steps[cursor])
-                return
-            }
-            if (saved.getBoolean("Paid")) { deliver(level, cannon, plan.steps[cursor]); return }
+            cannon.blocksPlaced = flights.delivered
+            cannon.setChanged()
+            if (!flights.tick { deliver(level, cannon, plan.steps[it]) }) return
+            cannon.blocksPlaced = flights.delivered
             if (cursor >= plan.steps.size) {
+                if (flights.pending) return
                 if (!finishMachines(level)) return
                 if (!access.canFinishBlueprint()) { cannon.statusMsg = "vdexOutputFull"; cannon.sendUpdate = true; return }
                 finish(level)
@@ -115,13 +113,17 @@ class VdexCannonBuild(val saved: CompoundTag) {
                 return
             }
             if (cannon.state == SchematicannonBlockEntity.State.PAUSED && cannon.missingItem == null && cannon.remainingFuel > 0) return
+            if (!flights.canFire()) return
             if (cannon.remainingFuel <= 0 && !cannon.hasCreativeCrate) {
                 cannon.state = SchematicannonBlockEntity.State.PAUSED
                 cannon.statusMsg = "noGunpowder"; cannon.sendUpdate = true
                 return
             }
             val step = plan.steps[cursor]
-            if ((step.link >= 0 || step.coating) && !finishMachines(level)) return
+            if (step.entity != null && flights.hasPendingBefore(plan.blockSteps.size)) return
+            if ((step.link >= 0 || step.coating) && !saved.getBoolean("Machines")) {
+                if (flights.pending || !finishMachines(level)) return
+            }
             val target = worldTarget(level, step)
             if (!level.hasChunkAt(BlockPos.containing(target))) { cannon.positionNotLoaded = true; cannon.statusMsg = "targetNotLoaded"; return }
             cannon.positionNotLoaded = false
@@ -134,12 +136,13 @@ class VdexCannonBuild(val saved: CompoundTag) {
             cannon.missingItem = null; cannon.state = SchematicannonBlockEntity.State.RUNNING
             cannon.statusMsg = if (step.link >= 0) "vdexConnections" else "placing"
             if (!cannon.hasCreativeCrate) cannon.remainingFuel--
-            saved.putBoolean("Paid", true)
-            saved.putBoolean("Consumed", !cannon.hasCreativeCrate)
-            saved.put("PaidItems", ListTag().also { list -> step.requirement.requiredItems.filter { it.usage == ItemRequirement.ItemUseType.CONSUME }.forEach { list.add(it.stack.save(CompoundTag())) } })
             saved.putLong("Target", BlockPos.containing(target).asLong())
             val duration = (8 + VdexBuildEffectPacket.cannonPosition(level, cannon.blockPos).distanceTo(target).toInt() / 8).coerceAtMost(30)
-            saved.putInt("Flight", duration)
+            flights.launch(duration, cannon.config().schematicannonDelay.get(), ListTag().also { list ->
+                if (!cannon.hasCreativeCrate) step.requirement.requiredItems
+                    .filter { it.usage == ItemRequirement.ItemUseType.CONSUME }
+                    .forEach { list.add(it.stack.save(CompoundTag())) }
+            })
             cannon.playFiringSound()
             VdexBuildEffectPacket.send(level, cannon.blockPos, target, target,
                 step.requirement.requiredItems.firstOrNull()?.stack ?: ItemStack.EMPTY, duration, false)
@@ -181,14 +184,13 @@ class VdexCannonBuild(val saved: CompoundTag) {
     private fun links(level: ServerLevel) = WandLinkSchematics.decode(plan(level).blueprint.data.nbtData[WandLinkSchematics.ENTRY] ?: CompoundTag(), destinations(level))
         .mapIndexed { i, link -> link.copy(id = stableId("link", i)).also { it.settings = link.settings; it.appliedLength = link.appliedLength; it.needsReframe = link.needsReframe } }
 
-    private fun deliver(level: ServerLevel, cannon: SchematicannonBlockEntity, step: VdexBuildPlan.Step) {
+    private fun deliver(level: ServerLevel, cannon: SchematicannonBlockEntity, step: VdexBuildPlan.Step): Boolean {
         if (step.link >= 0) {
             val link = links(level)[step.link]
             val data = WandLinks.get(level)
             if (listOf(link.a, link.b).any { !level.hasChunkAt(it.pos) }) {
-                saved.putInt("Flight", 1)
                 cannon.positionNotLoaded = true; cannon.statusMsg = "targetNotLoaded"; cannon.sendUpdate = true
-                return
+                return false
             }
             cannon.positionNotLoaded = false
             require(data.links.containsKey(link.id) || data.restore(level, link)) { "Could not attach schematic connection: ${listOf(link.a, link.b).map { "${it.pos}: loaded=${level.hasChunkAt(it.pos)}, state=${level.getBlockState(it.pos)}" }}" }
@@ -218,8 +220,8 @@ class VdexCannonBuild(val saved: CompoundTag) {
             alignShip(level, step.ship, ship)
             (ship as? LoadedServerShip)?.let { protect(level, cannon.blockPos, step.ship, it) }
         }
-        saved.putBoolean("Paid", false); saved.remove("PaidItems"); saved.putInt("Cursor", cursor + 1)
-        cannon.blocksPlaced = cursor; cannon.sendUpdate = true; cannon.setChanged()
+        cannon.sendUpdate = true; cannon.setChanged()
+        return true
     }
 
     fun protectShips(level: ServerLevel, cannon: BlockPos) {
@@ -329,10 +331,70 @@ class VdexCannonBuild(val saved: CompoundTag) {
 
     fun cancel(level: ServerLevel) {
         for (key in saved.getCompound("Ships").allKeys) level.shipObjectWorld.loadedShips.getById(shipId(key.toInt()))?.let { VdexConstruction.release(level, it) }
-        if (saved.getBoolean("Paid") && saved.getBoolean("Consumed")) {
-            val pos = BlockPos.of(saved.getLong("Cannon"))
-            saved.getList("PaidItems", 10).forEach { Block.popResource(level, pos, ItemStack.of(it as CompoundTag)) }
-            saved.putBoolean("Paid", false)
+        val pos = BlockPos.of(saved.getLong("Cannon"))
+        flights.takeRefunds().forEach { Block.popResource(level, pos, ItemStack.of(it)) }
+    }
+
+    internal class Flights(private val saved: CompoundTag) {
+        private val shots: ListTag
+        val pending: Boolean get() = !shots.isEmpty()
+        val delivered: Int get() = saved.getInt("Delivered")
+
+        init {
+            if (!saved.contains("Flights")) {
+                val cursor = saved.getInt("Cursor")
+                saved.putInt("Delivered", cursor)
+                saved.put("Flights", ListTag().also { list ->
+                    if (saved.getBoolean("Paid")) {
+                        list.add(CompoundTag().apply {
+                            putInt("Step", cursor); putInt("Flight", saved.getInt("Flight"))
+                            if (saved.getBoolean("Consumed")) put("PaidItems", saved.getList("PaidItems", 10).copy())
+                        })
+                        saved.putInt("Cursor", cursor + 1)
+                    }
+                })
+                for (key in listOf("Paid", "Consumed", "PaidItems", "Flight")) saved.remove(key)
+            }
+            shots = saved.getList("Flights", 10)
+        }
+
+        fun tick(deliver: (Int) -> Boolean): Boolean {
+            for (entry in shots) (entry as CompoundTag).let { it.putInt("Flight", (it.getInt("Flight") - 1).coerceAtLeast(0)) }
+            var ready = true
+            val iterator = shots.iterator()
+            while (iterator.hasNext()) {
+                val shot = iterator.next() as CompoundTag
+                if (shot.getInt("Flight") > 0) continue
+                if (deliver(shot.getInt("Step"))) {
+                    iterator.remove()
+                    saved.putInt("Delivered", delivered + 1)
+                } else ready = false
+            }
+            return ready
+        }
+
+        fun hasPendingBefore(step: Int): Boolean = shots.any { (it as CompoundTag).getInt("Step") < step }
+
+        fun canFire(): Boolean {
+            val cooldown = saved.getInt("Cooldown")
+            if (cooldown <= 0) return true
+            saved.putInt("Cooldown", cooldown - 1)
+            return false
+        }
+
+        fun launch(duration: Int, delay: Int, paidItems: ListTag) {
+            val cursor = saved.getInt("Cursor")
+            shots.add(CompoundTag().apply {
+                putInt("Step", cursor); putInt("Flight", duration); put("PaidItems", paidItems.copy())
+            })
+            saved.putInt("Cursor", cursor + 1)
+            saved.putInt("Cooldown", delay)
+        }
+
+        fun takeRefunds(): List<CompoundTag> {
+            val items = shots.flatMap { (it as CompoundTag).getList("PaidItems", 10).filterIsInstance<CompoundTag>() }
+            shots.clear()
+            return items
         }
     }
 
