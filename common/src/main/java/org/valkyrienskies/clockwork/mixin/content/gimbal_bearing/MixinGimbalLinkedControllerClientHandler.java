@@ -32,6 +32,7 @@ public class MixinGimbalLinkedControllerClientHandler {
     )
     private static <T extends BlockEntityBehaviour> T wrapGetBehaviour(BlockGetter be, BlockPos e, BehaviourType<T> reader, Operation<T> original) {
         if (!ClockworkBlocks.GIMBAL_BEARING.has(be.getBlockState(e))) return original.call(be, e, reader);
+        LinkedControllerClientHandlerMixinStorage.doingFlaps = false;
         return (T) LinkBehaviour.receiver(null, Pair.of(null, null), null);
     }
 
@@ -57,7 +58,7 @@ public class MixinGimbalLinkedControllerClientHandler {
 
     @Unique
     private static void wrapSendToServerCommon(Object instance, Object packet, Operation<Void> original, LinkBehaviour l, Integer button) {
-        if (l.blockEntity != null) {
+        if (l.blockEntity != null || LinkedControllerClientHandlerMixinStorage.doingFlaps) {
             original.call(instance, packet);
             return;
         }

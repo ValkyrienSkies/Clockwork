@@ -37,6 +37,8 @@ public class MixinLinkedControllerClientHandler {
         // However, we still have to pass a null check, hence the weird sus null LinkBehaviour.
         if (!ClockworkBlocks.SMART_FLAP_BEARING.has(be.getBlockState(e))) return original.call(be, e, reader);
 
+        LinkedControllerClientHandlerMixinStorage.doingFlaps = true;
+
         // Just needs to be a not-null be behaviour to pass a null check
         return (T) LinkBehaviour.receiver(null, Pair.of(null, null), null);
     }
@@ -65,7 +67,7 @@ public class MixinLinkedControllerClientHandler {
     @Unique
     private static void wrapSendToServerCommon(Object instance, Object packet, Operation<Void> original, LinkBehaviour l, Integer button) {
         // No one else should be stupid enough to be passing in a LinkBehaviour with a null be
-        if (l.blockEntity != null) {
+        if (l.blockEntity != null || !LinkedControllerClientHandlerMixinStorage.doingFlaps) {
             original.call(instance, packet);
             return;
         }
