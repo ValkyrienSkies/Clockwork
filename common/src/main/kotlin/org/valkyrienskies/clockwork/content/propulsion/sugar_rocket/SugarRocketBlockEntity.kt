@@ -29,6 +29,7 @@ class SugarRocketBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?,
     var burnPower = 1
     var hasNextBlock = false
     var isBurning = false
+    private var restoreThrust = false
 
     var sugarCooldown = 0
 
@@ -56,6 +57,13 @@ class SugarRocketBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?,
         if (level == null) return
         if (!level!!.isClientSide) {
             if (isBurning) {
+                if (restoreThrust) {
+                    val ship = (level as ServerLevel).getShipObjectManagingPos(worldPosition)
+                    if (ship != null) {
+                        SugarRocketController.getOrCreate(ship).addRocket(worldPosition, burnPower.toDouble() * ClockworkConfig.SERVER.sugarRocketBlockThrust, blockState.getValue(DirectionalBlock.FACING))
+                        restoreThrust = false
+                    }
+                }
                 burn()
             }
         } else {
@@ -153,6 +161,7 @@ class SugarRocketBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?,
 
         val wasBurning = isBurning
         isBurning = tag.getBoolean("burning")
+        if (!clientPacket) restoreThrust = isBurning
         burnProgress = tag.getInt("burnProgress")
         burnTime = tag.getInt("burnTime")
         burnPower = tag.getInt("burnPower")

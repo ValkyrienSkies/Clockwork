@@ -89,6 +89,8 @@ class GimbalBearingBlockEntity(type: net.minecraft.world.level.block.entity.Bloc
         private set
     @Volatile var jointID: Int = -1
         private set
+    private var jointCreationPending = false
+    private var jointCreationGeneration = 0L
 
     var modeBehaviour: ScrollOptionBehaviour<GimbalMode>? = null
     var maxAngleBehaviour: MaxAngleScrollValueBehaviour? = null
@@ -492,16 +494,26 @@ class GimbalBearingBlockEntity(type: net.minecraft.world.level.block.entity.Bloc
             joint = level.gtpa.getJointById(jointID)
             if (joint == null) {
                 jointID = -1
+            } else {
+                level.gtpa.removeMatchingJointsExcept(joint!!, jointID)
             }
         }
-        if (jointID == -1 && joint != null) {
+        if (jointID == -1 && joint != null && !jointCreationPending) {
             // Only try to make the joint if the other ship is loaded
             // (we know our ship is loaded... because we're ticking)
             if (level.shipObjectWorld.loadedShips.getById(connectedShipId) != null) {
-                joint!!.serialized()
-                level.gtpa.addJoint(joint!!) { id ->
+                val requested = joint!!.serialized()
+                val generation = jointCreationGeneration
+                jointCreationPending = true
+                level.gtpa.addJoint(requested) { id ->
+                    if (isRemoved || generation != jointCreationGeneration) {
+                        level.gtpa.removeJoint(id)
+                        return@addJoint
+                    }
+                    jointCreationPending = false
                     isRunning = true
                     jointID = id
+                    level.gtpa.removeMatchingJointsExcept(requested, id)
                 }
             }
         }
@@ -655,6 +667,8 @@ class GimbalBearingBlockEntity(type: net.minecraft.world.level.block.entity.Bloc
     }
 
     private fun removeJointAndDuplicates(serverLevel: ServerLevel) {
+        jointCreationGeneration++
+        jointCreationPending = false
         val ids = linkedSetOf<Int>()
         if (jointID != -1) ids.add(jointID)
         joint?.let { ids.addAll(serverLevel.gtpa.findMatchingJointIds(it)) }
@@ -718,6 +732,8 @@ class GimbalBearingBlockEntity(type: net.minecraft.world.level.block.entity.Bloc
     }
 
     private fun resetState() {
+        jointCreationGeneration++
+        jointCreationPending = false
         attachedBlock = null
         neutralRelativeRotation = Quaterniond()
         connectedShipId = -1L

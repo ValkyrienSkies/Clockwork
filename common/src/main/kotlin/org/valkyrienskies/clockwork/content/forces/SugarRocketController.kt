@@ -25,6 +25,7 @@ class SugarRocketController : ShipPhysicsListener {
     override fun physTick(physShip: PhysShip, physLevel: PhysLevel) {
         while (newRockets.isNotEmpty()) {
             val rocket = newRockets.poll()
+            burningRockets.removeIf { it.position == rocket.first }
             burningRockets.add(SugarRocketData(rocket.first, rocket.second))
             //println("added rocket at ${rocket.first} with force ${rocket.second}")
         }

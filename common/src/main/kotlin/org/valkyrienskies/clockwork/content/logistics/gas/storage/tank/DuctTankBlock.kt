@@ -16,6 +16,7 @@ import net.minecraft.world.level.block.state.properties.BooleanProperty
 import org.valkyrienskies.clockwork.ClockworkBlockEntities
 import org.valkyrienskies.clockwork.ClockworkMod
 import org.valkyrienskies.clockwork.ClockworkModClient
+import org.valkyrienskies.clockwork.util.ClockworkCopyableBlock
 import org.valkyrienskies.clockwork.util.gui.IHaveDuctStats
 import org.valkyrienskies.core.util.squared
 import org.valkyrienskies.kelvin.KelvinMod.KELVINLOGGER
@@ -26,7 +27,7 @@ import org.valkyrienskies.kelvin.util.INodeBlock
 import org.valkyrienskies.kelvin.util.KelvinExtensions.toDuctNodePos
 
 
-class DuctTankBlock(properties: Properties) : Block(properties), INodeBlock, IBE<DuctTankBlockEntity>, IHaveDuctStats {
+class DuctTankBlock(properties: Properties) : Block(properties), INodeBlock, IBE<DuctTankBlockEntity>, IHaveDuctStats, ClockworkCopyableBlock {
     init {
         registerDefaultState(
             defaultBlockState()

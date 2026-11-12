@@ -47,7 +47,12 @@ class PhysBearingBlock(properties: Properties) : BearingBlock(properties), IBE<P
             var newPartnerPos = tag.getVector3d("partnerPos")!!
 
             val partnerId = tag.getLong("partnerShipId")
-            val centerMigrate = centerPositions[partnerId] ?: return null
+            val centerMigrate = centerPositions[partnerId]
+            if (centerMigrate == null || oldShipIdToNewId[partnerId] == null) {
+                for (key in listOf("partnerPosx", "partnerPosy", "partnerPosz", "partnerShipId")) tag.remove(key)
+                tag.putInt("jointId", -1)
+                return tag
+            }
             newPartnerPos = newPartnerPos.sub(centerMigrate.first).add(centerMigrate.second)
             tag.putVector3d("partnerPos", newPartnerPos)
             tag.putLong("partnerShipId", oldShipIdToNewId[partnerId] ?: -1)

@@ -52,8 +52,7 @@ object SolidDeliveryMethodsImpl {
         if (be == null) return LazyOptional.empty()
 
         val pos: BlockPos = be.blockPos.relative(Direction.DOWN)
-        val be: BlockEntity? = level.getBlockEntity(pos)
-
-        return be!!.getCapability(ForgeCapabilities.ITEM_HANDLER, Direction.UP)
+        val inventory = level.getBlockEntity(pos) ?: return LazyOptional.empty()
+        return inventory.getCapability(ForgeCapabilities.ITEM_HANDLER, Direction.UP)
     }
 }

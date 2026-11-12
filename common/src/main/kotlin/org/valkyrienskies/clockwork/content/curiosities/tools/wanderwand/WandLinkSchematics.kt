@@ -6,6 +6,9 @@ import net.minecraft.nbt.ListTag
 import net.minecraft.nbt.Tag
 import net.minecraft.server.level.ServerLevel
 import org.joml.Vector3i
+import org.valkyrienskies.clockwork.content.curiosities.lubricant.LubricantData
+import org.valkyrienskies.clockwork.util.ClockworkShipSchematics
+import org.valkyrienskies.clockwork.util.ClockworkContraptionSchematics
 import org.valkyrienskies.clockwork.ClockworkMod
 import org.valkyrienskies.clockwork.content.contraptions.phys.hinge.HingeLinks
 import org.valkyrienskies.core.api.ships.ServerShip
@@ -28,17 +31,22 @@ object WandLinkSchematics {
         val hinges = HingeLinks.get(level).links.values.filter { it.a.shipId in ids && it.b.shipId in ids }
         val owned = data.links.values.flatMap { listOfNotNull(it.jointId, it.alignmentId) }.toSet() + hinges.mapNotNull { it.jointId }
         val filtered = metadata.copy(constraints = metadata.constraints.filter { it.previousId !in owned })
-        if (links.isEmpty() && hinges.isEmpty()) return VdexData(filtered, mods, blocks)
         val origins = metadata.ships.mapNotNull { entry ->
             level.shipObjectWorld.allShips.getById(entry.previousId)?.shipAABB?.let {
                 entry.previousId to BlockPos(it.minX(), it.minY(), it.minZ())
             }
         }.toMap()
+        val lubricant = LubricantData.get(level).captureSchematic(level, origins)
+        val attachments = ClockworkShipSchematics.capture(level, origins)
+        val capturedBlocks = ClockworkContraptionSchematics.capture(level, metadata, origins, blocks)
+        if (links.isEmpty() && hinges.isEmpty() && attachments.isEmpty() && lubricant.getList("Blocks", 10).isEmpty()) return VdexData(filtered, mods, capturedBlocks)
         val payload = encode(links, origins)
+        payload.put("lubricant", lubricant)
+        payload.put("attachments", attachments)
         payload.put("hinges", ListTag().also { list -> hinges.forEach { list.add(it.save()) } })
         val required = if (mods.any { it.id == ClockworkMod.MOD_ID }) mods else mods + VdexModEntry(
             ClockworkMod.MOD_ID, ValkyrienSkiesMod.platformUtils.getModVersion(ClockworkMod.MOD_ID), true)
-        return VdexData(filtered, required, blocks + (ENTRY to payload))
+        return VdexData(filtered, required, capturedBlocks + (ENTRY to payload))
     }
 
     internal fun encode(links: Collection<WandLinks.Link>, origins: Map<Long, BlockPos>) = CompoundTag().also { tag ->
@@ -87,7 +95,7 @@ object WandLinkSchematics {
         }.toMap()
         val links = decode(payload, destinations)
         val hinges = decodeHinges(payload, destinations)
-        if (links.isEmpty() && hinges.isEmpty()) return
+        if (links.isEmpty() && hinges.isEmpty() && !payload.contains("lubricant")) return
         val deadline = level.gameTime + 200
         ValkyrienSkiesMod.api.tickEndEvent.on { _, listener ->
             if (level.server.isStopped || level.gameTime > deadline) {
@@ -97,6 +105,8 @@ object WandLinkSchematics {
             }
             if (destinations.values.any { level.shipObjectWorld.loadedShips.getById(it.first) == null }) return@on
             listener.unregister()
+            ClockworkShipSchematics.paste(level, payload.getList("attachments", 10), destinations)
+            LubricantData.get(level).pasteSchematic(level, payload.getCompound("lubricant"), destinations)
             val data = WandLinks.get(level)
             links.forEach { data.restore(level, it) }
             hinges.forEach { HingeLinks.get(level).restore(level, it) }

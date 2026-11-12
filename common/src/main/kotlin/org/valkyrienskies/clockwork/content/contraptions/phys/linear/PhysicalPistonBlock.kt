@@ -24,11 +24,12 @@ import net.minecraft.world.phys.shapes.Shapes
 import net.minecraft.world.phys.shapes.VoxelShape
 import org.valkyrienskies.clockwork.ClockworkBlockEntities
 import org.valkyrienskies.clockwork.ClockworkBlocks
+import org.valkyrienskies.clockwork.util.ClockworkCopyableBlock
 import org.valkyrienskies.mod.api.vsApi
 import org.valkyrienskies.mod.common.config.VSGameConfig
 import org.valkyrienskies.mod.common.vsCore
 
-class PhysicalPistonBlock(properties: Properties) : DirectionalAxisKineticBlock(properties), IBE<PhysicalPistonBlockEntity> {
+class PhysicalPistonBlock(properties: Properties) : DirectionalAxisKineticBlock(properties), IBE<PhysicalPistonBlockEntity>, ClockworkCopyableBlock {
     init {
         registerDefaultState(defaultBlockState().setValue(STATE, PistonState.RETRACTED))
     }

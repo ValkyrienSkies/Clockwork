@@ -173,6 +173,47 @@ class LubricantData : SavedData() {
         viewers.keys.retainAll(active)
     }
 
+    fun captureSchematic(level: ServerLevel, origins: Map<Long, BlockPos>): CompoundTag {
+        val included = HashSet<Long>()
+        val blocks = ListTag()
+        for (entries in sections.values) for ((key, block) in entries) {
+            val pos = BlockPos.of(key)
+            val ship = level.getShipManagingPos(pos)?.id ?: continue
+            val origin = origins[ship] ?: continue
+            included.add(key)
+            blocks.add(CompoundTag().apply {
+                putLong("Source", key); putLong("Ship", ship)
+                putLong("Offset", pos.subtract(origin).asLong())
+                putString("Block", BuiltInRegistries.BLOCK.getKey(block).toString())
+            })
+        }
+        return CompoundTag().apply {
+            put("Blocks", blocks)
+            put("Areas", ListTag().also { list -> areas.values.forEach { area ->
+                val members = area.filter { it in included }
+                if (members.isNotEmpty()) list.add(CompoundTag().apply { putLongArray("Blocks", members) })
+            } })
+        }
+    }
+
+    fun pasteSchematic(level: ServerLevel, tag: CompoundTag, destinations: Map<Long, Pair<Long, BlockPos>>) {
+        val moved = HashMap<Long, BlockPos>()
+        for (entry in tag.getList("Blocks", 10)) {
+            val data = entry as CompoundTag
+            val corner = destinations[data.getLong("Ship")]?.second ?: continue
+            val pos = corner.offset(BlockPos.of(data.getLong("Offset")))
+            val id = ResourceLocation.tryParse(data.getString("Block")) ?: continue
+            val block = BuiltInRegistries.BLOCK.getOptional(id).orElse(null) ?: continue
+            if (!level.hasChunkAt(pos) || level.getBlockState(pos).block !== block) continue
+            moved[data.getLong("Source")] = pos
+            set(pos, block, true)
+            changed.remove(pos.asLong())
+            LubricantMaterials.refresh(level, pos, true)
+        }
+        for (area in tag.getList("Areas", 10))
+            addArea((area as CompoundTag).getLongArray("Blocks").asSequence().mapNotNull { moved[it] }.toList())
+    }
+
     override fun save(tag: CompoundTag): CompoundTag {
         val entries = ListTag()
         for (section in sections.values) for ((pos, block) in section) {

@@ -19,8 +19,9 @@ import net.minecraft.world.level.block.state.StateDefinition
 import net.minecraft.world.level.block.state.properties.BooleanProperty
 import net.minecraft.world.phys.BlockHitResult
 import org.valkyrienskies.clockwork.ClockworkBlockEntities
+import org.valkyrienskies.clockwork.util.ClockworkCopyableBlock
 
-class PhysicalGantryBlock(properties: Properties) : DirectionalAxisKineticBlock(properties), IBE<PhysicalGantryBlockEntity> {
+class PhysicalGantryBlock(properties: Properties) : DirectionalAxisKineticBlock(properties), IBE<PhysicalGantryBlockEntity>, ClockworkCopyableBlock {
     init {
         registerDefaultState(defaultBlockState().setValue(ASSEMBLED, false))
     }

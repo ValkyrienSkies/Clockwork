@@ -114,7 +114,12 @@ class SpinoffBearingBlock(properties: Properties) : DirectionalBlock(properties)
             var vectorPartner = Vector3d(x.toDouble(), y.toDouble(), z.toDouble()).add(0.5, 0.5, 0.5)
 
             val partnerId = tag.getLong("partnerShipId")
-            val centerMigrate = centerPositions[partnerId] ?: return null
+            val centerMigrate = centerPositions[partnerId]
+            if (centerMigrate == null || oldShipIdToNewId[partnerId] == null) {
+                for (key in listOf("partnerX", "partnerY", "partnerZ", "partnerShipId")) tag.remove(key)
+                tag.putInt("jointId", -1)
+                return tag
+            }
             vectorPartner = vectorPartner.sub(centerMigrate.first).add(centerMigrate.second)
             val bp = vectorPartner.floor().toMinecraft()
             tag.putInt("partnerX", bp.x)

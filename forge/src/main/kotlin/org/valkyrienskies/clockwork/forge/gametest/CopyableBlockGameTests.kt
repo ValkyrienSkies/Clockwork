@@ -5,6 +5,7 @@ import net.minecraft.core.Direction
 import net.minecraft.gametest.framework.AfterBatch
 import net.minecraft.server.level.ServerLevel
 import net.minecraft.world.level.ChunkPos
+import net.minecraft.world.level.block.Blocks
 import net.minecraft.world.level.block.state.properties.BlockStateProperties.FACING
 import net.minecraft.gametest.framework.GameTest
 import net.minecraft.gametest.framework.GameTestHelper
@@ -60,11 +61,13 @@ class CopyableBlockGameTests {
             positions.zip(blocks).forEach { (pos, block) -> level.setBlockAndUpdate(pos, block.defaultBlockState().setValue(FACING, Direction.UP)) }
             (level.getBlockEntity(start) as UniversalShaftBlockEntity)
                 .connectTo(level.getBlockEntity(start.east(2)) as UniversalShaftBlockEntity)
-            val ship = ShipAssembler.assembleToShip(level, positions.toSet(), 1.0)
+            val supports = (0..11).map { start.east(it).below() }
+            supports.forEach { level.setBlockAndUpdate(it, Blocks.STONE.defaultBlockState()) }
+            val ship = ShipAssembler.assembleToShip(level, (positions + supports).toSet(), 1.0)
             ship.isStatic = true
             ships.add(ship.id)
             val bounds = ship.shipAABB!!
-            val first = BlockPos(bounds.minX(), bounds.minY(), bounds.minZ())
+            val first = BlockPos(bounds.minX(), bounds.minY() + 1, bounds.minZ())
             positions.forEach { force(level, first.offset(it.subtract(start))) }
             val filename = "clockwork-copyable-test-${UUID.randomUUID()}"
             files.add(VdexWrapper.getSchematicDirectory(level.server).resolve("$filename.vdex"))
@@ -74,7 +77,7 @@ class CopyableBlockGameTests {
                 helper.assertTrue(level.shipObjectWorld.loadedShips.getById(ship.id) != null, "Source ship did not load")
             }.thenIdle(5).thenExecute {
                 val firstEnd = level.getBlockEntity(first) as UniversalShaftBlockEntity
-                helper.assertTrue(firstEnd.connectedPos == first.east(2), "Assembly lost the universal joint connection")
+                helper.assertTrue(firstEnd.connectedPos == first.east(2), "Assembly lost the universal joint connection: expected=${first.east(2)}, actual=${firstEnd.connectedPos}, tag=${firstEnd.saveWithoutMetadata()}, other=${level.getBlockEntity(first.east(2))?.saveWithoutMetadata()}")
                 VdexWrapper.saveShip(level, ship, filename)
                 val before = level.shipObjectWorld.allShips.mapTo(HashSet()) { it.id }
                 val paste = Vector3d(start.x.toDouble(), 240.0, start.z + 300.0)
@@ -86,7 +89,7 @@ class CopyableBlockGameTests {
                 ships.add(copy.id)
                 copy.isStatic = true
                 val box = copy.shipAABB!!
-                pastedFirst = BlockPos(box.minX(), box.minY(), box.minZ())
+                pastedFirst = BlockPos(box.minX(), box.minY() + 1, box.minZ())
                 positions.forEach { force(level, pastedFirst.offset(it.subtract(start))) }
             }.thenWaitUntil {
                 helper.assertTrue(level.shipObjectWorld.loadedShips.getById(pastedId) != null, "Pasted ship did not load")

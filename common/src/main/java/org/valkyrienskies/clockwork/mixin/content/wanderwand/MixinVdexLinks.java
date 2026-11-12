@@ -19,11 +19,19 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 import org.valkyrienskies.clockwork.content.curiosities.tools.wanderwand.WandLinkSchematics;
+import org.valkyrienskies.clockwork.util.ClockworkSchematicConnections;
+import org.valkyrienskies.mod.common.util.GameToPhysicsAdapter;
 import org.valkyrienskies.core.api.ships.ServerShip;
 import org.valkyrienskies.mod.common.schematic.*;
 
 @Mixin(value = VdexWrapper.class, remap = false)
 public class MixinVdexLinks {
+    @WrapOperation(method = "saveShip", at = @At(value = "INVOKE", target = "Lorg/valkyrienskies/mod/common/util/GameToPhysicsAdapter;getAllConnectedShips(J)Ljava/util/List;"))
+    private List<Long> clockwork$connectedShips(GameToPhysicsAdapter adapter, long shipId, Operation<List<Long>> original,
+            @Local(argsOnly = true) ServerLevel level) {
+        return ClockworkSchematicConnections.expand(level, original.call(adapter, shipId));
+    }
+
     @WrapOperation(method = "saveShip", at = @At(value = "INVOKE", target = "Lorg/valkyrienskies/mod/common/schematic/VdexIO;write(Ljava/nio/file/Path;Lorg/valkyrienskies/mod/common/schematic/VdexMetadata;Ljava/util/List;Ljava/util/Map;)V"))
     private void clockwork$saveLinks(VdexIO io, Path path, VdexMetadata metadata, List<VdexModEntry> mods,
             Map<String, CompoundTag> blocks, Operation<Void> original, @Local(argsOnly = true) ServerLevel level) {

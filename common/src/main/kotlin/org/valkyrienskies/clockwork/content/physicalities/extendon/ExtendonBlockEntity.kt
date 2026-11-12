@@ -374,7 +374,7 @@ class ExtendonBlockEntity(type: BlockEntityType<*>?, pos: BlockPos, state: Block
 
         if (hasLoadedJointState()) {
             // Keep the restored joint state that this side already owns.
-        } else if (connectedBe!!.hasLoadedJointState()) {
+        } else if (connectedBe!!.distanceJoint != null && connectedBe!!.sphericalJoint != null) {
             distanceJoint = connectedBe!!.distanceJoint
             distanceJointId = connectedBe!!.distanceJointId
             sphericalJoint = connectedBe!!.sphericalJoint
@@ -482,6 +482,7 @@ class ExtendonBlockEntity(type: BlockEntityType<*>?, pos: BlockPos, state: Block
                 return@addJoint
             }
             distanceJointId = it
+            connectedBe?.takeIf { other -> other.connectedBe === this }?.distanceJointId = it
             level.gtpa.removeMatchingJointsExcept(distanceJoint, it)
         }
         level.gtpa.addJoint(sphericalJoint) {
@@ -490,6 +491,7 @@ class ExtendonBlockEntity(type: BlockEntityType<*>?, pos: BlockPos, state: Block
                 return@addJoint
             }
             sphericalJointId = it
+            connectedBe?.takeIf { other -> other.connectedBe === this }?.sphericalJointId = it
             level.gtpa.removeMatchingJointsExcept(sphericalJoint, it)
         }
 

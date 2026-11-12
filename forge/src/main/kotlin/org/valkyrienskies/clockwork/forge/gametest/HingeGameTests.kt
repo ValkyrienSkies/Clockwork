@@ -190,6 +190,9 @@ class HingeGameTests {
                 helper.assertTrue(!level.getBlockState(link.b.pos).getCollisionShape(level, link.b.pos).isEmpty,
                     "Broken attachment did not regain collision")
                 val ship = level.shipObjectWorld.allShips.getById(link.b.shipId)!!
+                level.shipObjectWorld.teleportShip(ship, vsCore.newShipTeleportData(Vector3d(original).add(0.0, 20.0, 0.0), rotation, Vector3d(), Vector3d()))
+            }.thenIdle(3).thenExecute {
+                val ship = level.shipObjectWorld.allShips.getById(link.b.shipId)!!
                 helper.assertTrue(HingeAssembly.connect(level, link.a.pos, link.b.pos) == "far", "A distant hinge reconnected")
                 level.shipObjectWorld.teleportShip(ship, vsCore.newShipTeleportData(Vector3d(original).add(0.0, 2.25, 0.0), rotation, Vector3d(), Vector3d()))
             }.thenIdle(3).thenExecute {

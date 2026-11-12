@@ -22,10 +22,11 @@ import net.minecraft.world.level.block.state.StateDefinition
 import net.minecraft.world.phys.BlockHitResult
 import org.valkyrienskies.clockwork.ClockworkBlockEntities
 import org.valkyrienskies.clockwork.ClockworkItems
+import org.valkyrienskies.clockwork.util.ClockworkCopyableBlock
 import org.valkyrienskies.clockwork.util.gui.IHaveDuctStats
 import org.valkyrienskies.kelvin.util.INodeBlock
 
-class ExtendonBlock(properties: Properties) : DirectionalBlock(properties), IBE<ExtendonBlockEntity>, INodeBlock, IHaveDuctStats {
+class ExtendonBlock(properties: Properties) : DirectionalBlock(properties), IBE<ExtendonBlockEntity>, INodeBlock, IHaveDuctStats, ClockworkCopyableBlock {
     init {
         registerDefaultState(defaultBlockState().setValue(FACING, Direction.UP))
 
