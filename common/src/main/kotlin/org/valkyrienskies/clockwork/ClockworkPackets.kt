@@ -1,5 +1,10 @@
 package org.valkyrienskies.clockwork
 
+import org.valkyrienskies.clockwork.content.schematics.VdexBlueprintActionPacket
+import org.valkyrienskies.clockwork.content.schematics.VdexBlueprintUploadPacket
+import org.valkyrienskies.clockwork.content.schematics.VdexBlueprintDownloadPacket
+import org.valkyrienskies.clockwork.content.schematics.VdexBlueprintNoticePacket
+import org.valkyrienskies.clockwork.content.schematics.VdexBuildEffectPacket
 import net.minecraft.core.BlockPos
 import net.minecraft.network.FriendlyByteBuf
 import net.minecraft.server.level.ServerPlayer
@@ -108,8 +113,11 @@ enum class ClockworkPackets(
     SPRING_ADJUST_PACKET(SpringAdjustPacket::class.java, { SpringAdjustPacket(it) }),
     WAND_ROPE_RIDE_JUMP_PACKET(WandJumpPacket::class.java, ::WandJumpPacket),
     CONFIGURE_COMBOBULATOR(ConfigureCombobulatorPacket::class.java, ::ConfigureCombobulatorPacket),
-
-    ;
+    VDEX_ACTION(VdexBlueprintActionPacket::class.java, ::VdexBlueprintActionPacket),
+    VDEX_UPLOAD(VdexBlueprintUploadPacket::class.java, ::VdexBlueprintUploadPacket),
+    VDEX_DOWNLOAD(VdexBlueprintDownloadPacket::class.java, ::VdexBlueprintDownloadPacket),
+    VDEX_NOTICE(VdexBlueprintNoticePacket::class.java, ::VdexBlueprintNoticePacket),
+    VDEX_BUILD_EFFECT(VdexBuildEffectPacket::class.java, ::VdexBuildEffectPacket);
 
     init {
         packetChannel.registerPacket(type as Class<CWPacket>, factory as Function<FriendlyByteBuf, CWPacket>)

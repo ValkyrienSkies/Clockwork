@@ -71,7 +71,7 @@ class CombobulatorScreen(private val be: CombobulatorBlockEntity) :
 
     private fun tab(left: Int, name: Component, function: Boolean) {
         addRenderableWidget(object : Button(guiLeft + left, guiTop + 20, 67, 16, name,
-            { functionTab = function; ghost = -1; rebuild() }, DEFAULT_NARRATION) {
+            { functionTab = function; ghost = -1; rebuild() }, { narration -> narration.get() }) {
             override fun renderWidget(g: GuiGraphics, mouseX: Int, mouseY: Int, partialTick: Float) {
                 val active = functionTab == function
                 if (active) skin(g, left, 20, 309, 0, 67, 16)
@@ -101,7 +101,7 @@ class CombobulatorScreen(private val be: CombobulatorBlockEntity) :
             val y = 51 + row * 22
             val name = portName(channel.id)
             val card = object : Button(guiLeft + 14, guiTop + y, 101, 18, name,
-                { selected = channel.id; ghost = -1; rebuild() }, DEFAULT_NARRATION) {
+                { selected = channel.id; ghost = -1; rebuild() }, { narration -> narration.get() }) {
                 override fun renderWidget(g: GuiGraphics, mouseX: Int, mouseY: Int, partialTick: Float) {
                     skin(g, 14, y, 308, 19, 101, 18)
                     if (selected == channel.id || isHovered) g.fill(x, this.y, x + 2, this.y + 18, 0xffdfbd77.toInt())

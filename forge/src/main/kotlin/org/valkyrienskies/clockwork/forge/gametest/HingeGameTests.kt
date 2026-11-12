@@ -1,5 +1,7 @@
 package org.valkyrienskies.clockwork.forge.gametest
 
+import com.mojang.authlib.GameProfile
+import com.simibubi.create.foundation.blockEntity.behaviour.ValueSettingsPacket
 import net.minecraft.core.BlockPos
 import net.minecraft.core.Direction
 import net.minecraft.gametest.framework.AfterBatch
@@ -8,6 +10,8 @@ import net.minecraft.gametest.framework.GameTest
 import net.minecraft.gametest.framework.GameTestHelper
 import net.minecraft.network.chat.Component
 import net.minecraft.server.level.ServerLevel
+import net.minecraft.server.level.ServerPlayer
+import net.minecraft.nbt.CompoundTag
 import net.minecraft.world.level.ChunkPos
 import net.minecraft.world.level.block.Blocks
 import net.minecraft.world.level.block.entity.BarrelBlockEntity
@@ -147,6 +151,53 @@ class HingeGameTests {
                 helper.assertTrue(!level.getBlockState(pos).getValue(HingeBlock.ASSEMBLED) && HingeLinks.get(level).at(pos) == null,
                     "Disassembly did not fold the hinge back into one block")
                 helper.assertTrue(level.getBlockState(link.b.pos).isAir, "Disassembly left a duplicate head behind")
+            }.thenSucceed()
+        }
+
+        private class LimitPacket(be: HingeBlockEntity, row: Int, value: Int, id: Int) :
+            ValueSettingsPacket(be.blockPos, row, value, null, null, Direction.UP, false, id) {
+            fun apply(player: ServerPlayer, be: HingeBlockEntity) = applySettings(player, be)
+        }
+
+        @JvmStatic @GameTest(template = TEMPLATE, batch = "hinges", timeoutTicks = 120)
+        fun settingsPacketsKeepBothLimitsAcrossEndsAndReload(helper: GameTestHelper) {
+            val level = helper.level
+            val pos = base(helper)
+            place(level, pos)
+            val be = level.getBlockEntity(pos) as HingeBlockEntity
+            val player = ServerPlayer(level.server, level, GameProfile(UUID.randomUUID(), "hinge-settings"))
+            helper.assertTrue(be.lower.netId() != be.upper.netId(), "Limit controls share a network ID")
+            LimitPacket(be, 0, 35, be.lower.netId()).apply(player, be)
+            LimitPacket(be, 1, 125, be.upper.netId()).apply(player, be)
+            helper.assertTrue(be.lower.value == 35 && be.upper.value == 125, "Settings packet changed the wrong limit")
+            LimitPacket(be, 1, 110, be.lower.netId()).apply(player, be)
+            LimitPacket(be, 0, 40, be.upper.netId()).apply(player, be)
+            helper.assertTrue(be.lower.value == 40 && be.upper.value == 110, "Both rows are not accessible from either pin end")
+            val saved = be.saveWithoutMetadata()
+            be.lower.setValue(90); be.upper.setValue(90)
+            be.load(saved)
+            helper.assertTrue(be.lower.value == 40 && be.upper.value == 110, "Limits reset on reload")
+            val clipboard = CompoundTag().also { it.putInt("Row", 0); it.putInt("Value", 120) }
+            be.upper.readFromClipboard(clipboard, player, Direction.UP, false)
+            helper.assertTrue(be.lower.value == 40 && be.upper.value == 120, "Legacy clipboard changed the wrong limit")
+            helper.assertTrue(HingeAssembly.assemble(level, pos) == null, "Settings fixture did not assemble")
+            val link = HingeLinks.get(level).at(pos)!!
+            remember(level, link)
+            helper.startSequence().thenIdle(5).thenExecute {
+                val head = level.getBlockEntity(link.b.pos) as HingeBlockEntity
+                LimitPacket(be, 1, 135, be.upper.netId()).apply(player, be)
+                LimitPacket(head, 0, 55, head.lower.netId()).apply(player, head)
+                helper.assertTrue(link.lower == -55 && link.upper == 135, "Editing the other end restored a stale opposite limit")
+            }.thenIdle(5).thenExecute {
+                val head = level.getBlockEntity(link.b.pos) as HingeBlockEntity
+                for (end in listOf(be, head)) {
+                    helper.assertTrue(end.lower.value == 55 && end.upper.value == 135, "The two ends do not show the same limits")
+                    helper.assertTrue(end.guideBase == link.a.pos && end.guideHead == link.b.pos, "The guide lost its shared reference frame")
+                    val update = end.updateTag
+                    helper.assertTrue(update.getInt("HingeLower") == 55 && update.getInt("HingeUpper") == 135,
+                        "Client update contains stale limits")
+                    helper.assertTrue(BlockPos.of(update.getLong("GuideBase")) == link.a.pos, "Client guide uses the attachment as zero")
+                }
             }.thenSucceed()
         }
 

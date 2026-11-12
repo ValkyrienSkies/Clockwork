@@ -44,7 +44,12 @@
     "content.universal_joint.MixinStructureTemplate",
     "content.wanderlite_crystal.MixinItemEntity",
     "content.wanderwand.MixinServerGamePacketListener",
-    "content.wing.MixinAbstractCauldronBlock"
+    "content.wing.MixinAbstractCauldronBlock",
+    "content.schematics.MixinVdexCannon",
+    "content.schematics.MixinConstructionTicker",
+    "content.schematics.MixinConstructionMining",
+    "content.schematics.MixinConstructionTicks",
+    "content.schematics.MixinVdexCannonRemoval"
   ],
   "client": [
     "content.gravitron.MixinMouseHandler",

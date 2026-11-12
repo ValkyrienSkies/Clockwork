@@ -1,5 +1,6 @@
 package org.valkyrienskies.clockwork.mixin;
 
+import org.valkyrienskies.clockwork.content.schematics.VdexConstruction;
 import com.simibubi.create.content.contraptions.AbstractContraptionEntity;
 import com.simibubi.create.content.contraptions.StructureTransform;
 import net.minecraft.nbt.CompoundTag;
@@ -20,6 +21,11 @@ public abstract class MixinAbstractContraptionEntity extends Entity implements M
 
     public MixinAbstractContraptionEntity(EntityType<?> entityType, Level level) {
         super(entityType, level);
+    }
+
+    @Inject(method = "tick", at = @At("HEAD"), cancellable = true)
+    private void clockwork$pauseConstruction(CallbackInfo ci) {
+        if (VdexConstruction.locked(level(), blockPosition())) ci.cancel();
     }
 
     @Override

@@ -35,6 +35,8 @@ import org.valkyrienskies.clockwork.content.curiosities.meteor.MeteorShipAttachm
 import org.valkyrienskies.clockwork.content.curiosities.meteor.MeteorStorm
 import org.valkyrienskies.clockwork.content.curiosities.spring.SpringBendingController
 import org.valkyrienskies.clockwork.content.events.CollisionSoundEffectHandler
+import org.valkyrienskies.clockwork.content.schematics.VdexBlueprintLibrary
+import org.valkyrienskies.clockwork.content.schematics.VdexConstruction
 import org.valkyrienskies.clockwork.content.curiosities.tools.gravitron.GravitronFrozenShip
 import org.valkyrienskies.clockwork.content.forces.*
 import org.valkyrienskies.clockwork.content.forces.GravitronController
@@ -121,6 +123,7 @@ object ClockworkMod {
         vsCore.registerAttachment(GyroShipControl::class.java)
         vsCore.registerAttachment(SugarRocketController::class.java)
         vsCore.registerAttachment(GravitronController::class.java) { useTransientSerializer() }
+        vsCore.registerAttachment(VdexConstruction::class.java) { useJacksonSerializer() }
         vsCore.registerAttachment(GravitronFrozenShip::class.java) {
             useJacksonSerializer()
         }
@@ -165,10 +168,12 @@ object ClockworkMod {
         }
 
         TickEvent.SERVER_LEVEL_POST.register {
+            VdexBlueprintLibrary.tick(it)
             HingeLinks.get(it).tick(it)
             LubricantData.get(it).tick(it)
             org.valkyrienskies.clockwork.content.curiosities.tools.wanderwand.WanderwandServer.tick(it)
             for (ship in it.shipObjectWorld.loadedShips) {
+                VdexConstruction.tick(it, ship)
                 GravitronFrozenShip.tick(it, ship)
                 //TODO: UNCOMMENT WHEN POCKET FORCES IS FIXED
                 //ship.getAttachment(PocketForcesController::class.java)?.gameTick(it, ship.id)

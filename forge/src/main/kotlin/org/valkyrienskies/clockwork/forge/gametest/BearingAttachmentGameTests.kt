@@ -105,8 +105,9 @@ class BearingAttachmentGameTests {
                 else (level.getBlockEntity(base) as PhysBearingBlockEntity).assemble()
             }.thenWaitUntil {
                 helper.assertTrue(level.gtpa.getAllJoints().values.any { it.shipId0 == ship.id || it.shipId1 == ship.id }, "Bearing failed to attach the existing ship")
-            }.thenExecute { ship.isStatic = false }.thenIdle(35).thenExecute {
+            }.thenExecute { ship.isStatic = false }.thenIdle(35).thenWaitUntil {
                 aligned()
+            }.thenExecute {
                 val be = level.getBlockEntity(base)!!
                 saved = be.saveWithoutMetadata()
                 if (duplicate) {

@@ -24,6 +24,7 @@ import org.valkyrienskies.clockwork.content.contraptions.phys.bearing.PhysBearin
 import org.valkyrienskies.clockwork.content.contraptions.phys.bearing.PhysBearingRenderer
 import org.valkyrienskies.clockwork.content.contraptions.phys.gimbal.GimbalBearingBlockEntity
 import org.valkyrienskies.clockwork.content.contraptions.phys.gimbal.GimbalBearingRenderer
+import org.valkyrienskies.clockwork.content.contraptions.phys.hinge.HingeRenderer
 import org.valkyrienskies.clockwork.content.contraptions.phys.hinge.HingeBlockEntity
 import org.valkyrienskies.clockwork.content.contraptions.phys.infuser.PhysicsInfuserBlockEntity
 import org.valkyrienskies.clockwork.content.contraptions.phys.infuser.PhysicsInfuserRenderer
@@ -249,6 +250,7 @@ object ClockworkBlockEntities {
             HingeBlockEntity(type, pos, state)
         }
         .validBlocks(ClockworkBlocks.HINGE, ClockworkBlocks.HINGE_ATTACHMENT)
+        .renderer { NonNullFunction(::HingeRenderer) }
         .register()
 
     @JvmField

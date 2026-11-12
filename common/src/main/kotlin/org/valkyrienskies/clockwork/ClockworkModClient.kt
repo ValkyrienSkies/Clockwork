@@ -1,5 +1,6 @@
 package org.valkyrienskies.clockwork
 
+import org.valkyrienskies.clockwork.content.schematics.VdexBlueprintClient
 import com.mojang.blaze3d.platform.InputConstants
 import com.simibubi.create.content.equipment.armor.BacktankArmorLayer
 import dev.architectury.event.events.client.ClientTickEvent
@@ -115,6 +116,7 @@ object ClockworkModClient {
         ClientTickEvent.CLIENT_POST.register(ClientTickEvent.Client {
             GravitronControlsClient.tick()
             LubricantClient.tick()
+            VdexBlueprintClient.tick()
             org.valkyrienskies.clockwork.content.curiosities.tools.wanderwand.WandRopeRidingClient.tick()
             org.valkyrienskies.clockwork.content.curiosities.tools.gravitron.GravitronEffects.tick()
             org.valkyrienskies.clockwork.content.curiosities.tools.wanderwand.WanderwandHandEffects.tick()

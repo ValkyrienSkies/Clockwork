@@ -1,5 +1,7 @@
 package org.valkyrienskies.clockwork.util.render
 
+import org.valkyrienskies.clockwork.content.schematics.VdexBuildEffects
+import org.valkyrienskies.clockwork.content.schematics.VdexBlueprintPreview
 import com.mojang.blaze3d.systems.RenderSystem
 import com.mojang.blaze3d.vertex.BufferBuilder
 import com.mojang.blaze3d.vertex.PoseStack
@@ -27,6 +29,8 @@ object ToolWorldEffects {
             GravitronEffects.render(poseStack, buffers, partialTick)
             InfuserEffects.render(poseStack, buffers, camera.position, partialTick)
             RopeKnotRenderer.renderEffects(poseStack, buffers, camera.position, partialTick)
+            VdexBlueprintPreview.renderWorld(poseStack, buffers, camera.position)
+            VdexBuildEffects.render(poseStack, buffers, camera.position, partialTick)
             buffers.endBatch()
         } finally {
             RenderSystem.enableCull()

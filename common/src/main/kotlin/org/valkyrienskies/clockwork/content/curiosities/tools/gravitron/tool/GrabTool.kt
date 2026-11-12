@@ -2,6 +2,7 @@ package org.valkyrienskies.clockwork.content.curiosities.tools.gravitron.tool
 
 import net.minecraft.ChatFormatting
 import net.minecraft.client.Minecraft
+import org.valkyrienskies.clockwork.content.schematics.VdexConstruction
 import net.minecraft.core.BlockPos
 import net.minecraft.core.Direction
 import net.minecraft.nbt.Tag
@@ -230,6 +231,7 @@ class GrabTool : GravitronToolBase() {
             }
 
             val ship = level.getShipManagingPos(clickedPos)
+            if (VdexConstruction.locked(level, clickedPos)) return false
             val grabPosInShip: Vector3dc = clickLocation.toJOML()
             val grabPosInWorld = Vector3d(grabPosInShip)
 

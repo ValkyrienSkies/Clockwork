@@ -1,5 +1,6 @@
 package org.valkyrienskies.clockwork.content.curiosities.tools.gravitron;
 
+import org.valkyrienskies.clockwork.content.schematics.VdexConstruction
 import net.minecraft.core.BlockPos
 import net.minecraft.network.FriendlyByteBuf
 import net.minecraft.server.level.ServerLevel
@@ -44,7 +45,7 @@ class GravitronLeftClickPacket : C2SCWPacket {
                 val heldShip = state.shipID?.let { level.shipObjectWorld.loadedShips.getById(it) }
                 val ship = if (isRegular) heldShip ?: level.getLoadedShipManagingPos(clickedPos!!)
                     else level.getLoadedShipManagingPos(clickedPos!!) ?: heldShip
-                if (ship != null) {
+                if (ship != null && !VdexConstruction.locked(ship)) {
                     val anchor = if (state.shipID == ship.id) state.shipGrabbedPos ?: clickedPos!!.toJOMLD()
                         else clickedPos!!.toJOMLD().add(0.5, 0.5, 0.5)
                     val worldAnchor = ship.shipToWorld.transformPosition(anchor, Vector3d())
