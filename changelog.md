@@ -23,6 +23,7 @@ Holy bug fixes batman
 - Added bind, attach, and weld mode to the Wanderwand
 - Added new shiny visuals to the Wanderwand and Gravitrons
 - Added custom recipes for everything that activate when TFG is present, to better fit into its progression
+- Added a config to enable propellers generating torque (off by default)
 
 ### Changes:
 - Changed the gas engine to use flowrate 
@@ -31,6 +32,7 @@ Holy bug fixes batman
 - Added VMod compatibility for all the bearings
 - Rewrote all the propeller math, making sails and blade controllers more balanced (and hopefully better to use)
 - Reworked phys bearing
+- Made phys bearing count as glued to other blocks, making nesting phys bearings easier
 - Allowed the universal shaft to be waterlogged
 - Added more gas related blocks to the wrenchable tag
 - Added new visuals to the physics assembler
