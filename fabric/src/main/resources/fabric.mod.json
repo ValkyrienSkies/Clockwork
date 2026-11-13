@@ -41,7 +41,7 @@
   "depends": {
     "minecraft": ">=1.20.1",
     "valkyrienskies": ">=2.4.8",
-    "kelvin": ">=0.5.1",
+    "kelvin": ">=0.5.2",
     "create": ">=6.0.7",
     "architectury": ">=9.1.12"
   }
