@@ -22,7 +22,7 @@ import org.valkyrienskies.mod.common.shipObjectWorld
 import org.valkyrienskies.mod.common.util.toJOML
 import org.valkyrienskies.mod.common.util.toMinecraft
 
-class GenericWanderliteBlock(properties: Properties): Block(properties), IWanderliteBlock {
+open class GenericWanderliteBlock(properties: Properties): Block(properties), IWanderliteBlock {
     override fun use(state: BlockState,
                      level: Level,
                      pos: BlockPos,

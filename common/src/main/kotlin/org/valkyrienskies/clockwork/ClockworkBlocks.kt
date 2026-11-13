@@ -9,8 +9,10 @@ import com.simibubi.create.content.decoration.encasing.CasingBlock
 import com.simibubi.create.content.decoration.encasing.EncasingRegistry
 import com.simibubi.create.content.fluids.PipeAttachmentModel
 import com.simibubi.create.content.kinetics.simpleRelays.ShaftBlock
+import com.simibubi.create.foundation.block.connected.SimpleCTBehaviour
 import com.simibubi.create.foundation.data.AssetLookup
 import com.simibubi.create.foundation.data.CreateRegistrate
+import com.simibubi.create.foundation.data.CreateRegistrate.connectedTextures
 import com.simibubi.create.foundation.data.ModelGen.customItemModel
 import com.simibubi.create.foundation.data.SharedProperties
 import com.simibubi.create.foundation.data.TagGen.axeOrPickaxe
@@ -42,6 +44,7 @@ import org.valkyrienskies.clockwork.content.contraptions.propeller.copter.Copter
 import org.valkyrienskies.clockwork.content.curiosities.GenericWanderliteBlock
 import org.valkyrienskies.clockwork.content.curiosities.GenericWanderliteSlab
 import org.valkyrienskies.clockwork.content.curiosities.GenericWanderliteStairs
+import org.valkyrienskies.clockwork.content.curiosities.GlassWanderliteBlock
 import org.valkyrienskies.clockwork.content.curiosities.WanderliteOreBlock
 import org.valkyrienskies.clockwork.content.curiosities.altmeter.AltMeterBlock
 import org.valkyrienskies.clockwork.content.curiosities.clock.ClockBlock
@@ -998,13 +1001,14 @@ object ClockworkBlocks {
     val WANDERGLASS = REGISTRATE.block(
         "wanderglass"
     ) { properties: BlockBehaviour.Properties? ->
-        GenericWanderliteBlock(
+        GlassWanderliteBlock(
             properties!!
         )
     }
         .initialProperties { SharedProperties.netheriteMetal() }
         .properties { it.noOcclusion() ; it.lightLevel{ _ -> 1 } ; it.isViewBlocking{ _, _, _ -> false } }
         .addLayer { Supplier { RenderType.cutout() } }
+        .onRegister(connectedTextures {SimpleCTBehaviour(ClockworkSpriteShifts.WANDERGLASS) })
         .tag(ClockworkTags.AllBlockTags.SENSOR_LENS.tag)
         .item()
         .tab(ClockworkMod.BASE_CREATIVE_TABINFO)
