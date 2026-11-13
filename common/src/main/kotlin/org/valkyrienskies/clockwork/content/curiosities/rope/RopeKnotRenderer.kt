@@ -72,7 +72,7 @@ class RopeKnotEntityRenderer(context: EntityRendererProvider.Context) : EntityRe
                 val length = SpringSettings.easeLength(link.appliedLength, link.length, ticks)
                 SpringRenderer.render(level, link.a, link.b, link.frameA, link.frameB, length, origin, ms, buffers, tint)
             }
-            else RopeKnotRenderer.rope(level, WandRopeCurve(point, other, link.length), origin, ms, buffers, tint)
+            else RopeKnotRenderer.rope(level, WandRopeCurve(point, other, link.length), origin, ms, buffers, tint, link.grounding)
         }
         super.render(entity, yaw, partialTick, ms, buffers, light)
     }
@@ -87,11 +87,13 @@ object RopeKnotRenderer {
                     val pulse: ThinkablePulse) {
         var previousStress = stress.takeIf { it.isFinite() }?.coerceIn(0f, 1f) ?: 0f
         var displayStress = previousStress
+        var grounding = RopeGrounding()
     }
     private data class Snap(val curve: WandRopeCurve, val born: Long, val untied: Boolean)
     private val links = mutableMapOf<UUID, Link>()
     private val snaps = mutableListOf<Snap>()
     private val stressSounds = mutableMapOf<UUID, LinkStressSoundInstance>()
+    private var previewGrounding = RopeGrounding()
     private var world: ClientLevel? = null
     var animationTicks = 0L
         private set
@@ -101,6 +103,7 @@ object RopeKnotRenderer {
         if (world !== level) {
             stressSounds.values.forEach { it.stopNow() }; stressSounds.clear()
             links.clear(); snaps.clear(); world = level
+            previewGrounding = RopeGrounding()
             animationTicks = 0
         }
         return level
@@ -158,7 +161,10 @@ object RopeKnotRenderer {
                     WandLinks.readAppliedLength(tag, length), level.gameTime,
                     WandLinks.loadPoseRotation(tag.getCompound("pose0")), WandLinks.loadPoseRotation(tag.getCompound("pose1")),
                     tag.getBoolean("thinkable"), pulse).also { next ->
-                        previous[id]?.let { next.previousStress = it.previousStress; next.displayStress = it.displayStress }
+                        previous[id]?.let {
+                            next.previousStress = it.previousStress; next.displayStress = it.displayStress
+                            next.grounding = it.grounding
+                        }
                     }
             }
             for ((id, link) in links) {
@@ -230,10 +236,9 @@ object RopeKnotRenderer {
             LevelRenderer.getLightColor(level, BlockPos.containing(point)), OverlayTexture.NO_OVERLAY, ms, buffers, level, 0)
     }
 
-    fun rope(level: ClientLevel, curve: WandRopeCurve, origin: Vec3, ms: PoseStack, buffers: MultiBufferSource, tint: Int = 0xFFFFFF) {
-        val count = ceil(curve.a.distanceTo(curve.b) * 0.5 + curve.sag * 12).toInt().coerceIn(4, 128)
-        val points = (0..count).map { curve.point(it.toDouble() / count) }
-        strand(level, points, origin, ms, buffers.getBuffer(type), 0.0625, tint)
+    internal fun rope(level: ClientLevel, curve: WandRopeCurve, origin: Vec3, ms: PoseStack, buffers: MultiBufferSource,
+                      tint: Int = 0xFFFFFF, grounding: RopeGrounding = previewGrounding) {
+        strand(level, grounding.points(level, curve), origin, ms, buffers.getBuffer(type), RopeGrounding.RADIUS, tint)
     }
 
     private fun strand(level: ClientLevel, points: List<Vec3>, origin: Vec3, ms: PoseStack, vc: VertexConsumer, radius: Double, tint: Int = 0xFFFFFF) {
