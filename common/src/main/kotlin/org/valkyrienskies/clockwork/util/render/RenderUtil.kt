@@ -332,6 +332,10 @@ object RenderUtil {
         return lines
     }
 
+    /**
+     * Draws one straight, camera-facing ribbon quad. For a line made of several segments use
+     * [RibbonLine], which also fills the gaps at the bends.
+     */
     fun addRibbonSegment(
         vc: VertexConsumer,
         pose: Matrix4f,
@@ -340,21 +344,14 @@ object RenderUtil {
         thickness: Float,
         r: Float, g: Float, bl: Float, alpha: Float
     ) {
-        val dir = b.subtract(a)
-        val len = dir.length()
-        if (len < 1e-6) return
-        val dirN = dir.scale(1.0 / len)
+        val side = RibbonLine.side(a, b, thickness) ?: return
+        emitRibbonQuad(vc, pose, a, b, side, r, g, bl, alpha)
+    }
 
-        // a/b are camera-relative, so camera is origin
-        val mid = a.add(b).scale(0.5)
-        val view = mid.normalize()
-        var side = dirN.cross(view)
-        if (side.length() < 1e-6) {
-            side = dirN.cross(Vec3(0.0, 1.0, 0.0))
-            if (side.length() < 1e-6) side = dirN.cross(Vec3(1.0, 0.0, 0.0))
-        }
-        val sideN = side.normalize().scale(thickness.toDouble())
-
+    private fun emitRibbonQuad(
+        vc: VertexConsumer, pose: Matrix4f, a: Vec3, b: Vec3, sideN: Vec3,
+        r: Float, g: Float, bl: Float, alpha: Float
+    ) {
         val aL = a.subtract(sideN)
         val aR = a.add(sideN)
         val bL = b.subtract(sideN)

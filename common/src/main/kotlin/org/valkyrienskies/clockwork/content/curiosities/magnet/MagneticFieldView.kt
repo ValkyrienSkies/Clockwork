@@ -18,7 +18,7 @@ import org.joml.Vector3d
 import org.valkyrienskies.clockwork.ClockworkRenderTypes
 import org.valkyrienskies.clockwork.ClockworkTags
 import org.valkyrienskies.clockwork.client.render.goggles.AeronautGoggleOverlayRenderer
-import org.valkyrienskies.clockwork.util.render.RenderUtil.addRibbonSegment
+import org.valkyrienskies.clockwork.util.render.RibbonLine
 import org.valkyrienskies.mod.common.shipObjectWorld
 import kotlin.math.PI
 import kotlin.math.abs
@@ -256,8 +256,11 @@ object MagneticFieldView {
             val side = sides[index].normalize().scale(.065)
             val back = tip.subtract(direction.scale(.12))
             val alpha = ((VIEW_RANGE - tip.distanceTo(camera)) / 4.0).coerceIn(0.0, 1.0).toFloat() * opacity * .9f
-            for (sign in listOf(-1.0, 1.0)) addRibbonSegment(consumer, pose, tip.subtract(camera),
-                back.add(side.scale(sign)).subtract(camera), .009f, .98f, .87f, .61f, alpha)
+            val point = tip.subtract(camera)
+            RibbonLine(consumer, pose)
+                .segment(back.subtract(side).subtract(camera), point, .009f, .98f, .87f, .61f, alpha)
+                .segment(point, back.add(side).subtract(camera), .009f, .98f, .87f, .61f, alpha)
+                .end()
         }
     }
 

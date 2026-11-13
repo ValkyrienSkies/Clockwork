@@ -24,6 +24,7 @@ import org.valkyrienskies.clockwork.ClockworkRenderTypes
 import org.valkyrienskies.clockwork.content.curiosities.tools.wanderwand.tool.ToolType
 import org.valkyrienskies.clockwork.platform.SharedValues
 import org.valkyrienskies.clockwork.util.render.RenderUtil.addRibbonSegment
+import org.valkyrienskies.clockwork.util.render.RibbonLine
 import org.valkyrienskies.mod.common.shipObjectWorld
 import org.valkyrienskies.mod.common.world.clipIncludeShips
 import java.util.UUID
@@ -303,14 +304,16 @@ class WanderwandEffectRenderer {
         }
         for (strand in 0..2) {
             var old = a.lerp(b, back)
+            val line = RibbonLine(vc, matrix)
             for (i in 1..16) {
                 val t = back + (front - back) * i / 16.0
                 val phase = t * PI * 5 + strand * 2 * PI / 3 - time * 0.25
                 val radius = sin(i * PI / 16) * 0.10 * power
                 val p = a.lerp(b, t).add(u.scale(cos(phase) * radius)).add(v.scale(sin(phase) * radius))
-                addRibbonSegment(vc, matrix, old, p, 0.011f, if (red) 1f else 0.85f, if (red) 0.32f else 0.7f, if (red) 0.3f else 1f, alpha * 0.7f)
+                line.segment(old, p, 0.011f, if (red) 1f else 0.85f, if (red) 0.32f else 0.7f, if (red) 0.3f else 1f, alpha * 0.7f)
                 old = p
             }
+            line.end()
         }
     }
 
@@ -323,15 +326,17 @@ class WanderwandEffectRenderer {
             // Two loose halves recoil toward their anchors, with an obvious gap at the fracture.
             for (end in listOf(a, b)) {
                 var previous = end
+                val line = RibbonLine(vc, matrix)
                 for (i in 1..20) {
                     val t = i / 20.0
                     val reach = life * 0.9
                     val point = end.lerp(center, t * reach)
                         .add(u.scale(sin(t * PI * 3 - age * 0.7) * t * (1 - life) * 0.8))
                         .add(v.scale(sin(t * PI) * (1 - life) * 0.5))
-                    addRibbonSegment(vc, matrix, previous, point, 0.022f, 0.94f, 0.8f, 1f, life)
+                    line.segment(previous, point, 0.022f, 0.94f, 0.8f, 1f, life)
                     previous = point
                 }
+                line.end()
             }
         } else {
             // Glue tears into thicker globules, unlike the rope's whipping strands.
@@ -360,17 +365,23 @@ class WanderwandEffectRenderer {
         val strands = if (rope) 2 else 5
         for (strand in 0 until strands) {
             var previous = a
+            val glow = RibbonLine(vc, matrix)
+            val body = RibbonLine(vc, matrix)
+            val core = RibbonLine(vc, matrix)
             for (i in 1..count) {
                 val t = i.toDouble() / count
                 val radius = sin(t * PI) * (if (rope) 0.025 else 0.13 + 0.04 * sin(time * 0.08))
                 val phase = t * PI * (if (rope) 6 else 2) + strand * PI * 2 / strands + time * 0.06
                 val p = curve.point(t).add(u.scale(cos(phase) * radius)).add(v.scale(sin(phase) * radius))
                 val width = if (rope) 0.012f else (0.025 + sin(t * PI) * 0.035).toFloat()
-                addRibbonSegment(vc, matrix, previous, p, width * 2.5f, 0.55f, 0.27f * green, 0.8f * blue, alpha * 0.16f)
-                addRibbonSegment(vc, matrix, previous, p, width, 0.765f, 0.627f * green, 0.89f * blue, alpha * if (rope) 0.8f else 0.35f)
-                if (rope) addRibbonSegment(vc, matrix, previous, p, width * 0.3f, 0.97f, 0.82f * green, blue, alpha * 0.75f)
+                glow.segment(previous, p, width * 2.5f, 0.55f, 0.27f * green, 0.8f * blue, alpha * 0.16f)
+                body.segment(previous, p, width, 0.765f, 0.627f * green, 0.89f * blue, alpha * if (rope) 0.8f else 0.35f)
+                if (rope) core.segment(previous, p, width * 0.3f, 0.97f, 0.82f * green, blue, alpha * 0.75f)
                 previous = p
             }
+            glow.end()
+            body.end()
+            core.end()
         }
     }
     private fun basis(direction: Vec3): Pair<Vec3, Vec3> {
@@ -381,16 +392,20 @@ class WanderwandEffectRenderer {
     private fun ring(vc: VertexConsumer, matrix: Matrix4f, center: Vec3, normal: Vec3, radius: Double, time: Float, alpha: Float, red: Boolean = false) {
         val (u, v) = basis(normal)
         var previous: Vec3? = null
+        val glow = RibbonLine(vc, matrix)
+        val core = RibbonLine(vc, matrix)
         for (i in 0..32) {
             val angle = i * PI / 16 + time * 0.012
             val r = radius * (1 + sin(angle * 5 + time * 0.15) * 0.035)
             val p = center.add(u.scale(cos(angle) * r)).add(v.scale(sin(angle) * r))
             previous?.let {
-                addRibbonSegment(vc, matrix, it, p, 0.036f, if (red) 1f else 0.765f, if (red) 0.2f else 0.627f, if (red) 0.24f else 0.89f, alpha * 0.25f)
-                addRibbonSegment(vc, matrix, it, p, 0.012f, if (red) 1f else 0.88f, if (red) 0.3f else 0.75f, if (red) 0.32f else 1f, alpha)
+                glow.segment(it, p, 0.036f, if (red) 1f else 0.765f, if (red) 0.2f else 0.627f, if (red) 0.24f else 0.89f, alpha * 0.25f)
+                core.segment(it, p, 0.012f, if (red) 1f else 0.88f, if (red) 0.3f else 0.75f, if (red) 0.32f else 1f, alpha)
             }
             previous = p
         }
+        glow.close()
+        core.close()
     }
     private fun marker(ms: PoseStack, vc: VertexConsumer, anchor: WandAnchor, camera: Vec3, time: Float, valid: Boolean) {
         val level = world ?: return
@@ -424,13 +439,15 @@ class WanderwandEffectRenderer {
         for (i in 0..7) for (axis in listOf(1, 2, 4)) if (i and axis == 0) {
             val a = points[i]; val b = points[i or axis]
             var previous = a
+            val line = RibbonLine(vc, matrix)
             for (j in 1..8) {
                 val t = j / 8.0
                 val jitter = sin(t * PI) * sin(time * 0.4 + i + j) * 0.025
                 val p = a.lerp(b, t).add(jitter, -jitter, jitter)
-                addRibbonSegment(vc, matrix, previous, p, 0.016f, if (remove) 1f else 0.765f, if (remove) 0.2f else 0.627f, if (remove) 0.24f else 0.89f, 0.85f)
+                line.segment(previous, p, 0.016f, if (remove) 1f else 0.765f, if (remove) 0.2f else 0.627f, if (remove) 0.24f else 0.89f, 0.85f)
                 previous = p
             }
+            line.end()
         }
     }
 }
