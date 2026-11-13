@@ -383,7 +383,7 @@ class PropellerForceRegressionTest {
     }
 
     @Test
-    fun `spin torque toggle removes driven shaft moment from raw loads only`() {
+    fun `spin torque toggle removes shaft moment from raw loads`() {
         for (sails in listOf(false, true)) {
             val physicsShip = ship()
             ClockworkConfig.SERVER.propellerSpinTorqueEnabled = true
@@ -396,6 +396,36 @@ class PropellerForceRegressionTest {
             val disabled = forces(propeller(sails), physicsShip)
             assertVectorEquals(enabled.first, disabled.first)
             assertVectorEquals(Vector3d(enabled.second.x(), enabled.second.y(), 0.0), disabled.second)
+        }
+    }
+
+    @Test
+    fun `spin torque config prevents balanced propellers rolling the ship during a physics tick`() {
+        val rotation = Quaterniond().rotateXYZ(.4, -.2, .3)
+        val axis = rotation.transform(Vector3d(0.0, 0.0, 1.0))
+        for (sails in listOf(false, true)) for (rpm in listOf(-128.0, 128.0))
+            for (speed in listOf(0.0, 20.0)) for (enabled in listOf(false, true)) {
+            ClockworkConfig.SERVER.propellerSpinTorqueEnabled = enabled
+            val physicsShip = ship(rotation = rotation, velocity = Vector3d(axis).mul(speed),
+                com = Vector3d(.5, .5, 1.5))
+            val appliedForce = Vector3d()
+            val appliedTorque = Vector3d()
+            every { physicsShip.applyWorldForceToBodyPos(any(), any()) } answers {
+                appliedForce.set(firstArg<Vector3dc>()); Unit
+            }
+            every { physicsShip.applyWorldTorque(any()) } answers {
+                appliedTorque.set(firstArg<Vector3dc>()); Unit
+            }
+            val tickingController = PropellerController()
+            tickingController.appliers[0] = PropData(
+                Vector3i(), Vector3d(0.0, 0.0, 1.0), 0.0, rpm * .3,
+                listOf(Vector3i(2, 0, 0), Vector3i(-2, 0, 0), Vector3i(0, 2, 0), Vector3i(0, -2, 0)),
+                false, true, sails, List(4) { BladeData(true, -12.0, 3.5) }
+            )
+            tickingController.physTick(physicsShip, level)
+            assertTrue(appliedForce.length() > 1e-6, "Propellers must still produce thrust")
+            if (enabled) assertTrue(abs(appliedTorque.dot(axis)) > 1e-6)
+            else assertVectorEquals(Vector3d(), appliedTorque)
         }
     }
 
