@@ -10,6 +10,7 @@ import net.createmod.catnip.render.SpriteShifter
 
 object ClockworkSpriteShifts {
     val BALLOON_CASING = omni("balloon_casing")
+    val WANDERGLASS = omni("wanderglass")
 
 
 

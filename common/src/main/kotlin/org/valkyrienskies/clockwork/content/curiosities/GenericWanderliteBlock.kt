@@ -11,7 +11,7 @@ import net.minecraft.world.level.block.Block
 import net.minecraft.world.level.block.state.BlockState
 import net.minecraft.world.phys.BlockHitResult
 
-class GenericWanderliteBlock(properties: Properties) : Block(properties), IWanderliteBlock {
+open class GenericWanderliteBlock(properties: Properties) : Block(properties), IWanderliteBlock {
     override fun use(
         state: BlockState,
         level: Level,
