@@ -8,7 +8,7 @@ import net.minecraft.world.phys.Vec3
 import org.joml.Matrix4f
 import org.joml.Vector3f
 import org.valkyrienskies.clockwork.ClockworkRenderTypes
-import org.valkyrienskies.clockwork.util.render.RenderUtil.addRibbonSegment
+import org.valkyrienskies.clockwork.util.render.RibbonLine
 import org.valkyrienskies.clockwork.util.render.RenderUtil.generatePolylinesFollow
 import org.valkyrienskies.clockwork.util.render.RenderUtil.rand01
 import java.math.BigInteger
@@ -55,6 +55,8 @@ object LightningRenderer {
 
         for (poly in lines) {
             val n = poly.size
+            val core = RibbonLine(vc, pose)
+            val shell = RibbonLine(vc, pose)
             for (i in 0 until n - 1) {
                 val t = i.toFloat() / (n - 1).toFloat()
                 val taper = (1f - t).coerceIn(0f, 1f)
@@ -63,21 +65,23 @@ object LightningRenderer {
                 val b = poly[i + 1].subtract(camPos)
 
                 // core only (no additive glow, but we can still do a subtle outer)
-                addRibbonSegment(
-                    vc, pose, a, b,
+                core.segment(
+                    a, b,
                     thickness = inst.thickness * (0.35f + 0.65f * taper),
                     r = red, g = green, bl = blue,
                     alpha = 0.65f * fade
                 )
 
                 // optional softer shell (still translucent, not additive)
-                addRibbonSegment(
-                    vc, pose, a, b,
+                shell.segment(
+                    a, b,
                     thickness = inst.thickness * 1.6f * (0.35f + 0.65f * taper),
                     r = red2, g = green2, bl = blue2,
                     alpha = 0.18f * fade
                 )
             }
+            core.end()
+            shell.end()
         }
     }
 

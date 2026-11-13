@@ -108,16 +108,26 @@ object VdexBlueprintPreview {
                     .add(side.scale(cos(t * PI * 24) * .12)).add(up.scale(sin(t * PI * 24) * .12))
                     else if (link.rope) curve.point(t) else a.lerp(b, t)
                 val segments = if (link.spring) 96 else 32
+                val points = (0..segments).map { sample(it.toDouble() / segments) }
+                // Neighbouring segments share one cross-section per point so the tube stays closed at bends.
+                // The frame is carried along the curve to keep the square from twisting between points.
+                var right: Vec3? = null
+                val rings = points.indices.map { i ->
+                    val tangent = points[minOf(i + 1, segments)].subtract(points[maxOf(i - 1, 0)]).normalize()
+                    var r = right?.let { it.subtract(tangent.scale(it.dot(tangent))) }
+                    if (r == null || r.lengthSqr() < 1e-6)
+                        r = tangent.cross(if (abs(tangent.y) > .9) Vec3(1.0, 0.0, 0.0) else Vec3(0.0, 1.0, 0.0))
+                    val frameRight = r.normalize().also { right = it }
+                    val top = tangent.cross(frameRight)
+                    (0..3).map { k -> frameRight.scale(cos(k * PI / 2) * .035).add(top.scale(sin(k * PI / 2) * .035)) }
+                }
                 for (i in 0 until segments) {
-                    val p = sample(i.toDouble() / segments)
-                    val q = sample((i + 1.0) / segments)
-                    val tangent = q.subtract(p).normalize()
-                    val right = tangent.cross(if (abs(tangent.y) > .9) Vec3(1.0, 0.0, 0.0) else Vec3(0.0, 1.0, 0.0)).normalize()
-                    val top = tangent.cross(right)
+                    val p = points[i]
+                    val q = points[i + 1]
                     for (j in 0..3) {
-                        fun offset(k: Int) = right.scale(cos(k * PI / 2) * .035).add(top.scale(sin(k * PI / 2) * .035))
-                        val n = offset(j).add(offset(j + 1)).normalize()
-                        for (v in listOf(p.add(offset(j)), q.add(offset(j)), q.add(offset(j + 1)), p.add(offset(j + 1))))
+                        val k = (j + 1) % 4
+                        val n = rings[i][j].add(rings[i][k]).add(rings[i + 1][j]).add(rings[i + 1][k]).normalize()
+                        for (v in listOf(p.add(rings[i][j]), q.add(rings[i + 1][j]), q.add(rings[i + 1][k]), p.add(rings[i][k])))
                             vertex(Vector3d(v.x, v.y, v.z), Vector3d(n.x, n.y, n.z), -1f, -1f, 0x8A8074)
                     }
                 }
