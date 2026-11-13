@@ -10,7 +10,7 @@ import org.valkyrienskies.clockwork.platform.api.network.C2SCWPacket
 import org.valkyrienskies.clockwork.platform.api.network.ServerNetworkContext
 
 class GravitronInputPacket(val action: Action, val shipId: Long = -1, val x: Float = 0f, val y: Float = 0f) : C2SCWPacket {
-    enum class Action { ROTATE, DISTANCE, CONNECTED_MASS }
+    enum class Action { ROTATE, DISTANCE, CONNECTED_MASS, UNFREEZE_CONNECTED }
     constructor(buffer: FriendlyByteBuf) : this(buffer.readEnum(Action::class.java), buffer.readLong(), buffer.readFloat(), buffer.readFloat())
     override fun write(buffer: FriendlyByteBuf) {
         buffer.writeEnum(action); buffer.writeLong(shipId); buffer.writeFloat(x); buffer.writeFloat(y)
@@ -23,7 +23,7 @@ class GravitronInputPacket(val action: Action, val shipId: Long = -1, val x: Flo
     fun apply(player: ServerPlayer) {
         if (!x.isFinite() || !y.isFinite() || !GrabTool.updateEquipment(player)) return
         val state = GravitronState.getState(player)
-        if (action != Action.CONNECTED_MASS && state.shipID != shipId) return
+        if ((action == Action.ROTATE || action == Action.DISTANCE) && state.shipID != shipId) return
         val tick = player.level().gameTime
         if (state.lastInputTicks[action.ordinal] == tick) return
         state.lastInputTicks[action.ordinal] = tick
@@ -37,6 +37,7 @@ class GravitronInputPacket(val action: Action, val shipId: Long = -1, val x: Flo
             return
         }
         when (action) {
+            Action.UNFREEZE_CONNECTED -> GravitronFrozenShip.thawConnected(player)
             Action.ROTATE -> {
                 val rotation = state.shipGrabbedRot ?: return
                 val reference = state.playerGrabbedRotation ?: return

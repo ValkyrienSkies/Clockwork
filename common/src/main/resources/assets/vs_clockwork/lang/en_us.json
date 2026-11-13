@@ -980,6 +980,8 @@
   "death.attack.gas_explosion": "%s couldn't handle the pressure",
   "item.vs_clockwork.lubricant": "Lubricant",
   "key.vs_clockwork.gravitron_rotate": "Rotate held Gravitron object",
+  "key.vs_clockwork.gravitron_unfreeze_connected": "Unfreeze connected ships (Supercharged Gravitron)",
+  "vs_clockwork.gravitron.unfreeze_connected": "Gravitron: ships unfrozen: %s",
   "key.vs_clockwork.gravitron_connected_mass": "Toggle Gravitron connected mass",
   "vs_clockwork.gravitron.connected_mass.on": "Gravitron: connected-ship mass enabled",
   "vs_clockwork.gravitron.connected_mass.off": "Gravitron: grabbed-ship mass only",

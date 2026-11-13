@@ -10,6 +10,7 @@ import org.valkyrienskies.clockwork.ClockworkPackets
 object GravitronControlsClient {
     val ROTATE = KeyMapping("key.vs_clockwork.gravitron_rotate", InputConstants.Type.KEYSYM, GLFW.GLFW_KEY_Z, "category.vs_clockwork.clockwork_keys")
     val CONNECTED_MASS = KeyMapping("key.vs_clockwork.gravitron_connected_mass", InputConstants.Type.KEYSYM, GLFW.GLFW_KEY_M, "category.vs_clockwork.clockwork_keys")
+    val UNFREEZE_CONNECTED = KeyMapping("key.vs_clockwork.gravitron_unfreeze_connected", InputConstants.Type.KEYSYM, GLFW.GLFW_KEY_R, "category.vs_clockwork.clockwork_keys")
     private var ship = -1L
     private var yaw = 0.0
     private var pitch = 0.0
@@ -18,6 +19,7 @@ object GravitronControlsClient {
     fun register() {
         KeyMappingRegistry.register(ROTATE)
         KeyMappingRegistry.register(CONNECTED_MASS)
+        KeyMappingRegistry.register(UNFREEZE_CONNECTED)
     }
 
     private fun held(): Long? {
@@ -59,6 +61,12 @@ object GravitronControlsClient {
             val player = mc.player ?: continue
             if (mc.screen == null && GravitronEffects.isGravitron(player.mainHandItem))
                 ClockworkPackets.sendToServer(GravitronInputPacket(GravitronInputPacket.Action.CONNECTED_MASS))
+        }
+        while (UNFREEZE_CONNECTED.consumeClick()) {
+            val player = mc.player ?: continue
+            if (mc.screen == null && mc.mouseHandler.isMouseGrabbed && player.isAlive && !player.isSpectator &&
+                player.mainHandItem.item is CreativeGravitronItem)
+                ClockworkPackets.sendToServer(GravitronInputPacket(GravitronInputPacket.Action.UNFREEZE_CONNECTED))
         }
         if (current == null) return
         if (yaw != 0.0 || pitch != 0.0)
