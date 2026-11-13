@@ -20,6 +20,7 @@ class ClockworkFilteredOnewayDuctEdge(
     override var reversed: Boolean = false,
     override var unloaded: Boolean = false
 ) : FilteredEdge, OneWayEdge {
+    override var wallThermalConductance: Double = 0.0
 
     override fun interact(player: ServerPlayer): Boolean {
         ClockworkPackets.sendTo(FilterScreenOpenPacket(nodeA, nodeB, filter, blacklist), player)
