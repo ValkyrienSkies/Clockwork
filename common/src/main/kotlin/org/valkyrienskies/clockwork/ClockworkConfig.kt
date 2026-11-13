@@ -277,8 +277,11 @@ object ClockworkConfig {
         @ConfigEntry(description = "Kelvin sub steps (per Tick)")
         var kelvinSubSteps = 10
 
-        @ConfigEntry(description = "Passive heat transfer multiplier for metal duct connections. Higher values make neighboring ducts equalize temperature faster.", min = 0.0)
+        @ConfigEntry(description = "Passive gas conduction multiplier for metal duct connections. Higher values make neighboring ducts equalize temperature faster; 0 disables the gas contribution.", min = 0.0)
         var ductThermalConductivityMultiplier = 1000.0
+
+        @ConfigEntry(description = "Heat conductance through metal duct walls in W/K per connection, including empty ducts. Independent of gas flow and the gas conduction multiplier; 0 disables wall conduction.", min = 0.0)
+        var ductWallThermalConductance = 10.0
 
         @ConfigEntry(description = "The lazytick rate for Kelvin node block entity updates")
         var kelvinNodeBlockEntityLazyTickRate = 10

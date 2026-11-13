@@ -39,6 +39,7 @@ object DuctNetworkUtils {
 
     fun <T : DuctEdge> configureMetalDuctEdge(edge: T): T {
         edge.thermalConductivityMultiplier = ClockworkConfig.KELVIN.ductThermalConductivityMultiplier
+        edge.wallThermalConductance = ClockworkConfig.KELVIN.ductWallThermalConductance
         return edge
     }
 
