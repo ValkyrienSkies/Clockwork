@@ -94,6 +94,12 @@ object ClockworkConfig {
         @ConfigEntry(description = "Duct-like volume. The volume used for ducts, valves, exhausts, etc.")
         var ductVolme = 0.4
 
+        @ConfigEntry(description = "Radiator heat transfer coefficient in W/K per block. Cools toward VS ambient temperature; 0 disables cooling.", min = 0.0)
+        var radiatorHeatTransferCoefficient = 5.0
+
+        @ConfigEntry(description = "Heat Exchanger heat transfer coefficient in W/K per touching parallel pair. Transfers heat without mixing gases; 0 disables heat exchange.", min = 0.0)
+        var heatExchangerHeatTransferCoefficient = 10.0
+
         @ConfigEntry(description = "Max collision events per tick. Dumps collision event queue if amount is bigger. Default is 100", min = 1.0)
         var collisionSoundEffectMax = 100
 

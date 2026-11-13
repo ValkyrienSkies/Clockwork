@@ -1,0 +1,16 @@
+{
+  "variants": {
+    "axis=y": {
+      "model": "vs_clockwork:block/heat_exchanger/block"
+    },
+    "axis=z": {
+      "model": "vs_clockwork:block/heat_exchanger/block",
+      "x": 90
+    },
+    "axis=x": {
+      "model": "vs_clockwork:block/heat_exchanger/block",
+      "x": 90,
+      "y": 90
+    }
+  }
+}

@@ -38,6 +38,8 @@
     "vs_clockwork:gas_crafter",
     "vs_clockwork:exhaust",
     "vs_clockwork:gas_heater",
+    "vs_clockwork:radiator",
+    "vs_clockwork:heat_exchanger",
     "vs_clockwork:gas_thruster",
     "vs_clockwork:extendon",
     "vs_clockwork:hose_port",
