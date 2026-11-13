@@ -92,7 +92,8 @@ class PropellerController(
             if (prop.brass) ClockworkConfig.SERVER.sailPropellerForceMultiplier else 1.0
         return PropellerAerodynamics.prepare(
             prop, flow, estimatedAngle, forceMultiplier,
-            ClockworkConfig.SERVER.propellerMaxForce, ClockworkConfig.SERVER.propellerMaxTorque
+            ClockworkConfig.SERVER.propellerMaxForce, ClockworkConfig.SERVER.propellerMaxTorque,
+            spinTorqueEnabled = ClockworkConfig.SERVER.propellerSpinTorqueEnabled
         )
     }
 

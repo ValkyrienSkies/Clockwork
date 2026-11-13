@@ -30,19 +30,37 @@ internal object PropellerImpulseSolver {
         val pointVelocity = Vector3d()
         val sectionForce = Vector3d()
         val sectionTorque = Vector3d()
+        val responseForce = Vector3d()
+        val responseTorque = Vector3d()
+        fun responseTo(rotor: PropellerAerodynamics.PreparedRotor, velocity: Vector3dc, omega: Vector3dc) {
+            responseForce.zero()
+            responseTorque.zero()
+            for (section in rotor.sections) {
+                omega.cross(section.lever, pointVelocity).add(velocity)
+                section.response.transform(pointVelocity, sectionForce)
+                responseForce.add(sectionForce)
+                responseTorque.add(section.lever.cross(sectionForce, sectionTorque))
+            }
+            // Apply the same per-hub shaft policy to the response as to the initial load.
+            // Otherwise implicit translation can reintroduce roll even from a zero-torque load.
+            rotor.shaftDamping?.apply(responseForce, responseTorque, omega, responseTorque)
+        }
+        val linearBasis = Vector3d()
+        val angularBasis = Vector3d()
         for (rotor in rotors) {
             for (i in 0..2) {
                 system[i][6] += STEP * rotor.force.get(i)
                 system[i + 3][6] += STEP * rotor.torque.get(i)
             }
-            for (section in rotor.sections) for (column in 0..5) {
-                pointVelocity.zero().setComponent(column % 3, 1.0)
-                if (column >= 3) pointVelocity.cross(section.lever)
-                section.response.transform(pointVelocity, sectionForce)
-                section.lever.cross(sectionForce, sectionTorque)
+            for (column in 0..5) {
+                linearBasis.zero()
+                angularBasis.zero()
+                if (column < 3) linearBasis.setComponent(column, 1.0)
+                else angularBasis.setComponent(column - 3, 1.0)
+                responseTo(rotor, linearBasis, angularBasis)
                 for (row in 0..2) {
-                    system[row][column] -= STEP * sectionForce.get(row)
-                    system[row + 3][column] -= STEP * sectionTorque.get(row)
+                    system[row][column] -= STEP * responseForce.get(row)
+                    system[row + 3][column] -= STEP * responseTorque.get(row)
                 }
             }
         }
@@ -77,14 +95,9 @@ internal object PropellerImpulseSolver {
 
         var fraction = 1.0
         if (maxForce > 0.0 || maxTorque > 0.0) for (rotor in rotors) {
-            val force = Vector3d(rotor.force)
-            val torque = Vector3d(rotor.torque)
-            for (section in rotor.sections) {
-                deltaOmega.cross(section.lever, pointVelocity).add(deltaVelocity)
-                section.response.transform(pointVelocity, sectionForce)
-                force.add(sectionForce)
-                torque.add(section.lever.cross(sectionForce, sectionTorque))
-            }
+            responseTo(rotor, deltaVelocity, deltaOmega)
+            val force = responseForce.add(rotor.force)
+            val torque = responseTorque.add(rotor.torque)
             if (maxForce > 0.0 && force.length() > maxForce) fraction = min(fraction, maxForce / force.length())
             if (maxTorque > 0.0 && torque.length() > maxTorque) fraction = min(fraction, maxTorque / torque.length())
         }
