@@ -16,7 +16,7 @@ import org.valkyrienskies.clockwork.ClockworkSounds
 import org.valkyrienskies.clockwork.content.curiosities.rope.LinkStressWarning
 import org.valkyrienskies.clockwork.content.curiosities.tools.gravitron.GravitronAction
 import org.valkyrienskies.clockwork.content.curiosities.tools.gravitron.GravitronSurfaceEffects
-import org.valkyrienskies.clockwork.util.render.RenderUtil.addRibbonSegment
+import org.valkyrienskies.clockwork.util.render.RibbonLine
 import org.valkyrienskies.clockwork.util.render.SurfaceEffectPass
 import org.valkyrienskies.core.api.ships.ClientShip
 import org.valkyrienskies.mod.common.getShipManagingPos
@@ -67,8 +67,8 @@ object ClampotronClient {
         var vc = ClockworkRenderTypes.energyBuffer(buffers)
         val pose = ms.last().pose()
         var heat = 0f
-        fun line(a: Vec3, b: Vec3, width: Float, alpha: Float, bright: Boolean = false) {
-            addRibbonSegment(vc, pose, a, b, width, if (bright) 0.97f + heat * 0.03f else 0.765f + heat * 0.235f,
+        fun line(ribbon: RibbonLine, a: Vec3, b: Vec3, width: Float, alpha: Float, bright: Boolean = false) {
+            ribbon.segment(a, b, width, if (bright) 0.97f + heat * 0.03f else 0.765f + heat * 0.235f,
                 if (bright) 0.81f - heat * 0.26f else 0.627f - heat * 0.447f,
                 if (bright) 0.94f - heat * 0.69f else 0.89f - heat * 0.77f, alpha)
         }
@@ -105,17 +105,23 @@ object ClampotronClient {
                 val start = position(be, Vector3d(tip)).subtract(camera)
                 val beamEnd = ClampotronBlockEntity.vec(ship.renderTransform.shipToWorld.transformPosition(contacts[index], Vector3d())).subtract(camera)
                 var previous = start
+                val core = RibbonLine(vc, pose)
+                val glow = RibbonLine(vc, pose)
+                val spark = RibbonLine(vc, pose)
                 for (i in 1..32) {
                     val t = i / 32.0
                     val phase = index * PI / 2 + t * 5 - time * (0.13 + stress * 0.09)
                     val radius = sin(t * PI) * (0.10 + stress * 0.06)
                     val point = start.lerp(beamEnd, t).add(u.scale(cos(phase) * radius)).add(v.scale(sin(phase) * radius))
                     val pulse = (1.0 - kotlin.math.abs(t - (1 - (time * 0.06 % 1))) / 0.16).coerceIn(0.0, 1.0).toFloat()
-                    line(previous, point, 0.022f + pulse * 0.015f, 0.65f + pulse * 0.3f)
-                    line(previous, point, 0.065f, 0.09f + pulse * 0.06f)
-                    if (pulse > 0) line(previous, point, 0.009f, pulse * 0.8f, true)
+                    line(core, previous, point, 0.022f + pulse * 0.015f, 0.65f + pulse * 0.3f)
+                    line(glow, previous, point, 0.065f, 0.09f + pulse * 0.06f)
+                    if (pulse > 0) line(spark, previous, point, 0.009f, pulse * 0.8f, true)
                     previous = point
                 }
+                core.end()
+                glow.end()
+                spark.end()
             }
             buffers.endBatch(ClockworkRenderTypes.energyType())
             vc = ClockworkRenderTypes.softEnergyBuffer(buffers)
@@ -147,12 +153,14 @@ object ClampotronClient {
             for (ring in 0..4) {
                 val t = ((time * 0.018 + ring / 5.0) % 1.0)
                 var previous: Vec3? = null
+                val ribbon = RibbonLine(vc, pose)
                 for (i in 0..32) {
                     val angle = i * PI / 16
                     val point = conePoint(t, angle)
-                    previous?.let { line(it, point, 0.012f, (sin(t * PI) * 0.55).toFloat()) }
+                    previous?.let { line(ribbon, it, point, 0.012f, (sin(t * PI) * 0.55).toFloat()) }
                     previous = point
                 }
+                ribbon.close()
             }
             buffers.endBatch(ClockworkRenderTypes.softEnergyType())
         }

@@ -25,7 +25,7 @@ import org.valkyrienskies.clockwork.ClockworkRenderTypes
 import org.valkyrienskies.clockwork.util.render.ShaderPackCompat
 import org.valkyrienskies.clockwork.util.render.SurfaceEffectPass
 import org.valkyrienskies.clockwork.mixin.content.gravitron.GameRendererAccessor
-import org.valkyrienskies.clockwork.util.render.RenderUtil.addRibbonSegment
+import org.valkyrienskies.clockwork.util.render.RibbonLine
 import org.valkyrienskies.core.api.ships.ClientShip
 import org.valkyrienskies.core.api.event.RegisteredListener
 import org.valkyrienskies.mod.api.render.ShipMaterial
@@ -453,9 +453,9 @@ object GravitronEffects {
         if (head > tail) {
             val a = start.lerp(end, tail.toDouble())
             val b = start.lerp(end, head.toDouble())
-            ribbon(vc, pose, a, b, 0.13f, GravitronVisuals.WANDERLITE, fade * 0.22f)
-            ribbon(vc, pose, a, b, 0.047f, GravitronVisuals.WANDERLITE, fade * 0.85f)
-            ribbon(vc, pose, a, b, 0.016f, GravitronVisuals.WANDERLITE_LIGHT, fade)
+            ribbon(RibbonLine(vc, pose), a, b, 0.13f, GravitronVisuals.WANDERLITE, fade * 0.22f).end()
+            ribbon(RibbonLine(vc, pose), a, b, 0.047f, GravitronVisuals.WANDERLITE, fade * 0.85f).end()
+            ribbon(RibbonLine(vc, pose), a, b, 0.016f, GravitronVisuals.WANDERLITE_LIGHT, fade).end()
         }
         ring(vc, pose, start.add(direction.scale(age * 0.035)), direction,
             0.07 + age * 0.025, GravitronVisuals.WANDERLITE, fade * 0.7f, 0f)
@@ -497,6 +497,8 @@ object GravitronEffects {
                     .add(v.scale(sin(angle) * radius * reach))
             }
             var previous = point(0.0)
+            val core = RibbonLine(vc, pose)
+            val glow = RibbonLine(vc, pose)
             for (i in 1..segments) {
                 val t = i.toFloat() / segments
                 val next = point(t.toDouble())
@@ -505,9 +507,9 @@ object GravitronEffects {
                 fun segment(a: Vec3, b: Vec3, remote: Boolean) {
                     val from = (if (remote) path!!.gate.passage.point(a) else a).subtract(camera)
                     val to = (if (remote) path!!.gate.passage.point(b) else b).subtract(camera)
-                    val core = (from.length().toFloat() * 0.002f).coerceIn(0.008f, 0.04f)
-                    ribbon(vc, pose, from, to, core + packet * 0.014f, rgb, alpha * (flicker + packet * 0.25f))
-                    if (packet > 0) ribbon(vc, pose, from, to, 0.034f, rgb, alpha * packet * 0.12f)
+                    val width = (from.length().toFloat() * 0.002f).coerceIn(0.008f, 0.04f)
+                    ribbon(core, from, to, width + packet * 0.014f, rgb, alpha * (flicker + packet * 0.25f))
+                    if (packet > 0) ribbon(glow, from, to, 0.034f, rgb, alpha * packet * 0.12f)
                 }
                 if (frame == null) segment(previous, next, false)
                 else if (contact != null) {
@@ -527,6 +529,8 @@ object GravitronEffects {
                 }
                 previous = next
             }
+            core.end()
+            glow.end()
         }
     }
 
@@ -542,6 +546,7 @@ object GravitronEffects {
         for (axis in 0..2) {
             val sweep = sin(time * 0.035 + axis * 2.1) * 0.7
             var previous: Vec3? = null
+            val contour = RibbonLine(vc, pose)
             for (i in 0..32) {
                 val angle = i * PI * 2 / 32
                 // A rounded rectangular contour hugs block-built ships more closely than a sphere.
@@ -556,9 +561,10 @@ object GravitronEffects {
                     else -> center.add(rx * a, ry * b, rz * sweep)
                 }
                 val point = shipPoint(ship, local).subtract(camera)
-                previous?.let { ribbon(vc, pose, it, point, 0.018f, rgb, alpha) }
+                previous?.let { ribbon(contour, it, point, 0.018f, rgb, alpha) }
                 previous = point
             }
+            contour.close()
         }
     }
 
@@ -566,12 +572,14 @@ object GravitronEffects {
                      radius: Double, rgb: Int, alpha: Float, time: Float) {
         val (u, v) = basis(normal)
         var previous: Vec3? = null
+        val line = RibbonLine(vc, pose)
         for (i in 0..24) {
             val angle = i * PI * 2 / 24 + time * 0.05
             val point = center.add(u.scale(cos(angle) * radius)).add(v.scale(sin(angle) * radius))
-            previous?.let { ribbon(vc, pose, it, point, 0.013f, rgb, alpha) }
+            previous?.let { ribbon(line, it, point, 0.013f, rgb, alpha) }
             previous = point
         }
+        line.close()
     }
 
     private fun basis(direction: Vec3): Pair<Vec3, Vec3> {
@@ -585,8 +593,8 @@ object GravitronEffects {
         return Vec3(transformed.x, transformed.y, transformed.z)
     }
 
-    private fun ribbon(vc: VertexConsumer, pose: Matrix4f, a: Vec3, b: Vec3, width: Float, rgb: Int, alpha: Float) =
-        addRibbonSegment(vc, pose, a, b, width, (rgb shr 16 and 255) / 255f,
+    private fun ribbon(line: RibbonLine, a: Vec3, b: Vec3, width: Float, rgb: Int, alpha: Float) =
+        line.segment(a, b, width, (rgb shr 16 and 255) / 255f,
             (rgb shr 8 and 255) / 255f, (rgb and 255) / 255f, alpha.coerceIn(0f, 1f))
 
     private fun pulseLife(action: GravitronAction): Float = when (action) {
