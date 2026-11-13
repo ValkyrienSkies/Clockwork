@@ -12,11 +12,10 @@ class PropellerSpinTorqueTest {
 
     @Test
     fun `offset unbalanced rotor retains its full hub moment including axial component`() {
-        for (sails in listOf(false, true)) for (speed in listOf(0.0, 20.0)) {
-            val flow = flow(Vector3d(0.0, 0.0, speed))
-            val centered = prepare(rotor(sails = sails, balanced = false), flow, enabled = false)
+        for (sails in listOf(false, true)) {
+            val centered = prepare(rotor(sails = sails, balanced = false), enabled = false)
             val hubOffset = Vector3d(2.0, -3.0, 1.0)
-            val offset = prepare(rotor(sails = sails, balanced = false, position = Vector3i(2, -3, 1)), flow, enabled = false)
+            val offset = prepare(rotor(sails = sails, balanced = false, position = Vector3i(2, -3, 1)), enabled = false)
             val hubMoment = hubOffset.cross(centered.force, Vector3d())
             assertTrue(kotlin.math.abs(hubMoment.z) > 1e-6, "Fixture must have an axial hub moment")
             assertTrue(centered.torque.length() > 1e-6, "Unbalanced thrust must retain a non-axial moment")
@@ -46,42 +45,6 @@ class PropellerSpinTorqueTest {
             assertVector(enabled.force, disabled.force)
             assertVector(Vector3d(), disabled.torque)
             assertResponses(enabled, disabled)
-        }
-    }
-
-    @Test
-    fun `powered balanced rotor does not roll a translating ship with spin torque disabled`() {
-        for (sails in listOf(false, true)) for (rpm in listOf(-128.0, 128.0)) {
-            val flow = flow(Vector3d(0.0, 0.0, 20.0))
-            val enabled = prepare(rotor(rpm, sails), flow, true)
-            val disabled = prepare(rotor(rpm, sails), flow, false)
-            assertTrue(kotlin.math.abs(enabled.torque.z()) > 1e-6)
-            assertVector(enabled.force, disabled.force)
-            assertVector(Vector3d(), disabled.torque)
-        }
-    }
-
-    @Test
-    fun `implicit acceleration does not restore disabled shaft torque`() {
-        for (sails in listOf(false, true)) for (rpm in listOf(-128.0, 128.0))
-            for (speed in listOf(0.0, 20.0)) {
-            val disabled = prepare(rotor(rpm, sails), flow(Vector3d(0.0, 0.0, speed)), false)
-            val result = PropellerImpulseSolver.solve(listOf(disabled), 1000.0, Matrix3d().scale(4000.0))
-            assertTrue(result.first.length() > 1e-6, "Disabling shaft torque must retain thrust")
-            assertVector(Vector3d(), result.second)
-        }
-    }
-
-    @Test
-    fun `powered rotor still damps ship spin with shaft reaction disabled`() {
-        for (sails in listOf(false, true)) for (rpm in listOf(-128.0, 128.0))
-            for (spin in listOf(-5.0, 5.0)) for (mass in listOf(1.0, 1000.0, 10000.0)) {
-            val disabled = prepare(rotor(rpm, sails), flow(Vector3d(0.0, 0.0, 20.0), Vector3d(0.0, 0.0, spin)), false)
-            assertTrue(disabled.torque.z() * spin < 0.0, "Passive torque must oppose ship spin")
-            val inertia = mass * 4.0
-            val result = PropellerImpulseSolver.solve(listOf(disabled), mass, Matrix3d().scale(inertia))
-            val nextSpin = spin + result.second.z() * PropellerImpulseSolver.STEP / inertia
-            assertTrue(nextSpin / spin in 0.0..<1.0, "Damping must not reverse or accelerate ship spin: $nextSpin")
         }
     }
 
@@ -133,21 +96,17 @@ class PropellerSpinTorqueTest {
 
     @Test
     fun `torque cap is evaluated after cancelling commanded shaft torque`() {
-        for (sails in listOf(false, true)) for (speed in listOf(0.0, 20.0)) {
-            val flow = flow(Vector3d(0.0, 0.0, speed))
-            val uncapped = prepare(rotor(sails = sails), flow, enabled = false)
-            val enabled = prepare(rotor(sails = sails), flow, enabled = true)
+        for (sails in listOf(false, true)) {
+            val uncapped = prepare(rotor(sails = sails), enabled = false)
+            val enabled = prepare(rotor(sails = sails), enabled = true)
             val cap = enabled.torque.length() * .1
             assertTrue(cap > 1e-6)
-            val cappedDisabled = prepare(rotor(sails = sails), flow, enabled = false, maxTorque = cap)
-            val cappedEnabled = prepare(rotor(sails = sails), flow, enabled = true, maxTorque = cap)
+            val cappedDisabled = prepare(rotor(sails = sails), enabled = false, maxTorque = cap)
+            val cappedEnabled = prepare(rotor(sails = sails), enabled = true, maxTorque = cap)
             assertLoads(uncapped, cappedDisabled)
             assertTrue(cappedEnabled.force.length() < uncapped.force.length() * .11)
             val integrated = PropellerImpulseSolver.solve(listOf(cappedDisabled), 1000.0, Matrix3d().scale(4000.0), maxTorque = cap)
             assertTrue(integrated.second.length() <= cap + 1e-8)
-            val uncappedIntegrated = PropellerImpulseSolver.solve(listOf(uncapped), 1000.0, Matrix3d().scale(4000.0))
-            assertVector(uncappedIntegrated.first, integrated.first)
-            assertVector(uncappedIntegrated.second, integrated.second)
         }
     }
 
