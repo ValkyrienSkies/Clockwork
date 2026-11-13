@@ -523,7 +523,9 @@ object ClockworkBlocks {
     }
         .initialProperties { SharedProperties.netheriteMetal() }
         .addLayer { Supplier { RenderType.cutout() } }
-        .transform(ClockworkStress.setImpact(4.0))
+        .onRegister { block: AirCompressorBlock ->
+            BlockStressValues.IMPACTS.register(block, DoubleSupplier { 4.0 })
+        }
         .transform(displaySource(ClockworkDisplaySources.KNODE))
         .properties { it.noOcclusion() }
         .item()
