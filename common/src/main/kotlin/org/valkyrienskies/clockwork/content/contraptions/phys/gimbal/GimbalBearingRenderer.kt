@@ -57,23 +57,14 @@ class GimbalBearingRenderer(context: BlockEntityRendererProvider.Context) : Smar
         val hostPose = createHostPose(be)
         val platePose = createPlatePose(be, hostShip) ?: hostPose
         val gimbal_plate = CachedBuffers.partial(ClockworkPartials.GIMBAL_PLATE, blockState).light<SuperByteBuffer>(light)
-        val gimbal_attacher = CachedBuffers.partial(ClockworkPartials.GIMBAL_ATTACHER, blockState).light<SuperByteBuffer>(light)
-        val gimbal_top_attacher = CachedBuffers.partial(ClockworkPartials.GIMBAL_ATTACHER, blockState).light<SuperByteBuffer>(light)
-        val gimbal_shaft = CachedBuffers.partial(ClockworkPartials.PHYS_SHAFT, blockState).light<SuperByteBuffer>(light)
-        val gimbal_top_shaft = CachedBuffers.partial(ClockworkPartials.PHYS_SHAFT, blockState).light<SuperByteBuffer>(light)
 
         val axis = (blockState.block as IRotate).getRotationAxis(blockState)
         val angle = getAngleForBe(be, be.blockPos, axis);
 
         ms.pushPose()
 
-        // Top shaft
-
         applyModelPose(gimbal_plate, platePose, PLATE_FACE_CENTER_MODEL)
-        applyModelPose(gimbal_top_shaft, platePose, PLATE_FACE_CENTER_MODEL)
-        applyModelPose(gimbal_top_attacher, platePose, PLATE_FACE_CENTER_MODEL)
-
-        // The shaft ends up not quite aligned with connected shafts but I don't know how to fix it
+        gimbal_plate.renderInto(ms, vertexConsumer)
 
         for (i in 0..3) {
             val arm = CachedBuffers.partial(ClockworkPartials.GIMBAL_ARM, blockState).light<SuperByteBuffer>(light)
@@ -91,22 +82,30 @@ class GimbalBearingRenderer(context: BlockEntityRendererProvider.Context) : Smar
             arm.renderInto(ms, vertexConsumer)
         }
 
+        // CachedBuffers returns the same mutable buffer for each partial model.
+        // Render each copy (which resets its transforms) before preparing the next one.
+        val gimbal_attacher = CachedBuffers.partial(ClockworkPartials.GIMBAL_ATTACHER, blockState).light<SuperByteBuffer>(light)
         rotateDirection(gimbal_attacher, be)
-        rotateDirection(gimbal_shaft, be)
         RotateShaft(gimbal_attacher, be, angle)
-        RotateShaft(gimbal_shaft, be, angle)
-        RotateShaft(gimbal_top_shaft, be, (angle)*(3/4))
-        RotateShaft(gimbal_top_attacher, be, angle)
-
-        gimbal_top_shaft.rotateCentered(AngleHelper.rad(180.0), Direction.Axis.X)
-        gimbal_top_attacher.rotateCentered(AngleHelper.rad(180.0), Direction.Axis.X)
-
-        gimbal_top_attacher.translate(0.0, 0.05, 0.0)
-
-        gimbal_plate.renderInto(ms, vertexConsumer)
         gimbal_attacher.renderInto(ms, vertexConsumer)
+
+        val gimbal_shaft = CachedBuffers.partial(ClockworkPartials.PHYS_SHAFT, blockState).light<SuperByteBuffer>(light)
+        rotateDirection(gimbal_shaft, be)
+        RotateShaft(gimbal_shaft, be, angle)
         gimbal_shaft.renderInto(ms, vertexConsumer)
+
+        // Apply RPM rotation in the plate's local frame, at the same speed as the input.
+        val gimbal_top_shaft = CachedBuffers.partial(ClockworkPartials.PHYS_SHAFT, blockState).light<SuperByteBuffer>(light)
+        applyModelPose(gimbal_top_shaft, platePose, PLATE_FACE_CENTER_MODEL)
+        RotateShaft(gimbal_top_shaft, be, angle)
+        gimbal_top_shaft.rotateCentered(AngleHelper.rad(180.0), Direction.Axis.X)
         gimbal_top_shaft.renderInto(ms, vertexConsumer)
+
+        val gimbal_top_attacher = CachedBuffers.partial(ClockworkPartials.GIMBAL_ATTACHER, blockState).light<SuperByteBuffer>(light)
+        applyModelPose(gimbal_top_attacher, platePose, PLATE_FACE_CENTER_MODEL)
+        RotateShaft(gimbal_top_attacher, be, angle)
+        gimbal_top_attacher.rotateCentered(AngleHelper.rad(180.0), Direction.Axis.X)
+        gimbal_top_attacher.translate(0.0, 0.05, 0.0)
         gimbal_top_attacher.renderInto(ms, vertexConsumer)
 
         //RENDER CRYSTAL MATRIX start
