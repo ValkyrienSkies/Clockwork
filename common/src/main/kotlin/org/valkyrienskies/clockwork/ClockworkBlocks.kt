@@ -70,6 +70,8 @@ import org.valkyrienskies.clockwork.content.logistics.gas.generation.compressor.
 import org.valkyrienskies.clockwork.content.logistics.gas.generation.creative_generator.CreativeGeneratorBlock
 import org.valkyrienskies.clockwork.content.logistics.gas.generation.steam_generator.SteamGeneratorBlock
 import org.valkyrienskies.clockwork.content.logistics.gas.heater.GasHeaterBlock
+import org.valkyrienskies.clockwork.content.logistics.gas.thermal.HeatExchangerBlock
+import org.valkyrienskies.clockwork.content.logistics.gas.thermal.RadiatorBlock
 import org.valkyrienskies.clockwork.content.logistics.gas.hoseport.HosePortBlock
 import org.valkyrienskies.clockwork.content.logistics.gas.pockets.nozzle.GasNozzleBlock
 import org.valkyrienskies.clockwork.content.logistics.gas.pump.PumpDuctBlock
@@ -697,6 +699,38 @@ object ClockworkBlocks {
     val GAS_HEATER: BlockEntry<GasHeaterBlock> =
         REGISTRATE.block("gas_heater") { properties: BlockBehaviour.Properties? ->
             GasHeaterBlock(properties!!)
+        }
+            .initialProperties { Blocks.IRON_BLOCK }
+            .transform(axeOrPickaxe())
+            .properties { it.noOcclusion() }
+            .addLayer { Supplier { RenderType.cutout() } }
+            .tag(AllTags.AllBlockTags.SAFE_NBT.tag)
+            .transform(displaySource(ClockworkDisplaySources.KNODE))
+            .item()
+            .tab(ClockworkMod.GAS_CREATIVE_TABINFO)
+            .build()
+            .register()
+
+    @JvmField
+    val RADIATOR: BlockEntry<RadiatorBlock> =
+        REGISTRATE.block("radiator") { properties: BlockBehaviour.Properties? ->
+            RadiatorBlock(properties!!)
+        }
+            .initialProperties { Blocks.IRON_BLOCK }
+            .transform(axeOrPickaxe())
+            .properties { it.noOcclusion() }
+            .addLayer { Supplier { RenderType.cutout() } }
+            .tag(AllTags.AllBlockTags.SAFE_NBT.tag)
+            .transform(displaySource(ClockworkDisplaySources.KNODE))
+            .item()
+            .tab(ClockworkMod.GAS_CREATIVE_TABINFO)
+            .build()
+            .register()
+
+    @JvmField
+    val HEAT_EXCHANGER: BlockEntry<HeatExchangerBlock> =
+        REGISTRATE.block("heat_exchanger") { properties: BlockBehaviour.Properties? ->
+            HeatExchangerBlock(properties!!)
         }
             .initialProperties { Blocks.IRON_BLOCK }
             .transform(axeOrPickaxe())

@@ -64,6 +64,8 @@ import org.valkyrienskies.clockwork.content.logistics.gas.generation.compressor.
 import org.valkyrienskies.clockwork.content.logistics.gas.generation.creative_generator.CreativeGeneratorBlockEntity
 import org.valkyrienskies.clockwork.content.logistics.gas.generation.steam_generator.SteamGeneratorBlockEntity
 import org.valkyrienskies.clockwork.content.logistics.gas.heater.GasHeaterBlockEntity
+import org.valkyrienskies.clockwork.content.logistics.gas.thermal.HeatExchangerBlockEntity
+import org.valkyrienskies.clockwork.content.logistics.gas.thermal.RadiatorBlockEntity
 import org.valkyrienskies.clockwork.content.logistics.gas.hoseport.HosePortBlockEntity
 import org.valkyrienskies.clockwork.content.logistics.gas.pockets.nozzle.GasNozzleBlockEntity
 import org.valkyrienskies.clockwork.content.logistics.gas.pockets.nozzle.GasNozzleRenderer
@@ -713,6 +715,32 @@ object ClockworkBlockEntities {
         }
 
         .validBlocks(ClockworkBlocks.GAS_HEATER)
+        .register()
+
+    @JvmField
+    val RADIATOR: BlockEntityEntry<RadiatorBlockEntity> = ClockworkMod.REGISTRATE
+        .blockEntity("radiator") { type: BlockEntityType<*>, pos: BlockPos, state: BlockState ->
+            RadiatorBlockEntity(
+                type,
+                pos,
+                state
+            )
+        }
+
+        .validBlocks(ClockworkBlocks.RADIATOR)
+        .register()
+
+    @JvmField
+    val HEAT_EXCHANGER: BlockEntityEntry<HeatExchangerBlockEntity> = ClockworkMod.REGISTRATE
+        .blockEntity("heat_exchanger") { type: BlockEntityType<*>, pos: BlockPos, state: BlockState ->
+            HeatExchangerBlockEntity(
+                type,
+                pos,
+                state
+            )
+        }
+
+        .validBlocks(ClockworkBlocks.HEAT_EXCHANGER)
         .register()
 
     @JvmField

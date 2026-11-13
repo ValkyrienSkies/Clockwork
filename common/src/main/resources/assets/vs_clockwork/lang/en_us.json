@@ -271,6 +271,12 @@
   "block.vs_clockwork.gas_tank": "Gas Tank",
   "item.vs_clockwork.gas_tank": "Gas Tank",
 
+  "block.vs_clockwork.radiator": "Radiator",
+  "item.vs_clockwork.radiator": "Radiator",
+  "block.vs_clockwork.heat_exchanger": "Heat Exchanger",
+  "item.vs_clockwork.heat_exchanger": "Heat Exchanger",
+  "vs_clockwork.radiator.function": "Slowly cools gas and its casing to the ambient air temperature.",
+  "vs_clockwork.heat_exchanger.function": "Exchanges heat with parallel Heat Exchangers touching its sides, without mixing gases.",
   "block.vs_clockwork.gas_heater": "Gas Heater",
   "item.vs_clockwork.gas_heater": "Gas Heater",
 

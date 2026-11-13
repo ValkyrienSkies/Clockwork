@@ -22,6 +22,8 @@
     "vs_clockwork:gas_crafter",
     "vs_clockwork:gas_engine",
     "vs_clockwork:gas_heater",
+    "vs_clockwork:radiator",
+    "vs_clockwork:heat_exchanger",
     "vs_clockwork:gas_nozzle",
     "vs_clockwork:gas_thruster",
     "vs_clockwork:gyro",
