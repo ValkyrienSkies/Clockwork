@@ -42,6 +42,8 @@ class PlottingTableScreen(private val be: PlottingTableBlockEntity) : AbstractSi
     private val wireRenderer = PlottingWireRenderer()
     private val devices by lazy { minecraft?.level?.let(PlottingDevices::discover) ?: emptyList() }
     private var dropdown: PlottingDropdown? = null
+    private var contextMenu: PlottingContextMenu? = null
+    private var rightClick: Pair<Double, Double>? = null
     private val undo = ArrayDeque<PlottingPlan>()
     private val redo = ArrayDeque<PlottingPlan>()
     private var selected: Int? = null
@@ -75,6 +77,10 @@ class PlottingTableScreen(private val be: PlottingTableBlockEntity) : AbstractSi
     private val node get() = plan.nodes.firstOrNull { it.id == selected }
 
     override fun init() {
+        contextMenu = null
+        rightClick = null
+        dragging = null
+        panning = false
         setWindowSize((width - 12).coerceAtMost(1000), (height - 12).coerceAtMost(650))
         super.init()
         rebuild()
@@ -299,12 +305,14 @@ class PlottingTableScreen(private val be: PlottingTableBlockEntity) : AbstractSi
     }
     private fun reset() { playing = false; clock = 0; simulation.reset(plan) }
     private fun changePlan() {
+        contextMenu = null; rightClick = null
         selected = null; wire = null; placing = null; undo.clear(); redo.clear(); panX = 16.0; panY = 16.0
         inspectorScroll = 0
         reset(); rebuildPending = true
     }
     private fun history(from: ArrayDeque<PlottingPlan>, to: ArrayDeque<PlottingPlan>) {
         if (from.isEmpty()) return
+        contextMenu = null; rightClick = null
         to.addLast(plan); plan = from.removeLast(); selected = null; wire = null; reset(); rebuildPending = true
     }
     private fun bind(id: Int, port: Int, source: Int?) {
@@ -326,6 +334,71 @@ class PlottingTableScreen(private val be: PlottingTableBlockEntity) : AbstractSi
         selected = null; wire = null; reset(); rebuildPending = true
     }
 
+    private fun freeCell(x: Int, y: Int) = x in -64..64 && y in -64..64 && plan.nodes.none { it.x == x && it.y == y }
+
+    private fun addNode(x: Int, y: Int, kind: PlottingKind, copy: PlottingNode? = null) {
+        if (plan.nodes.size >= PlottingPlan.MAX_NODES || !freeCell(x, y)) return
+        val id = (1..PlottingPlan.MAX_NODES).first { candidate -> plan.nodes.none { it.id == candidate } }
+        val added = copy?.copy(id = id, x = x, y = y, inputs = copy.inputs.map { it.copy(source = null) })
+            ?: PlottingNode(id, x, y, kind)
+        checkpoint()
+        plan = plan.copy(nodes = plan.nodes + added)
+        editSound(true)
+        selected = id; placing = null; wire = null; inspectorScroll = 0; reset(); rebuildPending = true
+    }
+
+    private fun duplicateNode(n: PlottingNode) {
+        if (plan.nodes.size >= PlottingPlan.MAX_NODES) return
+        for (radius in 1..128) {
+            for ((dx, dy) in listOf(radius to 0, 0 to radius, -radius to 0, 0 to -radius)) {
+                if (freeCell(n.x + dx, n.y + dy)) { addNode(n.x + dx, n.y + dy, n.kind, n); return }
+            }
+            for (dx in -radius..radius) for (dy in intArrayOf(-radius, radius)) {
+                if (freeCell(n.x + dx, n.y + dy)) { addNode(n.x + dx, n.y + dy, n.kind, n); return }
+            }
+            for (dy in -radius + 1 until radius) for (dx in intArrayOf(radius, -radius)) {
+                if (freeCell(n.x + dx, n.y + dy)) { addNode(n.x + dx, n.y + dy, n.kind, n); return }
+            }
+        }
+    }
+
+    private fun disconnectNode(id: Int) {
+        checkpoint()
+        plan = plan.copy(nodes = plan.nodes.map { n -> n.copy(inputs = n.inputs.map {
+            if (n.id == id || it.source == id) it.copy(source = null) else it
+        }) })
+        editSound(false)
+        wire = null; reset(); rebuildPending = true
+    }
+
+    private fun openContextMenu(mouseX: Double, mouseY: Double) {
+        val hit = portAt(mouseX, mouseY, true)
+        val (x, y) = grid(mouseX, mouseY)
+        val n = hit?.first ?: plan.nodes.lastOrNull { it.x == x && it.y == y }
+        wire = null; placing = null; dragging = null; panning = false
+        selected = n?.id; inspectorScroll = 0; rebuildPending = true
+        val actions = mutableListOf<PlottingMenuAction>()
+        if (n == null) {
+            for (kind in PlottingKind.entries) actions.add(PlottingMenuAction(tr("context.add", tr("kind.${kind.name.lowercase()}")),
+                plan.nodes.size < PlottingPlan.MAX_NODES && freeCell(x, y)) { addNode(x, y, kind) })
+        } else {
+            actions.add(PlottingMenuAction(tr("context.configure")) { ioTab = false; rebuildPending = true })
+            actions.add(PlottingMenuAction(tr("context.duplicate"), plan.nodes.size < PlottingPlan.MAX_NODES) { duplicateNode(n) })
+            actions.add(PlottingMenuAction(tr("rotate")) {
+                update(n.id) { it.copy(rotation = (it.rotation + 1) % 4) }; editSound(true); rebuildPending = true
+            })
+            if (hit != null && hit.second >= 0) actions.add(PlottingMenuAction(tr("context.disconnect_input", "${'A' + hit.second}"),
+                n.inputs[hit.second].source != null) { bind(n.id, hit.second, null) })
+            val connected = n.inputs.any { it.source != null } || plan.nodes.any { sink -> sink.inputs.any { it.source == n.id } }
+            actions.add(PlottingMenuAction(tr("context.disconnect_all"), connected) { disconnectNode(n.id) })
+            actions.add(PlottingMenuAction(tr("delete"), destructive = true) { removeSelected() })
+        }
+        actions.add(PlottingMenuAction(tr("undo"), undo.isNotEmpty()) { history(undo, redo) })
+        actions.add(PlottingMenuAction(tr("redo"), redo.isNotEmpty()) { history(redo, undo) })
+        contextMenu = PlottingContextMenu(mouseX.toInt(), mouseY.toInt(), actions.maxOf { font.width(it.name) } + 16,
+            width, height, actions) { contextMenu = null }
+    }
+
     override fun tick() {
         super.tick()
         dropdown?.tick()
@@ -344,7 +417,7 @@ class PlottingTableScreen(private val be: PlottingTableBlockEntity) : AbstractSi
     private fun canvas(x: Double, y: Double) = x >= left && x < right && y >= top && y < bottom
     private fun grid(x: Double, y: Double) = floor((x - left - panX) / cell).toInt() to floor((y - top - panY) / cell).toInt()
     private fun showPorts(n: PlottingNode, mouseX: Double, mouseY: Double): Boolean {
-        if (dropdown != null) return false
+        if (dropdown != null || contextMenu != null) return false
         if (wire != null) return true
         if (!canvas(mouseX, mouseY)) return false
         val (x, y) = position(n)
@@ -370,7 +443,7 @@ class PlottingTableScreen(private val be: PlottingTableBlockEntity) : AbstractSi
         g.enableScissor(left, top, right, bottom)
         PlottingGridRenderer.draw(g, left, top, right, bottom, panX, panY, cell)
         val byId = plan.nodes.associateBy { it.id }
-        val hovered = if (dropdown == null && canvas(mouseX.toDouble(), mouseY.toDouble())) {
+        val hovered = if (dropdown == null && contextMenu == null && canvas(mouseX.toDouble(), mouseY.toDouble())) {
             val (gx, gy) = grid(mouseX.toDouble(), mouseY.toDouble())
             plan.nodes.lastOrNull { it.x == gx && it.y == gy } ?: portAt(mouseX.toDouble(), mouseY.toDouble())?.first
         } else null
@@ -463,13 +536,14 @@ class PlottingTableScreen(private val be: PlottingTableBlockEntity) : AbstractSi
             else -> tr("status", simulation.ticks, if (playing) tr("play").string else tr("pause").string)
         }
         g.drawString(font, fit(status.string, windowWidth - 57), guiLeft + 6, guiTop + windowHeight - 16, 0xff404040.toInt(), false)
-        if (dropdown == null && canvas(mouseX.toDouble(), mouseY.toDouble())) portAt(mouseX.toDouble(), mouseY.toDouble())?.let { (hover, index) ->
+        if (dropdown == null && contextMenu == null && canvas(mouseX.toDouble(), mouseY.toDouble())) portAt(mouseX.toDouble(), mouseY.toDouble())?.let { (hover, index) ->
             g.renderTooltip(font, if (index == -1) tr("output_port", hover.id) else tr("input_port", hover.id, "${'A' + index}"), mouseX, mouseY)
         }
     }
 
     override fun renderWindowForeground(g: GuiGraphics, mouseX: Int, mouseY: Int, partialTicks: Float) {
         dropdown?.render(g, mouseX, mouseY, partialTicks)
+        contextMenu?.render(g, font, mouseX, mouseY)
     }
 
     private fun renderConstant(g: GuiGraphics, x: Double, y: Double) {
@@ -519,29 +593,24 @@ class PlottingTableScreen(private val be: PlottingTableBlockEntity) : AbstractSi
             ?.let { BuiltInRegistries.BLOCK.get(it).name } ?: Component.literal(n.device)
 
     override fun mouseClicked(mouseX: Double, mouseY: Double, button: Int): Boolean {
+        contextMenu?.let { return it.mouseClicked(mouseX, mouseY, button) }
         dropdown?.let { return it.mouseClicked(mouseX, mouseY, button) }
         if (!canvas(mouseX, mouseY)) return super.mouseClicked(mouseX, mouseY, button)
         setFocused(null)
-        val hit = portAt(mouseX, mouseY, button == 1 || wire != null)
-        if (hit != null && button in 0..1 && placing == null) {
+        if (button == 1) { rightClick = mouseX to mouseY; return true }
+        val hit = portAt(mouseX, mouseY)
+        if (hit != null && button == 0 && placing == null) {
             val (n, index) = hit
-            if (button == 1 && index >= 0) bind(n.id, index, null)
-            else if (button == 0 && index == -1) { wire = n.id; playing = false }
-            else if (button == 0 && index >= 0 && wire != null) bind(n.id, index, wire)
+            if (index == -1) { wire = n.id; playing = false }
+            else if (wire != null) bind(n.id, index, wire)
             else { selected = n.id; selectedInput = max(0, index); ioTab = index >= 0; rebuildPending = true }
             return true
         }
-        if (button == 2 || button == 1) { panning = true; wire = null; placing = null; return true }
+        if (button == 2) { panning = true; wire = null; placing = null; return true }
         if (button != 0) return true
         val (x, y) = grid(mouseX, mouseY)
         if (placing != null) {
-            if (plan.nodes.size < PlottingPlan.MAX_NODES && x in -64..64 && y in -64..64 && plan.nodes.none { it.x == x && it.y == y }) {
-                val id = (1..PlottingPlan.MAX_NODES).first { candidate -> plan.nodes.none { it.id == candidate } }
-                checkpoint()
-                plan = plan.copy(nodes = plan.nodes + PlottingNode(id, x, y, placing!!))
-                editSound(true)
-                selected = id; placing = null; reset(); rebuildPending = true
-            }
+            addNode(x, y, placing!!)
             return true
         }
         selected = plan.nodes.lastOrNull { it.x == x && it.y == y }?.id
@@ -552,14 +621,26 @@ class PlottingTableScreen(private val be: PlottingTableBlockEntity) : AbstractSi
     }
 
     override fun mouseDragged(mouseX: Double, mouseY: Double, button: Int, dragX: Double, dragY: Double): Boolean {
-        if (dropdown != null) return true
+        if (dropdown != null || contextMenu != null) return true
+        rightClick?.let { (x, y) ->
+            if (button == 1 && (abs(mouseX - x) > 3 || abs(mouseY - y) > 3)) {
+                rightClick = null; panning = true; wire = null; placing = null; dragging = null
+                panX += mouseX - x; panY += mouseY - y
+            }
+            return true
+        }
         if (panning) { panX += dragX; panY += dragY; return true }
         if (dragging != null) return true
         return super.mouseDragged(mouseX, mouseY, button, dragX, dragY)
     }
 
     override fun mouseReleased(mouseX: Double, mouseY: Double, button: Int): Boolean {
-        if (dropdown != null) return true
+        if (dropdown != null || contextMenu != null) return true
+        if (button == 1) rightClick?.let { (x, y) ->
+            rightClick = null
+            if (canvas(mouseX, mouseY)) openContextMenu(x, y)
+            return true
+        }
         if (panning) { panning = false; return true }
         val id = dragging
         dragging = null
@@ -578,6 +659,8 @@ class PlottingTableScreen(private val be: PlottingTableBlockEntity) : AbstractSi
     }
 
     override fun mouseScrolled(mouseX: Double, mouseY: Double, delta: Double): Boolean {
+        contextMenu?.let { return it.scroll(delta) }
+        if (rightClick != null) return true
         dropdown?.let { return it.scroll(delta) }
         if (mouseX >= guiLeft + inspector && mouseX < guiLeft + windowWidth && mouseY >= top && mouseY < bottom) {
             inspectorScroll = (inspectorScroll - (delta * 20).toInt()).coerceIn(0, if (node == null) 0 else max(0, 314 - windowHeight))
@@ -593,6 +676,8 @@ class PlottingTableScreen(private val be: PlottingTableBlockEntity) : AbstractSi
     }
 
     override fun keyPressed(keyCode: Int, scanCode: Int, modifiers: Int): Boolean {
+        contextMenu?.let { return it.keyPressed(keyCode) }
+        if (rightClick != null && keyCode == GLFW.GLFW_KEY_ESCAPE) { rightClick = null; return true }
         dropdown?.let { return it.keyPressed(keyCode, scanCode, modifiers) }
         if (focused !is EditBox) {
             if (keyCode == GLFW.GLFW_KEY_DELETE) { removeSelected(); return true }
@@ -603,7 +688,7 @@ class PlottingTableScreen(private val be: PlottingTableBlockEntity) : AbstractSi
         return super.keyPressed(keyCode, scanCode, modifiers)
     }
 
-    override fun charTyped(character: Char, modifiers: Int): Boolean = dropdown?.charTyped(character, modifiers)
+    override fun charTyped(character: Char, modifiers: Int): Boolean = if (contextMenu != null) true else dropdown?.charTyped(character, modifiers)
         ?: super.charTyped(character, modifiers)
 
     override fun onClose() {
