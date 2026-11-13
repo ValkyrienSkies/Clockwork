@@ -90,7 +90,7 @@ class GimbalBearingRenderer(context: BlockEntityRendererProvider.Context) : Smar
         renderShaft(ClockworkPartials.GIMBAL_ATTACHER, hostPose, angle, false)
         renderShaft(ClockworkPartials.PHYS_SHAFT, hostPose, angle, false)
         renderShaft(ClockworkPartials.GIMBAL_ATTACHER, platePose, angle, true, 0.05)
-        renderShaft(ClockworkPartials.PHYS_SHAFT, platePose, angle * 0.75f, true)
+        renderShaft(ClockworkPartials.PHYS_SHAFT, platePose, angle, true)
 
         //RENDER CRYSTAL MATRIX start
         val interpolatedAngle = be.getInterpolatedCoreAngle(AnimationTickHolder.getPartialTicks() - 1)
