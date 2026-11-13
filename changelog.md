@@ -38,6 +38,7 @@ Holy bug fixes batman
 - Added new visuals to the physics assembler
 - Reworked the smart duct completely
 - Rewrote how the balloons calculate buoyancy, making them much more fun to use
+- Made wanderglass have backface culling and connected textures
 
 ### Bugfixes:
 - Fixed aeronaut goggles not rendering on armor stands or other players
