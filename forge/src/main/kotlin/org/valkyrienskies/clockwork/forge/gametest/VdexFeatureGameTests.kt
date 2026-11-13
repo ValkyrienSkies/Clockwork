@@ -134,7 +134,13 @@ class VdexFeatureGameTests {
         @JvmStatic @GameTest(template = TEMPLATE, batch = BATCH, timeoutTicks = 240)
         fun relayAssemblyAndVdexRestoreInputFaceAndCable(helper: GameTestHelper) = thinkableRoundTrip(helper, true)
 
-        private fun thinkableRoundTrip(helper: GameTestHelper, relay: Boolean) {
+        @JvmStatic @GameTest(template = TEMPLATE, batch = BATCH, timeoutTicks = 240)
+        fun blockSensorAssemblyAndVdexRestoreThinkableWithoutBlockEntity(helper: GameTestHelper) = thinkableRoundTrip(helper, true, true)
+
+        @JvmStatic @GameTest(template = TEMPLATE, batch = BATCH, timeoutTicks = 240)
+        fun registeredProviderAssemblyAndVdexRestoreThinkable(helper: GameTestHelper) = thinkableRoundTrip(helper, true, true, true)
+
+        private fun thinkableRoundTrip(helper: GameTestHelper, relay: Boolean, blockSensor: Boolean = false, registered: Boolean = false) {
             val level = helper.level
             val base = start(helper)
             val sensor = base.east(4)
@@ -142,7 +148,9 @@ class VdexFeatureGameTests {
             force(level, sensor)
             level.setBlockAndUpdate(base, if (relay) ClockworkBlocks.THINKABLE_RELAY.defaultState.setValue(FACING, Direction.UP)
                 else ClockworkBlocks.COMBOBULATOR.defaultState)
-            level.setBlockAndUpdate(sensor, ClockworkBlocks.ALT_METER.defaultState)
+            level.setBlockAndUpdate(sensor, if (registered) Blocks.BONE_BLOCK.defaultBlockState()
+                else if (blockSensor) ClockworkBlocks.DISTANCE_SENSOR.defaultState.setValue(FACING, Direction.DOWN)
+                else ClockworkBlocks.ALT_METER.defaultState)
             if (!relay) {
                 val controller = level.getBlockEntity(base) as CombobulatorBlockEntity
                 controller.updateProgram(CombobulatorProgram.controller().copy(channels = listOf(
@@ -174,6 +182,8 @@ class VdexFeatureGameTests {
                 val copied = WandLinks.get(level).links.values.filter { it.thinkable && it.a.shipId in ids && it.b.shipId in ids }
                 helper.assertTrue(copied.size == 1, "VDex did not restore exactly one Thinkable")
                 val link = copied.single()
+                if (blockSensor) helper.assertTrue(level.getBlockEntity(link.a.pos) == null &&
+                    level.getBlockState(link.a.pos).`is`(if (registered) Blocks.BONE_BLOCK else ClockworkBlocks.DISTANCE_SENSOR.get()), "VDex lost the block-only sensor")
                 helper.assertTrue(link.id != original.id && link.length == original.length, "VDex lost Thinkable identity or length")
                 helper.assertTrue(link.a.pos != original.a.pos && link.b.pos != original.b.pos, "VDex kept original endpoint positions")
                 if (relay) {

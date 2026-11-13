@@ -1,0 +1,11 @@
+modLoader="javafml"
+loaderVersion="[47,)"
+license="Apache-2.0"
+
+[[mods]]
+modId="thinkable_compat_fixture"
+version="1.0.0"
+displayName="Thinkable compatibility test fixture"
+
+[modproperties.thinkable_compat_fixture]
+"clockwork:thinkables"=["example.thinkable.OptionalThinkableCompat"]

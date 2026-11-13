@@ -21,18 +21,19 @@ import net.minecraft.world.level.block.entity.BlockEntityType
 import net.minecraft.world.level.block.state.BlockState
 import net.minecraft.world.level.block.state.StateDefinition
 import net.minecraft.world.level.block.state.properties.BooleanProperty
+import net.minecraft.world.level.block.state.properties.EnumProperty
 import net.minecraft.world.phys.BlockHitResult
 import org.valkyrienskies.clockwork.ClockworkBlockEntities
 
 class CombobulatorBlock(properties: Properties) : HorizontalDirectionalBlock(properties), IBE<CombobulatorBlockEntity> {
     init {
-        var state = defaultBlockState().setValue(FACING, Direction.NORTH)
+        var state = defaultBlockState().setValue(FACING, Direction.NORTH).setValue(FUNCTION_GROUP, CombobulatorGroup.ARITHMETIC)
         CONNECTIONS.values.forEach { state = state.setValue(it, false) }
         registerDefaultState(state)
     }
 
     override fun createBlockStateDefinition(builder: StateDefinition.Builder<Block, BlockState>) {
-        builder.add(FACING)
+        builder.add(FACING, FUNCTION_GROUP)
         CONNECTIONS.values.forEach { builder.add(it) }
     }
 
@@ -117,6 +118,7 @@ class CombobulatorBlock(properties: Properties) : HorizontalDirectionalBlock(pro
         ClockworkBlockEntities.COMBOBULATOR.get()
 
     companion object {
+        val FUNCTION_GROUP = EnumProperty.create("function_group", CombobulatorGroup::class.java)
         val CONNECTIONS = Direction.entries.associateWith { BooleanProperty.create(it.serializedName) }
         fun connects(state: BlockState) = state.block is CombobulatorBlock || state.block is ThinkableRelayBlock
     }

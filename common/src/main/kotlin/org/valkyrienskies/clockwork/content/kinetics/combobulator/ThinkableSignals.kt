@@ -9,9 +9,13 @@ object ThinkableSignals {
 
     fun tick(level: ServerLevel, link: WandLinks.Link): Boolean {
         val receiver = ThinkableConnections.device(level, link.b)
-        val value = ThinkableItem.source(level, link.a)
-        val available = receiver?.acceptsThinkable(link.b.face) == true && value != null
-        receiver?.receiveThinkable(link.b.face, value.takeIf { available })
+        val value = ThinkableItem.source(level, link.a, receiver?.thinkableInputReading(link.b.face) ?: "")
+        val accepting = receiver?.acceptsThinkable(link.b.face) == true
+        receiver?.receiveThinkable(link.b.face, value.takeIf { accepting })
+        val available = accepting && (value != null || receiver is ThinkableRelayBlockEntity &&
+            ThinkableConnections.device(level, link.a)?.let { source ->
+                source.thinkableReadings(link.a.face).any { source.thinkableValue(link.a.face, it.id())?.isFinite() == true }
+            } == true)
         if (!available) {
             val changed = link.pulseStart >= 0
             link.pulseStart = -1

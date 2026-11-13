@@ -1,15 +1,31 @@
 package org.valkyrienskies.clockwork.content.kinetics.combobulator
 
 import net.minecraft.nbt.CompoundTag
+import net.minecraft.util.StringRepresentable
 import kotlin.math.abs
+import kotlin.math.ceil
+import kotlin.math.floor
 
 enum class CombobulatorFunction(val inputs: Int) {
-    ADD(2), SUBTRACT(2), MULTIPLY(2), DIVIDE(2), COMPARE(2),
+    ADD(2), SUBTRACT(2), MULTIPLY(2), DIVIDE(2), FLOOR(1), CEIL(1), MODULO(2), COMPARE(2),
     AND(2), OR(2), NOT(1), XOR(2), NAND(2), NOR(2), XNOR(2),
     DELAY(1), PULSE(1), TIMER(1), LATCH(2), COUNTER(2), SWITCH(3);
 
     val timed get() = this == DELAY || this == PULSE || this == TIMER
     val booleanOutput get() = this in setOf(COMPARE, AND, OR, NOT, XOR, NAND, NOR, XNOR, PULSE, TIMER, LATCH)
+    val group get() = when (this) {
+        ADD, SUBTRACT, MULTIPLY, DIVIDE, FLOOR, CEIL, MODULO -> CombobulatorGroup.ARITHMETIC
+        COMPARE, AND, OR, NOT, XOR, NAND, NOR, XNOR -> CombobulatorGroup.LOGIC
+        LATCH, COUNTER -> CombobulatorGroup.MEMORY
+        DELAY, PULSE, TIMER -> CombobulatorGroup.TIMING
+        else -> CombobulatorGroup.DEFAULT
+    }
+}
+
+enum class CombobulatorGroup : StringRepresentable {
+    DEFAULT, ARITHMETIC, LOGIC, MEMORY, TIMING;
+
+    override fun getSerializedName() = name.lowercase(java.util.Locale.ROOT)
 }
 
 data class CombobulatorOperation(
@@ -75,6 +91,9 @@ internal class CombobulatorOperationRuntime {
             CombobulatorFunction.SUBTRACT -> a - b
             CombobulatorFunction.MULTIPLY -> a * b
             CombobulatorFunction.DIVIDE -> a / b
+            CombobulatorFunction.FLOOR -> floor(a)
+            CombobulatorFunction.CEIL -> ceil(a)
+            CombobulatorFunction.MODULO -> a.mod(b)
             CombobulatorFunction.COMPARE -> boolean(when (operation.comparison) {
                 CombobulatorComparison.EQUAL -> abs(a - b) <= operation.tolerance
                 CombobulatorComparison.NOT_EQUAL -> abs(a - b) > operation.tolerance

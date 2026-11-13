@@ -1,0 +1,7 @@
+{
+  "parent": "vs_clockwork:block/combobulator/edge_down_south",
+  "textures": {
+    "6": "vs_clockwork:block/combobulator_logic",
+    "particle": "vs_clockwork:block/combobulator_logic"
+  }
+}

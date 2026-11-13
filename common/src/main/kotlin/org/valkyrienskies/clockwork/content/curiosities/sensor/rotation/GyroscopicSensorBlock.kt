@@ -4,6 +4,7 @@ import com.simibubi.create.content.equipment.wrench.IWrenchable
 import net.minecraft.core.BlockPos
 import net.minecraft.core.Direction
 import net.minecraft.core.Direction.*
+import net.minecraft.network.chat.Component
 import net.minecraft.server.level.ServerLevel
 import net.minecraft.util.Mth
 import net.minecraft.util.RandomSource
@@ -28,17 +29,25 @@ import org.valkyrienskies.clockwork.ClockworkItems
 import org.valkyrienskies.clockwork.ClockworkSounds
 import org.valkyrienskies.clockwork.content.curiosities.sensor.ISensorBlock
 import org.valkyrienskies.clockwork.content.curiosities.sensor.ISensorBlock.Companion.POWER
+import org.valkyrienskies.clockwork.content.kinetics.combobulator.IThinkableBlock
 import org.valkyrienskies.mod.common.getShipObjectManagingPos
 import org.valkyrienskies.mod.common.toWorldCoordinates
 import org.valkyrienskies.mod.common.util.toJOMLD
 import java.util.*
-import kotlin.math.abs
 import kotlin.math.absoluteValue
-import kotlin.math.acos
-import kotlin.math.min
+import kotlin.math.atan2
 import kotlin.math.roundToInt
 
-class GyroscopicSensorBlock(properties: Properties) : DirectionalBlock(properties), ISensorBlock {
+class GyroscopicSensorBlock(properties: Properties) : DirectionalBlock(properties), ISensorBlock, IThinkableBlock {
+
+    override fun providesThinkable(state: BlockState, side: Direction) =
+        side.axis == getOutputDirections(state.getValue(FACING)).first.axis
+
+    override fun thinkableValue(state: BlockState, level: ServerLevel, pos: BlockPos, side: Direction): Double? =
+        angle(state, level, pos)
+
+    override fun thinkablePortName(state: BlockState, side: Direction): Component? =
+        Component.translatable("thinkable.vs_clockwork.port.angle").takeIf { providesThinkable(state, side) }
 
     companion object {
         val REFERENCE_AXIS = EnumProperty.create("reference_axis", Axis::class.java)
@@ -173,25 +182,27 @@ class GyroscopicSensorBlock(properties: Properties) : DirectionalBlock(propertie
     }
 
     override fun updatePower(state: BlockState, level: ServerLevel, pos: BlockPos, random: Random): Int {
+        val angle = angle(state, level, pos) ?: return 0
+        return Mth.clamp((angle / 12.0).roundToInt(), -15, 15)
+    }
+
+    fun angle(state: BlockState, level: ServerLevel, pos: BlockPos): Double? {
         val hasLodefocus = level.getBlockEntity(pos.relative(state.getValue(FACING))) is LodefocusBlockEntity
 
         val originalDirection = state.getValue(FACING).normal.toJOMLD()
         val targetDirection = if (!hasLodefocus) originalDirection else directionToLodefocus(state, level, pos)
 
-        val ship = level.getShipObjectManagingPos(pos) ?: return 0
+        val ship = level.getShipObjectManagingPos(pos) ?: return 0.0
 
         val referenceAxis = state.getValue(REFERENCE_AXIS)
         val referenceDir = ship.shipToWorld.transformDirection(get(AxisDirection.POSITIVE, referenceAxis).normal.toJOMLD())
 
         val transformedDirection = ship.shipToWorld.transformDirection(originalDirection, Vector3d())
-        if(!transformedDirection.isFinite) return 0
+        if(!transformedDirection.isFinite) return null
 
         val difference = targetDirection.axialDistanceTo(transformedDirection, referenceDir)
 
-        if(difference.isNaN()) return 0
-        if((difference * 15.0).isNaN()) return 0
-
-        return Mth.clamp((difference * 15.0).roundToInt(), -15, 15)
+        return (difference * 180.0).takeIf { it.isFinite() }
     }
 
     override fun use(
@@ -225,6 +236,7 @@ class GyroscopicSensorBlock(properties: Properties) : DirectionalBlock(propertie
         val originalProj = this.projectOntoPlane(axisNorm)
         val rotatedProj = rotated.projectOntoPlane(axisNorm)
 
+        if (originalProj.lengthSquared() < 1e-12 || rotatedProj.lengthSquared() < 1e-12) return Double.NaN
         originalProj.normalize()
         rotatedProj.normalize()
 
@@ -233,10 +245,7 @@ class GyroscopicSensorBlock(properties: Properties) : DirectionalBlock(propertie
         val cross = originalProj.cross(rotatedProj, Vector3d())
         val sign = cross.dot(axisNorm)
 
-        val mul = if (sign > 0.0) 1.0 else if (sign < 0.0) -1.0 else 0.0
-
-        if(abs(dot) > 1.0) return 0.0
-        return (acos(dot) / Math.PI) * mul
+        return atan2(sign, dot) / Math.PI
     }
 
     fun Vector3d.projectOntoPlane(axis: Vector3d): Vector3d {

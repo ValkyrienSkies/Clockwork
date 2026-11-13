@@ -1,9 +1,61 @@
 package org.valkyrienskies.clockwork.content.kinetics.combobulator
 
+import net.minecraft.SharedConstants
+import net.minecraft.server.Bootstrap
 import org.junit.jupiter.api.Assertions.*
+import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
 
 class CombobulatorOperationTest {
+    companion object {
+        @JvmStatic @BeforeAll fun bootstrap() { SharedConstants.tryDetectVersion(); Bootstrap.bootStrap() }
+    }
+
+    @Test fun floorAndCeilRoundInBothDirectionsAndOnlyRequireA() {
+        val runtime = CombobulatorOperationRuntime()
+        for ((function, expected) in listOf(
+            CombobulatorFunction.FLOOR to listOf(2.0, -3.0, 4.0),
+            CombobulatorFunction.CEIL to listOf(3.0, -2.0, 4.0))) {
+            for ((index, input) in listOf(2.75, -2.75, 4.0).withIndex()) {
+                runtime.tick(CombobulatorOperation(function), doubleArrayOf(input, Double.NaN))
+                assertEquals(expected[index], runtime.output)
+                assertNull(runtime.fault)
+            }
+            runtime.tick(CombobulatorOperation(function), doubleArrayOf(Double.NaN))
+            assertEquals(CombobulatorFault.UNAVAILABLE, runtime.fault)
+        }
+    }
+
+    @Test fun moduloWrapsSignedFractionsAndRecoversFromZeroDivisor() {
+        val runtime = CombobulatorOperationRuntime()
+        val operation = CombobulatorOperation(CombobulatorFunction.MODULO)
+        for ((a, b, expected) in listOf(
+            Triple(5.75, 2.5, 0.75), Triple(-5.75, 2.5, 1.75),
+            Triple(5.75, -2.5, -1.75), Triple(-5.75, -2.5, -0.75),
+            Triple(Double.MAX_VALUE, Double.MIN_VALUE, 0.0))) {
+            runtime.tick(operation, doubleArrayOf(a, b))
+            assertEquals(expected, runtime.output)
+            assertNull(runtime.fault)
+        }
+        for (zero in listOf(0.0, -0.0)) {
+            runtime.tick(operation, doubleArrayOf(5.0, zero))
+            assertEquals(CombobulatorFault.ARITHMETIC, runtime.fault)
+        }
+        runtime.tick(operation, doubleArrayOf(-1.0, 4.0))
+        assertEquals(3.0, runtime.output)
+        assertNull(runtime.fault)
+    }
+
+    @Test fun newArithmeticModesPersistAndExposeTheirRequiredInputs() {
+        for (function in listOf(CombobulatorFunction.FLOOR, CombobulatorFunction.CEIL, CombobulatorFunction.MODULO)) {
+            val program = CombobulatorProgram.controller(CombobulatorOperation(function))
+            val restored = CombobulatorProgram.read(program.write())
+            assertEquals(function, restored.operation!!.function)
+            assertEquals(if (function == CombobulatorFunction.MODULO) 2 else 1, restored.channels.count { it.input })
+            assertEquals(program.write(), restored.write())
+        }
+    }
+
     @Test fun signedFractionalArithmeticAndFaultRecovery() {
         val runtime = CombobulatorOperationRuntime()
         runtime.tick(CombobulatorOperation(CombobulatorFunction.MULTIPLY), doubleArrayOf(-12.5, 0.8))

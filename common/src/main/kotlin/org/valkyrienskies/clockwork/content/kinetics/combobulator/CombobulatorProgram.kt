@@ -31,6 +31,7 @@ data class CombobulatorChannel(
     val thinkable: Boolean = false,
     val constant: Double? = null,
     val device: Boolean = false,
+    val reading: String = "",
 ) {
     val bound: Boolean
         get() = constant != null || if (wireless) !first.isEmpty || !second.isEmpty else face != null
@@ -105,6 +106,7 @@ data class CombobulatorProgram(
                     putBoolean("Thinkable", channel.thinkable)
                     channel.constant?.let { putDouble("Constant", it) }
                     putBoolean("Device", channel.device)
+                    putString("Reading", channel.reading)
                 })
             }
         })
@@ -171,6 +173,7 @@ data class CombobulatorProgram(
                     !wireless && entry.getBoolean("Thinkable"),
                     entry.getDouble("Constant").takeIf { entry.contains("Constant") && entry.getBoolean("Input") && it.isFinite() },
                     !wireless && !entry.getBoolean("Thinkable") && entry.getBoolean("Device"),
+                    entry.getString("Reading").take(128),
                 )
             }
             val inputs = channels.filter { it.input }.map { it.id }.toSet()

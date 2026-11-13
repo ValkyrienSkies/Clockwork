@@ -1,6 +1,7 @@
 package org.valkyrienskies.clockwork.fabric;
 
 import dev.architectury.platform.Platform;
+import dev.architectury.event.events.common.LifecycleEvent;
 import fuzs.forgeconfigapiport.api.config.v2.ForgeConfigRegistry;
 import fuzs.forgeconfigapiport.api.config.v2.ModConfigEvents;
 import io.github.fabricators_of_create.porting_lib.entity.events.LivingEntityEvents;
@@ -75,6 +76,7 @@ public class ClockworkModFabric implements ModInitializer {
         }
 
         ClockworkMod.registerHeaters();
+        LifecycleEvent.SETUP.register(FabricThinkableCompat::initialize);
     }
 
     public static void registerServerEvents() {

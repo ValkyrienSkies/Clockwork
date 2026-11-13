@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 1,
+  "id": "thinkable_compat_fixture",
+  "version": "1.0.0",
+  "name": "Thinkable compatibility test fixture",
+  "environment": "*",
+  "entrypoints": {
+    "main": ["example.thinkable.FabricFixture"],
+    "clockwork:thinkables": ["example.thinkable.OptionalThinkableCompat"]
+  }
+}

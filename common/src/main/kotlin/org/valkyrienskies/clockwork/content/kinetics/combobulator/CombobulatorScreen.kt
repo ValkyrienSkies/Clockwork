@@ -10,9 +10,12 @@ import net.createmod.catnip.gui.element.ScreenElement
 import net.minecraft.client.gui.GuiGraphics
 import net.minecraft.client.gui.components.Button
 import net.minecraft.client.gui.components.EditBox
+import net.minecraft.client.gui.components.Tooltip
 import net.minecraft.network.chat.Component
 import net.minecraft.world.item.ItemStack
 import net.minecraft.world.item.Items
+import net.minecraft.world.level.block.HorizontalDirectionalBlock
+import org.valkyrienskies.clockwork.api.thinkable.ThinkableReading
 import org.valkyrienskies.clockwork.ClockworkBlocks
 import org.valkyrienskies.clockwork.ClockworkItems
 import org.valkyrienskies.clockwork.ClockworkMod
@@ -32,6 +35,7 @@ class CombobulatorScreen(private val be: CombobulatorBlockEntity) :
     private val operation get() = draft.operation!!
     private val port get() = draft.channels.firstOrNull { it.id == selected }
     private var apply: IconButton? = null
+    private var readingOptions: List<ThinkableReading> = emptyList()
 
     override fun init() {
         setWindowSize(316, 221)
@@ -42,6 +46,7 @@ class CombobulatorScreen(private val be: CombobulatorBlockEntity) :
 
     override fun tick() {
         super.tick()
+        if (!functionTab && options() != readingOptions) rebuildPending = true
         if (rebuildPending) { rebuildPending = false; rebuild() }
         apply?.active = invalid.isEmpty() && revision == be.revision
     }
@@ -51,6 +56,7 @@ class CombobulatorScreen(private val be: CombobulatorBlockEntity) :
         setFocused(null)
         labels.clear()
         invalid.clear()
+        readingOptions = options()
         tab(2, tr("io"), false)
         tab(69, tr("function"), true)
         if (functionTab) {
@@ -161,7 +167,7 @@ class CombobulatorScreen(private val be: CombobulatorBlockEntity) :
             }
             icon(126 + index * 34, 69, ScreenElement { g, x, y -> g.renderItem(stack, x, y) }, tr("binding.$mode"), mode(p) == mode) {
                 update { it.copy(constant = if (mode == "constant") 0.0 else null,
-                    wireless = mode == "link", thinkable = mode == "thinkable", device = mode == "device") }
+                    wireless = mode == "link", thinkable = mode == "thinkable", device = mode == "device", reading = "") }
                 ghost = -1
                 rebuild()
             }
@@ -178,13 +184,28 @@ class CombobulatorScreen(private val be: CombobulatorBlockEntity) :
                 val taken = draft.channels.any { it.id != selected && !it.wireless && it.constant == null && it.face == face }
                 val image = ScreenElement { g, x, y -> g.drawCenteredString(font, glyphs[index], x + 8, y + 4, INK) }
                 val button = icon(126 + index * 28, 112, image, tr("face.${face.name.lowercase()}"), p.face == face) {
-                    update { it.copy(face = face) }; rebuild()
+                    update { it.copy(face = face, reading = "") }; rebuild()
                 }
                 button.active = !taken
             }
             label(126, 138, p.face?.let { tr("face.${it.name.lowercase()}") } ?: tr("unbound"))
-            labels += { g -> g.drawWordWrap(font, tr("binding_hint.${mode(p)}"), guiLeft + 126, guiTop + 155, 169, LIGHT) }
+            if (p.input && (p.device || p.thinkable)) {
+                val options = listOf(ThinkableReading("", tr("default_reading"))) + readingOptions
+                val index = options.indexOfFirst { it.id() == p.reading }
+                label(126, 151, tr("reading"))
+                button(126, 163, 169, options.getOrNull(index)?.name() ?: tr("missing_reading")) {
+                    update { it.copy(reading = options[(index + 1) % options.size].id()) }; rebuild()
+                }
+            } else labels += { g -> g.drawWordWrap(font, tr("binding_hint.${mode(p)}"), guiLeft + 126, guiTop + 155, 169, LIGHT) }
         }
+    }
+
+    private fun options(): List<ThinkableReading> {
+        val p = port ?: return emptyList()
+        if (!p.input || p.constant != null || p.wireless || (!p.device && !p.thinkable)) return emptyList()
+        val side = p.face?.direction(be.blockState.getValue(HorizontalDirectionalBlock.FACING)) ?: return emptyList()
+        if (p.thinkable && side !in be.cabledReadingFaces) return emptyList()
+        return be.availableReadings[side]?.filter { it.id().isNotEmpty() } ?: emptyList()
     }
 
     private fun mode(p: CombobulatorChannel) = when {
@@ -222,7 +243,8 @@ class CombobulatorScreen(private val be: CombobulatorBlockEntity) :
     }
 
     private fun button(x: Int, y: Int, width: Int, text: Component, callback: () -> Unit) {
-        addRenderableWidget(Button.builder(fitted(text, width - 8)) { callback() }.bounds(guiLeft + x, guiTop + y, width, 18).build())
+        addRenderableWidget(Button.builder(fitted(text, width - 8)) { callback() }.bounds(guiLeft + x, guiTop + y, width, 18)
+            .tooltip(Tooltip.create(text)).build())
     }
 
     private fun label(x: Int, y: Int, text: Component) { labels += { draw(it, x, y, text) } }
@@ -261,7 +283,7 @@ class CombobulatorScreen(private val be: CombobulatorBlockEntity) :
             else -> null
         }
         footer?.let { draw(g, 8, 201, fitted(it, 265), INK) }
-        GuiGameElement.of(ClockworkBlocks.COMBOBULATOR.asStack())
+        GuiGameElement.of(ClockworkBlocks.COMBOBULATOR.defaultState.setValue(CombobulatorBlock.FUNCTION_GROUP, operation.function.group))
             .at<GuiGameElement.GuiRenderBuilder>((guiLeft + 322).toFloat(), (guiTop + 165).toFloat(), -200f)
             .scale(5.0)
             .render(g)

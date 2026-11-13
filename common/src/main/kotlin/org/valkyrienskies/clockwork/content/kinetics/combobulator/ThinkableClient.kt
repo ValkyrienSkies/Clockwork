@@ -30,7 +30,7 @@ object ThinkableClient {
             }
             else -> return
         }
-        val device = level.getBlockEntity(anchor.pos) as? IThinkable ?: return
+        val device = ThinkableConnections.device(level, anchor.pos) ?: return
         if (!thinkable && device !is ThinkableRelayBlockEntity) return
         val lines = mutableListOf<Component>(level.getBlockState(anchor.pos).block.name)
         if (device.thinkablePortName(anchor.face) == null) {

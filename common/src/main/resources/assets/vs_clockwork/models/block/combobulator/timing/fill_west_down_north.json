@@ -1,0 +1,7 @@
+{
+  "parent": "vs_clockwork:block/combobulator/fill_west_down_north",
+  "textures": {
+    "6": "vs_clockwork:block/combobulator_timing",
+    "particle": "vs_clockwork:block/combobulator_timing"
+  }
+}

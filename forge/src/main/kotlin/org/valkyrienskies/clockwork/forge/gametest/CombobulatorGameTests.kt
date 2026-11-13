@@ -26,6 +26,7 @@ import org.valkyrienskies.clockwork.content.kinetics.combobulator.ThinkableSigna
 import org.valkyrienskies.clockwork.content.kinetics.combobulator.CombobulatorFunction
 import org.valkyrienskies.clockwork.content.kinetics.combobulator.CombobulatorOperation
 import org.valkyrienskies.clockwork.content.kinetics.combobulator.CombobulatorBlock
+import org.valkyrienskies.clockwork.content.kinetics.combobulator.CombobulatorGroup
 
 @GameTestHolder(ClockworkMod.MOD_ID)
 @PrefixGameTestTemplate(false)
@@ -33,6 +34,39 @@ class CombobulatorGameTests {
     companion object {
         private const val TEMPLATE = "clockworkforgegametests.bladetestpositive"
         private const val BATCH = "combobulator"
+
+        @JvmStatic
+        @GameTest(template = TEMPLATE, batch = BATCH)
+        fun functionTexturesUpdateWithoutLosingConnectionsAndRestoreOnLoad(helper: GameTestHelper) {
+            val pos = helper.absolutePos(BlockPos(3, 3, 3))
+            val level = helper.level
+            val controller = place(helper, pos, CombobulatorProgram.controller())
+            level.setBlockAndUpdate(pos.east(), ClockworkBlocks.THINKABLE_RELAY.defaultState)
+            for ((function, group) in listOf(
+                CombobulatorFunction.FLOOR to CombobulatorGroup.ARITHMETIC,
+                CombobulatorFunction.COMPARE to CombobulatorGroup.LOGIC,
+                CombobulatorFunction.LATCH to CombobulatorGroup.MEMORY,
+                CombobulatorFunction.DELAY to CombobulatorGroup.TIMING,
+                CombobulatorFunction.PULSE to CombobulatorGroup.TIMING,
+                CombobulatorFunction.TIMER to CombobulatorGroup.TIMING,
+                CombobulatorFunction.SWITCH to CombobulatorGroup.DEFAULT)) {
+                controller.updateProgram(CombobulatorProgram.controller(CombobulatorOperation(function)), controller.revision)
+                helper.assertTrue(level.getBlockState(pos).getValue(CombobulatorBlock.FUNCTION_GROUP) == group, "Wrong texture group for $function")
+                helper.assertTrue(level.getBlockEntity(pos) === controller &&
+                    level.getBlockState(pos).getValue(CombobulatorBlock.CONNECTIONS.getValue(Direction.EAST)), "Texture change lost entity or connection")
+            }
+            val saved = controller.saveWithoutMetadata()
+            saved.put("Program", CombobulatorProgram.controller(CombobulatorOperation(CombobulatorFunction.COUNTER)).write())
+            controller.load(saved)
+            helper.runAtTickTime(3) {
+                helper.assertTrue(level.getBlockState(pos).getValue(CombobulatorBlock.FUNCTION_GROUP) == CombobulatorGroup.MEMORY,
+                    "Loading a program did not restore its texture group")
+                controller.updateProgram(CombobulatorProgram(), controller.revision)
+                helper.assertTrue(level.getBlockState(pos).getValue(CombobulatorBlock.FUNCTION_GROUP) == CombobulatorGroup.DEFAULT,
+                    "Legacy program did not use the default texture")
+                helper.succeed()
+            }
+        }
 
         @JvmStatic
         @GameTest(template = TEMPLATE, batch = BATCH)

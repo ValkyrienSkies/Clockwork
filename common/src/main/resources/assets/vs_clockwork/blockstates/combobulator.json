@@ -3,11 +3,21 @@
     {
       "apply": {
         "model": "vs_clockwork:block/combobulator/base"
+      },
+      "when": {
+        "function_group": "default"
       }
     },
     {
       "when": {
-        "west": "true"
+        "AND": [
+          {
+            "west": "true"
+          },
+          {
+            "function_group": "default"
+          }
+        ]
       },
       "apply": {
         "model": "vs_clockwork:block/combobulator/extension_west"
@@ -15,7 +25,14 @@
     },
     {
       "when": {
-        "east": "true"
+        "AND": [
+          {
+            "east": "true"
+          },
+          {
+            "function_group": "default"
+          }
+        ]
       },
       "apply": {
         "model": "vs_clockwork:block/combobulator/extension_east"
@@ -23,7 +40,14 @@
     },
     {
       "when": {
-        "down": "true"
+        "AND": [
+          {
+            "down": "true"
+          },
+          {
+            "function_group": "default"
+          }
+        ]
       },
       "apply": {
         "model": "vs_clockwork:block/combobulator/extension_down"
@@ -31,7 +55,14 @@
     },
     {
       "when": {
-        "up": "true"
+        "AND": [
+          {
+            "up": "true"
+          },
+          {
+            "function_group": "default"
+          }
+        ]
       },
       "apply": {
         "model": "vs_clockwork:block/combobulator/extension_up"
@@ -39,7 +70,14 @@
     },
     {
       "when": {
-        "north": "true"
+        "AND": [
+          {
+            "north": "true"
+          },
+          {
+            "function_group": "default"
+          }
+        ]
       },
       "apply": {
         "model": "vs_clockwork:block/combobulator/extension_north"
@@ -47,7 +85,14 @@
     },
     {
       "when": {
-        "south": "true"
+        "AND": [
+          {
+            "south": "true"
+          },
+          {
+            "function_group": "default"
+          }
+        ]
       },
       "apply": {
         "model": "vs_clockwork:block/combobulator/extension_south"
@@ -55,8 +100,15 @@
     },
     {
       "when": {
-        "west": "false",
-        "down": "false"
+        "AND": [
+          {
+            "west": "false",
+            "down": "false"
+          },
+          {
+            "function_group": "default"
+          }
+        ]
       },
       "apply": {
         "model": "vs_clockwork:block/combobulator/edge_west_down"
@@ -64,8 +116,15 @@
     },
     {
       "when": {
-        "west": "true",
-        "down": "true"
+        "AND": [
+          {
+            "west": "true",
+            "down": "true"
+          },
+          {
+            "function_group": "default"
+          }
+        ]
       },
       "apply": {
         "model": "vs_clockwork:block/combobulator/fill_west_down"
@@ -73,8 +132,15 @@
     },
     {
       "when": {
-        "west": "false",
-        "up": "false"
+        "AND": [
+          {
+            "west": "false",
+            "up": "false"
+          },
+          {
+            "function_group": "default"
+          }
+        ]
       },
       "apply": {
         "model": "vs_clockwork:block/combobulator/edge_west_up"
@@ -82,8 +148,15 @@
     },
     {
       "when": {
-        "west": "true",
-        "up": "true"
+        "AND": [
+          {
+            "west": "true",
+            "up": "true"
+          },
+          {
+            "function_group": "default"
+          }
+        ]
       },
       "apply": {
         "model": "vs_clockwork:block/combobulator/fill_west_up"
@@ -91,8 +164,15 @@
     },
     {
       "when": {
-        "west": "false",
-        "north": "false"
+        "AND": [
+          {
+            "west": "false",
+            "north": "false"
+          },
+          {
+            "function_group": "default"
+          }
+        ]
       },
       "apply": {
         "model": "vs_clockwork:block/combobulator/edge_west_north"
@@ -100,8 +180,15 @@
     },
     {
       "when": {
-        "west": "true",
-        "north": "true"
+        "AND": [
+          {
+            "west": "true",
+            "north": "true"
+          },
+          {
+            "function_group": "default"
+          }
+        ]
       },
       "apply": {
         "model": "vs_clockwork:block/combobulator/fill_west_north"
@@ -109,8 +196,15 @@
     },
     {
       "when": {
-        "west": "false",
-        "south": "false"
+        "AND": [
+          {
+            "west": "false",
+            "south": "false"
+          },
+          {
+            "function_group": "default"
+          }
+        ]
       },
       "apply": {
         "model": "vs_clockwork:block/combobulator/edge_west_south"
@@ -118,8 +212,15 @@
     },
     {
       "when": {
-        "west": "true",
-        "south": "true"
+        "AND": [
+          {
+            "west": "true",
+            "south": "true"
+          },
+          {
+            "function_group": "default"
+          }
+        ]
       },
       "apply": {
         "model": "vs_clockwork:block/combobulator/fill_west_south"
@@ -127,8 +228,15 @@
     },
     {
       "when": {
-        "east": "false",
-        "down": "false"
+        "AND": [
+          {
+            "east": "false",
+            "down": "false"
+          },
+          {
+            "function_group": "default"
+          }
+        ]
       },
       "apply": {
         "model": "vs_clockwork:block/combobulator/edge_east_down"
@@ -136,8 +244,15 @@
     },
     {
       "when": {
-        "east": "true",
-        "down": "true"
+        "AND": [
+          {
+            "east": "true",
+            "down": "true"
+          },
+          {
+            "function_group": "default"
+          }
+        ]
       },
       "apply": {
         "model": "vs_clockwork:block/combobulator/fill_east_down"
@@ -145,8 +260,15 @@
     },
     {
       "when": {
-        "east": "false",
-        "up": "false"
+        "AND": [
+          {
+            "east": "false",
+            "up": "false"
+          },
+          {
+            "function_group": "default"
+          }
+        ]
       },
       "apply": {
         "model": "vs_clockwork:block/combobulator/edge_east_up"
@@ -154,8 +276,15 @@
     },
     {
       "when": {
-        "east": "true",
-        "up": "true"
+        "AND": [
+          {
+            "east": "true",
+            "up": "true"
+          },
+          {
+            "function_group": "default"
+          }
+        ]
       },
       "apply": {
         "model": "vs_clockwork:block/combobulator/fill_east_up"
@@ -163,8 +292,15 @@
     },
     {
       "when": {
-        "east": "false",
-        "north": "false"
+        "AND": [
+          {
+            "east": "false",
+            "north": "false"
+          },
+          {
+            "function_group": "default"
+          }
+        ]
       },
       "apply": {
         "model": "vs_clockwork:block/combobulator/edge_east_north"
@@ -172,8 +308,15 @@
     },
     {
       "when": {
-        "east": "true",
-        "north": "true"
+        "AND": [
+          {
+            "east": "true",
+            "north": "true"
+          },
+          {
+            "function_group": "default"
+          }
+        ]
       },
       "apply": {
         "model": "vs_clockwork:block/combobulator/fill_east_north"
@@ -181,8 +324,15 @@
     },
     {
       "when": {
-        "east": "false",
-        "south": "false"
+        "AND": [
+          {
+            "east": "false",
+            "south": "false"
+          },
+          {
+            "function_group": "default"
+          }
+        ]
       },
       "apply": {
         "model": "vs_clockwork:block/combobulator/edge_east_south"
@@ -190,8 +340,15 @@
     },
     {
       "when": {
-        "east": "true",
-        "south": "true"
+        "AND": [
+          {
+            "east": "true",
+            "south": "true"
+          },
+          {
+            "function_group": "default"
+          }
+        ]
       },
       "apply": {
         "model": "vs_clockwork:block/combobulator/fill_east_south"
@@ -199,8 +356,15 @@
     },
     {
       "when": {
-        "down": "false",
-        "north": "false"
+        "AND": [
+          {
+            "down": "false",
+            "north": "false"
+          },
+          {
+            "function_group": "default"
+          }
+        ]
       },
       "apply": {
         "model": "vs_clockwork:block/combobulator/edge_down_north"
@@ -208,8 +372,15 @@
     },
     {
       "when": {
-        "down": "true",
-        "north": "true"
+        "AND": [
+          {
+            "down": "true",
+            "north": "true"
+          },
+          {
+            "function_group": "default"
+          }
+        ]
       },
       "apply": {
         "model": "vs_clockwork:block/combobulator/fill_down_north"
@@ -217,8 +388,15 @@
     },
     {
       "when": {
-        "down": "false",
-        "south": "false"
+        "AND": [
+          {
+            "down": "false",
+            "south": "false"
+          },
+          {
+            "function_group": "default"
+          }
+        ]
       },
       "apply": {
         "model": "vs_clockwork:block/combobulator/edge_down_south"
@@ -226,8 +404,15 @@
     },
     {
       "when": {
-        "down": "true",
-        "south": "true"
+        "AND": [
+          {
+            "down": "true",
+            "south": "true"
+          },
+          {
+            "function_group": "default"
+          }
+        ]
       },
       "apply": {
         "model": "vs_clockwork:block/combobulator/fill_down_south"
@@ -235,8 +420,15 @@
     },
     {
       "when": {
-        "up": "false",
-        "north": "false"
+        "AND": [
+          {
+            "up": "false",
+            "north": "false"
+          },
+          {
+            "function_group": "default"
+          }
+        ]
       },
       "apply": {
         "model": "vs_clockwork:block/combobulator/edge_up_north"
@@ -244,8 +436,15 @@
     },
     {
       "when": {
-        "up": "true",
-        "north": "true"
+        "AND": [
+          {
+            "up": "true",
+            "north": "true"
+          },
+          {
+            "function_group": "default"
+          }
+        ]
       },
       "apply": {
         "model": "vs_clockwork:block/combobulator/fill_up_north"
@@ -253,8 +452,15 @@
     },
     {
       "when": {
-        "up": "false",
-        "south": "false"
+        "AND": [
+          {
+            "up": "false",
+            "south": "false"
+          },
+          {
+            "function_group": "default"
+          }
+        ]
       },
       "apply": {
         "model": "vs_clockwork:block/combobulator/edge_up_south"
@@ -262,8 +468,15 @@
     },
     {
       "when": {
-        "up": "true",
-        "south": "true"
+        "AND": [
+          {
+            "up": "true",
+            "south": "true"
+          },
+          {
+            "function_group": "default"
+          }
+        ]
       },
       "apply": {
         "model": "vs_clockwork:block/combobulator/fill_up_south"
@@ -271,18 +484,25 @@
     },
     {
       "when": {
-        "OR": [
+        "AND": [
           {
-            "west": "false",
-            "down": "false"
+            "OR": [
+              {
+                "west": "false",
+                "down": "false"
+              },
+              {
+                "west": "false",
+                "north": "false"
+              },
+              {
+                "down": "false",
+                "north": "false"
+              }
+            ]
           },
           {
-            "west": "false",
-            "north": "false"
-          },
-          {
-            "down": "false",
-            "north": "false"
+            "function_group": "default"
           }
         ]
       },
@@ -292,9 +512,16 @@
     },
     {
       "when": {
-        "west": "true",
-        "down": "true",
-        "north": "true"
+        "AND": [
+          {
+            "west": "true",
+            "down": "true",
+            "north": "true"
+          },
+          {
+            "function_group": "default"
+          }
+        ]
       },
       "apply": {
         "model": "vs_clockwork:block/combobulator/fill_west_down_north"
@@ -302,18 +529,25 @@
     },
     {
       "when": {
-        "OR": [
+        "AND": [
           {
-            "west": "false",
-            "down": "false"
+            "OR": [
+              {
+                "west": "false",
+                "down": "false"
+              },
+              {
+                "west": "false",
+                "south": "false"
+              },
+              {
+                "down": "false",
+                "south": "false"
+              }
+            ]
           },
           {
-            "west": "false",
-            "south": "false"
-          },
-          {
-            "down": "false",
-            "south": "false"
+            "function_group": "default"
           }
         ]
       },
@@ -323,9 +557,16 @@
     },
     {
       "when": {
-        "west": "true",
-        "down": "true",
-        "south": "true"
+        "AND": [
+          {
+            "west": "true",
+            "down": "true",
+            "south": "true"
+          },
+          {
+            "function_group": "default"
+          }
+        ]
       },
       "apply": {
         "model": "vs_clockwork:block/combobulator/fill_west_down_south"
@@ -333,18 +574,25 @@
     },
     {
       "when": {
-        "OR": [
+        "AND": [
           {
-            "west": "false",
-            "up": "false"
+            "OR": [
+              {
+                "west": "false",
+                "up": "false"
+              },
+              {
+                "west": "false",
+                "north": "false"
+              },
+              {
+                "up": "false",
+                "north": "false"
+              }
+            ]
           },
           {
-            "west": "false",
-            "north": "false"
-          },
-          {
-            "up": "false",
-            "north": "false"
+            "function_group": "default"
           }
         ]
       },
@@ -354,9 +602,16 @@
     },
     {
       "when": {
-        "west": "true",
-        "up": "true",
-        "north": "true"
+        "AND": [
+          {
+            "west": "true",
+            "up": "true",
+            "north": "true"
+          },
+          {
+            "function_group": "default"
+          }
+        ]
       },
       "apply": {
         "model": "vs_clockwork:block/combobulator/fill_west_up_north"
@@ -364,18 +619,25 @@
     },
     {
       "when": {
-        "OR": [
+        "AND": [
           {
-            "west": "false",
-            "up": "false"
+            "OR": [
+              {
+                "west": "false",
+                "up": "false"
+              },
+              {
+                "west": "false",
+                "south": "false"
+              },
+              {
+                "up": "false",
+                "south": "false"
+              }
+            ]
           },
           {
-            "west": "false",
-            "south": "false"
-          },
-          {
-            "up": "false",
-            "south": "false"
+            "function_group": "default"
           }
         ]
       },
@@ -385,9 +647,16 @@
     },
     {
       "when": {
-        "west": "true",
-        "up": "true",
-        "south": "true"
+        "AND": [
+          {
+            "west": "true",
+            "up": "true",
+            "south": "true"
+          },
+          {
+            "function_group": "default"
+          }
+        ]
       },
       "apply": {
         "model": "vs_clockwork:block/combobulator/fill_west_up_south"
@@ -395,18 +664,25 @@
     },
     {
       "when": {
-        "OR": [
+        "AND": [
           {
-            "east": "false",
-            "down": "false"
+            "OR": [
+              {
+                "east": "false",
+                "down": "false"
+              },
+              {
+                "east": "false",
+                "north": "false"
+              },
+              {
+                "down": "false",
+                "north": "false"
+              }
+            ]
           },
           {
-            "east": "false",
-            "north": "false"
-          },
-          {
-            "down": "false",
-            "north": "false"
+            "function_group": "default"
           }
         ]
       },
@@ -416,9 +692,16 @@
     },
     {
       "when": {
-        "east": "true",
-        "down": "true",
-        "north": "true"
+        "AND": [
+          {
+            "east": "true",
+            "down": "true",
+            "north": "true"
+          },
+          {
+            "function_group": "default"
+          }
+        ]
       },
       "apply": {
         "model": "vs_clockwork:block/combobulator/fill_east_down_north"
@@ -426,18 +709,25 @@
     },
     {
       "when": {
-        "OR": [
+        "AND": [
           {
-            "east": "false",
-            "down": "false"
+            "OR": [
+              {
+                "east": "false",
+                "down": "false"
+              },
+              {
+                "east": "false",
+                "south": "false"
+              },
+              {
+                "down": "false",
+                "south": "false"
+              }
+            ]
           },
           {
-            "east": "false",
-            "south": "false"
-          },
-          {
-            "down": "false",
-            "south": "false"
+            "function_group": "default"
           }
         ]
       },
@@ -447,9 +737,16 @@
     },
     {
       "when": {
-        "east": "true",
-        "down": "true",
-        "south": "true"
+        "AND": [
+          {
+            "east": "true",
+            "down": "true",
+            "south": "true"
+          },
+          {
+            "function_group": "default"
+          }
+        ]
       },
       "apply": {
         "model": "vs_clockwork:block/combobulator/fill_east_down_south"
@@ -457,18 +754,25 @@
     },
     {
       "when": {
-        "OR": [
+        "AND": [
           {
-            "east": "false",
-            "up": "false"
+            "OR": [
+              {
+                "east": "false",
+                "up": "false"
+              },
+              {
+                "east": "false",
+                "north": "false"
+              },
+              {
+                "up": "false",
+                "north": "false"
+              }
+            ]
           },
           {
-            "east": "false",
-            "north": "false"
-          },
-          {
-            "up": "false",
-            "north": "false"
+            "function_group": "default"
           }
         ]
       },
@@ -478,9 +782,16 @@
     },
     {
       "when": {
-        "east": "true",
-        "up": "true",
-        "north": "true"
+        "AND": [
+          {
+            "east": "true",
+            "up": "true",
+            "north": "true"
+          },
+          {
+            "function_group": "default"
+          }
+        ]
       },
       "apply": {
         "model": "vs_clockwork:block/combobulator/fill_east_up_north"
@@ -488,18 +799,25 @@
     },
     {
       "when": {
-        "OR": [
+        "AND": [
           {
-            "east": "false",
-            "up": "false"
+            "OR": [
+              {
+                "east": "false",
+                "up": "false"
+              },
+              {
+                "east": "false",
+                "south": "false"
+              },
+              {
+                "up": "false",
+                "south": "false"
+              }
+            ]
           },
           {
-            "east": "false",
-            "south": "false"
-          },
-          {
-            "up": "false",
-            "south": "false"
+            "function_group": "default"
           }
         ]
       },
@@ -509,9 +827,16 @@
     },
     {
       "when": {
-        "east": "true",
-        "up": "true",
-        "south": "true"
+        "AND": [
+          {
+            "east": "true",
+            "up": "true",
+            "south": "true"
+          },
+          {
+            "function_group": "default"
+          }
+        ]
       },
       "apply": {
         "model": "vs_clockwork:block/combobulator/fill_east_up_south"
@@ -519,7 +844,14 @@
     },
     {
       "when": {
-        "west": "false"
+        "AND": [
+          {
+            "west": "false"
+          },
+          {
+            "function_group": "default"
+          }
+        ]
       },
       "apply": [
         {
@@ -551,7 +883,14 @@
     },
     {
       "when": {
-        "east": "false"
+        "AND": [
+          {
+            "east": "false"
+          },
+          {
+            "function_group": "default"
+          }
+        ]
       },
       "apply": [
         {
@@ -583,7 +922,14 @@
     },
     {
       "when": {
-        "down": "false"
+        "AND": [
+          {
+            "down": "false"
+          },
+          {
+            "function_group": "default"
+          }
+        ]
       },
       "apply": [
         {
@@ -615,7 +961,14 @@
     },
     {
       "when": {
-        "up": "false"
+        "AND": [
+          {
+            "up": "false"
+          },
+          {
+            "function_group": "default"
+          }
+        ]
       },
       "apply": [
         {
@@ -647,7 +1000,14 @@
     },
     {
       "when": {
-        "north": "false"
+        "AND": [
+          {
+            "north": "false"
+          },
+          {
+            "function_group": "default"
+          }
+        ]
       },
       "apply": [
         {
@@ -674,7 +1034,14 @@
     },
     {
       "when": {
-        "south": "false"
+        "AND": [
+          {
+            "south": "false"
+          },
+          {
+            "function_group": "default"
+          }
+        ]
       },
       "apply": [
         {
@@ -699,6 +1066,4290 @@
         },
         {
           "model": "vs_clockwork:block/combobulator/face_4",
+          "y": 180,
+          "weight": 2
+        }
+      ]
+    },
+    {
+      "apply": {
+        "model": "vs_clockwork:block/combobulator/arithmetic/base"
+      },
+      "when": {
+        "function_group": "arithmetic"
+      }
+    },
+    {
+      "when": {
+        "AND": [
+          {
+            "west": "true"
+          },
+          {
+            "function_group": "arithmetic"
+          }
+        ]
+      },
+      "apply": {
+        "model": "vs_clockwork:block/combobulator/arithmetic/extension_west"
+      }
+    },
+    {
+      "when": {
+        "AND": [
+          {
+            "east": "true"
+          },
+          {
+            "function_group": "arithmetic"
+          }
+        ]
+      },
+      "apply": {
+        "model": "vs_clockwork:block/combobulator/arithmetic/extension_east"
+      }
+    },
+    {
+      "when": {
+        "AND": [
+          {
+            "down": "true"
+          },
+          {
+            "function_group": "arithmetic"
+          }
+        ]
+      },
+      "apply": {
+        "model": "vs_clockwork:block/combobulator/arithmetic/extension_down"
+      }
+    },
+    {
+      "when": {
+        "AND": [
+          {
+            "up": "true"
+          },
+          {
+            "function_group": "arithmetic"
+          }
+        ]
+      },
+      "apply": {
+        "model": "vs_clockwork:block/combobulator/arithmetic/extension_up"
+      }
+    },
+    {
+      "when": {
+        "AND": [
+          {
+            "north": "true"
+          },
+          {
+            "function_group": "arithmetic"
+          }
+        ]
+      },
+      "apply": {
+        "model": "vs_clockwork:block/combobulator/arithmetic/extension_north"
+      }
+    },
+    {
+      "when": {
+        "AND": [
+          {
+            "south": "true"
+          },
+          {
+            "function_group": "arithmetic"
+          }
+        ]
+      },
+      "apply": {
+        "model": "vs_clockwork:block/combobulator/arithmetic/extension_south"
+      }
+    },
+    {
+      "when": {
+        "AND": [
+          {
+            "west": "false",
+            "down": "false"
+          },
+          {
+            "function_group": "arithmetic"
+          }
+        ]
+      },
+      "apply": {
+        "model": "vs_clockwork:block/combobulator/arithmetic/edge_west_down"
+      }
+    },
+    {
+      "when": {
+        "AND": [
+          {
+            "west": "true",
+            "down": "true"
+          },
+          {
+            "function_group": "arithmetic"
+          }
+        ]
+      },
+      "apply": {
+        "model": "vs_clockwork:block/combobulator/arithmetic/fill_west_down"
+      }
+    },
+    {
+      "when": {
+        "AND": [
+          {
+            "west": "false",
+            "up": "false"
+          },
+          {
+            "function_group": "arithmetic"
+          }
+        ]
+      },
+      "apply": {
+        "model": "vs_clockwork:block/combobulator/arithmetic/edge_west_up"
+      }
+    },
+    {
+      "when": {
+        "AND": [
+          {
+            "west": "true",
+            "up": "true"
+          },
+          {
+            "function_group": "arithmetic"
+          }
+        ]
+      },
+      "apply": {
+        "model": "vs_clockwork:block/combobulator/arithmetic/fill_west_up"
+      }
+    },
+    {
+      "when": {
+        "AND": [
+          {
+            "west": "false",
+            "north": "false"
+          },
+          {
+            "function_group": "arithmetic"
+          }
+        ]
+      },
+      "apply": {
+        "model": "vs_clockwork:block/combobulator/arithmetic/edge_west_north"
+      }
+    },
+    {
+      "when": {
+        "AND": [
+          {
+            "west": "true",
+            "north": "true"
+          },
+          {
+            "function_group": "arithmetic"
+          }
+        ]
+      },
+      "apply": {
+        "model": "vs_clockwork:block/combobulator/arithmetic/fill_west_north"
+      }
+    },
+    {
+      "when": {
+        "AND": [
+          {
+            "west": "false",
+            "south": "false"
+          },
+          {
+            "function_group": "arithmetic"
+          }
+        ]
+      },
+      "apply": {
+        "model": "vs_clockwork:block/combobulator/arithmetic/edge_west_south"
+      }
+    },
+    {
+      "when": {
+        "AND": [
+          {
+            "west": "true",
+            "south": "true"
+          },
+          {
+            "function_group": "arithmetic"
+          }
+        ]
+      },
+      "apply": {
+        "model": "vs_clockwork:block/combobulator/arithmetic/fill_west_south"
+      }
+    },
+    {
+      "when": {
+        "AND": [
+          {
+            "east": "false",
+            "down": "false"
+          },
+          {
+            "function_group": "arithmetic"
+          }
+        ]
+      },
+      "apply": {
+        "model": "vs_clockwork:block/combobulator/arithmetic/edge_east_down"
+      }
+    },
+    {
+      "when": {
+        "AND": [
+          {
+            "east": "true",
+            "down": "true"
+          },
+          {
+            "function_group": "arithmetic"
+          }
+        ]
+      },
+      "apply": {
+        "model": "vs_clockwork:block/combobulator/arithmetic/fill_east_down"
+      }
+    },
+    {
+      "when": {
+        "AND": [
+          {
+            "east": "false",
+            "up": "false"
+          },
+          {
+            "function_group": "arithmetic"
+          }
+        ]
+      },
+      "apply": {
+        "model": "vs_clockwork:block/combobulator/arithmetic/edge_east_up"
+      }
+    },
+    {
+      "when": {
+        "AND": [
+          {
+            "east": "true",
+            "up": "true"
+          },
+          {
+            "function_group": "arithmetic"
+          }
+        ]
+      },
+      "apply": {
+        "model": "vs_clockwork:block/combobulator/arithmetic/fill_east_up"
+      }
+    },
+    {
+      "when": {
+        "AND": [
+          {
+            "east": "false",
+            "north": "false"
+          },
+          {
+            "function_group": "arithmetic"
+          }
+        ]
+      },
+      "apply": {
+        "model": "vs_clockwork:block/combobulator/arithmetic/edge_east_north"
+      }
+    },
+    {
+      "when": {
+        "AND": [
+          {
+            "east": "true",
+            "north": "true"
+          },
+          {
+            "function_group": "arithmetic"
+          }
+        ]
+      },
+      "apply": {
+        "model": "vs_clockwork:block/combobulator/arithmetic/fill_east_north"
+      }
+    },
+    {
+      "when": {
+        "AND": [
+          {
+            "east": "false",
+            "south": "false"
+          },
+          {
+            "function_group": "arithmetic"
+          }
+        ]
+      },
+      "apply": {
+        "model": "vs_clockwork:block/combobulator/arithmetic/edge_east_south"
+      }
+    },
+    {
+      "when": {
+        "AND": [
+          {
+            "east": "true",
+            "south": "true"
+          },
+          {
+            "function_group": "arithmetic"
+          }
+        ]
+      },
+      "apply": {
+        "model": "vs_clockwork:block/combobulator/arithmetic/fill_east_south"
+      }
+    },
+    {
+      "when": {
+        "AND": [
+          {
+            "down": "false",
+            "north": "false"
+          },
+          {
+            "function_group": "arithmetic"
+          }
+        ]
+      },
+      "apply": {
+        "model": "vs_clockwork:block/combobulator/arithmetic/edge_down_north"
+      }
+    },
+    {
+      "when": {
+        "AND": [
+          {
+            "down": "true",
+            "north": "true"
+          },
+          {
+            "function_group": "arithmetic"
+          }
+        ]
+      },
+      "apply": {
+        "model": "vs_clockwork:block/combobulator/arithmetic/fill_down_north"
+      }
+    },
+    {
+      "when": {
+        "AND": [
+          {
+            "down": "false",
+            "south": "false"
+          },
+          {
+            "function_group": "arithmetic"
+          }
+        ]
+      },
+      "apply": {
+        "model": "vs_clockwork:block/combobulator/arithmetic/edge_down_south"
+      }
+    },
+    {
+      "when": {
+        "AND": [
+          {
+            "down": "true",
+            "south": "true"
+          },
+          {
+            "function_group": "arithmetic"
+          }
+        ]
+      },
+      "apply": {
+        "model": "vs_clockwork:block/combobulator/arithmetic/fill_down_south"
+      }
+    },
+    {
+      "when": {
+        "AND": [
+          {
+            "up": "false",
+            "north": "false"
+          },
+          {
+            "function_group": "arithmetic"
+          }
+        ]
+      },
+      "apply": {
+        "model": "vs_clockwork:block/combobulator/arithmetic/edge_up_north"
+      }
+    },
+    {
+      "when": {
+        "AND": [
+          {
+            "up": "true",
+            "north": "true"
+          },
+          {
+            "function_group": "arithmetic"
+          }
+        ]
+      },
+      "apply": {
+        "model": "vs_clockwork:block/combobulator/arithmetic/fill_up_north"
+      }
+    },
+    {
+      "when": {
+        "AND": [
+          {
+            "up": "false",
+            "south": "false"
+          },
+          {
+            "function_group": "arithmetic"
+          }
+        ]
+      },
+      "apply": {
+        "model": "vs_clockwork:block/combobulator/arithmetic/edge_up_south"
+      }
+    },
+    {
+      "when": {
+        "AND": [
+          {
+            "up": "true",
+            "south": "true"
+          },
+          {
+            "function_group": "arithmetic"
+          }
+        ]
+      },
+      "apply": {
+        "model": "vs_clockwork:block/combobulator/arithmetic/fill_up_south"
+      }
+    },
+    {
+      "when": {
+        "AND": [
+          {
+            "OR": [
+              {
+                "west": "false",
+                "down": "false"
+              },
+              {
+                "west": "false",
+                "north": "false"
+              },
+              {
+                "down": "false",
+                "north": "false"
+              }
+            ]
+          },
+          {
+            "function_group": "arithmetic"
+          }
+        ]
+      },
+      "apply": {
+        "model": "vs_clockwork:block/combobulator/arithmetic/corner_west_down_north"
+      }
+    },
+    {
+      "when": {
+        "AND": [
+          {
+            "west": "true",
+            "down": "true",
+            "north": "true"
+          },
+          {
+            "function_group": "arithmetic"
+          }
+        ]
+      },
+      "apply": {
+        "model": "vs_clockwork:block/combobulator/arithmetic/fill_west_down_north"
+      }
+    },
+    {
+      "when": {
+        "AND": [
+          {
+            "OR": [
+              {
+                "west": "false",
+                "down": "false"
+              },
+              {
+                "west": "false",
+                "south": "false"
+              },
+              {
+                "down": "false",
+                "south": "false"
+              }
+            ]
+          },
+          {
+            "function_group": "arithmetic"
+          }
+        ]
+      },
+      "apply": {
+        "model": "vs_clockwork:block/combobulator/arithmetic/corner_west_down_south"
+      }
+    },
+    {
+      "when": {
+        "AND": [
+          {
+            "west": "true",
+            "down": "true",
+            "south": "true"
+          },
+          {
+            "function_group": "arithmetic"
+          }
+        ]
+      },
+      "apply": {
+        "model": "vs_clockwork:block/combobulator/arithmetic/fill_west_down_south"
+      }
+    },
+    {
+      "when": {
+        "AND": [
+          {
+            "OR": [
+              {
+                "west": "false",
+                "up": "false"
+              },
+              {
+                "west": "false",
+                "north": "false"
+              },
+              {
+                "up": "false",
+                "north": "false"
+              }
+            ]
+          },
+          {
+            "function_group": "arithmetic"
+          }
+        ]
+      },
+      "apply": {
+        "model": "vs_clockwork:block/combobulator/arithmetic/corner_west_up_north"
+      }
+    },
+    {
+      "when": {
+        "AND": [
+          {
+            "west": "true",
+            "up": "true",
+            "north": "true"
+          },
+          {
+            "function_group": "arithmetic"
+          }
+        ]
+      },
+      "apply": {
+        "model": "vs_clockwork:block/combobulator/arithmetic/fill_west_up_north"
+      }
+    },
+    {
+      "when": {
+        "AND": [
+          {
+            "OR": [
+              {
+                "west": "false",
+                "up": "false"
+              },
+              {
+                "west": "false",
+                "south": "false"
+              },
+              {
+                "up": "false",
+                "south": "false"
+              }
+            ]
+          },
+          {
+            "function_group": "arithmetic"
+          }
+        ]
+      },
+      "apply": {
+        "model": "vs_clockwork:block/combobulator/arithmetic/corner_west_up_south"
+      }
+    },
+    {
+      "when": {
+        "AND": [
+          {
+            "west": "true",
+            "up": "true",
+            "south": "true"
+          },
+          {
+            "function_group": "arithmetic"
+          }
+        ]
+      },
+      "apply": {
+        "model": "vs_clockwork:block/combobulator/arithmetic/fill_west_up_south"
+      }
+    },
+    {
+      "when": {
+        "AND": [
+          {
+            "OR": [
+              {
+                "east": "false",
+                "down": "false"
+              },
+              {
+                "east": "false",
+                "north": "false"
+              },
+              {
+                "down": "false",
+                "north": "false"
+              }
+            ]
+          },
+          {
+            "function_group": "arithmetic"
+          }
+        ]
+      },
+      "apply": {
+        "model": "vs_clockwork:block/combobulator/arithmetic/corner_east_down_north"
+      }
+    },
+    {
+      "when": {
+        "AND": [
+          {
+            "east": "true",
+            "down": "true",
+            "north": "true"
+          },
+          {
+            "function_group": "arithmetic"
+          }
+        ]
+      },
+      "apply": {
+        "model": "vs_clockwork:block/combobulator/arithmetic/fill_east_down_north"
+      }
+    },
+    {
+      "when": {
+        "AND": [
+          {
+            "OR": [
+              {
+                "east": "false",
+                "down": "false"
+              },
+              {
+                "east": "false",
+                "south": "false"
+              },
+              {
+                "down": "false",
+                "south": "false"
+              }
+            ]
+          },
+          {
+            "function_group": "arithmetic"
+          }
+        ]
+      },
+      "apply": {
+        "model": "vs_clockwork:block/combobulator/arithmetic/corner_east_down_south"
+      }
+    },
+    {
+      "when": {
+        "AND": [
+          {
+            "east": "true",
+            "down": "true",
+            "south": "true"
+          },
+          {
+            "function_group": "arithmetic"
+          }
+        ]
+      },
+      "apply": {
+        "model": "vs_clockwork:block/combobulator/arithmetic/fill_east_down_south"
+      }
+    },
+    {
+      "when": {
+        "AND": [
+          {
+            "OR": [
+              {
+                "east": "false",
+                "up": "false"
+              },
+              {
+                "east": "false",
+                "north": "false"
+              },
+              {
+                "up": "false",
+                "north": "false"
+              }
+            ]
+          },
+          {
+            "function_group": "arithmetic"
+          }
+        ]
+      },
+      "apply": {
+        "model": "vs_clockwork:block/combobulator/arithmetic/corner_east_up_north"
+      }
+    },
+    {
+      "when": {
+        "AND": [
+          {
+            "east": "true",
+            "up": "true",
+            "north": "true"
+          },
+          {
+            "function_group": "arithmetic"
+          }
+        ]
+      },
+      "apply": {
+        "model": "vs_clockwork:block/combobulator/arithmetic/fill_east_up_north"
+      }
+    },
+    {
+      "when": {
+        "AND": [
+          {
+            "OR": [
+              {
+                "east": "false",
+                "up": "false"
+              },
+              {
+                "east": "false",
+                "south": "false"
+              },
+              {
+                "up": "false",
+                "south": "false"
+              }
+            ]
+          },
+          {
+            "function_group": "arithmetic"
+          }
+        ]
+      },
+      "apply": {
+        "model": "vs_clockwork:block/combobulator/arithmetic/corner_east_up_south"
+      }
+    },
+    {
+      "when": {
+        "AND": [
+          {
+            "east": "true",
+            "up": "true",
+            "south": "true"
+          },
+          {
+            "function_group": "arithmetic"
+          }
+        ]
+      },
+      "apply": {
+        "model": "vs_clockwork:block/combobulator/arithmetic/fill_east_up_south"
+      }
+    },
+    {
+      "when": {
+        "AND": [
+          {
+            "west": "false"
+          },
+          {
+            "function_group": "arithmetic"
+          }
+        ]
+      },
+      "apply": [
+        {
+          "model": "vs_clockwork:block/combobulator/arithmetic/empty",
+          "y": 270,
+          "weight": 12
+        },
+        {
+          "model": "vs_clockwork:block/combobulator/arithmetic/face_1",
+          "y": 270,
+          "weight": 2
+        },
+        {
+          "model": "vs_clockwork:block/combobulator/arithmetic/face_2",
+          "y": 270,
+          "weight": 2
+        },
+        {
+          "model": "vs_clockwork:block/combobulator/arithmetic/face_3",
+          "y": 270,
+          "weight": 2
+        },
+        {
+          "model": "vs_clockwork:block/combobulator/arithmetic/face_4",
+          "y": 270,
+          "weight": 2
+        }
+      ]
+    },
+    {
+      "when": {
+        "AND": [
+          {
+            "east": "false"
+          },
+          {
+            "function_group": "arithmetic"
+          }
+        ]
+      },
+      "apply": [
+        {
+          "model": "vs_clockwork:block/combobulator/arithmetic/face_1",
+          "y": 90,
+          "weight": 2
+        },
+        {
+          "model": "vs_clockwork:block/combobulator/arithmetic/face_2",
+          "y": 90,
+          "weight": 2
+        },
+        {
+          "model": "vs_clockwork:block/combobulator/arithmetic/face_3",
+          "y": 90,
+          "weight": 2
+        },
+        {
+          "model": "vs_clockwork:block/combobulator/arithmetic/face_4",
+          "y": 90,
+          "weight": 2
+        },
+        {
+          "model": "vs_clockwork:block/combobulator/arithmetic/empty",
+          "y": 90,
+          "weight": 12
+        }
+      ]
+    },
+    {
+      "when": {
+        "AND": [
+          {
+            "down": "false"
+          },
+          {
+            "function_group": "arithmetic"
+          }
+        ]
+      },
+      "apply": [
+        {
+          "model": "vs_clockwork:block/combobulator/arithmetic/face_2",
+          "x": 90,
+          "weight": 2
+        },
+        {
+          "model": "vs_clockwork:block/combobulator/arithmetic/face_3",
+          "x": 90,
+          "weight": 2
+        },
+        {
+          "model": "vs_clockwork:block/combobulator/arithmetic/face_4",
+          "x": 90,
+          "weight": 2
+        },
+        {
+          "model": "vs_clockwork:block/combobulator/arithmetic/empty",
+          "x": 90,
+          "weight": 12
+        },
+        {
+          "model": "vs_clockwork:block/combobulator/arithmetic/face_1",
+          "x": 90,
+          "weight": 2
+        }
+      ]
+    },
+    {
+      "when": {
+        "AND": [
+          {
+            "up": "false"
+          },
+          {
+            "function_group": "arithmetic"
+          }
+        ]
+      },
+      "apply": [
+        {
+          "model": "vs_clockwork:block/combobulator/arithmetic/face_3",
+          "x": 270,
+          "weight": 2
+        },
+        {
+          "model": "vs_clockwork:block/combobulator/arithmetic/face_4",
+          "x": 270,
+          "weight": 2
+        },
+        {
+          "model": "vs_clockwork:block/combobulator/arithmetic/empty",
+          "x": 270,
+          "weight": 12
+        },
+        {
+          "model": "vs_clockwork:block/combobulator/arithmetic/face_1",
+          "x": 270,
+          "weight": 2
+        },
+        {
+          "model": "vs_clockwork:block/combobulator/arithmetic/face_2",
+          "x": 270,
+          "weight": 2
+        }
+      ]
+    },
+    {
+      "when": {
+        "AND": [
+          {
+            "north": "false"
+          },
+          {
+            "function_group": "arithmetic"
+          }
+        ]
+      },
+      "apply": [
+        {
+          "model": "vs_clockwork:block/combobulator/arithmetic/face_4",
+          "weight": 2
+        },
+        {
+          "model": "vs_clockwork:block/combobulator/arithmetic/empty",
+          "weight": 12
+        },
+        {
+          "model": "vs_clockwork:block/combobulator/arithmetic/face_1",
+          "weight": 2
+        },
+        {
+          "model": "vs_clockwork:block/combobulator/arithmetic/face_2",
+          "weight": 2
+        },
+        {
+          "model": "vs_clockwork:block/combobulator/arithmetic/face_3",
+          "weight": 2
+        }
+      ]
+    },
+    {
+      "when": {
+        "AND": [
+          {
+            "south": "false"
+          },
+          {
+            "function_group": "arithmetic"
+          }
+        ]
+      },
+      "apply": [
+        {
+          "model": "vs_clockwork:block/combobulator/arithmetic/empty",
+          "y": 180,
+          "weight": 12
+        },
+        {
+          "model": "vs_clockwork:block/combobulator/arithmetic/face_1",
+          "y": 180,
+          "weight": 2
+        },
+        {
+          "model": "vs_clockwork:block/combobulator/arithmetic/face_2",
+          "y": 180,
+          "weight": 2
+        },
+        {
+          "model": "vs_clockwork:block/combobulator/arithmetic/face_3",
+          "y": 180,
+          "weight": 2
+        },
+        {
+          "model": "vs_clockwork:block/combobulator/arithmetic/face_4",
+          "y": 180,
+          "weight": 2
+        }
+      ]
+    },
+    {
+      "apply": {
+        "model": "vs_clockwork:block/combobulator/logic/base"
+      },
+      "when": {
+        "function_group": "logic"
+      }
+    },
+    {
+      "when": {
+        "AND": [
+          {
+            "west": "true"
+          },
+          {
+            "function_group": "logic"
+          }
+        ]
+      },
+      "apply": {
+        "model": "vs_clockwork:block/combobulator/logic/extension_west"
+      }
+    },
+    {
+      "when": {
+        "AND": [
+          {
+            "east": "true"
+          },
+          {
+            "function_group": "logic"
+          }
+        ]
+      },
+      "apply": {
+        "model": "vs_clockwork:block/combobulator/logic/extension_east"
+      }
+    },
+    {
+      "when": {
+        "AND": [
+          {
+            "down": "true"
+          },
+          {
+            "function_group": "logic"
+          }
+        ]
+      },
+      "apply": {
+        "model": "vs_clockwork:block/combobulator/logic/extension_down"
+      }
+    },
+    {
+      "when": {
+        "AND": [
+          {
+            "up": "true"
+          },
+          {
+            "function_group": "logic"
+          }
+        ]
+      },
+      "apply": {
+        "model": "vs_clockwork:block/combobulator/logic/extension_up"
+      }
+    },
+    {
+      "when": {
+        "AND": [
+          {
+            "north": "true"
+          },
+          {
+            "function_group": "logic"
+          }
+        ]
+      },
+      "apply": {
+        "model": "vs_clockwork:block/combobulator/logic/extension_north"
+      }
+    },
+    {
+      "when": {
+        "AND": [
+          {
+            "south": "true"
+          },
+          {
+            "function_group": "logic"
+          }
+        ]
+      },
+      "apply": {
+        "model": "vs_clockwork:block/combobulator/logic/extension_south"
+      }
+    },
+    {
+      "when": {
+        "AND": [
+          {
+            "west": "false",
+            "down": "false"
+          },
+          {
+            "function_group": "logic"
+          }
+        ]
+      },
+      "apply": {
+        "model": "vs_clockwork:block/combobulator/logic/edge_west_down"
+      }
+    },
+    {
+      "when": {
+        "AND": [
+          {
+            "west": "true",
+            "down": "true"
+          },
+          {
+            "function_group": "logic"
+          }
+        ]
+      },
+      "apply": {
+        "model": "vs_clockwork:block/combobulator/logic/fill_west_down"
+      }
+    },
+    {
+      "when": {
+        "AND": [
+          {
+            "west": "false",
+            "up": "false"
+          },
+          {
+            "function_group": "logic"
+          }
+        ]
+      },
+      "apply": {
+        "model": "vs_clockwork:block/combobulator/logic/edge_west_up"
+      }
+    },
+    {
+      "when": {
+        "AND": [
+          {
+            "west": "true",
+            "up": "true"
+          },
+          {
+            "function_group": "logic"
+          }
+        ]
+      },
+      "apply": {
+        "model": "vs_clockwork:block/combobulator/logic/fill_west_up"
+      }
+    },
+    {
+      "when": {
+        "AND": [
+          {
+            "west": "false",
+            "north": "false"
+          },
+          {
+            "function_group": "logic"
+          }
+        ]
+      },
+      "apply": {
+        "model": "vs_clockwork:block/combobulator/logic/edge_west_north"
+      }
+    },
+    {
+      "when": {
+        "AND": [
+          {
+            "west": "true",
+            "north": "true"
+          },
+          {
+            "function_group": "logic"
+          }
+        ]
+      },
+      "apply": {
+        "model": "vs_clockwork:block/combobulator/logic/fill_west_north"
+      }
+    },
+    {
+      "when": {
+        "AND": [
+          {
+            "west": "false",
+            "south": "false"
+          },
+          {
+            "function_group": "logic"
+          }
+        ]
+      },
+      "apply": {
+        "model": "vs_clockwork:block/combobulator/logic/edge_west_south"
+      }
+    },
+    {
+      "when": {
+        "AND": [
+          {
+            "west": "true",
+            "south": "true"
+          },
+          {
+            "function_group": "logic"
+          }
+        ]
+      },
+      "apply": {
+        "model": "vs_clockwork:block/combobulator/logic/fill_west_south"
+      }
+    },
+    {
+      "when": {
+        "AND": [
+          {
+            "east": "false",
+            "down": "false"
+          },
+          {
+            "function_group": "logic"
+          }
+        ]
+      },
+      "apply": {
+        "model": "vs_clockwork:block/combobulator/logic/edge_east_down"
+      }
+    },
+    {
+      "when": {
+        "AND": [
+          {
+            "east": "true",
+            "down": "true"
+          },
+          {
+            "function_group": "logic"
+          }
+        ]
+      },
+      "apply": {
+        "model": "vs_clockwork:block/combobulator/logic/fill_east_down"
+      }
+    },
+    {
+      "when": {
+        "AND": [
+          {
+            "east": "false",
+            "up": "false"
+          },
+          {
+            "function_group": "logic"
+          }
+        ]
+      },
+      "apply": {
+        "model": "vs_clockwork:block/combobulator/logic/edge_east_up"
+      }
+    },
+    {
+      "when": {
+        "AND": [
+          {
+            "east": "true",
+            "up": "true"
+          },
+          {
+            "function_group": "logic"
+          }
+        ]
+      },
+      "apply": {
+        "model": "vs_clockwork:block/combobulator/logic/fill_east_up"
+      }
+    },
+    {
+      "when": {
+        "AND": [
+          {
+            "east": "false",
+            "north": "false"
+          },
+          {
+            "function_group": "logic"
+          }
+        ]
+      },
+      "apply": {
+        "model": "vs_clockwork:block/combobulator/logic/edge_east_north"
+      }
+    },
+    {
+      "when": {
+        "AND": [
+          {
+            "east": "true",
+            "north": "true"
+          },
+          {
+            "function_group": "logic"
+          }
+        ]
+      },
+      "apply": {
+        "model": "vs_clockwork:block/combobulator/logic/fill_east_north"
+      }
+    },
+    {
+      "when": {
+        "AND": [
+          {
+            "east": "false",
+            "south": "false"
+          },
+          {
+            "function_group": "logic"
+          }
+        ]
+      },
+      "apply": {
+        "model": "vs_clockwork:block/combobulator/logic/edge_east_south"
+      }
+    },
+    {
+      "when": {
+        "AND": [
+          {
+            "east": "true",
+            "south": "true"
+          },
+          {
+            "function_group": "logic"
+          }
+        ]
+      },
+      "apply": {
+        "model": "vs_clockwork:block/combobulator/logic/fill_east_south"
+      }
+    },
+    {
+      "when": {
+        "AND": [
+          {
+            "down": "false",
+            "north": "false"
+          },
+          {
+            "function_group": "logic"
+          }
+        ]
+      },
+      "apply": {
+        "model": "vs_clockwork:block/combobulator/logic/edge_down_north"
+      }
+    },
+    {
+      "when": {
+        "AND": [
+          {
+            "down": "true",
+            "north": "true"
+          },
+          {
+            "function_group": "logic"
+          }
+        ]
+      },
+      "apply": {
+        "model": "vs_clockwork:block/combobulator/logic/fill_down_north"
+      }
+    },
+    {
+      "when": {
+        "AND": [
+          {
+            "down": "false",
+            "south": "false"
+          },
+          {
+            "function_group": "logic"
+          }
+        ]
+      },
+      "apply": {
+        "model": "vs_clockwork:block/combobulator/logic/edge_down_south"
+      }
+    },
+    {
+      "when": {
+        "AND": [
+          {
+            "down": "true",
+            "south": "true"
+          },
+          {
+            "function_group": "logic"
+          }
+        ]
+      },
+      "apply": {
+        "model": "vs_clockwork:block/combobulator/logic/fill_down_south"
+      }
+    },
+    {
+      "when": {
+        "AND": [
+          {
+            "up": "false",
+            "north": "false"
+          },
+          {
+            "function_group": "logic"
+          }
+        ]
+      },
+      "apply": {
+        "model": "vs_clockwork:block/combobulator/logic/edge_up_north"
+      }
+    },
+    {
+      "when": {
+        "AND": [
+          {
+            "up": "true",
+            "north": "true"
+          },
+          {
+            "function_group": "logic"
+          }
+        ]
+      },
+      "apply": {
+        "model": "vs_clockwork:block/combobulator/logic/fill_up_north"
+      }
+    },
+    {
+      "when": {
+        "AND": [
+          {
+            "up": "false",
+            "south": "false"
+          },
+          {
+            "function_group": "logic"
+          }
+        ]
+      },
+      "apply": {
+        "model": "vs_clockwork:block/combobulator/logic/edge_up_south"
+      }
+    },
+    {
+      "when": {
+        "AND": [
+          {
+            "up": "true",
+            "south": "true"
+          },
+          {
+            "function_group": "logic"
+          }
+        ]
+      },
+      "apply": {
+        "model": "vs_clockwork:block/combobulator/logic/fill_up_south"
+      }
+    },
+    {
+      "when": {
+        "AND": [
+          {
+            "OR": [
+              {
+                "west": "false",
+                "down": "false"
+              },
+              {
+                "west": "false",
+                "north": "false"
+              },
+              {
+                "down": "false",
+                "north": "false"
+              }
+            ]
+          },
+          {
+            "function_group": "logic"
+          }
+        ]
+      },
+      "apply": {
+        "model": "vs_clockwork:block/combobulator/logic/corner_west_down_north"
+      }
+    },
+    {
+      "when": {
+        "AND": [
+          {
+            "west": "true",
+            "down": "true",
+            "north": "true"
+          },
+          {
+            "function_group": "logic"
+          }
+        ]
+      },
+      "apply": {
+        "model": "vs_clockwork:block/combobulator/logic/fill_west_down_north"
+      }
+    },
+    {
+      "when": {
+        "AND": [
+          {
+            "OR": [
+              {
+                "west": "false",
+                "down": "false"
+              },
+              {
+                "west": "false",
+                "south": "false"
+              },
+              {
+                "down": "false",
+                "south": "false"
+              }
+            ]
+          },
+          {
+            "function_group": "logic"
+          }
+        ]
+      },
+      "apply": {
+        "model": "vs_clockwork:block/combobulator/logic/corner_west_down_south"
+      }
+    },
+    {
+      "when": {
+        "AND": [
+          {
+            "west": "true",
+            "down": "true",
+            "south": "true"
+          },
+          {
+            "function_group": "logic"
+          }
+        ]
+      },
+      "apply": {
+        "model": "vs_clockwork:block/combobulator/logic/fill_west_down_south"
+      }
+    },
+    {
+      "when": {
+        "AND": [
+          {
+            "OR": [
+              {
+                "west": "false",
+                "up": "false"
+              },
+              {
+                "west": "false",
+                "north": "false"
+              },
+              {
+                "up": "false",
+                "north": "false"
+              }
+            ]
+          },
+          {
+            "function_group": "logic"
+          }
+        ]
+      },
+      "apply": {
+        "model": "vs_clockwork:block/combobulator/logic/corner_west_up_north"
+      }
+    },
+    {
+      "when": {
+        "AND": [
+          {
+            "west": "true",
+            "up": "true",
+            "north": "true"
+          },
+          {
+            "function_group": "logic"
+          }
+        ]
+      },
+      "apply": {
+        "model": "vs_clockwork:block/combobulator/logic/fill_west_up_north"
+      }
+    },
+    {
+      "when": {
+        "AND": [
+          {
+            "OR": [
+              {
+                "west": "false",
+                "up": "false"
+              },
+              {
+                "west": "false",
+                "south": "false"
+              },
+              {
+                "up": "false",
+                "south": "false"
+              }
+            ]
+          },
+          {
+            "function_group": "logic"
+          }
+        ]
+      },
+      "apply": {
+        "model": "vs_clockwork:block/combobulator/logic/corner_west_up_south"
+      }
+    },
+    {
+      "when": {
+        "AND": [
+          {
+            "west": "true",
+            "up": "true",
+            "south": "true"
+          },
+          {
+            "function_group": "logic"
+          }
+        ]
+      },
+      "apply": {
+        "model": "vs_clockwork:block/combobulator/logic/fill_west_up_south"
+      }
+    },
+    {
+      "when": {
+        "AND": [
+          {
+            "OR": [
+              {
+                "east": "false",
+                "down": "false"
+              },
+              {
+                "east": "false",
+                "north": "false"
+              },
+              {
+                "down": "false",
+                "north": "false"
+              }
+            ]
+          },
+          {
+            "function_group": "logic"
+          }
+        ]
+      },
+      "apply": {
+        "model": "vs_clockwork:block/combobulator/logic/corner_east_down_north"
+      }
+    },
+    {
+      "when": {
+        "AND": [
+          {
+            "east": "true",
+            "down": "true",
+            "north": "true"
+          },
+          {
+            "function_group": "logic"
+          }
+        ]
+      },
+      "apply": {
+        "model": "vs_clockwork:block/combobulator/logic/fill_east_down_north"
+      }
+    },
+    {
+      "when": {
+        "AND": [
+          {
+            "OR": [
+              {
+                "east": "false",
+                "down": "false"
+              },
+              {
+                "east": "false",
+                "south": "false"
+              },
+              {
+                "down": "false",
+                "south": "false"
+              }
+            ]
+          },
+          {
+            "function_group": "logic"
+          }
+        ]
+      },
+      "apply": {
+        "model": "vs_clockwork:block/combobulator/logic/corner_east_down_south"
+      }
+    },
+    {
+      "when": {
+        "AND": [
+          {
+            "east": "true",
+            "down": "true",
+            "south": "true"
+          },
+          {
+            "function_group": "logic"
+          }
+        ]
+      },
+      "apply": {
+        "model": "vs_clockwork:block/combobulator/logic/fill_east_down_south"
+      }
+    },
+    {
+      "when": {
+        "AND": [
+          {
+            "OR": [
+              {
+                "east": "false",
+                "up": "false"
+              },
+              {
+                "east": "false",
+                "north": "false"
+              },
+              {
+                "up": "false",
+                "north": "false"
+              }
+            ]
+          },
+          {
+            "function_group": "logic"
+          }
+        ]
+      },
+      "apply": {
+        "model": "vs_clockwork:block/combobulator/logic/corner_east_up_north"
+      }
+    },
+    {
+      "when": {
+        "AND": [
+          {
+            "east": "true",
+            "up": "true",
+            "north": "true"
+          },
+          {
+            "function_group": "logic"
+          }
+        ]
+      },
+      "apply": {
+        "model": "vs_clockwork:block/combobulator/logic/fill_east_up_north"
+      }
+    },
+    {
+      "when": {
+        "AND": [
+          {
+            "OR": [
+              {
+                "east": "false",
+                "up": "false"
+              },
+              {
+                "east": "false",
+                "south": "false"
+              },
+              {
+                "up": "false",
+                "south": "false"
+              }
+            ]
+          },
+          {
+            "function_group": "logic"
+          }
+        ]
+      },
+      "apply": {
+        "model": "vs_clockwork:block/combobulator/logic/corner_east_up_south"
+      }
+    },
+    {
+      "when": {
+        "AND": [
+          {
+            "east": "true",
+            "up": "true",
+            "south": "true"
+          },
+          {
+            "function_group": "logic"
+          }
+        ]
+      },
+      "apply": {
+        "model": "vs_clockwork:block/combobulator/logic/fill_east_up_south"
+      }
+    },
+    {
+      "when": {
+        "AND": [
+          {
+            "west": "false"
+          },
+          {
+            "function_group": "logic"
+          }
+        ]
+      },
+      "apply": [
+        {
+          "model": "vs_clockwork:block/combobulator/logic/empty",
+          "y": 270,
+          "weight": 12
+        },
+        {
+          "model": "vs_clockwork:block/combobulator/logic/face_1",
+          "y": 270,
+          "weight": 2
+        },
+        {
+          "model": "vs_clockwork:block/combobulator/logic/face_2",
+          "y": 270,
+          "weight": 2
+        },
+        {
+          "model": "vs_clockwork:block/combobulator/logic/face_3",
+          "y": 270,
+          "weight": 2
+        },
+        {
+          "model": "vs_clockwork:block/combobulator/logic/face_4",
+          "y": 270,
+          "weight": 2
+        }
+      ]
+    },
+    {
+      "when": {
+        "AND": [
+          {
+            "east": "false"
+          },
+          {
+            "function_group": "logic"
+          }
+        ]
+      },
+      "apply": [
+        {
+          "model": "vs_clockwork:block/combobulator/logic/face_1",
+          "y": 90,
+          "weight": 2
+        },
+        {
+          "model": "vs_clockwork:block/combobulator/logic/face_2",
+          "y": 90,
+          "weight": 2
+        },
+        {
+          "model": "vs_clockwork:block/combobulator/logic/face_3",
+          "y": 90,
+          "weight": 2
+        },
+        {
+          "model": "vs_clockwork:block/combobulator/logic/face_4",
+          "y": 90,
+          "weight": 2
+        },
+        {
+          "model": "vs_clockwork:block/combobulator/logic/empty",
+          "y": 90,
+          "weight": 12
+        }
+      ]
+    },
+    {
+      "when": {
+        "AND": [
+          {
+            "down": "false"
+          },
+          {
+            "function_group": "logic"
+          }
+        ]
+      },
+      "apply": [
+        {
+          "model": "vs_clockwork:block/combobulator/logic/face_2",
+          "x": 90,
+          "weight": 2
+        },
+        {
+          "model": "vs_clockwork:block/combobulator/logic/face_3",
+          "x": 90,
+          "weight": 2
+        },
+        {
+          "model": "vs_clockwork:block/combobulator/logic/face_4",
+          "x": 90,
+          "weight": 2
+        },
+        {
+          "model": "vs_clockwork:block/combobulator/logic/empty",
+          "x": 90,
+          "weight": 12
+        },
+        {
+          "model": "vs_clockwork:block/combobulator/logic/face_1",
+          "x": 90,
+          "weight": 2
+        }
+      ]
+    },
+    {
+      "when": {
+        "AND": [
+          {
+            "up": "false"
+          },
+          {
+            "function_group": "logic"
+          }
+        ]
+      },
+      "apply": [
+        {
+          "model": "vs_clockwork:block/combobulator/logic/face_3",
+          "x": 270,
+          "weight": 2
+        },
+        {
+          "model": "vs_clockwork:block/combobulator/logic/face_4",
+          "x": 270,
+          "weight": 2
+        },
+        {
+          "model": "vs_clockwork:block/combobulator/logic/empty",
+          "x": 270,
+          "weight": 12
+        },
+        {
+          "model": "vs_clockwork:block/combobulator/logic/face_1",
+          "x": 270,
+          "weight": 2
+        },
+        {
+          "model": "vs_clockwork:block/combobulator/logic/face_2",
+          "x": 270,
+          "weight": 2
+        }
+      ]
+    },
+    {
+      "when": {
+        "AND": [
+          {
+            "north": "false"
+          },
+          {
+            "function_group": "logic"
+          }
+        ]
+      },
+      "apply": [
+        {
+          "model": "vs_clockwork:block/combobulator/logic/face_4",
+          "weight": 2
+        },
+        {
+          "model": "vs_clockwork:block/combobulator/logic/empty",
+          "weight": 12
+        },
+        {
+          "model": "vs_clockwork:block/combobulator/logic/face_1",
+          "weight": 2
+        },
+        {
+          "model": "vs_clockwork:block/combobulator/logic/face_2",
+          "weight": 2
+        },
+        {
+          "model": "vs_clockwork:block/combobulator/logic/face_3",
+          "weight": 2
+        }
+      ]
+    },
+    {
+      "when": {
+        "AND": [
+          {
+            "south": "false"
+          },
+          {
+            "function_group": "logic"
+          }
+        ]
+      },
+      "apply": [
+        {
+          "model": "vs_clockwork:block/combobulator/logic/empty",
+          "y": 180,
+          "weight": 12
+        },
+        {
+          "model": "vs_clockwork:block/combobulator/logic/face_1",
+          "y": 180,
+          "weight": 2
+        },
+        {
+          "model": "vs_clockwork:block/combobulator/logic/face_2",
+          "y": 180,
+          "weight": 2
+        },
+        {
+          "model": "vs_clockwork:block/combobulator/logic/face_3",
+          "y": 180,
+          "weight": 2
+        },
+        {
+          "model": "vs_clockwork:block/combobulator/logic/face_4",
+          "y": 180,
+          "weight": 2
+        }
+      ]
+    },
+    {
+      "apply": {
+        "model": "vs_clockwork:block/combobulator/memory/base"
+      },
+      "when": {
+        "function_group": "memory"
+      }
+    },
+    {
+      "when": {
+        "AND": [
+          {
+            "west": "true"
+          },
+          {
+            "function_group": "memory"
+          }
+        ]
+      },
+      "apply": {
+        "model": "vs_clockwork:block/combobulator/memory/extension_west"
+      }
+    },
+    {
+      "when": {
+        "AND": [
+          {
+            "east": "true"
+          },
+          {
+            "function_group": "memory"
+          }
+        ]
+      },
+      "apply": {
+        "model": "vs_clockwork:block/combobulator/memory/extension_east"
+      }
+    },
+    {
+      "when": {
+        "AND": [
+          {
+            "down": "true"
+          },
+          {
+            "function_group": "memory"
+          }
+        ]
+      },
+      "apply": {
+        "model": "vs_clockwork:block/combobulator/memory/extension_down"
+      }
+    },
+    {
+      "when": {
+        "AND": [
+          {
+            "up": "true"
+          },
+          {
+            "function_group": "memory"
+          }
+        ]
+      },
+      "apply": {
+        "model": "vs_clockwork:block/combobulator/memory/extension_up"
+      }
+    },
+    {
+      "when": {
+        "AND": [
+          {
+            "north": "true"
+          },
+          {
+            "function_group": "memory"
+          }
+        ]
+      },
+      "apply": {
+        "model": "vs_clockwork:block/combobulator/memory/extension_north"
+      }
+    },
+    {
+      "when": {
+        "AND": [
+          {
+            "south": "true"
+          },
+          {
+            "function_group": "memory"
+          }
+        ]
+      },
+      "apply": {
+        "model": "vs_clockwork:block/combobulator/memory/extension_south"
+      }
+    },
+    {
+      "when": {
+        "AND": [
+          {
+            "west": "false",
+            "down": "false"
+          },
+          {
+            "function_group": "memory"
+          }
+        ]
+      },
+      "apply": {
+        "model": "vs_clockwork:block/combobulator/memory/edge_west_down"
+      }
+    },
+    {
+      "when": {
+        "AND": [
+          {
+            "west": "true",
+            "down": "true"
+          },
+          {
+            "function_group": "memory"
+          }
+        ]
+      },
+      "apply": {
+        "model": "vs_clockwork:block/combobulator/memory/fill_west_down"
+      }
+    },
+    {
+      "when": {
+        "AND": [
+          {
+            "west": "false",
+            "up": "false"
+          },
+          {
+            "function_group": "memory"
+          }
+        ]
+      },
+      "apply": {
+        "model": "vs_clockwork:block/combobulator/memory/edge_west_up"
+      }
+    },
+    {
+      "when": {
+        "AND": [
+          {
+            "west": "true",
+            "up": "true"
+          },
+          {
+            "function_group": "memory"
+          }
+        ]
+      },
+      "apply": {
+        "model": "vs_clockwork:block/combobulator/memory/fill_west_up"
+      }
+    },
+    {
+      "when": {
+        "AND": [
+          {
+            "west": "false",
+            "north": "false"
+          },
+          {
+            "function_group": "memory"
+          }
+        ]
+      },
+      "apply": {
+        "model": "vs_clockwork:block/combobulator/memory/edge_west_north"
+      }
+    },
+    {
+      "when": {
+        "AND": [
+          {
+            "west": "true",
+            "north": "true"
+          },
+          {
+            "function_group": "memory"
+          }
+        ]
+      },
+      "apply": {
+        "model": "vs_clockwork:block/combobulator/memory/fill_west_north"
+      }
+    },
+    {
+      "when": {
+        "AND": [
+          {
+            "west": "false",
+            "south": "false"
+          },
+          {
+            "function_group": "memory"
+          }
+        ]
+      },
+      "apply": {
+        "model": "vs_clockwork:block/combobulator/memory/edge_west_south"
+      }
+    },
+    {
+      "when": {
+        "AND": [
+          {
+            "west": "true",
+            "south": "true"
+          },
+          {
+            "function_group": "memory"
+          }
+        ]
+      },
+      "apply": {
+        "model": "vs_clockwork:block/combobulator/memory/fill_west_south"
+      }
+    },
+    {
+      "when": {
+        "AND": [
+          {
+            "east": "false",
+            "down": "false"
+          },
+          {
+            "function_group": "memory"
+          }
+        ]
+      },
+      "apply": {
+        "model": "vs_clockwork:block/combobulator/memory/edge_east_down"
+      }
+    },
+    {
+      "when": {
+        "AND": [
+          {
+            "east": "true",
+            "down": "true"
+          },
+          {
+            "function_group": "memory"
+          }
+        ]
+      },
+      "apply": {
+        "model": "vs_clockwork:block/combobulator/memory/fill_east_down"
+      }
+    },
+    {
+      "when": {
+        "AND": [
+          {
+            "east": "false",
+            "up": "false"
+          },
+          {
+            "function_group": "memory"
+          }
+        ]
+      },
+      "apply": {
+        "model": "vs_clockwork:block/combobulator/memory/edge_east_up"
+      }
+    },
+    {
+      "when": {
+        "AND": [
+          {
+            "east": "true",
+            "up": "true"
+          },
+          {
+            "function_group": "memory"
+          }
+        ]
+      },
+      "apply": {
+        "model": "vs_clockwork:block/combobulator/memory/fill_east_up"
+      }
+    },
+    {
+      "when": {
+        "AND": [
+          {
+            "east": "false",
+            "north": "false"
+          },
+          {
+            "function_group": "memory"
+          }
+        ]
+      },
+      "apply": {
+        "model": "vs_clockwork:block/combobulator/memory/edge_east_north"
+      }
+    },
+    {
+      "when": {
+        "AND": [
+          {
+            "east": "true",
+            "north": "true"
+          },
+          {
+            "function_group": "memory"
+          }
+        ]
+      },
+      "apply": {
+        "model": "vs_clockwork:block/combobulator/memory/fill_east_north"
+      }
+    },
+    {
+      "when": {
+        "AND": [
+          {
+            "east": "false",
+            "south": "false"
+          },
+          {
+            "function_group": "memory"
+          }
+        ]
+      },
+      "apply": {
+        "model": "vs_clockwork:block/combobulator/memory/edge_east_south"
+      }
+    },
+    {
+      "when": {
+        "AND": [
+          {
+            "east": "true",
+            "south": "true"
+          },
+          {
+            "function_group": "memory"
+          }
+        ]
+      },
+      "apply": {
+        "model": "vs_clockwork:block/combobulator/memory/fill_east_south"
+      }
+    },
+    {
+      "when": {
+        "AND": [
+          {
+            "down": "false",
+            "north": "false"
+          },
+          {
+            "function_group": "memory"
+          }
+        ]
+      },
+      "apply": {
+        "model": "vs_clockwork:block/combobulator/memory/edge_down_north"
+      }
+    },
+    {
+      "when": {
+        "AND": [
+          {
+            "down": "true",
+            "north": "true"
+          },
+          {
+            "function_group": "memory"
+          }
+        ]
+      },
+      "apply": {
+        "model": "vs_clockwork:block/combobulator/memory/fill_down_north"
+      }
+    },
+    {
+      "when": {
+        "AND": [
+          {
+            "down": "false",
+            "south": "false"
+          },
+          {
+            "function_group": "memory"
+          }
+        ]
+      },
+      "apply": {
+        "model": "vs_clockwork:block/combobulator/memory/edge_down_south"
+      }
+    },
+    {
+      "when": {
+        "AND": [
+          {
+            "down": "true",
+            "south": "true"
+          },
+          {
+            "function_group": "memory"
+          }
+        ]
+      },
+      "apply": {
+        "model": "vs_clockwork:block/combobulator/memory/fill_down_south"
+      }
+    },
+    {
+      "when": {
+        "AND": [
+          {
+            "up": "false",
+            "north": "false"
+          },
+          {
+            "function_group": "memory"
+          }
+        ]
+      },
+      "apply": {
+        "model": "vs_clockwork:block/combobulator/memory/edge_up_north"
+      }
+    },
+    {
+      "when": {
+        "AND": [
+          {
+            "up": "true",
+            "north": "true"
+          },
+          {
+            "function_group": "memory"
+          }
+        ]
+      },
+      "apply": {
+        "model": "vs_clockwork:block/combobulator/memory/fill_up_north"
+      }
+    },
+    {
+      "when": {
+        "AND": [
+          {
+            "up": "false",
+            "south": "false"
+          },
+          {
+            "function_group": "memory"
+          }
+        ]
+      },
+      "apply": {
+        "model": "vs_clockwork:block/combobulator/memory/edge_up_south"
+      }
+    },
+    {
+      "when": {
+        "AND": [
+          {
+            "up": "true",
+            "south": "true"
+          },
+          {
+            "function_group": "memory"
+          }
+        ]
+      },
+      "apply": {
+        "model": "vs_clockwork:block/combobulator/memory/fill_up_south"
+      }
+    },
+    {
+      "when": {
+        "AND": [
+          {
+            "OR": [
+              {
+                "west": "false",
+                "down": "false"
+              },
+              {
+                "west": "false",
+                "north": "false"
+              },
+              {
+                "down": "false",
+                "north": "false"
+              }
+            ]
+          },
+          {
+            "function_group": "memory"
+          }
+        ]
+      },
+      "apply": {
+        "model": "vs_clockwork:block/combobulator/memory/corner_west_down_north"
+      }
+    },
+    {
+      "when": {
+        "AND": [
+          {
+            "west": "true",
+            "down": "true",
+            "north": "true"
+          },
+          {
+            "function_group": "memory"
+          }
+        ]
+      },
+      "apply": {
+        "model": "vs_clockwork:block/combobulator/memory/fill_west_down_north"
+      }
+    },
+    {
+      "when": {
+        "AND": [
+          {
+            "OR": [
+              {
+                "west": "false",
+                "down": "false"
+              },
+              {
+                "west": "false",
+                "south": "false"
+              },
+              {
+                "down": "false",
+                "south": "false"
+              }
+            ]
+          },
+          {
+            "function_group": "memory"
+          }
+        ]
+      },
+      "apply": {
+        "model": "vs_clockwork:block/combobulator/memory/corner_west_down_south"
+      }
+    },
+    {
+      "when": {
+        "AND": [
+          {
+            "west": "true",
+            "down": "true",
+            "south": "true"
+          },
+          {
+            "function_group": "memory"
+          }
+        ]
+      },
+      "apply": {
+        "model": "vs_clockwork:block/combobulator/memory/fill_west_down_south"
+      }
+    },
+    {
+      "when": {
+        "AND": [
+          {
+            "OR": [
+              {
+                "west": "false",
+                "up": "false"
+              },
+              {
+                "west": "false",
+                "north": "false"
+              },
+              {
+                "up": "false",
+                "north": "false"
+              }
+            ]
+          },
+          {
+            "function_group": "memory"
+          }
+        ]
+      },
+      "apply": {
+        "model": "vs_clockwork:block/combobulator/memory/corner_west_up_north"
+      }
+    },
+    {
+      "when": {
+        "AND": [
+          {
+            "west": "true",
+            "up": "true",
+            "north": "true"
+          },
+          {
+            "function_group": "memory"
+          }
+        ]
+      },
+      "apply": {
+        "model": "vs_clockwork:block/combobulator/memory/fill_west_up_north"
+      }
+    },
+    {
+      "when": {
+        "AND": [
+          {
+            "OR": [
+              {
+                "west": "false",
+                "up": "false"
+              },
+              {
+                "west": "false",
+                "south": "false"
+              },
+              {
+                "up": "false",
+                "south": "false"
+              }
+            ]
+          },
+          {
+            "function_group": "memory"
+          }
+        ]
+      },
+      "apply": {
+        "model": "vs_clockwork:block/combobulator/memory/corner_west_up_south"
+      }
+    },
+    {
+      "when": {
+        "AND": [
+          {
+            "west": "true",
+            "up": "true",
+            "south": "true"
+          },
+          {
+            "function_group": "memory"
+          }
+        ]
+      },
+      "apply": {
+        "model": "vs_clockwork:block/combobulator/memory/fill_west_up_south"
+      }
+    },
+    {
+      "when": {
+        "AND": [
+          {
+            "OR": [
+              {
+                "east": "false",
+                "down": "false"
+              },
+              {
+                "east": "false",
+                "north": "false"
+              },
+              {
+                "down": "false",
+                "north": "false"
+              }
+            ]
+          },
+          {
+            "function_group": "memory"
+          }
+        ]
+      },
+      "apply": {
+        "model": "vs_clockwork:block/combobulator/memory/corner_east_down_north"
+      }
+    },
+    {
+      "when": {
+        "AND": [
+          {
+            "east": "true",
+            "down": "true",
+            "north": "true"
+          },
+          {
+            "function_group": "memory"
+          }
+        ]
+      },
+      "apply": {
+        "model": "vs_clockwork:block/combobulator/memory/fill_east_down_north"
+      }
+    },
+    {
+      "when": {
+        "AND": [
+          {
+            "OR": [
+              {
+                "east": "false",
+                "down": "false"
+              },
+              {
+                "east": "false",
+                "south": "false"
+              },
+              {
+                "down": "false",
+                "south": "false"
+              }
+            ]
+          },
+          {
+            "function_group": "memory"
+          }
+        ]
+      },
+      "apply": {
+        "model": "vs_clockwork:block/combobulator/memory/corner_east_down_south"
+      }
+    },
+    {
+      "when": {
+        "AND": [
+          {
+            "east": "true",
+            "down": "true",
+            "south": "true"
+          },
+          {
+            "function_group": "memory"
+          }
+        ]
+      },
+      "apply": {
+        "model": "vs_clockwork:block/combobulator/memory/fill_east_down_south"
+      }
+    },
+    {
+      "when": {
+        "AND": [
+          {
+            "OR": [
+              {
+                "east": "false",
+                "up": "false"
+              },
+              {
+                "east": "false",
+                "north": "false"
+              },
+              {
+                "up": "false",
+                "north": "false"
+              }
+            ]
+          },
+          {
+            "function_group": "memory"
+          }
+        ]
+      },
+      "apply": {
+        "model": "vs_clockwork:block/combobulator/memory/corner_east_up_north"
+      }
+    },
+    {
+      "when": {
+        "AND": [
+          {
+            "east": "true",
+            "up": "true",
+            "north": "true"
+          },
+          {
+            "function_group": "memory"
+          }
+        ]
+      },
+      "apply": {
+        "model": "vs_clockwork:block/combobulator/memory/fill_east_up_north"
+      }
+    },
+    {
+      "when": {
+        "AND": [
+          {
+            "OR": [
+              {
+                "east": "false",
+                "up": "false"
+              },
+              {
+                "east": "false",
+                "south": "false"
+              },
+              {
+                "up": "false",
+                "south": "false"
+              }
+            ]
+          },
+          {
+            "function_group": "memory"
+          }
+        ]
+      },
+      "apply": {
+        "model": "vs_clockwork:block/combobulator/memory/corner_east_up_south"
+      }
+    },
+    {
+      "when": {
+        "AND": [
+          {
+            "east": "true",
+            "up": "true",
+            "south": "true"
+          },
+          {
+            "function_group": "memory"
+          }
+        ]
+      },
+      "apply": {
+        "model": "vs_clockwork:block/combobulator/memory/fill_east_up_south"
+      }
+    },
+    {
+      "when": {
+        "AND": [
+          {
+            "west": "false"
+          },
+          {
+            "function_group": "memory"
+          }
+        ]
+      },
+      "apply": [
+        {
+          "model": "vs_clockwork:block/combobulator/memory/empty",
+          "y": 270,
+          "weight": 12
+        },
+        {
+          "model": "vs_clockwork:block/combobulator/memory/face_1",
+          "y": 270,
+          "weight": 2
+        },
+        {
+          "model": "vs_clockwork:block/combobulator/memory/face_2",
+          "y": 270,
+          "weight": 2
+        },
+        {
+          "model": "vs_clockwork:block/combobulator/memory/face_3",
+          "y": 270,
+          "weight": 2
+        },
+        {
+          "model": "vs_clockwork:block/combobulator/memory/face_4",
+          "y": 270,
+          "weight": 2
+        }
+      ]
+    },
+    {
+      "when": {
+        "AND": [
+          {
+            "east": "false"
+          },
+          {
+            "function_group": "memory"
+          }
+        ]
+      },
+      "apply": [
+        {
+          "model": "vs_clockwork:block/combobulator/memory/face_1",
+          "y": 90,
+          "weight": 2
+        },
+        {
+          "model": "vs_clockwork:block/combobulator/memory/face_2",
+          "y": 90,
+          "weight": 2
+        },
+        {
+          "model": "vs_clockwork:block/combobulator/memory/face_3",
+          "y": 90,
+          "weight": 2
+        },
+        {
+          "model": "vs_clockwork:block/combobulator/memory/face_4",
+          "y": 90,
+          "weight": 2
+        },
+        {
+          "model": "vs_clockwork:block/combobulator/memory/empty",
+          "y": 90,
+          "weight": 12
+        }
+      ]
+    },
+    {
+      "when": {
+        "AND": [
+          {
+            "down": "false"
+          },
+          {
+            "function_group": "memory"
+          }
+        ]
+      },
+      "apply": [
+        {
+          "model": "vs_clockwork:block/combobulator/memory/face_2",
+          "x": 90,
+          "weight": 2
+        },
+        {
+          "model": "vs_clockwork:block/combobulator/memory/face_3",
+          "x": 90,
+          "weight": 2
+        },
+        {
+          "model": "vs_clockwork:block/combobulator/memory/face_4",
+          "x": 90,
+          "weight": 2
+        },
+        {
+          "model": "vs_clockwork:block/combobulator/memory/empty",
+          "x": 90,
+          "weight": 12
+        },
+        {
+          "model": "vs_clockwork:block/combobulator/memory/face_1",
+          "x": 90,
+          "weight": 2
+        }
+      ]
+    },
+    {
+      "when": {
+        "AND": [
+          {
+            "up": "false"
+          },
+          {
+            "function_group": "memory"
+          }
+        ]
+      },
+      "apply": [
+        {
+          "model": "vs_clockwork:block/combobulator/memory/face_3",
+          "x": 270,
+          "weight": 2
+        },
+        {
+          "model": "vs_clockwork:block/combobulator/memory/face_4",
+          "x": 270,
+          "weight": 2
+        },
+        {
+          "model": "vs_clockwork:block/combobulator/memory/empty",
+          "x": 270,
+          "weight": 12
+        },
+        {
+          "model": "vs_clockwork:block/combobulator/memory/face_1",
+          "x": 270,
+          "weight": 2
+        },
+        {
+          "model": "vs_clockwork:block/combobulator/memory/face_2",
+          "x": 270,
+          "weight": 2
+        }
+      ]
+    },
+    {
+      "when": {
+        "AND": [
+          {
+            "north": "false"
+          },
+          {
+            "function_group": "memory"
+          }
+        ]
+      },
+      "apply": [
+        {
+          "model": "vs_clockwork:block/combobulator/memory/face_4",
+          "weight": 2
+        },
+        {
+          "model": "vs_clockwork:block/combobulator/memory/empty",
+          "weight": 12
+        },
+        {
+          "model": "vs_clockwork:block/combobulator/memory/face_1",
+          "weight": 2
+        },
+        {
+          "model": "vs_clockwork:block/combobulator/memory/face_2",
+          "weight": 2
+        },
+        {
+          "model": "vs_clockwork:block/combobulator/memory/face_3",
+          "weight": 2
+        }
+      ]
+    },
+    {
+      "when": {
+        "AND": [
+          {
+            "south": "false"
+          },
+          {
+            "function_group": "memory"
+          }
+        ]
+      },
+      "apply": [
+        {
+          "model": "vs_clockwork:block/combobulator/memory/empty",
+          "y": 180,
+          "weight": 12
+        },
+        {
+          "model": "vs_clockwork:block/combobulator/memory/face_1",
+          "y": 180,
+          "weight": 2
+        },
+        {
+          "model": "vs_clockwork:block/combobulator/memory/face_2",
+          "y": 180,
+          "weight": 2
+        },
+        {
+          "model": "vs_clockwork:block/combobulator/memory/face_3",
+          "y": 180,
+          "weight": 2
+        },
+        {
+          "model": "vs_clockwork:block/combobulator/memory/face_4",
+          "y": 180,
+          "weight": 2
+        }
+      ]
+    },
+    {
+      "apply": {
+        "model": "vs_clockwork:block/combobulator/timing/base"
+      },
+      "when": {
+        "function_group": "timing"
+      }
+    },
+    {
+      "when": {
+        "AND": [
+          {
+            "west": "true"
+          },
+          {
+            "function_group": "timing"
+          }
+        ]
+      },
+      "apply": {
+        "model": "vs_clockwork:block/combobulator/timing/extension_west"
+      }
+    },
+    {
+      "when": {
+        "AND": [
+          {
+            "east": "true"
+          },
+          {
+            "function_group": "timing"
+          }
+        ]
+      },
+      "apply": {
+        "model": "vs_clockwork:block/combobulator/timing/extension_east"
+      }
+    },
+    {
+      "when": {
+        "AND": [
+          {
+            "down": "true"
+          },
+          {
+            "function_group": "timing"
+          }
+        ]
+      },
+      "apply": {
+        "model": "vs_clockwork:block/combobulator/timing/extension_down"
+      }
+    },
+    {
+      "when": {
+        "AND": [
+          {
+            "up": "true"
+          },
+          {
+            "function_group": "timing"
+          }
+        ]
+      },
+      "apply": {
+        "model": "vs_clockwork:block/combobulator/timing/extension_up"
+      }
+    },
+    {
+      "when": {
+        "AND": [
+          {
+            "north": "true"
+          },
+          {
+            "function_group": "timing"
+          }
+        ]
+      },
+      "apply": {
+        "model": "vs_clockwork:block/combobulator/timing/extension_north"
+      }
+    },
+    {
+      "when": {
+        "AND": [
+          {
+            "south": "true"
+          },
+          {
+            "function_group": "timing"
+          }
+        ]
+      },
+      "apply": {
+        "model": "vs_clockwork:block/combobulator/timing/extension_south"
+      }
+    },
+    {
+      "when": {
+        "AND": [
+          {
+            "west": "false",
+            "down": "false"
+          },
+          {
+            "function_group": "timing"
+          }
+        ]
+      },
+      "apply": {
+        "model": "vs_clockwork:block/combobulator/timing/edge_west_down"
+      }
+    },
+    {
+      "when": {
+        "AND": [
+          {
+            "west": "true",
+            "down": "true"
+          },
+          {
+            "function_group": "timing"
+          }
+        ]
+      },
+      "apply": {
+        "model": "vs_clockwork:block/combobulator/timing/fill_west_down"
+      }
+    },
+    {
+      "when": {
+        "AND": [
+          {
+            "west": "false",
+            "up": "false"
+          },
+          {
+            "function_group": "timing"
+          }
+        ]
+      },
+      "apply": {
+        "model": "vs_clockwork:block/combobulator/timing/edge_west_up"
+      }
+    },
+    {
+      "when": {
+        "AND": [
+          {
+            "west": "true",
+            "up": "true"
+          },
+          {
+            "function_group": "timing"
+          }
+        ]
+      },
+      "apply": {
+        "model": "vs_clockwork:block/combobulator/timing/fill_west_up"
+      }
+    },
+    {
+      "when": {
+        "AND": [
+          {
+            "west": "false",
+            "north": "false"
+          },
+          {
+            "function_group": "timing"
+          }
+        ]
+      },
+      "apply": {
+        "model": "vs_clockwork:block/combobulator/timing/edge_west_north"
+      }
+    },
+    {
+      "when": {
+        "AND": [
+          {
+            "west": "true",
+            "north": "true"
+          },
+          {
+            "function_group": "timing"
+          }
+        ]
+      },
+      "apply": {
+        "model": "vs_clockwork:block/combobulator/timing/fill_west_north"
+      }
+    },
+    {
+      "when": {
+        "AND": [
+          {
+            "west": "false",
+            "south": "false"
+          },
+          {
+            "function_group": "timing"
+          }
+        ]
+      },
+      "apply": {
+        "model": "vs_clockwork:block/combobulator/timing/edge_west_south"
+      }
+    },
+    {
+      "when": {
+        "AND": [
+          {
+            "west": "true",
+            "south": "true"
+          },
+          {
+            "function_group": "timing"
+          }
+        ]
+      },
+      "apply": {
+        "model": "vs_clockwork:block/combobulator/timing/fill_west_south"
+      }
+    },
+    {
+      "when": {
+        "AND": [
+          {
+            "east": "false",
+            "down": "false"
+          },
+          {
+            "function_group": "timing"
+          }
+        ]
+      },
+      "apply": {
+        "model": "vs_clockwork:block/combobulator/timing/edge_east_down"
+      }
+    },
+    {
+      "when": {
+        "AND": [
+          {
+            "east": "true",
+            "down": "true"
+          },
+          {
+            "function_group": "timing"
+          }
+        ]
+      },
+      "apply": {
+        "model": "vs_clockwork:block/combobulator/timing/fill_east_down"
+      }
+    },
+    {
+      "when": {
+        "AND": [
+          {
+            "east": "false",
+            "up": "false"
+          },
+          {
+            "function_group": "timing"
+          }
+        ]
+      },
+      "apply": {
+        "model": "vs_clockwork:block/combobulator/timing/edge_east_up"
+      }
+    },
+    {
+      "when": {
+        "AND": [
+          {
+            "east": "true",
+            "up": "true"
+          },
+          {
+            "function_group": "timing"
+          }
+        ]
+      },
+      "apply": {
+        "model": "vs_clockwork:block/combobulator/timing/fill_east_up"
+      }
+    },
+    {
+      "when": {
+        "AND": [
+          {
+            "east": "false",
+            "north": "false"
+          },
+          {
+            "function_group": "timing"
+          }
+        ]
+      },
+      "apply": {
+        "model": "vs_clockwork:block/combobulator/timing/edge_east_north"
+      }
+    },
+    {
+      "when": {
+        "AND": [
+          {
+            "east": "true",
+            "north": "true"
+          },
+          {
+            "function_group": "timing"
+          }
+        ]
+      },
+      "apply": {
+        "model": "vs_clockwork:block/combobulator/timing/fill_east_north"
+      }
+    },
+    {
+      "when": {
+        "AND": [
+          {
+            "east": "false",
+            "south": "false"
+          },
+          {
+            "function_group": "timing"
+          }
+        ]
+      },
+      "apply": {
+        "model": "vs_clockwork:block/combobulator/timing/edge_east_south"
+      }
+    },
+    {
+      "when": {
+        "AND": [
+          {
+            "east": "true",
+            "south": "true"
+          },
+          {
+            "function_group": "timing"
+          }
+        ]
+      },
+      "apply": {
+        "model": "vs_clockwork:block/combobulator/timing/fill_east_south"
+      }
+    },
+    {
+      "when": {
+        "AND": [
+          {
+            "down": "false",
+            "north": "false"
+          },
+          {
+            "function_group": "timing"
+          }
+        ]
+      },
+      "apply": {
+        "model": "vs_clockwork:block/combobulator/timing/edge_down_north"
+      }
+    },
+    {
+      "when": {
+        "AND": [
+          {
+            "down": "true",
+            "north": "true"
+          },
+          {
+            "function_group": "timing"
+          }
+        ]
+      },
+      "apply": {
+        "model": "vs_clockwork:block/combobulator/timing/fill_down_north"
+      }
+    },
+    {
+      "when": {
+        "AND": [
+          {
+            "down": "false",
+            "south": "false"
+          },
+          {
+            "function_group": "timing"
+          }
+        ]
+      },
+      "apply": {
+        "model": "vs_clockwork:block/combobulator/timing/edge_down_south"
+      }
+    },
+    {
+      "when": {
+        "AND": [
+          {
+            "down": "true",
+            "south": "true"
+          },
+          {
+            "function_group": "timing"
+          }
+        ]
+      },
+      "apply": {
+        "model": "vs_clockwork:block/combobulator/timing/fill_down_south"
+      }
+    },
+    {
+      "when": {
+        "AND": [
+          {
+            "up": "false",
+            "north": "false"
+          },
+          {
+            "function_group": "timing"
+          }
+        ]
+      },
+      "apply": {
+        "model": "vs_clockwork:block/combobulator/timing/edge_up_north"
+      }
+    },
+    {
+      "when": {
+        "AND": [
+          {
+            "up": "true",
+            "north": "true"
+          },
+          {
+            "function_group": "timing"
+          }
+        ]
+      },
+      "apply": {
+        "model": "vs_clockwork:block/combobulator/timing/fill_up_north"
+      }
+    },
+    {
+      "when": {
+        "AND": [
+          {
+            "up": "false",
+            "south": "false"
+          },
+          {
+            "function_group": "timing"
+          }
+        ]
+      },
+      "apply": {
+        "model": "vs_clockwork:block/combobulator/timing/edge_up_south"
+      }
+    },
+    {
+      "when": {
+        "AND": [
+          {
+            "up": "true",
+            "south": "true"
+          },
+          {
+            "function_group": "timing"
+          }
+        ]
+      },
+      "apply": {
+        "model": "vs_clockwork:block/combobulator/timing/fill_up_south"
+      }
+    },
+    {
+      "when": {
+        "AND": [
+          {
+            "OR": [
+              {
+                "west": "false",
+                "down": "false"
+              },
+              {
+                "west": "false",
+                "north": "false"
+              },
+              {
+                "down": "false",
+                "north": "false"
+              }
+            ]
+          },
+          {
+            "function_group": "timing"
+          }
+        ]
+      },
+      "apply": {
+        "model": "vs_clockwork:block/combobulator/timing/corner_west_down_north"
+      }
+    },
+    {
+      "when": {
+        "AND": [
+          {
+            "west": "true",
+            "down": "true",
+            "north": "true"
+          },
+          {
+            "function_group": "timing"
+          }
+        ]
+      },
+      "apply": {
+        "model": "vs_clockwork:block/combobulator/timing/fill_west_down_north"
+      }
+    },
+    {
+      "when": {
+        "AND": [
+          {
+            "OR": [
+              {
+                "west": "false",
+                "down": "false"
+              },
+              {
+                "west": "false",
+                "south": "false"
+              },
+              {
+                "down": "false",
+                "south": "false"
+              }
+            ]
+          },
+          {
+            "function_group": "timing"
+          }
+        ]
+      },
+      "apply": {
+        "model": "vs_clockwork:block/combobulator/timing/corner_west_down_south"
+      }
+    },
+    {
+      "when": {
+        "AND": [
+          {
+            "west": "true",
+            "down": "true",
+            "south": "true"
+          },
+          {
+            "function_group": "timing"
+          }
+        ]
+      },
+      "apply": {
+        "model": "vs_clockwork:block/combobulator/timing/fill_west_down_south"
+      }
+    },
+    {
+      "when": {
+        "AND": [
+          {
+            "OR": [
+              {
+                "west": "false",
+                "up": "false"
+              },
+              {
+                "west": "false",
+                "north": "false"
+              },
+              {
+                "up": "false",
+                "north": "false"
+              }
+            ]
+          },
+          {
+            "function_group": "timing"
+          }
+        ]
+      },
+      "apply": {
+        "model": "vs_clockwork:block/combobulator/timing/corner_west_up_north"
+      }
+    },
+    {
+      "when": {
+        "AND": [
+          {
+            "west": "true",
+            "up": "true",
+            "north": "true"
+          },
+          {
+            "function_group": "timing"
+          }
+        ]
+      },
+      "apply": {
+        "model": "vs_clockwork:block/combobulator/timing/fill_west_up_north"
+      }
+    },
+    {
+      "when": {
+        "AND": [
+          {
+            "OR": [
+              {
+                "west": "false",
+                "up": "false"
+              },
+              {
+                "west": "false",
+                "south": "false"
+              },
+              {
+                "up": "false",
+                "south": "false"
+              }
+            ]
+          },
+          {
+            "function_group": "timing"
+          }
+        ]
+      },
+      "apply": {
+        "model": "vs_clockwork:block/combobulator/timing/corner_west_up_south"
+      }
+    },
+    {
+      "when": {
+        "AND": [
+          {
+            "west": "true",
+            "up": "true",
+            "south": "true"
+          },
+          {
+            "function_group": "timing"
+          }
+        ]
+      },
+      "apply": {
+        "model": "vs_clockwork:block/combobulator/timing/fill_west_up_south"
+      }
+    },
+    {
+      "when": {
+        "AND": [
+          {
+            "OR": [
+              {
+                "east": "false",
+                "down": "false"
+              },
+              {
+                "east": "false",
+                "north": "false"
+              },
+              {
+                "down": "false",
+                "north": "false"
+              }
+            ]
+          },
+          {
+            "function_group": "timing"
+          }
+        ]
+      },
+      "apply": {
+        "model": "vs_clockwork:block/combobulator/timing/corner_east_down_north"
+      }
+    },
+    {
+      "when": {
+        "AND": [
+          {
+            "east": "true",
+            "down": "true",
+            "north": "true"
+          },
+          {
+            "function_group": "timing"
+          }
+        ]
+      },
+      "apply": {
+        "model": "vs_clockwork:block/combobulator/timing/fill_east_down_north"
+      }
+    },
+    {
+      "when": {
+        "AND": [
+          {
+            "OR": [
+              {
+                "east": "false",
+                "down": "false"
+              },
+              {
+                "east": "false",
+                "south": "false"
+              },
+              {
+                "down": "false",
+                "south": "false"
+              }
+            ]
+          },
+          {
+            "function_group": "timing"
+          }
+        ]
+      },
+      "apply": {
+        "model": "vs_clockwork:block/combobulator/timing/corner_east_down_south"
+      }
+    },
+    {
+      "when": {
+        "AND": [
+          {
+            "east": "true",
+            "down": "true",
+            "south": "true"
+          },
+          {
+            "function_group": "timing"
+          }
+        ]
+      },
+      "apply": {
+        "model": "vs_clockwork:block/combobulator/timing/fill_east_down_south"
+      }
+    },
+    {
+      "when": {
+        "AND": [
+          {
+            "OR": [
+              {
+                "east": "false",
+                "up": "false"
+              },
+              {
+                "east": "false",
+                "north": "false"
+              },
+              {
+                "up": "false",
+                "north": "false"
+              }
+            ]
+          },
+          {
+            "function_group": "timing"
+          }
+        ]
+      },
+      "apply": {
+        "model": "vs_clockwork:block/combobulator/timing/corner_east_up_north"
+      }
+    },
+    {
+      "when": {
+        "AND": [
+          {
+            "east": "true",
+            "up": "true",
+            "north": "true"
+          },
+          {
+            "function_group": "timing"
+          }
+        ]
+      },
+      "apply": {
+        "model": "vs_clockwork:block/combobulator/timing/fill_east_up_north"
+      }
+    },
+    {
+      "when": {
+        "AND": [
+          {
+            "OR": [
+              {
+                "east": "false",
+                "up": "false"
+              },
+              {
+                "east": "false",
+                "south": "false"
+              },
+              {
+                "up": "false",
+                "south": "false"
+              }
+            ]
+          },
+          {
+            "function_group": "timing"
+          }
+        ]
+      },
+      "apply": {
+        "model": "vs_clockwork:block/combobulator/timing/corner_east_up_south"
+      }
+    },
+    {
+      "when": {
+        "AND": [
+          {
+            "east": "true",
+            "up": "true",
+            "south": "true"
+          },
+          {
+            "function_group": "timing"
+          }
+        ]
+      },
+      "apply": {
+        "model": "vs_clockwork:block/combobulator/timing/fill_east_up_south"
+      }
+    },
+    {
+      "when": {
+        "AND": [
+          {
+            "west": "false"
+          },
+          {
+            "function_group": "timing"
+          }
+        ]
+      },
+      "apply": [
+        {
+          "model": "vs_clockwork:block/combobulator/timing/empty",
+          "y": 270,
+          "weight": 12
+        },
+        {
+          "model": "vs_clockwork:block/combobulator/timing/face_1",
+          "y": 270,
+          "weight": 2
+        },
+        {
+          "model": "vs_clockwork:block/combobulator/timing/face_2",
+          "y": 270,
+          "weight": 2
+        },
+        {
+          "model": "vs_clockwork:block/combobulator/timing/face_3",
+          "y": 270,
+          "weight": 2
+        },
+        {
+          "model": "vs_clockwork:block/combobulator/timing/face_4",
+          "y": 270,
+          "weight": 2
+        }
+      ]
+    },
+    {
+      "when": {
+        "AND": [
+          {
+            "east": "false"
+          },
+          {
+            "function_group": "timing"
+          }
+        ]
+      },
+      "apply": [
+        {
+          "model": "vs_clockwork:block/combobulator/timing/face_1",
+          "y": 90,
+          "weight": 2
+        },
+        {
+          "model": "vs_clockwork:block/combobulator/timing/face_2",
+          "y": 90,
+          "weight": 2
+        },
+        {
+          "model": "vs_clockwork:block/combobulator/timing/face_3",
+          "y": 90,
+          "weight": 2
+        },
+        {
+          "model": "vs_clockwork:block/combobulator/timing/face_4",
+          "y": 90,
+          "weight": 2
+        },
+        {
+          "model": "vs_clockwork:block/combobulator/timing/empty",
+          "y": 90,
+          "weight": 12
+        }
+      ]
+    },
+    {
+      "when": {
+        "AND": [
+          {
+            "down": "false"
+          },
+          {
+            "function_group": "timing"
+          }
+        ]
+      },
+      "apply": [
+        {
+          "model": "vs_clockwork:block/combobulator/timing/face_2",
+          "x": 90,
+          "weight": 2
+        },
+        {
+          "model": "vs_clockwork:block/combobulator/timing/face_3",
+          "x": 90,
+          "weight": 2
+        },
+        {
+          "model": "vs_clockwork:block/combobulator/timing/face_4",
+          "x": 90,
+          "weight": 2
+        },
+        {
+          "model": "vs_clockwork:block/combobulator/timing/empty",
+          "x": 90,
+          "weight": 12
+        },
+        {
+          "model": "vs_clockwork:block/combobulator/timing/face_1",
+          "x": 90,
+          "weight": 2
+        }
+      ]
+    },
+    {
+      "when": {
+        "AND": [
+          {
+            "up": "false"
+          },
+          {
+            "function_group": "timing"
+          }
+        ]
+      },
+      "apply": [
+        {
+          "model": "vs_clockwork:block/combobulator/timing/face_3",
+          "x": 270,
+          "weight": 2
+        },
+        {
+          "model": "vs_clockwork:block/combobulator/timing/face_4",
+          "x": 270,
+          "weight": 2
+        },
+        {
+          "model": "vs_clockwork:block/combobulator/timing/empty",
+          "x": 270,
+          "weight": 12
+        },
+        {
+          "model": "vs_clockwork:block/combobulator/timing/face_1",
+          "x": 270,
+          "weight": 2
+        },
+        {
+          "model": "vs_clockwork:block/combobulator/timing/face_2",
+          "x": 270,
+          "weight": 2
+        }
+      ]
+    },
+    {
+      "when": {
+        "AND": [
+          {
+            "north": "false"
+          },
+          {
+            "function_group": "timing"
+          }
+        ]
+      },
+      "apply": [
+        {
+          "model": "vs_clockwork:block/combobulator/timing/face_4",
+          "weight": 2
+        },
+        {
+          "model": "vs_clockwork:block/combobulator/timing/empty",
+          "weight": 12
+        },
+        {
+          "model": "vs_clockwork:block/combobulator/timing/face_1",
+          "weight": 2
+        },
+        {
+          "model": "vs_clockwork:block/combobulator/timing/face_2",
+          "weight": 2
+        },
+        {
+          "model": "vs_clockwork:block/combobulator/timing/face_3",
+          "weight": 2
+        }
+      ]
+    },
+    {
+      "when": {
+        "AND": [
+          {
+            "south": "false"
+          },
+          {
+            "function_group": "timing"
+          }
+        ]
+      },
+      "apply": [
+        {
+          "model": "vs_clockwork:block/combobulator/timing/empty",
+          "y": 180,
+          "weight": 12
+        },
+        {
+          "model": "vs_clockwork:block/combobulator/timing/face_1",
+          "y": 180,
+          "weight": 2
+        },
+        {
+          "model": "vs_clockwork:block/combobulator/timing/face_2",
+          "y": 180,
+          "weight": 2
+        },
+        {
+          "model": "vs_clockwork:block/combobulator/timing/face_3",
+          "y": 180,
+          "weight": 2
+        },
+        {
+          "model": "vs_clockwork:block/combobulator/timing/face_4",
           "y": 180,
           "weight": 2
         }

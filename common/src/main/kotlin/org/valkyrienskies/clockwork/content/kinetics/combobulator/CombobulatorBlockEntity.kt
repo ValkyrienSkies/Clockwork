@@ -12,6 +12,9 @@ import net.createmod.catnip.data.Couple
 import net.minecraft.core.BlockPos
 import net.minecraft.core.Direction
 import net.minecraft.nbt.CompoundTag
+import net.minecraft.nbt.ListTag
+import net.minecraft.nbt.Tag
+import org.valkyrienskies.clockwork.api.thinkable.ThinkableReading
 import net.minecraft.server.level.ServerLevel
 import net.minecraft.world.level.Level
 import net.minecraft.world.level.block.HorizontalDirectionalBlock
@@ -47,6 +50,10 @@ class CombobulatorBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: Bl
     private val cables = mutableMapOf<CombobulatorFace, WandAnchor>()
     private var linksReady = false
     private var syncPending = false
+    var availableReadings: Map<Direction, List<ThinkableReading>> = emptyMap()
+        private set
+    var cabledReadingFaces: Set<Direction> = emptySet()
+        private set
     private val network get() = Create.REDSTONE_LINK_NETWORK_HANDLER
 
     override fun addBehaviours(behaviours: MutableList<BlockEntityBehaviour>) = Unit
@@ -54,6 +61,7 @@ class CombobulatorBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: Bl
     override fun tick() {
         super.tick()
         val level = level as? ServerLevel ?: return
+        refreshFunctionGroup(level)
         if (!linksReady) registerLinks(level)
         val front = blockState.getValue(HorizontalDirectionalBlock.FACING)
         for ((face, source) in cables.toMap()) {
@@ -70,12 +78,10 @@ class CombobulatorBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: Bl
             val face = channel.face?.direction(front)
             next[channel.id] = when {
                 channel.constant != null -> channel.constant
-                channel.thinkable -> channel.face?.let { sampleThinkable(level, it, front) } ?: Double.NaN
                 channel.wireless -> links[channel.id]?.sample(level)?.toDouble() ?: 0.0
-                channel.device && face != null -> {
-                    val anchor = WandAnchor.at(level, worldPosition.relative(face), face.opposite)
-                    if (thinkableLink(face) != null) sampleThinkable(level, channel.face!!, front)
-                    else ThinkableItem.source(level, anchor) ?: Double.NaN
+                (channel.thinkable || channel.device) && face != null -> {
+                    val source = ThinkableConnections.sourceAt(level, worldPosition, face, channel.thinkable)
+                    source?.device?.thinkableValue(source.side, channel.reading)?.takeIf { it.isFinite() } ?: Double.NaN
                 }
                 face != null -> level.getSignal(worldPosition.relative(face), face).toDouble()
                 else -> if (program.operation != null) Double.NaN else 0.0
@@ -98,9 +104,7 @@ class CombobulatorBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: Bl
         signals = next
         for (channel in program.channels.filter { !it.input && it.device }) {
             val side = channel.face?.direction(front) ?: continue
-            val receiver = level.getBlockEntity(worldPosition.relative(side)) as? IThinkable ?: continue
-            if (receiver.acceptsThinkable(side.opposite)) receiver.receiveThinkable(side.opposite,
-                previousSignals[channel.id].takeIf { it.isFinite() })
+            ThinkableConnections.sendAdjacent(level, worldPosition, side, previousSignals[channel.id].takeIf { it.isFinite() })
         }
         for (link in links.values) {
             if (!link.isListening && next[link.id] != previous[link.id]) network.updateNetworkOf(level, link)
@@ -112,6 +116,7 @@ class CombobulatorBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: Bl
             !previous.contentEquals(next)
         activeStep = nextStep
         fault = nextFault
+        if (level.gameTime % 4 == 0L) refreshReadings(level)
         if (syncPending && level.gameTime % 4 == 0L) {
             syncPending = false
             sendData()
@@ -173,6 +178,24 @@ class CombobulatorBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: Bl
 
     override fun acceptsThinkable(side: Direction): Boolean = inputFace(side) != null
 
+    override fun thinkableInputReading(side: Direction): String {
+        val front = blockState.getValue(HorizontalDirectionalBlock.FACING)
+        return program.channels.firstOrNull { it.input && (it.thinkable || it.device) && it.face?.direction(front) == side }?.reading ?: ""
+    }
+
+    private fun refreshReadings(world: ServerLevel) {
+        val cables = Direction.entries.filter { thinkableLink(it) != null }.toSet()
+        val readings = Direction.entries.associateWith { side ->
+            val source = ThinkableConnections.sourceAt(world, worldPosition, side)
+            source?.device?.thinkableReadings(source.side)?.filter { it.id().length <= 128 }?.distinctBy { it.id() }?.take(32) ?: emptyList()
+        }
+        if (readings != availableReadings || cables != cabledReadingFaces) {
+            availableReadings = readings
+            cabledReadingFaces = cables
+            syncPending = true
+        }
+    }
+
     private fun thinkableLink(side: Direction): WandLinks.Link? {
         val level = level as? ServerLevel ?: return null
         val sink = WandAnchor.at(level, worldPosition, side)
@@ -184,12 +207,6 @@ class CombobulatorBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: Bl
         return program.channels.firstOrNull { it.input && (it.thinkable || it.device) && it.face?.direction(front) == side }?.face
     }
 
-    private fun sampleThinkable(level: ServerLevel, face: CombobulatorFace, front: Direction): Double {
-        val link = thinkableLink(face.direction(front)) ?: return Double.NaN
-        if (link.suspended) return Double.NaN
-        return ThinkableItem.source(level, link.a) ?: Double.NaN
-    }
-
     fun updateProgram(newProgram: CombobulatorProgram, expectedRevision: Int) {
         val level = level ?: return
         if (level.isClientSide || revision != expectedRevision) return
@@ -197,6 +214,7 @@ class CombobulatorBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: Bl
         clearDeviceOutputs()
         unregisterLinks(level)
         program = newProgram
+        refreshFunctionGroup(level)
         cables.keys.retainAll(program.channels.filter { it.thinkable && it.input }.mapNotNull { it.face }.toSet())
         revision++
         runtime = CombobulatorRuntime()
@@ -209,6 +227,13 @@ class CombobulatorBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: Bl
         registerLinks(level)
         refreshFaces(level, blockState.getValue(HorizontalDirectionalBlock.FACING))
         notifyUpdate()
+    }
+
+    private fun refreshFunctionGroup(world: Level) {
+        val group = program.operation?.function?.group ?: CombobulatorGroup.DEFAULT
+        val state = blockState
+        if (state.getValue(CombobulatorBlock.FUNCTION_GROUP) != group)
+            world.setBlock(worldPosition, state.setValue(CombobulatorBlock.FUNCTION_GROUP, group), net.minecraft.world.level.block.Block.UPDATE_CLIENTS)
     }
 
     private fun refreshFaces(level: Level, front: Direction) {
@@ -253,8 +278,7 @@ class CombobulatorBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: Bl
         val front = blockState.getValue(HorizontalDirectionalBlock.FACING)
         for (channel in program.channels.filter { !it.input && it.device }) {
             val side = channel.face?.direction(front) ?: continue
-            if (level.hasChunkAt(worldPosition.relative(side)))
-                (level.getBlockEntity(worldPosition.relative(side)) as? IThinkable)?.receiveThinkable(side.opposite, null)
+            ThinkableConnections.sendAdjacent(level, worldPosition, side, null, clear = true)
         }
     }
 
@@ -267,6 +291,17 @@ class CombobulatorBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: Bl
             cables.forEach { (face, anchor) -> put(face.name, anchor.save()) }
         })
         if (clientPacket) {
+            tag.put("Readings", CompoundTag().apply {
+                availableReadings.forEach { (side, readings) ->
+                    put(side.name, ListTag().apply {
+                        readings.forEach { reading -> add(CompoundTag().apply {
+                            putString("Id", reading.id())
+                            putString("Name", Component.Serializer.toJson(reading.name()))
+                        }) }
+                    })
+                    putBoolean("Cable_${side.name}", side in cabledReadingFaces)
+                }
+            })
             tag.putLongArray("Values", LongArray(signals.size) { signals[it].toRawBits() })
             tag.putInt("ActiveStep", activeStep)
             fault?.let { tag.putString("Fault", it.name) }
@@ -290,6 +325,15 @@ class CombobulatorBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: Bl
             if (savedCables.contains(face.name)) cables[face] = WandAnchor.load(savedCables.getCompound(face.name))
         }
         if (clientPacket) {
+            val readings = tag.getCompound("Readings")
+            availableReadings = Direction.entries.associateWith { side ->
+                val entries = readings.getList(side.name, Tag.TAG_COMPOUND.toInt())
+                (0 until minOf(entries.size, 32)).map { index ->
+                    val entry = entries.getCompound(index)
+                    ThinkableReading(entry.getString("Id"), Component.Serializer.fromJson(entry.getString("Name")) ?: Component.empty())
+                }
+            }
+            cabledReadingFaces = Direction.entries.filter { readings.getBoolean("Cable_${it.name}") }.toSet()
             val values = tag.getLongArray("Values")
             signals = DoubleArray(CombobulatorProgram.MAX_CHANNELS) { Double.fromBits(values.getOrElse(it) { 0L }) }
             activeStep = if (tag.contains("ActiveStep")) tag.getInt("ActiveStep") else -1

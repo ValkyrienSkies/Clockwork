@@ -187,6 +187,44 @@ tasks.withType(JavaCompile).configureEach {
     it.options.release = 17
 }
 
+def compileThinkableFixture = tasks.register('compileThinkableFixture', JavaCompile) {
+    dependsOn project(':common').tasks.named('classes')
+    source = fileTree('src/thinkableFixture/java') { include '**/*.java' }
+    classpath = sourceSets.main.compileClasspath + project(':common').sourceSets.main.compileClasspath + project(':common').sourceSets.main.output
+    destinationDirectory = layout.buildDirectory.dir('thinkable-fixture/classes')
+}
+
+def thinkableFixtureJar = tasks.register('thinkableFixtureJar', Jar) {
+    dependsOn compileThinkableFixture
+    archiveFileName = 'thinkable-compat-fixture.jar'
+    destinationDirectory = layout.buildDirectory.dir('thinkable-fixture')
+    from compileThinkableFixture.flatMap { it.destinationDirectory }
+    from 'src/thinkableFixture/resources'
+}
+
+def compileThinkableVerification = tasks.register('compileThinkableVerification', JavaCompile) {
+    source = fileTree('src/thinkableVerification/java') { include '**/*.java' }
+    classpath = files()
+    destinationDirectory = layout.buildDirectory.dir('thinkable-fixture/verification')
+}
+
+tasks.register('verifyOptionalThinkableCompat', JavaExec) {
+    dependsOn thinkableFixtureJar, compileThinkableVerification
+    classpath = files(compileThinkableVerification.flatMap { it.destinationDirectory }) + sourceSets.main.compileClasspath + project(':common').sourceSets.main.compileClasspath
+    mainClass = 'VerifyOptionalThinkableCompat'
+    args thinkableFixtureJar.flatMap { it.archiveFile }.get().asFile.absolutePath
+}
+
+tasks.named('runGameTestServer') {
+    dependsOn thinkableFixtureJar
+    doFirst {
+        copy {
+            from thinkableFixtureJar.flatMap { it.archiveFile }
+            into layout.buildDirectory.dir('gametest/mods')
+        }
+    }
+}
+
 shadowJar {
     exclude "fabric.mod.json"
     exclude "architectury.common.json"

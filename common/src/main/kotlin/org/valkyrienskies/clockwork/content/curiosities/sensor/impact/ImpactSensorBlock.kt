@@ -3,6 +3,7 @@ package org.valkyrienskies.clockwork.content.curiosities.sensor.impact
 import com.simibubi.create.content.equipment.wrench.IWrenchable
 import net.minecraft.core.BlockPos
 import net.minecraft.core.Direction
+import net.minecraft.network.chat.Component
 import net.minecraft.server.level.ServerLevel
 import net.minecraft.tags.BlockTags
 import net.minecraft.util.RandomSource
@@ -33,6 +34,7 @@ import org.valkyrienskies.clockwork.ClockworkSounds
 import org.valkyrienskies.clockwork.ClockworkTags
 import org.valkyrienskies.clockwork.content.curiosities.sensor.ISensorBlock
 import org.valkyrienskies.clockwork.content.curiosities.sensor.ISensorBlock.Companion.POWER
+import org.valkyrienskies.clockwork.content.kinetics.combobulator.IThinkableBlock
 import org.valkyrienskies.mod.common.getShipObjectManagingPos
 import org.valkyrienskies.mod.common.shipObjectWorld
 import org.valkyrienskies.mod.common.toWorldCoordinates
@@ -42,12 +44,18 @@ import org.valkyrienskies.mod.common.util.toJOML
 import org.valkyrienskies.mod.common.util.toMinecraft
 import org.valkyrienskies.mod.common.world.clipIncludeShips
 import java.util.*
-import kotlin.math.absoluteValue
 import kotlin.math.max
-import kotlin.math.min
 
 //todo use collision events
-class ImpactSensorBlock(properties: Properties?): DirectionalBlock(properties), ISensorBlock, IWrenchable {
+class ImpactSensorBlock(properties: Properties?): DirectionalBlock(properties), ISensorBlock, IWrenchable, IThinkableBlock {
+
+    override fun providesThinkable(state: BlockState, side: Direction) = side == state.getValue(FACING).opposite
+
+    override fun thinkableValue(state: BlockState, level: ServerLevel, pos: BlockPos, side: Direction): Double =
+        proximity(state, level, pos)
+
+    override fun thinkablePortName(state: BlockState, side: Direction): Component? =
+        Component.translatable("thinkable.vs_clockwork.port.proximity").takeIf { providesThinkable(state, side) }
 
     companion object {
         val PREDICTIVENESS = IntegerProperty.create("predictiveness", 0, 3)
@@ -94,11 +102,15 @@ class ImpactSensorBlock(properties: Properties?): DirectionalBlock(properties), 
     }
 
     override fun updatePower(state: BlockState, level: ServerLevel, pos: BlockPos, random: Random): Int {
+        return proximity(state, level, pos).toInt()
+    }
+
+    fun proximity(state: BlockState, level: ServerLevel, pos: BlockPos): Double {
         val adjacentState = level.getBlockState(pos.relative(state.getValue(FACING)))
         val ship = level.getShipObjectManagingPos(pos)
 
         return if (!adjacentState.isAir && adjacentState.isViewBlocking(level, pos)) {
-            15
+            15.0
         } else {
             val targetPositions = mutableSetOf<Vec3>()
             targetPositions.add(level.toWorldCoordinates(Vec3.atCenterOf(pos.relative(state.getValue(DirectionalBlock.FACING)))))
@@ -126,7 +138,7 @@ class ImpactSensorBlock(properties: Properties?): DirectionalBlock(properties), 
                     }
                 }
             }
-            var found = 0
+            var found = 0.0
             val positions = hashSetOf<Vector3dc>()
             positions.add(targetPositions.first().toJOML())
 
@@ -139,21 +151,21 @@ class ImpactSensorBlock(properties: Properties?): DirectionalBlock(properties), 
                 }
                 if (!level.getBlockState(BlockPos.containing(position.toMinecraft())).isAir) {
                     found = max(
-                        min(max(16 - (level.toWorldCoordinates(position.toMinecraft()).distanceTo(level.toWorldCoordinates(Vec3.atCenterOf(pos))).absoluteValue * predictiveness.toDouble()).toInt(), 0), 15),
+                        (16 - level.toWorldCoordinates(position.toMinecraft()).distanceTo(level.toWorldCoordinates(Vec3.atCenterOf(pos))) * predictiveness).coerceIn(0.0, 15.0),
                         found
                     )
                 }
                 val searchAABB = AABB(BlockPos.containing(position.toMinecraft())).inflate(1.0)
-                level.getBlockStates(searchAABB).forEach { state ->
-                    if (!state.isAir) {
+                BlockPos.betweenClosedStream(searchAABB).forEach { candidate ->
+                    if (candidate != pos && !level.getBlockState(candidate).isAir) {
                         found = max(
-                            min(max(16 - (level.toWorldCoordinates(position.toMinecraft()).distanceTo(level.toWorldCoordinates(Vec3.atCenterOf(pos))).absoluteValue * predictiveness.toDouble()).toInt(), 0), 15),
+                            (16 - level.toWorldCoordinates(position.toMinecraft()).distanceTo(level.toWorldCoordinates(Vec3.atCenterOf(pos))) * predictiveness).coerceIn(0.0, 15.0),
                             found
                         )
                         return@forEach
                     }
                 }
-                if (found == 15) {
+                if (found == 15.0) {
                     break
                 }
             }

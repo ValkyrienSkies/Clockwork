@@ -9,7 +9,7 @@ import net.minecraft.server.level.ServerLevel
 import net.minecraft.world.level.block.entity.BlockEntityType
 import net.minecraft.world.level.block.state.BlockState
 import net.minecraft.world.level.block.state.properties.BlockStateProperties
-import org.valkyrienskies.clockwork.content.curiosities.tools.wanderwand.WandAnchor
+import org.valkyrienskies.clockwork.api.thinkable.Thinkable
 
 class ThinkableRelayBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: BlockState) :
     SmartBlockEntity(type, pos, state), IThinkable {
@@ -22,8 +22,19 @@ class ThinkableRelayBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: 
     override fun thinkablePortName(side: Direction): Component = Component.translatable(
         if (acceptsThinkable(side)) "thinkable.vs_clockwork.port.relay_input" else "thinkable.vs_clockwork.port.relay_output")
 
-    override fun thinkableValue(side: Direction): Double? {
-        var device: IThinkable = this
+    override fun thinkableValue(side: Direction) = thinkableValue(side, "")
+
+    override fun thinkableValue(side: Direction, reading: String): Double? {
+        val source = source(side) ?: return null
+        return source.device?.thinkableValue(source.side, reading)?.takeIf { it.isFinite() }
+    }
+
+    override fun thinkableReadings(side: Direction) = source(side)?.let {
+        it.device?.thinkableReadings(it.side)
+    } ?: emptyList()
+
+    private fun source(side: Direction): ThinkableConnections.Source? {
+        var device: Thinkable = this
         var output = side
         val visited = mutableSetOf<ThinkableRelayBlockEntity>()
         while (device is ThinkableRelayBlockEntity) {
@@ -32,7 +43,7 @@ class ThinkableRelayBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: 
             device = source.device ?: return null
             output = source.side
         }
-        return device.thinkableValue(output)?.takeIf { it.isFinite() }
+        return ThinkableConnections.Source(device, output)
     }
 
     override fun tick() {
@@ -40,16 +51,13 @@ class ThinkableRelayBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: 
         if (level is ServerLevel) sendOutputs(thinkableValue(inputSide.opposite), inputSide)
     }
 
-    fun clearOutputs(input: Direction = inputSide) = sendOutputs(null, input)
+    fun clearOutputs(input: Direction = inputSide) = sendOutputs(null, input, clear = true)
 
-    private fun sendOutputs(value: Double?, input: Direction) {
+    private fun sendOutputs(value: Double?, input: Direction, clear: Boolean = false) {
         val world = level as? ServerLevel ?: return
         for (side in Direction.entries) {
             if (side == input) continue
-            val sink = WandAnchor.at(world, blockPos.relative(side), side.opposite)
-            if (ThinkableConnections.incoming(world, sink) != null) continue
-            val receiver = ThinkableConnections.device(world, sink) ?: continue
-            if (receiver.acceptsThinkable(sink.face)) receiver.receiveThinkable(sink.face, value)
+            ThinkableConnections.sendAdjacent(world, blockPos, side, value, clear)
         }
     }
 }

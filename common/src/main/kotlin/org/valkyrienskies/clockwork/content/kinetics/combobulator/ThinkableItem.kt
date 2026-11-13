@@ -79,9 +79,9 @@ class ThinkableItem(properties: Properties) : CWItem(properties) {
     companion object {
         const val MAX_RANGE = 24.0
 
-        fun source(level: ServerLevel, anchor: WandAnchor): Double? {
+        fun source(level: ServerLevel, anchor: WandAnchor, reading: String = ""): Double? {
             val device = ThinkableConnections.device(level, anchor) ?: return null
-            return if (device.providesThinkable(anchor.face)) device.thinkableValue(anchor.face)?.takeIf { it.isFinite() } else null
+            return if (device.providesThinkable(anchor.face)) device.thinkableValue(anchor.face, reading)?.takeIf { it.isFinite() } else null
         }
     }
 }
