@@ -1,5 +1,8 @@
 package org.valkyrienskies.clockwork.content.contraptions.phys.hinge
 
+import org.valkyrienskies.clockwork.client.render.goggles.AeronautGoggleOverlayRenderer
+import net.createmod.catnip.render.CachedBuffers
+import net.createmod.catnip.render.SuperByteBuffer
 import com.mojang.blaze3d.vertex.PoseStack
 import com.mojang.blaze3d.vertex.VertexConsumer
 import com.simibubi.create.AllItems
@@ -28,6 +31,15 @@ class HingeRenderer(context: BlockEntityRendererProvider.Context) : SafeBlockEnt
     override fun renderSafe(be: HingeBlockEntity, partialTicks: Float, pose: PoseStack, buffers: MultiBufferSource, light: Int, overlay: Int) {
         val mc = Minecraft.getInstance()
         val player = mc.player ?: return
+        val tint = AeronautGoggleOverlayRenderer.stressColor(be.previousStress + (be.displayStress - be.previousStress) * partialTicks)
+        if (tint != 0xFFFFFF) {
+            pose.pushPose()
+            pose.translate(-.001, -.001, -.001)
+            pose.scale(1.002f, 1.002f, 1.002f)
+            CachedBuffers.block(be.blockState).color<SuperByteBuffer>(tint).light<SuperByteBuffer>(light)
+                .overlay<SuperByteBuffer>(overlay).renderInto(pose, buffers.getBuffer(RenderType.cutoutMipped()))
+            pose.popPose()
+        }
         if (mc.options.hideGui || (mc.hitResult as? BlockHitResult)?.blockPos != be.blockPos) return
         if (!GogglesItem.isWearingGoggles(player) && !AllItems.WRENCH.isIn(player.mainHandItem)) return
         val level = be.level as? ClientLevel ?: return

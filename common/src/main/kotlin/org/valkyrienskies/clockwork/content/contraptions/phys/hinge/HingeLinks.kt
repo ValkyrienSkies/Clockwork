@@ -52,7 +52,8 @@ class HingeLinks : SavedData() {
     }
 
     fun reset(level: ServerLevel, link: Link) {
-        if (level.hasChunkAt(link.a.pos)) (level.getBlockEntity(link.a.pos) as? HingeBlockEntity)?.updateStrain(false)
+        for (anchor in listOf(link.a, link.b))
+            if (level.hasChunkAt(anchor.pos)) (level.getBlockEntity(anchor.pos) as? HingeBlockEntity)?.updateStrain(false)
         link.generation++
         link.jointId?.let { if (level.gtpa.getJointById(it) != null) level.gtpa.removeJoint(it) }
         link.jointId = null; link.pending = false; link.dirty = true; link.missing = 0; link.age = 0; link.overloadedTicks = 0
@@ -158,11 +159,20 @@ class HingeLinks : SavedData() {
                 }
             }
             if (link.age % 5 == 0) {
-                val angle = HingeGeometry.angle(worldRotation(level, link.a), worldRotation(level, link.b))
+                val qa = worldRotation(level, link.a)
+                val qb = worldRotation(level, link.b)
+                val angle = HingeGeometry.angle(qa, qb)
                 val a = worldPoint(level, link.a) ?: continue
                 val b = worldPoint(level, link.b) ?: continue
                 val strain = a.distanceTo(b) > 0.03 || angle < link.appliedLower - 1 || angle > link.appliedUpper + 1
-                (level.getBlockEntity(link.a.pos) as? HingeBlockEntity)?.updateStrain(strain)
+                val angularSlack = Math.toDegrees(HingeGeometry.MAX_TORQUE * HingeGeometry.COMPLIANCE)
+                val misalignment = Math.toDegrees(acos(qa.transform(Vector3d(1.0, 0.0, 0.0))
+                    .dot(qb.transform(Vector3d(1.0, 0.0, 0.0))).coerceIn(-1.0, 1.0)))
+                val stress = maxOf(a.distanceTo(b) / (HingeGeometry.MAX_FORCE * HingeGeometry.COMPLIANCE),
+                    misalignment / angularSlack, (link.appliedLower - angle) / angularSlack,
+                    (angle - link.appliedUpper) / angularSlack).coerceIn(0.0, 1.0).toFloat()
+                (level.getBlockEntity(link.a.pos) as? HingeBlockEntity)?.updateStrain(strain, stress)
+                (level.getBlockEntity(link.b.pos) as? HingeBlockEntity)?.updateStrain(false, stress)
             }
         }
     }

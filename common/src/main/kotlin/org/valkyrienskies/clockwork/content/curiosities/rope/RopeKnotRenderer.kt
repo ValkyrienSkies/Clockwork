@@ -4,6 +4,7 @@ import org.valkyrienskies.clockwork.content.curiosities.spring.SpringRenderer
 
 import org.valkyrienskies.clockwork.content.curiosities.spring.SpringItem
 
+import org.valkyrienskies.clockwork.client.render.goggles.AeronautGoggleOverlayRenderer
 import com.mojang.blaze3d.vertex.PoseStack
 import com.mojang.blaze3d.vertex.VertexConsumer
 import net.minecraft.client.Minecraft
@@ -59,18 +60,19 @@ class RopeKnotEntityRenderer(context: EntityRendererProvider.Context) : EntityRe
         val anchor = if (entity.end == 0) link.a else link.b
         val point = anchor.world(level, true) ?: return
         val origin = entity.getPosition(partialTick)
+        val tint = RopeKnotRenderer.stressColor(link, partialTick)
         if (!link.spring && !link.thinkable) RopeKnotRenderer.knot(level, anchor, point.subtract(origin), ms, buffers)
         if (entity.end == 0) {
             val other = link.b.world(level, true) ?: return
             if (link.thinkable) {
                 val pulse = link.pulse.progress(RopeKnotRenderer.animationTicks, partialTick)
-                SpringRenderer.renderThinkable(level, link.a, link.b, link.length, pulse, origin, ms, buffers)
+                SpringRenderer.renderThinkable(level, link.a, link.b, link.length, pulse, origin, ms, buffers, tint)
             } else if (link.spring) {
                 val ticks = level.gameTime - link.lengthUpdated + partialTick.toDouble()
                 val length = SpringSettings.easeLength(link.appliedLength, link.length, ticks)
-                SpringRenderer.render(level, link.a, link.b, link.frameA, link.frameB, length, origin, ms, buffers)
+                SpringRenderer.render(level, link.a, link.b, link.frameA, link.frameB, length, origin, ms, buffers, tint)
             }
-            else RopeKnotRenderer.rope(level, WandRopeCurve(point, other, link.length), origin, ms, buffers)
+            else RopeKnotRenderer.rope(level, WandRopeCurve(point, other, link.length), origin, ms, buffers, tint)
         }
         super.render(entity, yaw, partialTick, ms, buffers, light)
     }
@@ -82,7 +84,10 @@ object RopeKnotRenderer {
     internal data class Link(val a: WandAnchor, val b: WandAnchor, val length: Double, val spring: Boolean, var stress: Float,
                     var stressUpdated: Long, val settings: CompoundTag, val appliedLength: Double, val lengthUpdated: Long,
                     val frameA: Quaterniond, val frameB: Quaterniond, val thinkable: Boolean,
-                    val pulse: ThinkablePulse)
+                    val pulse: ThinkablePulse) {
+        var previousStress = stress.takeIf { it.isFinite() }?.coerceIn(0f, 1f) ?: 0f
+        var displayStress = previousStress
+    }
     private data class Snap(val curve: WandRopeCurve, val born: Long, val untied: Boolean)
     private val links = mutableMapOf<UUID, Link>()
     private val snaps = mutableListOf<Snap>()
@@ -101,7 +106,19 @@ object RopeKnotRenderer {
         return level
     }
 
-    fun clientTick() { if (world() != null) animationTicks++ }
+    fun clientTick() {
+        if (world() == null) return
+        animationTicks++
+        for (link in links.values) {
+            link.previousStress = link.displayStress
+            val target = link.stress.takeIf { it.isFinite() }?.coerceIn(0f, 1f) ?: 0f
+            link.displayStress += (target - link.displayStress) * .4f
+        }
+    }
+
+    internal fun stressColor(link: Link, partialTick: Float): Int = AeronautGoggleOverlayRenderer.stressColor(
+        link.previousStress + (link.displayStress - link.previousStress) * partialTick)
+
 
     internal fun link(id: UUID?): Link? { world(); return links[id] }
     internal fun winchLink(pos: BlockPos): Link? {
@@ -124,7 +141,8 @@ object RopeKnotRenderer {
             }
             updateStressSounds(level)
         } else if (data.getString("kind") == "links") {
-            val previousPulses = links.mapValues { it.value.pulse }
+            val previous = links.toMap()
+            val previousPulses = previous.mapValues { it.value.pulse }
             links.clear()
             for (entry in data.getList("links", Tag.TAG_COMPOUND.toInt()).take(256)) {
                 val tag = entry as CompoundTag
@@ -139,7 +157,9 @@ object RopeKnotRenderer {
                     length, tag.getBoolean("spring"), tag.getFloat("stress"), level.gameTime, tag.getCompound("settings"),
                     WandLinks.readAppliedLength(tag, length), level.gameTime,
                     WandLinks.loadPoseRotation(tag.getCompound("pose0")), WandLinks.loadPoseRotation(tag.getCompound("pose1")),
-                    tag.getBoolean("thinkable"), pulse)
+                    tag.getBoolean("thinkable"), pulse).also { next ->
+                        previous[id]?.let { next.previousStress = it.previousStress; next.displayStress = it.displayStress }
+                    }
             }
             for ((id, link) in links) {
                 if (!link.thinkable || previousPulses[id]?.id == link.pulse.id ||
@@ -210,13 +230,13 @@ object RopeKnotRenderer {
             LevelRenderer.getLightColor(level, BlockPos.containing(point)), OverlayTexture.NO_OVERLAY, ms, buffers, level, 0)
     }
 
-    fun rope(level: ClientLevel, curve: WandRopeCurve, origin: Vec3, ms: PoseStack, buffers: MultiBufferSource) {
+    fun rope(level: ClientLevel, curve: WandRopeCurve, origin: Vec3, ms: PoseStack, buffers: MultiBufferSource, tint: Int = 0xFFFFFF) {
         val count = ceil(curve.a.distanceTo(curve.b) * 0.5 + curve.sag * 12).toInt().coerceIn(4, 128)
         val points = (0..count).map { curve.point(it.toDouble() / count) }
-        strand(level, points, origin, ms, buffers.getBuffer(type), 0.0625)
+        strand(level, points, origin, ms, buffers.getBuffer(type), 0.0625, tint)
     }
 
-    private fun strand(level: ClientLevel, points: List<Vec3>, origin: Vec3, ms: PoseStack, vc: VertexConsumer, radius: Double) {
+    private fun strand(level: ClientLevel, points: List<Vec3>, origin: Vec3, ms: PoseStack, vc: VertexConsumer, radius: Double, tint: Int = 0xFFFFFF) {
         if (points.size < 2) return
         val horizontal = points.last().subtract(points.first()).cross(Vec3(0.0, 1.0, 0.0))
         val side = if (horizontal.lengthSqr() > 1e-6) horizontal.normalize() else Vec3(1.0, 0.0, 0.0)
@@ -237,7 +257,7 @@ object RopeKnotRenderer {
                 val normal = rings[i][face].add(rings[i][next]).scale(0.5).subtract(points[i]).normalize()
                 fun vertex(p: Vec3, texU: Float, texV: Float) {
                     val v = p.subtract(origin)
-                    vc.vertex(ms.last().pose(), v.x.toFloat(), v.y.toFloat(), v.z.toFloat()).color(255, 255, 255, 255)
+                    vc.vertex(ms.last().pose(), v.x.toFloat(), v.y.toFloat(), v.z.toFloat()).color(tint shr 16 and 255, tint shr 8 and 255, tint and 255, 255)
                         .uv(texU, texV).overlayCoords(OverlayTexture.NO_OVERLAY).uv2(light)
                         .normal(ms.last().normal(), normal.x.toFloat(), normal.y.toFloat(), normal.z.toFloat()).endVertex()
                 }

@@ -34,6 +34,7 @@ import org.valkyrienskies.mod.common.shipObjectWorld
 import java.util.Locale
 import kotlin.math.abs
 import kotlin.math.roundToInt
+import kotlin.math.sqrt
 
 object AeronautGoggleOverlayRenderer {
     private const val GOLD = 0xFFFFCC71.toInt()
@@ -54,6 +55,13 @@ object AeronautGoggleOverlayRenderer {
         return mc.level != null && mc.screen == null && !mc.options.hideGui && mc.options.cameraType.isFirstPerson &&
             player.isAlive && !player.isSpectator && player.getItemBySlot(EquipmentSlot.HEAD).item is AeronautGogglesItem &&
             AeronautGogglesState.getGogglesAreDown(player)
+    }
+
+    fun stressColor(stress: Float): Int {
+        if (!stress.isFinite() || stress <= 0f || !enabled() || ShaderPackCompat.shadowPass()) return 0xFFFFFF
+        val intensity = sqrt(stress.coerceIn(0f, 1f))
+        val channel = (255 - 215 * intensity).roundToInt()
+        return 0xFF0000 or (channel shl 8) or channel
     }
 
     @JvmStatic

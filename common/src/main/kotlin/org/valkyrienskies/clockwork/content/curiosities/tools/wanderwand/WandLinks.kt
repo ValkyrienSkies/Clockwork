@@ -225,9 +225,10 @@ class WandLinks : SavedData() {
             val speed = (distance - (link.previousDistance ?: distance)) * 20
             link.previousDistance = distance
             val hasPhysics = link.a.shipId != link.b.shipId
-            link.stress = if (!hasPhysics || !link.physical) 0f else {
+            link.stress = if (!hasPhysics) 0f else {
                 val ratio = if (link.spring) SpringJoints.stressRatio(distance - link.appliedLength, speed, link.settings)
-                    else RopeKnotPhysics.stressRatio(distance - link.ropeLimit, speed)
+                    else if (link.physical) RopeKnotPhysics.stressRatio(distance - link.ropeLimit, speed)
+                    else WandLinkPhysics.stressRatio(link.rope, distance - if (link.rope) link.length else 0.01, speed, link.age)
                 ratio.coerceIn(0.0, 1.0).toFloat()
             }
             val missing = link.jointId != null && !link.pending && (level.gtpa.getJointById(link.jointId!!) == null ||

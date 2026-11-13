@@ -26,6 +26,7 @@ class RopeWinchRenderer(context: BlockEntityRendererProvider.Context) : KineticB
     override fun renderSafe(be: RopeWinchBlockEntity, partialTicks: Float, ms: PoseStack, buffers: MultiBufferSource, light: Int, overlay: Int) {
         renderRotatingKineticBlock(be, getRenderedBlockState(be), ms, buffers.getBuffer(RenderType.solid()), light)
         val link = RopeKnotRenderer.winchLink(be.blockPos)
+        val tint = link?.let { RopeKnotRenderer.stressColor(it, partialTicks) } ?: 0xFFFFFF
         val axis = be.blockState.getValue(HorizontalAxisKineticBlock.HORIZONTAL_AXIS)
         val angle = if (link != null) {
             val time = (be.level?.gameTime ?: 0L).toDouble() + partialTicks
@@ -44,13 +45,13 @@ class RopeWinchRenderer(context: BlockEntityRendererProvider.Context) : KineticB
         val buffer = buffers.getBuffer(RenderType.cutoutMipped())
         CachedBuffers.partial(ClockworkPartials.ROPE_WINCH_DRUM, be.blockState)
             .rotateCentered(angle, Direction.EAST).light<SuperByteBuffer>(light)
-            .overlay<SuperByteBuffer>(overlay).renderInto(ms, buffer)
+            .overlay<SuperByteBuffer>(overlay).color<SuperByteBuffer>(tint).renderInto(ms, buffer)
         if (link != null) {
             CachedBuffers.partial(ClockworkPartials.ROPE_WINCH_ROPE, be.blockState)
                 .rotateCentered(angle, Direction.EAST).light<SuperByteBuffer>(light)
-                .overlay<SuperByteBuffer>(overlay).renderInto(ms, buffer)
+                .overlay<SuperByteBuffer>(overlay).color<SuperByteBuffer>(tint).renderInto(ms, buffer)
             CachedBuffers.partial(ClockworkPartials.ROPE_WINCH_LEAD, be.blockState)
-                .light<SuperByteBuffer>(light).overlay<SuperByteBuffer>(overlay).renderInto(ms, buffer)
+                .light<SuperByteBuffer>(light).overlay<SuperByteBuffer>(overlay).color<SuperByteBuffer>(tint).renderInto(ms, buffer)
         }
         ms.popPose()
     }

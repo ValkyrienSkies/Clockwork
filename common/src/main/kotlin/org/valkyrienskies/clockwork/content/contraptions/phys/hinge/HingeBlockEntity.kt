@@ -36,11 +36,19 @@ class HingeBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: BlockStat
         private set
     var strained = false
         private set
+    var stress = 0f
+        private set
+    var previousStress = 0f
+        private set
+    var displayStress = 0f
+        private set
     private var stressSound: HingeStressSound? = null
 
-    fun updateStrain(value: Boolean) {
-        if (strained == value) return
+    fun updateStrain(value: Boolean, load: Float = 0f) {
+        val next = (load.coerceIn(0f, 1f) * 100).toInt() / 100f
+        if (strained == value && stress == next) return
         strained = value
+        stress = next
         sendData()
     }
 
@@ -48,6 +56,7 @@ class HingeBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: BlockStat
         super.write(tag, clientPacket)
         if (clientPacket) {
             tag.putBoolean("Strained", strained)
+            tag.putFloat("Stress", stress)
             guideBase?.let { tag.putLong("GuideBase", it.asLong()) }
             guideHead?.let { tag.putLong("GuideHead", it.asLong()) }
         }
@@ -57,6 +66,7 @@ class HingeBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: BlockStat
         super.read(tag, clientPacket)
         if (clientPacket) {
             strained = tag.getBoolean("Strained")
+            stress = tag.getFloat("Stress").takeIf { it.isFinite() }?.coerceIn(0f, 1f) ?: 0f
             guideBase = if (tag.contains("GuideBase")) BlockPos.of(tag.getLong("GuideBase")) else null
             guideHead = if (tag.contains("GuideHead")) BlockPos.of(tag.getLong("GuideHead")) else null
         }
@@ -87,6 +97,8 @@ class HingeBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: BlockStat
     override fun tick() {
         super.tick()
         if (level?.isClientSide == true) {
+            previousStress = displayStress
+            displayStress += (stress - displayStress) * .4f
             if (strained && stressSound?.isStopped != false) {
                 stressSound = HingeStressSound(this).also { Minecraft.getInstance().soundManager.play(it) }
             }

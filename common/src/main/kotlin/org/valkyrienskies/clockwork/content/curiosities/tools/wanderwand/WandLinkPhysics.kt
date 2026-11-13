@@ -81,6 +81,14 @@ internal object WandLinkPhysics {
     }
 
     /** Also retire the saved record on solvers which don't publish native joint-break callbacks. */
+    fun stressRatio(rope: Boolean, stretch: Double, separatingSpeed: Double, age: Int): Double {
+        if (rope && stretch < 0.0 || !rope && age < GLUE_RAMP_TICKS) return 0.0
+        val demand = max(0.0, stretch) * (if (rope) ROPE_STIFFNESS else GLUE_STIFFNESS) +
+            max(0.0, separatingSpeed) * (if (rope) ROPE_DAMPING else GLUE_DAMPING)
+        val load = demand / if (rope) ROPE_BREAK_ACCELERATION else GLUE_BREAK_ACCELERATION
+        return if (rope) load else max(load, stretch / GLUE_MAX_STRETCH)
+    }
+
     fun overloaded(rope: Boolean, stretch: Double, separatingSpeed: Double, age: Int): Boolean {
         if (rope) {
             // A rope carries no tension until its slack has been taken up.

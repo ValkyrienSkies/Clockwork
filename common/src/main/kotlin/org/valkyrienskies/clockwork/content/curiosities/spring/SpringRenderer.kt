@@ -55,7 +55,7 @@ object SpringRenderer {
     }
 
     fun render(level: ClientLevel, a: WandAnchor, b: WandAnchor, frameA: Quaterniondc, frameB: Quaterniondc,
-               restLength: Double, origin: Vec3, pose: PoseStack, buffers: MultiBufferSource) {
+               restLength: Double, origin: Vec3, pose: PoseStack, buffers: MultiBufferSource, tint: Int = 0xFFFFFF) {
         checkWorld(level)
         val start = a.world(level, true) ?: return
         val end = b.world(level, true) ?: return
@@ -67,7 +67,7 @@ object SpringRenderer {
         val side = worldA.transform(Vector3d(0.0, 1.0, 0.0))
         strand(level, SpringShape.points(start, end, na, nb), na, nb.scale(-1.0),
             Vec3(side.x, side.y, side.z), SpringJoints.twistAngle(worldA, worldB),
-            restLength, 1.0, origin, pose, buffers)
+            restLength, 1.0, origin, pose, buffers, tint = tint)
     }
 
     fun preview(level: ClientLevel, anchor: WandAnchor, end: Vec3, origin: Vec3, pose: PoseStack,
@@ -82,7 +82,7 @@ object SpringRenderer {
     }
 
     fun renderThinkable(level: ClientLevel, a: WandAnchor, b: WandAnchor, length: Double, pulse: Double,
-                        origin: Vec3, pose: PoseStack, buffers: MultiBufferSource) {
+                        origin: Vec3, pose: PoseStack, buffers: MultiBufferSource, tint: Int = 0xFFFFFF) {
         val start = a.world(level, true) ?: return
         val end = b.world(level, true) ?: return
         if (start.distanceToSqr(end) < 1e-8) return
@@ -95,7 +95,7 @@ object SpringRenderer {
             point.add(0.0, -sag * sin(t * PI).pow(2), 0.0)
         }
         strand(level, points, na, nb.scale(-1.0), side(level, a), 0.0,
-            length, 10.0 / 12.0, origin, pose, buffers, thinkable = true, pulse = pulse)
+            length, 10.0 / 12.0, origin, pose, buffers, thinkable = true, pulse = pulse, tint = tint)
     }
 
     fun acceptBreak(level: ClientLevel, tag: CompoundTag) {
@@ -154,7 +154,7 @@ object SpringRenderer {
     private fun strand(level: ClientLevel, points: List<Vec3>, startNormal: Vec3, endNormal: Vec3,
                        initialSide: Vec3, twist: Double, restLength: Double, scale: Double,
                        origin: Vec3, pose: PoseStack, buffers: MultiBufferSource, capEnd: Boolean = true,
-                       thinkable: Boolean = false, pulse: Double = -1.0) {
+                       thinkable: Boolean = false, pulse: Double = -1.0, tint: Int = 0xFFFFFF) {
         if (points.first().distanceToSqr(points.last()) < 1e-10) return
         val tangents = points.indices.map { i ->
             when {
@@ -189,7 +189,7 @@ object SpringRenderer {
             val local = point.subtract(origin)
             val color = (brightness.coerceIn(0.0, 1.0) * 255).roundToInt()
             consumer.vertex(transform.pose(), local.x.toFloat(), local.y.toFloat(), local.z.toFloat())
-                .color(color, color, color, 255)
+                .color(color * (tint shr 16 and 255) / 255, color * (tint shr 8 and 255) / 255, color * (tint and 255) / 255, 255)
                 .uv(u, v).overlayCoords(OverlayTexture.NO_OVERLAY).uv2(light)
                 .normal(transform.normal(), normal.x.toFloat(), normal.y.toFloat(), normal.z.toFloat()).endVertex()
         }
