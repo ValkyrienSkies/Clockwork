@@ -104,9 +104,9 @@ dependencies {
     // EMI for testing
     //modRuntimeOnly("dev.emi:emi-forge:1.1.22+1.20.1")
 
-    include(modImplementation("org.valkyrienskies.kelvin:kelvin-forge:${rootProject.minecraft_version}-${rootProject.kelvin_version}") { transitive = false
+    modImplementation("org.valkyrienskies.kelvin:kelvin-forge:${rootProject.minecraft_version}-${rootProject.kelvin_version}") { transitive = false
         exclude group: 'org.joml', module: ''
-    })
+    }
 
     //modImplementation("maven.modrinth:s:${rootProject.vlib_version}+forge")
 

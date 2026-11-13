@@ -33,14 +33,14 @@ side = "BOTH"
 [[dependencies.vs_clockwork]]
 modId = "valkyrienskies"
 mandatory = true
-versionRange = "[2.4.6,)"
+versionRange = "[2.4.8,)"
 ordering = "AFTER"
 side = "BOTH"
 
 [[dependencies.vs_clockwork]]
 modId = "kelvin"
 mandatory = true
-versionRange = "[0.4.0,)"
+versionRange = "[0.5.1,)"
 ordering = "AFTER"
 side = "BOTH"
 

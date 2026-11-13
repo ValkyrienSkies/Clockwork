@@ -75,9 +75,9 @@ dependencies {
 
     //Kelvin
 
-    include(modImplementation("org.valkyrienskies.kelvin:kelvin-fabric:${rootProject.minecraft_version}-${rootProject.kelvin_version}") {
+    modImplementation("org.valkyrienskies.kelvin:kelvin-fabric:${rootProject.minecraft_version}-${rootProject.kelvin_version}") {
         exclude group: 'org.joml', module: ''
-    })
+    }
 
     //modImplementation("maven.modrinth:vlib:${rootProject.vlib_version}+fabric")
 
