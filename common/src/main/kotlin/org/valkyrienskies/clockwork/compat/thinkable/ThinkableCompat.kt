@@ -2,6 +2,7 @@ package org.valkyrienskies.clockwork.compat.thinkable
 
 import org.valkyrienskies.clockwork.api.thinkable.ThinkableContext
 import org.valkyrienskies.clockwork.api.thinkable.ThinkableRegistry
+import net.minecraft.world.level.block.state.BlockState
 import java.util.function.Consumer
 
 object ThinkableCompat {
@@ -24,4 +25,5 @@ object ThinkableCompat {
     }
 
     fun find(context: ThinkableContext) = providers.find(context) ?: builtins.find(context)
+    fun supports(state: BlockState) = providers.supports(state) || builtins.supports(state)
 }

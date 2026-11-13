@@ -9,14 +9,14 @@ import kotlin.math.floor
 enum class CombobulatorFunction(val inputs: Int) {
     ADD(2), SUBTRACT(2), MULTIPLY(2), DIVIDE(2), FLOOR(1), CEIL(1), MODULO(2), COMPARE(2),
     AND(2), OR(2), NOT(1), XOR(2), NAND(2), NOR(2), XNOR(2),
-    DELAY(1), PULSE(1), TIMER(1), LATCH(2), COUNTER(2), SWITCH(3);
+    DELAY(1), PULSE(1), TIMER(1), LATCH(2), COUNTER(2), SWITCH(3), REGISTER(2);
 
     val timed get() = this == DELAY || this == PULSE || this == TIMER
     val booleanOutput get() = this in setOf(COMPARE, AND, OR, NOT, XOR, NAND, NOR, XNOR, PULSE, TIMER, LATCH)
     val group get() = when (this) {
         ADD, SUBTRACT, MULTIPLY, DIVIDE, FLOOR, CEIL, MODULO -> CombobulatorGroup.ARITHMETIC
         COMPARE, AND, OR, NOT, XOR, NAND, NOR, XNOR -> CombobulatorGroup.LOGIC
-        LATCH, COUNTER -> CombobulatorGroup.MEMORY
+        LATCH, COUNTER, REGISTER -> CombobulatorGroup.MEMORY
         DELAY, PULSE, TIMER -> CombobulatorGroup.TIMING
         else -> CombobulatorGroup.DEFAULT
     }
@@ -61,6 +61,7 @@ internal class CombobulatorOperationRuntime {
     private var previous = false
     private var latch = false
     private var count = 0.0
+    private var register = 0.0
     private var remaining = 0
     private var phase = 0
     private val delay = ArrayDeque<Double>()
@@ -71,7 +72,8 @@ internal class CombobulatorOperationRuntime {
 
     fun tick(operation: CombobulatorOperation, inputs: DoubleArray) {
         fault = null
-        if ((0 until operation.function.inputs).any { !inputs.getOrElse(it) { Double.NaN }.isFinite() }) {
+        val holding = operation.function == CombobulatorFunction.REGISTER && inputs.getOrNull(1) == 0.0
+        if ((0 until operation.function.inputs).any { !(holding && it == 0) && !inputs.getOrElse(it) { Double.NaN }.isFinite() }) {
             fault = CombobulatorFault.UNAVAILABLE
             output = Double.NaN
             previous = false
@@ -114,6 +116,10 @@ internal class CombobulatorOperationRuntime {
                 if (b != 0.0) count = 0.0 else if (rising) count++
                 count
             }
+            CombobulatorFunction.REGISTER -> {
+                if (b != 0.0) register = a
+                register
+            }
             CombobulatorFunction.SWITCH -> if (inputs[2] != 0.0) b else a
             CombobulatorFunction.DELAY -> {
                 delay.addLast(a)
@@ -136,6 +142,7 @@ internal class CombobulatorOperationRuntime {
         putDouble("Output", output)
         putBoolean("Latch", latch)
         putDouble("Count", count)
+        putDouble("Register", register)
         putInt("Remaining", remaining)
         putInt("Phase", phase)
         putLongArray("Delay", delay.map { it.toRawBits() })
@@ -146,6 +153,7 @@ internal class CombobulatorOperationRuntime {
         previous = tag.getBoolean("Previous")
         latch = tag.getBoolean("Latch")
         count = tag.getDouble("Count").takeIf { it.isFinite() } ?: 0.0
+        register = tag.getDouble("Register").takeIf { it.isFinite() } ?: 0.0
         remaining = tag.getInt("Remaining").coerceIn(0, CombobulatorProgram.MAX_TICKS)
         phase = tag.getInt("Phase").coerceIn(0, CombobulatorProgram.MAX_TICKS)
         delay.clear()

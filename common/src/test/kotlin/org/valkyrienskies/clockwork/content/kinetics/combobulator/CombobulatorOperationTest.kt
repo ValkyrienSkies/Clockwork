@@ -139,6 +139,46 @@ class CombobulatorOperationTest {
         runtime.tick(timer, doubleArrayOf(0.0)); assertEquals(0.0, runtime.output)
     }
 
+    @Test fun registerWritesWhileEnabledAndHoldsPreciseValues() {
+        val runtime = CombobulatorOperationRuntime()
+        val operation = CombobulatorOperation(CombobulatorFunction.REGISTER)
+        runtime.tick(operation, doubleArrayOf(42.0, 0.0))
+        assertEquals(0.0, runtime.output)
+        for (value in listOf(-0.375, 255.125, 0.0)) {
+            runtime.tick(operation, doubleArrayOf(value, -1.0))
+            assertEquals(value, runtime.output)
+            runtime.tick(operation, doubleArrayOf(999.0, 0.0))
+            assertEquals(value, runtime.output)
+            assertNull(runtime.fault)
+        }
+        assertEquals(CombobulatorGroup.MEMORY, operation.function.group)
+        assertFalse(operation.function.booleanOutput)
+        val program = CombobulatorProgram.controller(operation)
+        assertEquals(program.write(), CombobulatorProgram.read(program.write()).write())
+        assertEquals(2, program.channels.count { it.input })
+    }
+
+    @Test fun registerKeepsStoredDataAcrossFaultsAndReloads() {
+        val runtime = CombobulatorOperationRuntime()
+        val operation = CombobulatorOperation(CombobulatorFunction.REGISTER)
+        runtime.tick(operation, doubleArrayOf(-1234.56789, 1.0))
+        runtime.tick(operation, doubleArrayOf(Double.NaN, 0.0))
+        assertEquals(-1234.56789, runtime.output)
+        assertNull(runtime.fault)
+        runtime.tick(operation, doubleArrayOf(Double.POSITIVE_INFINITY, 1.0))
+        assertEquals(CombobulatorFault.UNAVAILABLE, runtime.fault)
+        val restored = CombobulatorOperationRuntime().also { it.read(runtime.write()) }
+        restored.tick(operation, doubleArrayOf(Double.NaN, 0.0))
+        assertEquals(-1234.56789, restored.output)
+        assertNull(restored.fault)
+        restored.tick(operation, doubleArrayOf(9.0, Double.NaN))
+        assertEquals(CombobulatorFault.UNAVAILABLE, restored.fault)
+        restored.tick(operation, doubleArrayOf(9.0, 0.0))
+        assertEquals(-1234.56789, restored.output)
+        restored.tick(operation, doubleArrayOf(0.0, 1.0))
+        assertEquals(0.0, restored.output)
+    }
+
     @Test fun operationBindingsRoundTripAndNormalize() {
         val program = CombobulatorProgram.controller(CombobulatorOperation(CombobulatorFunction.MULTIPLY)).let {
             it.copy(channels = it.channels.map { port -> if (port.id == 0) port.copy(constant = -0.375) else port })

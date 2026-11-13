@@ -64,6 +64,7 @@
     "vs_clockwork:hinge_attachment",
     "vs_clockwork:clampotron",
     "vs_clockwork:magnet",
-    "vs_clockwork:electromagnet"
+    "vs_clockwork:electromagnet",
+    "vs_clockwork:plotting_table"
   ]
 }

@@ -254,6 +254,7 @@ class CombobulatorScreen(private val be: CombobulatorBlockEntity) :
         val names = when (operation.function) {
             CombobulatorFunction.LATCH -> listOf("set", "reset")
             CombobulatorFunction.COUNTER -> listOf("count", "reset")
+            CombobulatorFunction.REGISTER -> listOf("data", "write_enable")
             CombobulatorFunction.TIMER -> listOf("enable")
             CombobulatorFunction.SWITCH -> listOf("a", "b", "select")
             else -> listOf("a", "b", "c")

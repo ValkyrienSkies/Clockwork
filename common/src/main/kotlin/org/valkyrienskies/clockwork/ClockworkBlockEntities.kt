@@ -1,5 +1,7 @@
 package org.valkyrienskies.clockwork
 
+import org.valkyrienskies.clockwork.content.kinetics.plotting.PlottingTableBlockEntity
+
 import org.valkyrienskies.clockwork.content.curiosities.clampotron.ClampotronBlockEntity
 import org.valkyrienskies.clockwork.content.curiosities.clampotron.ClampotronRenderer
 import com.simibubi.create.AllPartialModels
@@ -276,6 +278,12 @@ object ClockworkBlockEntities {
                 )
             }
         }
+        .register()
+
+    @JvmField
+    val PLOTTING_TABLE: BlockEntityEntry<PlottingTableBlockEntity> = ClockworkMod.REGISTRATE
+        .blockEntity("plotting_table", ::PlottingTableBlockEntity)
+        .validBlocks(ClockworkBlocks.PLOTTING_TABLE)
         .register()
 
     @JvmField

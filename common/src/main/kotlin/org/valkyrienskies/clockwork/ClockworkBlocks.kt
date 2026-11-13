@@ -1,5 +1,7 @@
 package org.valkyrienskies.clockwork
 
+import org.valkyrienskies.clockwork.content.kinetics.plotting.PlottingTableBlock
+
 import org.valkyrienskies.clockwork.content.curiosities.magnet.MagnetBlock
 import org.valkyrienskies.clockwork.content.curiosities.clampotron.ClampotronBlock
 import com.simibubi.create.AllBlocks
@@ -375,6 +377,20 @@ object ClockworkBlocks {
                 )
             )
             .register()
+
+    @JvmField
+    val PLOTTING_TABLE: BlockEntry<PlottingTableBlock> = REGISTRATE.block("plotting_table", ::PlottingTableBlock)
+        .initialProperties(AllBlocks.BRASS_CASING)
+        .properties { it.noOcclusion().isRedstoneConductor { _, _, _ -> false } }
+        .addLayer { Supplier { RenderType.cutout() } }
+        .transform(axeOrPickaxe())
+        .tag(AllTags.AllBlockTags.SAFE_NBT.tag)
+        .blockstate { _: DataGenContext<Block?, PlottingTableBlock>, _: RegistrateBlockstateProvider -> }
+        .item()
+        .tab(ClockworkMod.BASE_CREATIVE_TABINFO)
+        .model(AssetLookup.customBlockItemModel("plotting_table", "block"))
+        .build()
+        .register()
 
     @JvmField
     val COMBOBULATOR: BlockEntry<CombobulatorBlock> = REGISTRATE.block("combobulator", ::CombobulatorBlock)
