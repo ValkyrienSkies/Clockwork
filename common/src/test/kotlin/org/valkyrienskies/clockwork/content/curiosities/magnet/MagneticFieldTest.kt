@@ -75,6 +75,131 @@ class MagneticFieldTest {
     }
 
     @Test
+    fun `long range pull improves without increasing contact force`() {
+        val a = magnet(0.0)
+        assertTrue(force(a, magnet(1.0)).x in 90000.0..125000.0)
+        assertTrue(force(a, magnet(2.0)).x in 24000.0..36000.0)
+        assertTrue(force(a, magnet(4.0)).x > 3400.0)
+        assertTrue(force(a, magnet(8.0)).x > 400.0)
+        assertTrue(force(a, magnet(12.0)).x > 150.0)
+        var previous = Double.POSITIVE_INFINITY
+        for (i in 100..150) assertTrue(force(a, magnet(i / 100.0)).x in 0.0..130000.0)
+        for (i in 15..160) {
+            val pull = force(a, magnet(i / 10.0)).x
+            assertTrue(pull >= 0.0 && pull < previous, "Pull reversed or increased at ${i / 10.0} blocks")
+            previous = pull
+        }
+    }
+
+    @Test
+    fun `cached iron samples preserve the field and every source reaction`() {
+        val poles = magnet(0.0) + magnet(4.0, -1.0) + magnet(30.0)
+        val sample = MagneticField.Sample()
+        val output = Vector3d()
+        for (point in listOf(Vector3d(2.0, .2, .1), Vector3d(15.9, 0.0, 0.0), Vector3d(50.0))) {
+            MagneticField.sample(poles, point, sample)
+            val field = MagneticField.field(poles, point)
+            assertTrue(sample.field.distance(field) < 1e-10)
+            for ((i, pole) in poles.withIndex()) {
+                val expected = MagneticField.ironForce(pole, point, field, .125)
+                MagneticField.ironForce(sample, i, .125, output)
+                assertTrue(output.distance(expected) < 1e-8)
+            }
+        }
+        val single = poles.take(1)
+        MagneticField.sample(single, Vector3d(), sample)
+        assertTrue(sample.field.distance(MagneticField.field(single, Vector3d())) < 1e-10)
+    }
+
+    @Test
+    fun `distant pole reduction preserves force direction and alignment torque`() {
+        val a = magnet(0.0)
+        val coarseA = MagneticField.coarsePoles(a)
+        for (position in listOf(Vector3d(8.0, 0.0, 0.0), Vector3d(0.0, 8.0, 0.0), Vector3d(6.0, 5.0, 1.0))) {
+            for (normal in listOf(Vector3d(1.0, 0.0, 0.0), Vector3d(0.0, 1.0, 0.0), Vector3d(1.0, 1.0, 1.0).normalize())) {
+                val b = MagneticField.poles(position, normal, 1.0)
+                val coarseB = MagneticField.coarsePoles(b)
+                val exact = force(a, b)
+                val reduced = force(coarseA, coarseB)
+                assertTrue(exact.distance(reduced) < exact.length() * .05)
+                fun torque(first: List<MagneticField.Pole>, second: List<MagneticField.Pole>) = Vector3d().also { result ->
+                    for (pa in first) for (pb in second) {
+                        result.add(Vector3d(pa.position).cross(MagneticField.pairForce(pa, pb)))
+                    }
+                }
+                val exactTorque = torque(a, b)
+                assertTrue(exactTorque.distance(torque(coarseA, coarseB)) < maxOf(exactTorque.length(), exact.length()) * .05)
+                assertTrue(reduced.add(force(coarseB, coarseA)).length() < 1e-8)
+            }
+        }
+    }
+
+    @Test
+    fun `iron cores relay and reshape the field along an iron chain`() {
+        val poles = magnet(0.0)
+        val centers = (1..5).map { Vector3d(it.toDouble(), 0.0, 0.0) }
+        val solver = MagneticField.CoreSolver()
+        val moments = solver.solve(poles, centers)
+        assertTrue(moments.all { it.x > 0.0 && kotlin.math.abs(it.y) < 1e-9 && kotlin.math.abs(it.z) < 1e-9 })
+        val isolated = MagneticField.CoreSolver().solve(poles, listOf(centers.last())).single()
+        assertTrue(moments.last().length() > isolated.length(), "The chain must relay induction to its far end")
+        val reshaped = poles + centers.indices.flatMap { MagneticField.corePoles(centers[it], moments[it]) }
+        val probe = Vector3d(5.8, .2, 0.0)
+        assertTrue(MagneticField.field(reshaped, probe).length() > MagneticField.field(poles, probe).length() * 1.5)
+        val offAxis = Vector3d(4.0, 1.0, 0.0)
+        assertTrue(MagneticField.field(reshaped, offAxis).normalize().distance(MagneticField.field(poles, offAxis).normalize()) > .1)
+        val reversed = MagneticField.CoreSolver().solve(magnet(0.0, -1.0), centers)
+        for (i in centers.indices) assertTrue(Vector3d(reversed[i]).add(moments[i]).length() < 1e-8)
+    }
+
+    @Test
+    fun `core saturation stays bounded and turning the magnet off clears cached induction`() {
+        val centers = (0 until 64).map { Vector3d((it % 4).toDouble(), (it / 4 % 4).toDouble(), (it / 16).toDouble()) }
+        val solver = MagneticField.CoreSolver()
+        val poles = MagneticField.poles(Vector3d(-1.0, 0.0, 0.0), Vector3d(1.0, 0.0, 0.0), 1000.0)
+        val moments = solver.solve(poles, centers)
+        assertTrue(moments.all { it.isFinite && it.length() <= 1.5 })
+        val saved = moments.map(::Vector3d)
+        assertTrue(solver.solve(poles, centers) === moments)
+        assertTrue(solver.solve(emptyList(), centers).all { it.lengthSquared() == 0.0 })
+        val restored = solver.solve(poles, centers)
+        for (i in centers.indices) assertTrue(restored[i].distance(saved[i]) < 1e-10)
+        assertTrue(solver.solve(poles, emptyList()).isEmpty())
+        val coincident = solver.solve(poles, List(8) { Vector3d() })
+        assertTrue(coincident.all { it.isFinite && it.length() <= 1.5 })
+        val moving = listOf(Vector3d(1.0, 0.0, 0.0), Vector3d(6.2, 0.0, 0.0))
+        for (x in listOf(6.2, 5.4, 5.1, 4.9, 4.7, 3.0, 8.0)) {
+            moving[1].x = x
+            val cached = solver.solve(poles, moving)
+            val fresh = MagneticField.CoreSolver().solve(poles, moving)
+            for (i in moving.indices) assertTrue(cached[i].distance(fresh[i]) < 1e-10)
+        }
+    }
+
+    @Test
+    fun `induced pole forces conserve force and torque and rotate with the contraption`() {
+        val centers = listOf(Vector3d(1.0, .1, 0.0), Vector3d(2.0, .3, 0.0), Vector3d(2.0, 1.3, 0.0))
+        val poles = magnet(0.0)
+        val moments = MagneticField.CoreSolver().solve(poles, centers)
+        val cores = centers.indices.map { MagneticField.corePoles(centers[it], moments[it]) }
+        val groups = listOf(poles) + cores
+        val total = Vector3d()
+        val torque = Vector3d()
+        for (i in groups.indices) for (j in i + 1 until groups.size) {
+            for (a in groups[i]) for (b in groups[j]) {
+                val f = MagneticField.pairForce(a, b)
+                total.add(f).add(MagneticField.pairForce(b, a))
+                torque.add(Vector3d(a.position).cross(f)).sub(Vector3d(b.position).cross(f))
+            }
+        }
+        assertTrue(total.length() < 1e-8)
+        assertTrue(torque.length() < 1e-7)
+        val rotatedPoles = poles.map { MagneticField.Pole(Vector3d(it.position).rotateY(.7), it.charge) }
+        val rotated = MagneticField.CoreSolver().solve(rotatedPoles, centers.map { Vector3d(it).rotateY(.7) })
+        for (i in centers.indices) assertTrue(rotated[i].distance(Vector3d(moments[i]).rotateY(.7)) < 1e-8)
+    }
+
+    @Test
     fun `contact and range cutoff remain finite and continuous`() {
         val pole = MagneticField.Pole(Vector3d(), 1.0)
         val coincident = MagneticField.pairForce(pole, pole)

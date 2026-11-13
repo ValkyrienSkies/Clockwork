@@ -55,6 +55,9 @@ object ClockworkConfig {
         @ConfigEntry(description = "Force multiplier for permanent magnets and electromagnets")
         var magnetForceMultiplier = 1.0
 
+        @ConfigEntry(description = "Iron redirects magnetic fields and can magnetize nearby iron; disable to use simple attraction")
+        var magneticIronCores = true
+
 
         @ConfigCategory(title = "Kelvin")
         val kelvin = Kelvin()
