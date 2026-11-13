@@ -14,6 +14,7 @@ import org.valkyrienskies.clockwork.content.contraptions.phys.bearing.PhysBearin
 import org.valkyrienskies.clockwork.content.curiosities.tools.wanderwand.WandAnchor
 import org.valkyrienskies.clockwork.content.curiosities.tools.wanderwand.WandGridRotation
 import org.valkyrienskies.clockwork.content.curiosities.tools.wanderwand.WandLinkTransfer
+import org.valkyrienskies.clockwork.util.GlueAssembler
 import org.valkyrienskies.clockwork.util.GlueAssembler.collectGlued
 import org.valkyrienskies.clockwork.util.alignAssembledShip
 import org.valkyrienskies.mod.common.assembly.ShipAssembler
@@ -100,6 +101,7 @@ object HingeAssembly {
         val moves = blocks.filter { it != link.b.pos }.associateWith { link.a.pos.offset(grid.offset(it.subtract(link.b.pos))) }
         if (moves.values.any { !level.hasChunkAt(it) || level.isOutsideBuildHeight(it) ||
                 !level.worldBorder.isWithinBounds(if (link.a.shipId < 0) it else HingeLinks.worldPoint(level, link.a)!!.let(BlockPos::containing)) || !level.getBlockState(it).isAir }) return "blocked"
+        val glue = GlueAssembler.prepareMove(level, link.b.pos, link.b.pos)
         if (moves.isNotEmpty()) {
             if (!PhysBearingAssembler.moveBlocksWithTransform(level, moves, source, level.getShipManagingPos(link.a.pos),
                     link.b.pos, link.a.pos, grid.steps)) return "blocked"
@@ -107,6 +109,7 @@ object HingeAssembly {
         }
         HingeLinks.get(level).remove(level, link)
         level.removeBlock(link.b.pos, false)
+        GlueAssembler.removeEmpty(level, glue)
         level.setBlockAndUpdate(link.a.pos, stateA.setValue(HingeBlock.ASSEMBLED, false))
         HingeLinks.worldPoint(level, link.a)?.let { ClockworkSounds.HINGE_DISASSEMBLE.play(level, null, it, 1f, 1f) }
         return null

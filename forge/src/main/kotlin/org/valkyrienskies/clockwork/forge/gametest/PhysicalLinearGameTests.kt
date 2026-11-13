@@ -35,8 +35,11 @@ import net.minecraftforge.gametest.PrefixGameTestTemplate
 import net.minecraftforge.network.NetworkHooks
 import org.joml.Quaterniond
 import org.joml.Vector3d
+import org.valkyrienskies.clockwork.ClockworkGasses
+import org.valkyrienskies.clockwork.content.physicalities.extendon.ExtendonBlockEntity
 import org.valkyrienskies.clockwork.ClockworkBlocks
 import org.valkyrienskies.clockwork.content.contraptions.phys.gimbal.GimbalBearingBlockEntity
+import org.valkyrienskies.clockwork.content.contraptions.phys.bearing.PhysBearingAssembler
 import org.valkyrienskies.clockwork.content.contraptions.phys.hinge.HingeAssembly
 import org.valkyrienskies.clockwork.content.contraptions.phys.hinge.HingeBlock
 import org.valkyrienskies.clockwork.content.contraptions.phys.hinge.HingeLinks
@@ -45,14 +48,19 @@ import org.valkyrienskies.clockwork.content.contraptions.phys.linear.PhysicalGan
 import org.valkyrienskies.clockwork.content.contraptions.phys.linear.PhysicalGantryBlockEntity
 import org.valkyrienskies.clockwork.content.contraptions.phys.linear.PhysicalPistonBlockEntity
 import org.valkyrienskies.clockwork.content.curiosities.tools.wanderwand.WandAnchor
+import org.valkyrienskies.clockwork.content.curiosities.tools.wanderwand.WandGridRotation
 import org.valkyrienskies.clockwork.content.curiosities.tools.wanderwand.WandLinks
 import org.valkyrienskies.clockwork.util.gtpa
+import org.valkyrienskies.clockwork.util.updateJoint
 import org.valkyrienskies.core.impl.config.VSCoreConfig
+import org.valkyrienskies.core.api.ships.ServerShip
 import org.valkyrienskies.core.internal.joints.VSD6Joint
+import org.valkyrienskies.core.util.datastructures.DenseBlockPosSet
 import org.valkyrienskies.core.internal.joints.VSFixedJoint
 import org.valkyrienskies.core.internal.joints.VSPrismaticJoint
 import org.valkyrienskies.mod.api.toJOML
 import org.valkyrienskies.mod.common.assembly.ShipAssembler
+import org.valkyrienskies.mod.common.BlockStateInfo
 import org.valkyrienskies.mod.common.getShipManagingPos
 import org.valkyrienskies.mod.common.shipObjectWorld
 import org.valkyrienskies.mod.common.vsCore
@@ -299,6 +307,174 @@ class PhysicalLinearGameTests {
         }
 
         @JvmStatic
+        @GameTest(batch = BATCH, template = TEMPLATE, timeoutTicks = 300)
+        fun gluedPistonPreservesBothShipsMass(helper: GameTestHelper) = pistonMassAndGlue(helper, true)
+
+        @JvmStatic
+        @GameTest(batch = BATCH, template = TEMPLATE, timeoutTicks = 300)
+        fun heavyGluedPistonSurvivesRepeatedAssembly(helper: GameTestHelper) = pistonMassAndGlue(helper, false)
+
+        private fun pistonMassAndGlue(helper: GameTestHelper, wrapGlue: Boolean) {
+            val level = helper.level
+            val start = fixturePosition(helper)
+            observe(level, start)
+            fixtureBlocks.add(start)
+            level.setBlockAndUpdate(start, Blocks.STONE.defaultBlockState())
+            val host = ShipAssembler.assembleToShip(level, setOf(start), 1.0)
+            host.isStatic = true
+            val box = host.shipAABB!!
+            val base = BlockPos(box.minX(), box.minY(), box.minZ())
+            forceChunk(level, base)
+            forceChunk(level, base.west(2))
+            val shaftOrigins = mutableSetOf(base)
+            var shaftId = -1L
+            var expectedMass = 0.0
+            val assembledShafts = mutableSetOf<Long>()
+            fun assertMass() {
+                val shaft = level.shipObjectWorld.allShips.getById(shaftId)!!
+                helper.assertTrue(host.inertiaData.mass > 0.0 && host.inertiaData.mass.isFinite(),
+                    "Piston housing lost its mass: ${host.inertiaData.mass}")
+                helper.assertTrue(shaft.inertiaData.mass > 0.0 && shaft.inertiaData.mass.isFinite(),
+                    "Piston shaft has invalid mass: ${shaft.inertiaData.mass}")
+                helper.assertTrue(abs(host.inertiaData.mass + shaft.inertiaData.mass - expectedMass) < .01,
+                    "Piston assembly changed total mass: host=${host.inertiaData.mass}, shaft=${shaft.inertiaData.mass}, expected=$expectedMass")
+            }
+            helper.startSequence().thenWaitUntil {
+                helper.assertTrue(level.shipObjectWorld.loadedShips.getById(host.id) != null, "Host did not load")
+            }.thenExecute {
+                level.setBlockAndUpdate(base, ClockworkBlocks.PHYS_PISTON.defaultState.setValue(FACING, Direction.EAST))
+                for (i in 1..2) level.setBlockAndUpdate(base.west(i), AllBlocks.PISTON_EXTENSION_POLE.defaultState.setValue(FACING, Direction.EAST))
+                if (wrapGlue) {
+                    level.setBlockAndUpdate(base.east(), Blocks.IRON_BLOCK.defaultBlockState())
+                    for (i in -2..1) level.setBlockAndUpdate(base.east(i).above(), Blocks.OAK_PLANKS.defaultBlockState())
+                    level.addFreshEntity(SuperGlueEntity(level, SuperGlueEntity.span(base.west(2), base.east().above())))
+                } else {
+                    for (x in 1..2) for (y in 0..1) level.setBlockAndUpdate(base.east(x).above(y), Blocks.NETHERITE_BLOCK.defaultBlockState())
+                    level.addFreshEntity(SuperGlueEntity(level, SuperGlueEntity.span(base.east(), base.east(2).above())))
+                }
+            }.thenIdle(5).thenExecute {
+                val piston = level.getBlockEntity(base) as PhysicalPistonBlockEntity
+                expectedMass = host.inertiaData.mass + BlockStateInfo.get(ClockworkBlocks.PHYS_PISTON_HEAD.defaultState)!!.first
+                host.isStatic = false
+                use(helper, base, Direction.NORTH)
+                val data = piston.saveWithoutMetadata()
+                helper.assertTrue(data.contains("ShaftOrigin"), "Glued ship-mounted piston did not assemble")
+                shaftId = data.getLong("ShaftShip")
+                shaftOrigins.add(BlockPos.of(data.getLong("ShaftOrigin")))
+                forceChunk(level, BlockPos.of(data.getLong("ShaftOrigin")))
+                assertMass()
+            }.thenIdle(20).thenExecute {
+                assertMass()
+                helper.assertTrue(level.shipObjectWorld.loadedShips.getById(shaftId) != null, "Shaft did not load")
+                val piston = level.getBlockEntity(base) as PhysicalPistonBlockEntity
+                piston.speed = -64f
+            }.thenWaitUntil {
+                val piston = level.getBlockEntity(base) as PhysicalPistonBlockEntity
+                piston.speed = -64f
+                helper.assertTrue((piston.thinkableValue(Direction.NORTH) ?: 0.0) > 1.8, "Piston did not extend (travel=${piston.thinkableValue(Direction.NORTH)}, speed=${piston.speed}, data=${piston.saveWithoutMetadata()}, hostMass=${host.inertiaData.mass}, shaftMass=${level.shipObjectWorld.allShips.getById(shaftId)?.inertiaData?.mass})")
+            }.thenExecute {
+                assertMass()
+                (level.getBlockEntity(base) as PhysicalPistonBlockEntity).speed = 64f
+            }.thenWaitUntil {
+                val piston = level.getBlockEntity(base) as PhysicalPistonBlockEntity
+                piston.speed = 64f
+                helper.assertTrue((piston.thinkableValue(Direction.NORTH) ?: 2.0) < .1, "Piston did not retract")
+            }.thenExecute {
+                assertMass()
+                (level.getBlockEntity(base) as PhysicalPistonBlockEntity).speed = 0f
+                use(helper, base, Direction.NORTH)
+                helper.assertTrue(abs(host.inertiaData.mass - (expectedMass - BlockStateInfo.get(ClockworkBlocks.PHYS_PISTON_HEAD.defaultState)!!.first)) < .01,
+                    "Piston disassembly did not return the blocks' mass to the host")
+            }.thenExecuteFor(80) {
+                repeat(4) {
+                    use(helper, base, Direction.NORTH)
+                    val data = (level.getBlockEntity(base) as PhysicalPistonBlockEntity).saveWithoutMetadata()
+                    if (data.contains("ShaftOrigin")) {
+                        assembledShafts.add(data.getLong("ShaftShip"))
+                        shaftOrigins.add(BlockPos.of(data.getLong("ShaftOrigin")))
+                    }
+                    val payload = (if (data.contains("ShaftOrigin")) BlockPos.of(data.getLong("ShaftOrigin")) else base).east()
+                    helper.assertTrue(SuperGlueEntity.isGlued(level, payload, Direction.UP, null),
+                        "Piston lost its payload glue while toggling")
+                }
+                val glue = level.allEntities.filterIsInstance<SuperGlueEntity>().filter { entity ->
+                    entity.isAlive && shaftOrigins.any { entity.boundingBox.intersects(SuperGlueEntity.span(it.west(2), it.east(2).above())) }
+                }
+                helper.assertTrue(glue.size <= 2, "Piston assembly duplicated glue entities: ${glue.map { it.boundingBox }}")
+                level.shipObjectWorld.allShips.filter { (it.id == host.id || it.id == shaftId || it.id in assembledShafts) && it.shipAABB != null }.forEach {
+                    helper.assertTrue(it.inertiaData.mass > 0.0 && it.inertiaData.mass.isFinite(),
+                        "Rapid piston toggling left ship ${it.id} with mass ${it.inertiaData.mass} and bounds ${it.shipAABB}")
+                }
+            }.thenIdle(5).thenExecute {
+                helper.assertTrue(assembledShafts.size >= 10, "Piston only assembled ${assembledShafts.size} times during rapid toggling")
+                level.shipObjectWorld.allShips.filter { it.id == host.id || it.id == shaftId || it.id in assembledShafts }.forEach {
+                    helper.assertTrue(it.inertiaData.mass > 0.0 && it.inertiaData.mass.isFinite(),
+                        "Rapid piston toggling left an empty ship ${it.id} with mass ${it.inertiaData.mass}")
+                }
+            }.thenSucceed()
+        }
+
+        @JvmStatic
+        @GameTest(batch = BATCH, template = TEMPLATE, timeoutTicks = 100)
+        fun assemblyAndWeldPreserveGlueWithoutCopies(helper: GameTestHelper) {
+            val level = helper.level
+            val start = fixturePosition(helper)
+            observe(level, start)
+            val blocks = setOf(start, start.east())
+            val remaining = blocks.map { it.above(2) }
+            fixtureBlocks.addAll(blocks + remaining)
+            (blocks + remaining).forEach { level.setBlockAndUpdate(it, Blocks.IRON_BLOCK.defaultBlockState()) }
+            val originalGlue = SuperGlueEntity(level, SuperGlueEntity.span(start, start.east().above(2)))
+            level.addFreshEntity(originalGlue)
+            val first = ShipAssembler.batchAssembleToShips(level, listOf(blocks), 1.0).single().ship
+            first.isStatic = true
+            val firstBox = first.shipAABB!!
+            val firstPos = BlockPos(firstBox.minX(), firstBox.minY(), firstBox.minZ())
+            forceChunk(level, firstPos)
+            val rotation = WandGridRotation.all.first { it.face(Direction.EAST) == Direction.UP }
+            val destination = start.south(5)
+            val finalDestination = start.south(9)
+            lateinit var second: ServerShip
+            lateinit var secondPos: BlockPos
+            helper.startSequence().thenWaitUntil {
+                helper.assertTrue(level.shipObjectWorld.loadedShips.getById(first.id) != null, "Batch-assembled ship did not load")
+            }.thenExecute {
+                helper.assertTrue(originalGlue.isAlive && SuperGlueEntity.isGlued(level, start.above(2), Direction.EAST, null),
+                    "Partial assembly removed glue from the blocks left behind")
+                helper.assertTrue(SuperGlueEntity.isGlued(level, firstPos, Direction.EAST, null), "Batch assembly lost payload glue")
+                val moves = setOf(firstPos, firstPos.east()).associateWith { destination.offset(rotation.offset(it.subtract(firstPos))) }
+                fixtureBlocks.addAll(moves.values)
+                helper.assertTrue(PhysBearingAssembler.moveBlocksWithTransform(level, moves, first, null, firstPos, destination, rotation.steps),
+                    "Rotated weld failed")
+                helper.assertTrue(SuperGlueEntity.isGlued(level, destination, Direction.UP, null), "Weld did not rotate the glue with its blocks")
+                second = ShipAssembler.assembleToShipFull(level, moves.values.toSet()).ship
+                second.isStatic = true
+                val bounds = second.shipAABB!!
+                secondPos = BlockPos(bounds.minX(), bounds.minY(), bounds.minZ())
+                forceChunk(level, secondPos)
+            }.thenWaitUntil {
+                helper.assertTrue(level.shipObjectWorld.loadedShips.getById(second.id) != null, "Reassembled ship did not load")
+            }.thenExecute {
+                helper.assertTrue(SuperGlueEntity.isGlued(level, secondPos, Direction.UP, null), "Template assembly lost rotated glue")
+                val moved = DenseBlockPosSet().apply {
+                    add(secondPos.x, secondPos.y, secondPos.z)
+                    add(secondPos.x, secondPos.y + 1, secondPos.z)
+                }
+                fixtureBlocks.addAll(listOf(finalDestination, finalDestination.above()))
+                helper.assertTrue(PhysBearingAssembler.moveBlocksFromTo(level, moved, true, secondPos, finalDestination, second, null),
+                    "Bearing disassembly failed")
+                helper.assertTrue(SuperGlueEntity.isGlued(level, finalDestination, Direction.UP, null), "Bearing disassembly lost glue")
+                val locations = listOf(AABB(start).expandTowards(1.0, 2.0, 0.0), AABB(firstPos).inflate(4.0),
+                    AABB(destination).inflate(3.0), AABB(secondPos).inflate(4.0), AABB(finalDestination).inflate(3.0))
+                val glue = level.allEntities.filterIsInstance<SuperGlueEntity>().filter { entity ->
+                    entity.isAlive && locations.any { it.intersects(entity.boundingBox) }
+                }
+                helper.assertTrue(glue.size == 2, "Assembly/weld round trip left ${glue.size} glue entities instead of two")
+                glue.forEach { it.discard() }
+            }.thenSucceed()
+        }
+
+        @JvmStatic
         @GameTest(batch = BATCH, template = TEMPLATE, timeoutTicks = 100)
         fun pistonKeepsItsAlignmentWhenAssembledOnAShip(helper: GameTestHelper) {
             val level = helper.level
@@ -492,6 +668,129 @@ class PhysicalLinearGameTests {
                 helper.assertTrue(actualAxis.distance(expectedAxis) < .01, "Gimbal lost its attachment orientation on reload")
                 level.removeBlock(base, false)
             }.thenSucceed()
+        }
+
+        @JvmStatic
+        @GameTest(batch = BATCH, template = TEMPLATE, timeoutTicks = 360)
+        fun extendonConnectsAndChangesLengthWithoutViolentCorrection(helper: GameTestHelper) {
+            extendonStability(helper, false)
+        }
+
+        @JvmStatic
+        @GameTest(batch = BATCH, template = TEMPLATE, timeoutTicks = 360)
+        fun extendonPreservesRotatedShipAlignmentAndRestoresOldJoints(helper: GameTestHelper) {
+            extendonStability(helper, true)
+        }
+
+        private fun extendonStability(helper: GameTestHelper, shipMounted: Boolean) {
+            val level = helper.level
+            val start = fixturePosition(helper)
+            observe(level, start)
+            val top = start.above(8)
+            fixtureBlocks.add(top)
+            fixtureBlocks.add(start)
+            level.setBlockAndUpdate(top, ClockworkBlocks.EXTENDON.defaultState.setValue(FACING, Direction.DOWN))
+            val host = if (shipMounted) ShipAssembler.assembleToShip(level, setOf(top), 1.0).also { it.isStatic = true } else null
+            val topPos = host?.shipAABB?.let { BlockPos(it.minX(), it.minY(), it.minZ()) } ?: top
+            forceChunk(level, topPos)
+            level.setBlockAndUpdate(start, ClockworkBlocks.EXTENDON.defaultState.setValue(FACING, Direction.UP))
+            level.setBlockAndUpdate(start.below(), Blocks.NETHERITE_BLOCK.defaultBlockState())
+            val child = ShipAssembler.assembleToShip(level, setOf(start, start.below()), 1.0)
+            child.isStatic = true
+            val box = child.shipAABB!!
+            val bottomPos = BlockPos(box.minX(), box.maxY() - 1, box.minZ())
+            forceChunk(level, bottomPos)
+            lateinit var upper: ExtendonBlockEntity
+            lateinit var lower: ExtendonBlockEntity
+            var initialRotation = Quaterniond()
+            var lastLength = 8.0
+            var contracted = 0.0
+            var restoredLength = 0.0
+            fun distance(): Double {
+                val a = topPos.center.toJOML()
+                host?.transform?.shipToWorld?.transformPosition(a)
+                return child.transform.shipToWorld.transformPosition(bottomPos.center.toJOML()).distance(a)
+            }
+            fun checkMotion() {
+                helper.assertTrue(child.velocity.isFinite && child.angularVelocity.isFinite, "Extendon produced non-finite motion")
+                helper.assertTrue(child.velocity.length() < 14.0, "Extendon launched its payload: ${child.velocity}")
+                helper.assertTrue(child.angularVelocity.length() < 3.0, "Extendon violently rotated its payload: ${child.angularVelocity}")
+                val current = upper.distanceJoint!!
+                val length = current.minDistance!!.toDouble()
+                helper.assertTrue(abs(length - lastLength) <= .201, "Extendon target jumped from $lastLength to $length")
+                helper.assertTrue((current.stiffness ?: 0f) > 0 && (current.damping ?: 0f) > 0, "Extendon lost its spring settings")
+                lastLength = length
+            }
+            helper.startSequence().thenWaitUntil {
+                helper.assertTrue(level.shipObjectWorld.loadedShips.getById(child.id) != null, "Extendon payload did not load")
+                upper = level.getBlockEntity(topPos) as ExtendonBlockEntity
+                lower = level.getBlockEntity(bottomPos) as ExtendonBlockEntity
+            }.thenExecute {
+                if (shipMounted) level.shipObjectWorld.teleportShip(child, vsCore.newShipTeleportData(
+                    newPos = child.transform.positionInWorld, newRot = Quaterniond().rotateY(.8)))
+            }.thenIdle(3).thenExecute {
+                initialRotation = Quaterniond(child.transform.shipToWorldRotation)
+                upper.connectTo(lower)
+                val joint = upper.distanceJoint!!
+                helper.assertTrue(abs(joint.minDistance!! - distance()) < .01, "Extendon did not start at its actual separation")
+                val angular = upper.sphericalJoint!!
+                val frame0 = Quaterniond(host?.transform?.shipToWorldRotation ?: Quaterniond()).mul(angular.pose0.rot)
+                val frame1 = Quaterniond(child.transform.shipToWorldRotation).mul(angular.pose1.rot)
+                helper.assertTrue(abs(frame0.dot(frame1)) > .9999, "Extendon starts with mismatched angular frames")
+                lastLength = joint.minDistance!!.toDouble()
+                child.isStatic = false
+            }.thenExecuteFor(65) {
+                checkMotion()
+            }.thenExecute {
+                contracted = distance()
+                helper.assertTrue(contracted < 3.0, "Extendon did not retract: $contracted")
+                helper.assertTrue(abs(initialRotation.dot(child.transform.shipToWorldRotation)) > .98,
+                    "Extendon forced the connected ship away from its original orientation")
+                val kelvin = ClockworkMod.getKelvin(level)
+                helper.assertTrue(kelvin.addGasAtTemperature(upper.getDuctNodePosition(), ClockworkGasses.HELIUM, 8.0, 300.0),
+                    "Could not supply Extendon gas")
+            }.thenExecuteFor(55) {
+                checkMotion()
+            }.thenExecute {
+                helper.assertTrue(distance() > contracted + 2.0, "Extendon did not extend after receiving gas: ${distance()}")
+                if (shipMounted) {
+                    child.isStatic = true
+                    upper.main = false
+                    val legacy = upper.distanceJoint!!.copy(minDistance = .5f, maxDistance = 1000f, stiffness = null, damping = 1000f)
+                    level.gtpa.updateJoint(upper.distanceJointId!!, legacy)
+                }
+            }.thenIdle(2).thenExecute {
+                val saved = upper.saveWithoutMetadata()
+                if (!shipMounted) {
+                    saved.remove("DistanceJointId")
+                    saved.remove("SphericalJointId")
+                }
+                upper.connectedJoint = null
+                upper.connectedBe = null
+                lower.connectedJoint = null
+                lower.connectedBe = null
+                upper.load(saved)
+            }.thenIdle(3).thenExecute {
+                helper.assertTrue(upper.connectedBe === lower && upper.distanceJoint!!.stiffness != null,
+                    "Extendon failed to restore a damped connection")
+                if (shipMounted) helper.assertTrue(abs(upper.distanceJoint!!.minDistance!! - distance()) < .7,
+                    "Legacy Extendon did not restart from its actual separation")
+                restoredLength = upper.distanceJoint!!.minDistance!!.toDouble()
+                lastLength = restoredLength
+            }.thenExecuteFor(12) {
+                checkMotion()
+            }.thenExecute {
+                helper.assertTrue(upper.distanceJoint!!.minDistance!! > restoredLength + .5,
+                    "Restored Extendon stopped responding to its gas supply")
+                val distanceId = upper.distanceJointId!!
+                val angularId = upper.sphericalJointId!!
+                upper.disconnect()
+                helper.runAfterDelay(3) {
+                    helper.assertTrue(level.gtpa.getJointById(distanceId) == null && level.gtpa.getJointById(angularId) == null,
+                        "Extendon left constraints behind after disconnecting")
+                    helper.succeed()
+                }
+            }
         }
 
         private fun motor(level: ServerLevel, pos: BlockPos, facing: Direction): CreativeMotorBlockEntity {

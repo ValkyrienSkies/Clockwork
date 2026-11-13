@@ -232,8 +232,10 @@ class PhysicalPistonBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: 
         val offset = displacement(parent, ship, worldPosition, origin, facing).roundToInt().coerceIn(-head, -tail)
         val internal = origin.relative(facing, -offset)
         val blocks = shipBlocks(level, ship)
+        val glue = GlueAssembler.prepareMove(level, internal, internal)
         if (internal !in blocks || !moveOffShip(level, blocks - internal, internal, worldPosition, ship)) return
         level.setBlockAndUpdate(internal, Blocks.AIR.defaultBlockState())
+        GlueAssembler.removeEmpty(level, glue)
         disconnect(level, if (offset == -head) PistonState.RETRACTED else PistonState.EXTENDED)
         playAssemblySound(level, worldPosition, false)
     }

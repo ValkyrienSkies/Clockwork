@@ -3,6 +3,7 @@ package org.valkyrienskies.clockwork.content.contraptions.phys.bearing
 import net.minecraft.core.BlockPos
 import com.simibubi.create.content.contraptions.StructureTransform
 import org.valkyrienskies.clockwork.content.curiosities.tools.wanderwand.WandLinkTransfer
+import org.valkyrienskies.clockwork.util.GlueAssembler
 import org.valkyrienskies.mod.util.updateBlock
 import net.minecraft.nbt.CompoundTag
 import net.minecraft.server.level.ServerLevel
@@ -65,6 +66,7 @@ object PhysBearingAssembler {
         val centers = origin.toJOMLD().add(0.5, 0.5, 0.5) to destination.toJOMLD().add(0.5, 0.5, 0.5)
         val eventData = mutableMapOf<String, CompoundTag>()
         val (min, max) = ShipAssembler.findMinAndMax(moves.keys)
+        val glue = GlueAssembler.prepareMove(level, min, max)
         VSAssemblyEvents.beforeCopy.emit(VSAssemblyEvents.BeforeCopy(level, min.toJOMLD(), max.toJOMLD(),
             centers.first, originShip, moves.keys, eventData))
         VSAssemblyEvents.onPasteBeforeBlocksAreLoaded.emit(VSAssemblyEvents.OnPasteBeforeBlocksAreLoaded(
@@ -97,6 +99,7 @@ object PhysBearingAssembler {
                 level.chunkSource.blockChanged(from)
                 level.chunkSource.blockChanged(to)
             }
+            GlueAssembler.transferGlue(level, glue, origin, destination, transforms)
             VSAssemblyEvents.onPasteAfterBlocksAreLoaded.emit(VSAssemblyEvents.OnPasteAfterBlocksAreLoaded(
                 level, originShip, toShip, centers, eventData))
             return true
@@ -118,6 +121,7 @@ object PhysBearingAssembler {
         val eventData = mutableMapOf<String, CompoundTag>()
 
         val (minB, maxB) = ShipAssembler.findMinAndMax(blocks)
+        val glue = GlueAssembler.prepareMove(level, minB, maxB)
         val oldMin = minB.toJOMLD()
         val oldMax = maxB.toJOMLD()
         val oldCenter = originCenter.toJOMLD()
@@ -150,6 +154,7 @@ object PhysBearingAssembler {
 
 //        VSAssemblyEvents.onPasteAfterBlocksAreLoaded.emit(VSAssemblyEvents.OnPasteAfterBlocksAreLoaded(level, originShip, toShip, oldCenter to newCenter, eventData))
 
+        GlueAssembler.transferGlue(level, glue, originCenter, toCenter, removeOriginal = removeOriginal)
         return true
     }
 }

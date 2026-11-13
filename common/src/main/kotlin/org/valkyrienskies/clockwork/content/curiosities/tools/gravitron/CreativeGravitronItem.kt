@@ -2,7 +2,6 @@ package org.valkyrienskies.clockwork.content.curiosities.tools.gravitron
 
 import com.simibubi.create.content.contraptions.AbstractContraptionEntity
 import com.simibubi.create.content.contraptions.actors.seat.SeatEntity
-import com.simibubi.create.content.contraptions.glue.SuperGlueEntity
 import com.simibubi.create.foundation.item.CustomArmPoseItem
 import net.minecraft.client.model.HumanoidModel
 import net.minecraft.client.player.AbstractClientPlayer
@@ -18,7 +17,6 @@ import net.minecraft.world.item.ItemStack
 import net.minecraft.world.item.UseAnim
 import net.minecraft.world.level.Level
 import net.minecraft.world.level.block.state.BlockState
-import net.minecraft.world.phys.AABB
 import net.minecraft.world.phys.Vec3
 import org.joml.Vector3d
 import org.joml.Vector3dc
@@ -103,21 +101,10 @@ class CreativeGravitronItem(properties: Properties) : CWItem(properties), Custom
                             toolkit.dumpCluster(cluster)
                             if (caughtEntities.isNotEmpty()) {
                                 caughtEntities.forEach(Consumer { entity: Entity ->
-                                    if (entity is AbstractContraptionEntity || entity is SuperGlueEntity || entity is SeatEntity) {
-                                        if (entity !is SuperGlueEntity) {
-                                            val oldPos: Vector3dc = entity.position().toJOML()
-                                            val newPos: Vector3dc = connectedShip.transform.worldToShip.transformPosition(oldPos, Vector3d())
-                                            entity.moveTo(newPos.toMinecraft())
-                                        } else {
-                                            val oldBounds = entity.boundingBox
-                                            val oldMax: Vector3dc = Vector3d(oldBounds.maxX, oldBounds.maxY, oldBounds.maxZ)
-                                            val oldMin: Vector3dc = Vector3d(oldBounds.minX, oldBounds.minY, oldBounds.minZ)
-                                            val newMax: Vector3dc = connectedShip.transform.worldToShip.transformPosition(oldMax, Vector3d())
-                                            val newMin: Vector3dc = connectedShip.transform.worldToShip.transformPosition(oldMin, Vector3d())
-                                            val newBounds = AABB(newMin.x(), newMin.y(), newMin.z(), newMax.x(), newMax.y(), newMax.z())
-                                            entity.boundingBox = newBounds
-                                            entity.resetPositionToBB()
-                                        }
+                                    if (entity is AbstractContraptionEntity || entity is SeatEntity) {
+                                        val oldPos: Vector3dc = entity.position().toJOML()
+                                        val newPos: Vector3dc = connectedShip.transform.worldToShip.transformPosition(oldPos, Vector3d())
+                                        entity.moveTo(newPos.toMinecraft())
                                     }
                                 })
                             }

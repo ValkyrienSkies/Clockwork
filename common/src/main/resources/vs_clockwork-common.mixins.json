@@ -5,6 +5,7 @@
   "mixins": [
     "content.wanderwand.MixinLinkRelocation",
     "content.wanderwand.MixinLinkAssembly",
+    "content.glue.MixinGlueAssembly",
     "content.wanderwand.MixinVdexLinks",
     "content.wanderwand.MixinLinkWelding",
     "content.wanderwand.WeldPlanAccessor",
