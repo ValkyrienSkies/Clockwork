@@ -397,6 +397,7 @@ object ClockworkBlocks {
         .initialProperties(AllBlocks.BRASS_CASING)
         .properties { it.noOcclusion().isRedstoneConductor { _, _, _ -> false } }
         .transform(axeOrPickaxe())
+        .transform(displaySource(ClockworkDisplaySources.COMBOBULATOR))
         .blockstate { _: DataGenContext<Block?, CombobulatorBlock>, _: RegistrateBlockstateProvider -> }
         .item()
         .tab(ClockworkMod.BASE_CREATIVE_TABINFO)

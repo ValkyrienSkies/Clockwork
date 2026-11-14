@@ -6,6 +6,7 @@ import org.valkyrienskies.clockwork.content.contraptions.flap.FlapBearingDisplay
 import org.valkyrienskies.clockwork.content.contraptions.phys.bearing.PhysBearingDisplaySource
 import org.valkyrienskies.clockwork.content.contraptions.propeller.copter.CopterBearingDisplaySource
 import org.valkyrienskies.clockwork.content.curiosities.altmeter.AltMeterDisplaySource
+import org.valkyrienskies.clockwork.content.kinetics.combobulator.CombobulatorDisplaySource
 import org.valkyrienskies.clockwork.content.logistics.gas.duct.KNodeDisplaySource
 import org.valkyrienskies.clockwork.content.logistics.gas.pockets.nozzle.GasNozzleDisplaySource
 
@@ -25,6 +26,10 @@ object ClockworkDisplaySources {
     @JvmField
     val ALT_METER: RegistryEntry<AltMeterDisplaySource> =
         REGISTRATE.displaySource("alt_meter", ::AltMeterDisplaySource).register()
+
+    @JvmField
+    val COMBOBULATOR: RegistryEntry<CombobulatorDisplaySource> =
+        REGISTRATE.displaySource("combobulator", ::CombobulatorDisplaySource).register()
 
     @JvmField
     val PHYS_BEARING: RegistryEntry<PhysBearingDisplaySource> =
