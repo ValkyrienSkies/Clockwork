@@ -10,7 +10,10 @@ plugins {
     id "io.github.p03w.machete" version "1.+" // automatic jar compressing on build
 
     id "com.modrinth.minotaur" version "2.4.5" apply false
+    id "org.valkyrienskies.translations" version "1.0.0"
 }
+
+translations { projectId = "897c3d95-3c0b-4d95-9143-f07a315dcf8d" }
 
 // Determine the version
 if (project.hasProperty("CustomReleaseVersion")) {
