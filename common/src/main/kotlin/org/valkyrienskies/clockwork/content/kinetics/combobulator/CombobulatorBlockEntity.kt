@@ -282,6 +282,11 @@ class CombobulatorBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: Bl
         }
     }
 
+    override fun writeSafe(tag: CompoundTag) {
+        super.writeSafe(tag)
+        tag.put("Program", program.write())
+    }
+
     override fun write(tag: CompoundTag, clientPacket: Boolean) {
         super.write(tag, clientPacket)
         tag.put("Program", program.write())
