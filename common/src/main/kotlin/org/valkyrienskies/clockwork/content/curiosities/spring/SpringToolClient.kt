@@ -23,6 +23,8 @@ object SpringToolClient {
         if (mc.screen != null || !player.mayBuild() || player.isSpectator) return null
         val endpoint = ((mc.hitResult as? EntityHitResult)?.entity as? RopeKnotEntity)
             ?.takeIf { !it.winch && it.distanceToSqr(player) <= 36 } ?: return null
+        val link = RopeKnotRenderer.link(endpoint.linkId) ?: return null
+        if (link.harpoon) return null
         if (!(endpoint.spring && SpringClipboard.isClipboard(player.mainHandItem)) &&
             !SpringControls.isTool(player.mainHandItem, endpoint.spring) &&
             !SpringControls.isTool(player.offhandItem, endpoint.spring)) return null

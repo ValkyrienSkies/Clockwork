@@ -9,6 +9,8 @@ import net.minecraft.sounds.SoundSource
 import net.minecraft.world.level.block.state.properties.BlockStateProperties
 import net.minecraft.world.phys.Vec3
 import org.joml.Vector3d
+import org.joml.Vector3dc
+import org.valkyrienskies.clockwork.ClockworkConfig
 import org.valkyrienskies.clockwork.ClockworkMod
 import org.valkyrienskies.clockwork.ClockworkPackets
 import org.valkyrienskies.clockwork.ClockworkSounds
@@ -30,6 +32,24 @@ object HarpoonProjectiles {
     private val shots = linkedMapOf<ParticleId, Shot>()
     private const val PARTICLE_TAG = 0x434C4B4852504EL // "CLKHRPN", reserved for transient harpoons.
 
+    val maxRange: Double
+        get() = ClockworkConfig.SERVER.harpoonMaxRange.takeIf { it.isFinite() }?.coerceIn(1.0, 128.0) ?: 128.0
+
+    private val radius: Double
+        get() = ClockworkConfig.SERVER.harpoonRadius.takeIf { it.isFinite() }?.coerceIn(0.01, 1.0) ?: 0.125
+
+    private val lifetimeTicks: Int
+        get() = ClockworkConfig.SERVER.harpoonLifetimeTicks.coerceIn(1, 12000)
+
+    /** VS velocities are metres/second. Include rotation at the muzzle, not just centre-of-mass motion. */
+    fun launchVelocity(direction: Vector3dc, charge: Double, linear: Vector3dc = Vector3d(),
+                       angular: Vector3dc = Vector3d(), lever: Vector3dc = Vector3d()): Vector3d {
+        val baseSpeed = ClockworkConfig.SERVER.harpoonBaseLaunchSpeed.takeIf { it.isFinite() }?.coerceIn(0.0, 1000.0) ?: 10.0
+        val chargeSpeed = ClockworkConfig.SERVER.harpoonChargeLaunchSpeed.takeIf { it.isFinite() }?.coerceIn(0.0, 1000.0) ?: 50.0
+        return Vector3d(direction).normalize().mul(baseSpeed + chargeSpeed * charge.coerceIn(0.0, 1.0))
+            .add(angular.cross(lever, Vector3d())).add(linear)
+    }
+
     fun hasProjectile(level: ServerLevel, pos: BlockPos) =
         shots.values.any { it.level === level && it.launcher.blockPos == pos }
 
@@ -41,14 +61,15 @@ object HarpoonProjectiles {
         val ship = level.getShipManagingPos(launcher.blockPos)
         val direction = Vector3d(facing.stepX.toDouble(), facing.stepY.toDouble(), facing.stepZ.toDouble())
         ship?.transform?.shipToWorldRotation?.transform(direction)
+        val projectileRadius = radius
         // Spawn the sphere fully outside the muzzle, even on a scaled ship.
-        val position = Vector3d(origin.x, origin.y, origin.z).add(Vector3d(direction).mul(HarpoonBallistics.RADIUS + 0.05))
-        val velocity = HarpoonBallistics.launchVelocity(direction, charge,
+        val position = Vector3d(origin.x, origin.y, origin.z).add(Vector3d(direction).mul(projectileRadius + 0.05))
+        val velocity = launchVelocity(direction, charge,
             ship?.velocity ?: Vector3d(), ship?.angularVelocity ?: Vector3d(),
             ship?.let { Vector3d(position).sub(it.transform.positionInWorld) } ?: Vector3d())
         val particle = level.shipObjectWorld.createParticle(VsParticleCreateData(
             dimensionId = level.dimensionId, position = position, velocity = velocity,
-            radius = HarpoonBallistics.RADIUS, mass = 2.0, userTag = PARTICLE_TAG,
+            radius = projectileRadius, mass = 2.0, userTag = PARTICLE_TAG,
             material = ParticleMaterial(restitution = 0.0), eventSettings = ParticleEventSettings(rigidContacts = true)))
         if (particle.status.lifecycle == ParticleLifecycle.FAILED) {
             level.shipObjectWorld.deleteParticle(particle.id)
@@ -56,6 +77,7 @@ object HarpoonProjectiles {
         }
         val shot = Shot(level, launcher, source, level.gameTime, Vec3(position.x, position.y, position.z))
         shots[particle.id] = shot
+        launcher.setProjectileInFlight(true)
         syncFlight(particle.id, shot)
         level.playSound(null, origin.x, origin.y, origin.z, SoundEvents.CROSSBOW_SHOOT, SoundSource.BLOCKS, 1f, 0.7f)
         return true
@@ -110,8 +132,8 @@ object HarpoonProjectiles {
             val origin = shot.source.world(level)
             if (!valid(shot) || particle == null || origin == null ||
                 particle.status.lifecycle in listOf(ParticleLifecycle.FAILED, ParticleLifecycle.REMOVED, ParticleLifecycle.SUSPENDED) ||
-                level.gameTime - shot.born > HarpoonBallistics.LIFETIME_TICKS ||
-                particle.position.distance(Vector3d(origin.x, origin.y, origin.z)) > HarpoonBallistics.MAX_RANGE) {
+                level.gameTime - shot.born > lifetimeTicks ||
+                particle.position.distance(Vector3d(origin.x, origin.y, origin.z)) > maxRange) {
                 remove(id)
                 continue
             }
@@ -151,9 +173,9 @@ object HarpoonProjectiles {
         val a = shot.source.world(level) ?: return
         val b = target.world(level) ?: return
         val distance = a.distanceTo(b)
-        if (distance > HarpoonBallistics.MAX_RANGE) return
+        if (distance > maxRange) return
         val link = WandLinks.get(level).add(level, shot.source, target, true,
-            (distance + 0.25).coerceAtMost(HarpoonBallistics.MAX_RANGE), physical = true) ?: return
+            (distance + 0.25).coerceAtMost(maxRange), physical = true, harpoon = true) ?: return
         shot.launcher.ropeId = link.id
         shot.launcher.setChanged()
         shot.launcher.sendData()
@@ -187,6 +209,9 @@ object HarpoonProjectiles {
 
     private fun remove(id: ParticleId, snap: Boolean = false) {
         val shot = shots.remove(id) ?: return
+        if (!shot.launcher.isRemoved && shot.level.hasChunkAt(shot.launcher.blockPos) &&
+            shot.level.getBlockEntity(shot.launcher.blockPos) === shot.launcher)
+            shot.launcher.setProjectileInFlight(false)
         syncFlight(id, shot, active = false, snap = snap)
         if (snap) {
             val a = shot.source.world(shot.level) ?: shot.position

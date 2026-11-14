@@ -29,7 +29,7 @@ import java.util.UUID
 class WandLinks : SavedData() {
     data class Link(val id: UUID, var a: WandAnchor, var b: WandAnchor, val rope: Boolean,
                     var length: Double, var pose0: VSJointPose, var pose1: VSJointPose, val physical: Boolean = false,
-                    val spring: Boolean = false, val thinkable: Boolean = false) {
+                    val spring: Boolean = false, val thinkable: Boolean = false, var harpoon: Boolean = false) {
         var pulseStart = -1L
         var pulseDuration = 0
         var nextPulse = 0L
@@ -64,7 +64,7 @@ class WandLinks : SavedData() {
                 it.putDouble("appliedLength", appliedLength)
             }
             it.putBoolean("physical", physical); it.putBoolean("spring", spring)
-            it.putBoolean("thinkable", thinkable)
+            it.putBoolean("thinkable", thinkable); it.putBoolean("harpoon", harpoon)
             it.put("pose0", savePose(pose0)); it.put("pose1", savePose(pose1))
             it.putBoolean("faceAligned", !needsReframe)
         }
@@ -85,22 +85,24 @@ class WandLinks : SavedData() {
     }
 
     fun add(level: ServerLevel, a: WandAnchor, b: WandAnchor, rope: Boolean, length: Double, physical: Boolean = false,
-            spring: Boolean = false, thinkable: Boolean = false): Link? {
+            spring: Boolean = false, thinkable: Boolean = false, harpoon: Boolean = false): Link? {
         if (links.size >= 2048 || a == b) return null
         if (thinkable && (!rope || !physical || spring || a.winch || b.winch)) return null
+        if (harpoon && (!rope || !physical || spring || thinkable)) return null
         for (anchor in listOf(a, b).filter { it.winch }) {
             if (!physical || !rope || spring ||
                 level.getBlockEntity(anchor.pos) !is RopeWinchBlockEntity ||
                 links.values.any { (it.a.winch && it.a.pos == anchor.pos) || (it.b.winch && it.b.pos == anchor.pos) }) return null
         }
         if (!rope && !WandLinkPhysics.canAttach(a, b)) return null
-        if (links.values.any { it.rope == rope && it.spring == spring && it.thinkable == thinkable &&
+        if (links.values.any { it.rope == rope && it.spring == spring && it.thinkable == thinkable && it.harpoon == harpoon &&
                 ((it.a == a && it.b == b) || (it.a == b && it.b == a)) }) return null
         a.world(level) ?: return null
         b.world(level) ?: return null
         fun ropePose(anchor: WandAnchor) = anchor.local().let { VSJointPose(Vector3d(it.x, it.y, it.z), Quaterniond()) }
         val poses = if (rope && !spring) ropePose(a) to ropePose(b) else facePoses(level, a, b)
-        val link = Link(UUID.randomUUID(), a, b, rope, length.coerceIn(0.5, 128.0), poses.first, poses.second, physical && rope, spring, thinkable)
+        val link = Link(UUID.randomUUID(), a, b, rope, length.coerceIn(0.5, 128.0), poses.first, poses.second,
+            physical && rope, spring, thinkable, harpoon)
         links[link.id] = link
         setDirty()
         ensureJoint(level, link)
@@ -382,8 +384,10 @@ class WandLinks : SavedData() {
                 if (!length.isFinite()) continue
                 val link = Link(t.getUUID("id"), WandAnchor.load(t.getCompound("a")), WandAnchor.load(t.getCompound("b")),
                     t.getBoolean("rope"), length.coerceIn(0.5, 128.0), loadPose(t.getCompound("pose0")), loadPose(t.getCompound("pose1")),
-                    t.getBoolean("physical") && t.getBoolean("rope"), t.getBoolean("spring"), t.getBoolean("thinkable"))
+                    t.getBoolean("physical") && t.getBoolean("rope"), t.getBoolean("spring"), t.getBoolean("thinkable"),
+                    t.getBoolean("harpoon"))
                 if (link.thinkable && (!link.physical || !link.rope || link.spring || link.a.winch || link.b.winch)) continue
+                if (link.harpoon && (!link.physical || !link.rope || link.spring || link.thinkable)) continue
                 link.settings = SpringSettings.load(t.getCompound("settings"))
                 if (link.spring) link.appliedLength = readAppliedLength(t, link.length)
                 link.needsReframe = !t.getBoolean("faceAligned") && !link.rope

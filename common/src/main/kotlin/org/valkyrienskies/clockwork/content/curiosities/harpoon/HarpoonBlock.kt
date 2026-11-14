@@ -17,7 +17,6 @@ import net.minecraft.world.level.block.state.StateDefinition
 import net.minecraft.world.level.block.state.properties.BlockStateProperties
 import net.minecraft.world.phys.BlockHitResult
 import org.valkyrienskies.clockwork.ClockworkBlockEntities
-import org.valkyrienskies.clockwork.ClockworkItems
 
 /** The muzzle faces away from the single shaft input. */
 class HarpoonBlock(properties: Properties) : DirectionalKineticBlock(properties), IBE<HarpoonBlockEntity> {
@@ -57,9 +56,9 @@ class HarpoonBlock(properties: Properties) : DirectionalKineticBlock(properties)
         if (!player.mayBuild() || player.isSpectator) return InteractionResult.PASS
         val launcher = level.getBlockEntity(pos) as? HarpoonBlockEntity ?: return InteractionResult.PASS
         val held = player.getItemInHand(hand)
-        if (held.`is`(ClockworkItems.HARPOON.get()) && launcher.loadedHarpoon.isEmpty) {
+        if (launcher.canLoad(held)) {
             if (!level.isClientSide) {
-                launcher.load(held)
+                if (!launcher.load(held)) return InteractionResult.PASS
                 if (!player.abilities.instabuild) held.shrink(1)
             }
             return InteractionResult.sidedSuccess(level.isClientSide)

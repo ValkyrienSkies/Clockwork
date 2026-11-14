@@ -84,7 +84,7 @@ object RopeKnotRenderer {
     internal data class Link(val a: WandAnchor, val b: WandAnchor, val length: Double, val spring: Boolean, var stress: Float,
                     var stressUpdated: Long, val settings: CompoundTag, val appliedLength: Double, val lengthUpdated: Long,
                     val frameA: Quaterniond, val frameB: Quaterniond, val thinkable: Boolean,
-                    val pulse: ThinkablePulse) {
+                    val pulse: ThinkablePulse, val harpoon: Boolean) {
         var previousStress = stress.takeIf { it.isFinite() }?.coerceIn(0f, 1f) ?: 0f
         var displayStress = previousStress
         var grounding = RopeGrounding()
@@ -188,7 +188,7 @@ object RopeKnotRenderer {
                     length, tag.getBoolean("spring"), tag.getFloat("stress"), level.gameTime, tag.getCompound("settings"),
                     WandLinks.readAppliedLength(tag, length), level.gameTime,
                     WandLinks.loadPoseRotation(tag.getCompound("pose0")), WandLinks.loadPoseRotation(tag.getCompound("pose1")),
-                    tag.getBoolean("thinkable"), pulse).also { next ->
+                    tag.getBoolean("thinkable"), pulse, tag.getBoolean("harpoon")).also { next ->
                         previous[id]?.let {
                             next.previousStress = it.previousStress; next.displayStress = it.displayStress
                             next.grounding = it.grounding

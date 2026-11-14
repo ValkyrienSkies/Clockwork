@@ -11,7 +11,6 @@ import net.minecraft.world.level.Level
 import net.minecraft.world.level.block.state.BlockState
 import net.minecraft.world.level.block.state.properties.BlockStateProperties
 import net.minecraft.world.phys.Vec3
-import org.valkyrienskies.clockwork.ClockworkItems
 import org.valkyrienskies.clockwork.ClockworkMod
 import org.valkyrienskies.clockwork.platform.HarpoonArmMethods
 import org.valkyrienskies.clockwork.platform.api.DeferredRegister
@@ -34,8 +33,7 @@ object HarpoonArmInteraction : ArmInteractionPointType() {
 abstract class HarpoonArmPoint(type: ArmInteractionPointType, level: Level, pos: BlockPos, state: BlockState) :
     DepositOnlyArmInteractionPoint(type, level, pos, state) {
     protected fun launcher(stack: ItemStack): HarpoonBlockEntity? {
-        if (stack.isEmpty || !stack.`is`(ClockworkItems.HARPOON.get())) return null
-        return (level.getBlockEntity(pos) as? HarpoonBlockEntity)?.takeIf { it.loadedHarpoon.isEmpty }
+        return (level.getBlockEntity(pos) as? HarpoonBlockEntity)?.takeIf { it.canLoad(stack) }
     }
 
     override fun getInteractionDirection(): Direction = cachedState.getValue(BlockStateProperties.FACING).opposite

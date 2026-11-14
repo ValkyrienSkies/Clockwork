@@ -24,7 +24,7 @@ object SpringControls {
         if (!player.mayBuild() || player.isSpectator || !player.isAlive || endpoint.isRemoved) return null
         val level = player.serverLevel()
         val link = endpoint.linkId?.let { WandLinks.get(level).links[it] }
-            ?.takeIf { it.physical && it.rope && (!springOnly || it.spring) } ?: return null
+            ?.takeIf { it.physical && it.rope && !it.harpoon && (!springOnly || it.spring) } ?: return null
         val anchor = if (endpoint.end == 0) link.a else link.b
         val point = anchor.world(level) ?: return null
         if (!level.mayInteract(player, anchor.pos) || point.distanceToSqr(player.eyePosition) > 36) return null
