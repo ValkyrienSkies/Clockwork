@@ -23,8 +23,9 @@ import org.valkyrienskies.clockwork.ClockworkBlockEntities
 import org.valkyrienskies.clockwork.ClockworkBlocks
 import org.valkyrienskies.clockwork.content.contraptions.flap.FlapBearingBlockEntity
 import java.util.function.Consumer
+import org.valkyrienskies.clockwork.util.ClockworkCopyableBlock
 
-class PropellerBearingBlock(properties: Properties) : BearingBlock(properties), IBE<PropellerBearingBlockEntity> {
+class PropellerBearingBlock(properties: Properties) : BearingBlock(properties), IBE<PropellerBearingBlockEntity>, ClockworkCopyableBlock {
     override fun createBlockStateDefinition(builder: StateDefinition.Builder<Block, BlockState>) {
         builder.add(SPIN_DIRECTION)
         super.createBlockStateDefinition(builder)

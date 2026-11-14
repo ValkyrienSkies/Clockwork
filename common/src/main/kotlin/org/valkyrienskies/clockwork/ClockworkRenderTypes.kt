@@ -220,6 +220,10 @@ class ClockworkRenderTypes(
         // These vanilla shader getters are intercepted by both Iris and Oculus and write the
         // shader pack's expected outputs. Custom core shaders cannot write its deferred buffers.
         private val TOOL_ENERGY_COMPAT = RenderType.entityTranslucentEmissive(TEX, false)
+        fun softEnergyType(): RenderType = TOOL_ENERGY_COMPAT
+
+        fun softEnergyBuffer(buffers: MultiBufferSource): VertexConsumer =
+            EmissiveEnergyVertexConsumer(buffers.getBuffer(TOOL_ENERGY_COMPAT))
         val TOOL_SURFACE_COMPAT = toolSurface(false)
         val TOOL_FROZEN_COMPAT = toolSurface(true)
 

@@ -30,6 +30,8 @@ import net.minecraft.world.phys.Vec3
 import net.minecraft.world.ticks.TickPriority
 import org.valkyrienskies.clockwork.ClockworkLang
 import org.valkyrienskies.clockwork.ClockworkMod
+import org.valkyrienskies.clockwork.content.kinetics.combobulator.IThinkable
+import org.valkyrienskies.clockwork.content.kinetics.combobulator.ThinkableConnections
 import org.valkyrienskies.clockwork.content.contraptions.propeller.PropellerBearingBlockEntity.RotationDirection
 import org.valkyrienskies.clockwork.util.ClockworkConstants
 import kotlin.math.abs
@@ -37,7 +39,24 @@ import kotlin.math.round
 import kotlin.math.truncate
 
 open class RedstoneResistorBlockEntity(type: BlockEntityType<*>?, pos: BlockPos, state: BlockState) :
-    SplitShaftBlockEntity(type, pos, state), IHaveGoggleInformation {
+    SplitShaftBlockEntity(type, pos, state), IHaveGoggleInformation, IThinkable {
+    private var thinkableRatio: Double? = null
+    private val inputSide get() = if (blockState.getValue(AbstractEncasedShaftBlock.AXIS) == Direction.Axis.Y) Direction.NORTH else Direction.UP
+
+    override fun acceptsThinkable(side: Direction) = side == inputSide
+    override fun providesThinkable(side: Direction) = side == inputSide.opposite
+    override fun thinkableValue(side: Direction): Double? = ratio().takeIf { providesThinkable(side) }
+    override fun thinkablePortName(side: Direction): Component? = when {
+        acceptsThinkable(side) -> Component.translatable("thinkable.vs_clockwork.port.ratio_target")
+        providesThinkable(side) -> Component.translatable("thinkable.vs_clockwork.port.ratio")
+        else -> null
+    }
+
+    private fun ratio(): Double = thinkableRatio ?: run {
+        val value = if (resistDirection.get() == ResistDirection.MAX_TO_NONE) abs(state - 15) / 15.0 else abs(state) / 15.0
+        round(value * 10) / 10
+    }
+
     var state = 0
     var lastChange = 0
     lateinit var resistDirection: ScrollOptionBehaviour<ResistDirection>
@@ -45,8 +64,13 @@ open class RedstoneResistorBlockEntity(type: BlockEntityType<*>?, pos: BlockPos,
         super.tick()
         lastChange = state
         state = getPower(level!!, worldPosition)
-        if (state != lastChange) {
+        val previous = thinkableRatio
+        if (level?.isClientSide == false) {
+            thinkableRatio = ThinkableConnections.input(level, blockPos, inputSide)?.let { (it.value ?: 0.0).coerceIn(0.0, 1.0) }
+        }
+        if (state != lastChange || previous != thinkableRatio) {
             detachKinetics()
+            if (level?.isClientSide == false) sendData()
         }
     }
 
@@ -60,12 +84,14 @@ open class RedstoneResistorBlockEntity(type: BlockEntityType<*>?, pos: BlockPos,
     public override fun write(compound: CompoundTag, clientPacket: Boolean) {
         compound.putInt(ClockworkConstants.Nbt.REDSTONE_LEVEL, state)
         compound.putInt(ClockworkConstants.Nbt.CHANGE_TIMER, lastChange)
+        if (clientPacket) thinkableRatio?.let { compound.putDouble("ThinkableRatio", it) }
         super.write(compound, clientPacket)
     }
 
     override fun read(compound: CompoundTag, clientPacket: Boolean) {
         state = compound.getInt(ClockworkConstants.Nbt.REDSTONE_LEVEL)
         lastChange = compound.getInt(ClockworkConstants.Nbt.CHANGE_TIMER)
+        thinkableRatio = compound.getDouble("ThinkableRatio").takeIf { clientPacket && compound.contains("ThinkableRatio") }
         super.read(compound, clientPacket)
     }
 
@@ -81,13 +107,7 @@ open class RedstoneResistorBlockEntity(type: BlockEntityType<*>?, pos: BlockPos,
     override fun getRotationSpeedModifier(face: Direction): Float {
         if (hasSource()) {
             if (face != sourceFacing) {
-                var i = if (resistDirection.get() == ResistDirection.MAX_TO_NONE) {
-                    abs(state - 15) / 15.0
-                } else {
-                    abs(state) / 15.0
-                }
-                i = round(i*10)/10
-                return i.toFloat()
+                return ratio().toFloat()
             }
         }
         return 1f

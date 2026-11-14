@@ -35,7 +35,7 @@ Rest of the changelog:
 - Added a config to enable propellers generating torque (off by default)
 
 ### Changes:
-- Changed the gas engine to use flowrate 
+- Changed the gas engine to use flowrate
 - Changed the delivery cannon to maintain its previous angle instead of resetting after firing
 - Changed the model for the creative gas generator, gas back tank, and the redstone duct
 - Added VMod compatibility for all the bearings
@@ -78,6 +78,6 @@ Rest of the changelog:
 - Fixed Creative Gravitron ring spinning at different speeds depending on FPS
 - Fixed gas tanks having all sorts of bugs
 - Fixed gas valve and pump not working with connections
-- Fixed oneway connection visual not matching 
+- Fixed oneway connection visual not matching
 - Fixed physics bearing not taking into account the mass of connected ships
 - Fixed extendon tweaking out

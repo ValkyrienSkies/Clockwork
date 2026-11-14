@@ -48,11 +48,7 @@ object WanderwandWeld {
         val success = PhysBearingAssembler.moveBlocksWithTransform(level, moves, source, target,
             from.pos, destination, rotation.steps)
         if (!success) return "The weld could not be completed; the source blocks were preserved."
-        // End constraints to the consumed body instead of leaving invisible, orphaned anchors.
-        val data = WandLinks.get(level)
-        data.links.values.filter { it.a.shipId == source.id || it.b.shipId == source.id }.toList().forEach {
-            data.remove(level, it); WanderwandServer.breakEffect(level, it)
-        }
+        WandLinkTransfer.moveBlocks(level, moves, rotation)
         return null
     }
 }

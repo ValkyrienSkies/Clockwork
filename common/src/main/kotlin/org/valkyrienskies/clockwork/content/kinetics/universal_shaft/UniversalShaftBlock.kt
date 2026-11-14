@@ -42,6 +42,7 @@ import org.valkyrienskies.core.api.ships.ServerShip
 import org.valkyrienskies.mod.api.toJOML
 import org.valkyrienskies.mod.api.toMinecraft
 import org.valkyrienskies.mod.common.assembly.ICopyableBlock
+import org.valkyrienskies.mod.common.getShipManagingPos
 
 class UniversalShaftBlock(properties: Properties?) : DirectionalKineticBlock(properties), IBE<UniversalShaftBlockEntity>, ICopyableBlock, ProperWaterloggedBlock {
 
@@ -82,8 +83,10 @@ class UniversalShaftBlock(properties: Properties?) : DirectionalKineticBlock(pro
         centerPositions: Map<Long, Vector3dc>
     ): CompoundTag? {
         val be = be as? UniversalShaftBlockEntity ?: return null
-        val tag = CompoundTag()
-        be.saveAdditional(tag)
+        val tag = be.saveWithFullMetadata()
+        if (be.connectedPos == null) return tag
+        tag.putLong("ClockworkSourcePos", pos.asLong())
+        tag.putLong("ClockworkSourceShip", level.getShipManagingPos(pos)?.id ?: -1L)
 
         // Save the absolute position because it's easier to deal with in onPaste than the relative one
         // (We use a relative position everywhere else for create schematics)
@@ -102,23 +105,40 @@ class UniversalShaftBlock(properties: Properties?) : DirectionalKineticBlock(pro
         state: BlockState,
         oldShipIdToNewId: Map<Long, Long>,
         centerPositions: Map<Long, Pair<Vector3dc, Vector3dc>>,
+        oldJointIdToNewId: Map<Int, Int>,
         tag: CompoundTag?
     ): CompoundTag? {
         if (!(tag?.contains("otherPosXa") ?: false)) return tag
         if (!(tag.contains("otherShipId"))) return tag
 
+        var ownerPos = pos
+        if (tag.contains("ClockworkSourcePos")) {
+            val source = BlockPos.of(tag.getLong("ClockworkSourcePos"))
+            centerPositions[tag.getLong("ClockworkSourceShip")]?.let { (oldCenter, newCenter) ->
+                val moved = source.center.toJOML().sub(oldCenter).add(newCenter)
+                ownerPos = BlockPos.containing(moved.x, moved.y, moved.z)
+            }
+            tag.remove("ClockworkSourcePos")
+            tag.remove("ClockworkSourceShip")
+        }
         val connectedPos = BlockPos(tag.getInt("otherPosXa"),tag.getInt("otherPosYa"),tag.getInt("otherPosZa"))
         val oldId = tag.getLong("otherShipId")
 
-        val offset = connectedPos.center.toJOML().sub(centerPositions[oldId]?.first ?: return tag)
+        val centers = centerPositions[oldId]
+        if (centers == null || oldShipIdToNewId[oldId] == null) {
+            for (key in listOf("otherPosXa", "otherPosYa", "otherPosZa", "otherPosXr", "otherPosYr", "otherPosZr", "otherShipId", "main")) tag.remove(key)
+            return tag
+        }
+        val offset = connectedPos.center.toJOML().sub(centers.first)
         val newCenter = centerPositions[oldId]?.second?.add(offset, Vector3d()) ?: return tag
 
         val newPos = BlockPos.containing(newCenter.toMinecraft())
 
-        val newOffset = newPos!!.subtract(pos)
+        val newOffset = newPos.subtract(ownerPos)
         tag.putInt("otherPosXr",newOffset.x)
         tag.putInt("otherPosYr",newOffset.y)
         tag.putInt("otherPosZr",newOffset.z)
+        tag.putLong("otherShipId", oldShipIdToNewId[oldId] ?: -1)
 
         return tag
     }

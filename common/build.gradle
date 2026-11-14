@@ -8,6 +8,7 @@ loom {
 
 test {
     useJUnitPlatform()
+    classpath += sourceSets.main.compileClasspath
 }
 
 def commonMixinRefmap = tasks.named("compileJava", JavaCompile).flatMap {

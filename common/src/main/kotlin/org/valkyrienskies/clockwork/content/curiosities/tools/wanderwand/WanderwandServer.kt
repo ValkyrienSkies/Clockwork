@@ -15,6 +15,7 @@ import org.joml.primitives.AABBi
 import org.joml.primitives.AABBic
 import org.valkyrienskies.clockwork.ClockworkPackets
 import org.valkyrienskies.clockwork.ClockworkSounds
+import org.valkyrienskies.clockwork.content.curiosities.rope.RopeKnotServer
 import org.valkyrienskies.clockwork.content.curiosities.tools.wanderwand.tool.ToolType
 import org.valkyrienskies.clockwork.util.AABBHelper.mergeAdjacentFast
 import org.valkyrienskies.clockwork.util.AABBHelper.subtractWithAABB
@@ -101,7 +102,7 @@ object WanderwandServer {
             else if (state.tool == ToolType.ATTACH || state.tool == ToolType.BIND) {
                 val data = WandLinks.get(level)
                 val visibleRange = min(range, hit.location.distanceTo(eye))
-                val link = data.links.values.asSequence().filter { state.tool == ToolType.ATTACH || it.rope }.mapNotNull { link ->
+                val link = data.links.values.asSequence().filter { !it.physical && (state.tool == ToolType.ATTACH || it.rope) }.mapNotNull { link ->
                     WandLinkTargeting.removalDistance(link, eye, player.lookAngle, visibleRange, target,
                         link.a.world(level), link.b.world(level))?.let { distance -> link to distance }
                 }.minByOrNull { it.second }?.first
@@ -264,11 +265,12 @@ object WanderwandServer {
             if (level.gameTime % 10L == 0L) sync(player, s)
         }
         val linksChanged = data.tick(level)
+        if (level.gameTime % 4L == 0L) syncLinkStress(level, data)
         WandRopeRiding.tick(level, data)
         if (linksChanged || level.gameTime % 20L == 0L) syncLinks(level)
     }
 
-    private fun sync(player: ServerPlayer, s: Session) {
+    internal fun sync(player: ServerPlayer, s: Session) {
         val tag = CompoundTag()
         tag.putString("kind", "state"); tag.putUUID("owner", player.uuid); tag.putInt("tool", s.tool.ordinal)
         s.first?.let { tag.put("first", it.save()) }; s.rope?.let { tag.put("rope", it.save()) }
@@ -276,20 +278,48 @@ object WanderwandServer {
         ClockworkPackets.sendToClientsTrackingAndSelf(WanderwandStatePacket(tag), player)
     }
 
-    private fun syncLinks(level: ServerLevel) {
+    fun syncLinks(level: ServerLevel) {
         val data = WandLinks.get(level)
         for (player in level.players()) {
             val list = ListTag()
             data.links.values.asSequence().filter {
                 (it.a.world(level)?.distanceToSqr(player.position()) ?: Double.MAX_VALUE) < 192 * 192 ||
                     (it.b.world(level)?.distanceToSqr(player.position()) ?: Double.MAX_VALUE) < 192 * 192
-            }.take(256).forEach { list.add(it.save()) }
+            }.take(256).forEach { link -> list.add(link.save().also {
+                it.putFloat("stress", link.stress)
+                if (link.thinkable) {
+                    it.putLong("pulseStart", link.pulseStart)
+                    it.putInt("pulseDuration", link.pulseDuration)
+                    it.putInt("pulseAge", if (link.pulseStart < 0) -1 else
+                        (level.gameTime - link.pulseStart).coerceIn(0, Int.MAX_VALUE.toLong()).toInt())
+                }
+            }) }
             ClockworkPackets.sendTo(WanderwandStatePacket(CompoundTag().also { it.putString("kind", "links"); it.put("links", list) }), player)
         }
     }
 
-    fun breakEffect(level: ServerLevel, link: WandLinks.Link, owner: UUID = UUID(0, 0)) =
-        effect(level, owner, if (link.rope) "rope_break" else "attach_break", link.a, link.b)
+    private fun syncLinkStress(level: ServerLevel, data: WandLinks) {
+        val connections = data.links.values
+        if (connections.none { it.stress >= 0.5f || kotlin.math.abs(it.stress - it.sentStress) >= 0.025f }) return
+        for (player in level.players()) {
+            val list = ListTag()
+            connections.asSequence().filter {
+                (it.a.world(level)?.distanceToSqr(player.position()) ?: Double.MAX_VALUE) < 192 * 192 ||
+                    (it.b.world(level)?.distanceToSqr(player.position()) ?: Double.MAX_VALUE) < 192 * 192
+            }.take(256).forEach { link ->
+                list.add(CompoundTag().also { it.putUUID("id", link.id); it.putFloat("stress", link.stress) })
+            }
+            ClockworkPackets.sendTo(WanderwandStatePacket(CompoundTag().also {
+                it.putString("kind", "link_stress"); it.put("links", list)
+            }), player)
+        }
+        connections.forEach { it.sentStress = it.stress }
+    }
+
+    fun breakEffect(level: ServerLevel, link: WandLinks.Link, owner: UUID = UUID(0, 0)) {
+        if (link.physical) RopeKnotServer.breakEffect(level, link)
+        else effect(level, owner, if (link.rope) "rope_break" else "attach_break", link.a, link.b)
+    }
     private fun effect(level: ServerLevel, owner: UUID, action: String, anchor: WandAnchor, other: WandAnchor? = null) {
         val tag = CompoundTag()
         tag.putString("kind", "event"); tag.putUUID("owner", owner); tag.putString("action", action); tag.put("anchor", anchor.save())

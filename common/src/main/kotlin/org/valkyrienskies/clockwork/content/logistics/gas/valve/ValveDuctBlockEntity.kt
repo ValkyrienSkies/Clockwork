@@ -4,11 +4,15 @@ import net.createmod.catnip.animation.LerpedFloat
 import net.minecraft.core.BlockPos
 import net.minecraft.core.Direction
 import net.minecraft.nbt.CompoundTag
+import net.minecraft.network.chat.Component
 import net.minecraft.util.Mth
 import net.minecraft.world.level.Level
 import net.minecraft.world.level.block.entity.BlockEntityType
 import net.minecraft.world.level.block.state.BlockState
+import net.minecraft.world.level.block.state.properties.BlockStateProperties
 import org.valkyrienskies.clockwork.ClockworkMod
+import org.valkyrienskies.clockwork.content.kinetics.combobulator.IThinkable
+import org.valkyrienskies.clockwork.content.kinetics.combobulator.ThinkableConnections
 import org.valkyrienskies.clockwork.content.logistics.gas.IConnectable
 import org.valkyrienskies.clockwork.util.kelvin.KNodeKineticBlockEntity
 import org.valkyrienskies.kelvin.api.ConnectionType
@@ -18,7 +22,20 @@ import org.valkyrienskies.kelvin.api.edges.PipeDuctEdge
 import org.valkyrienskies.kelvin.api.nodes.ValveDuctNode
 import kotlin.math.abs
 
-class ValveDuctBlockEntity(typeIn: BlockEntityType<*>, pos: BlockPos, state: BlockState) : KNodeKineticBlockEntity(typeIn, pos, state), IConnectable {
+class ValveDuctBlockEntity(typeIn: BlockEntityType<*>, pos: BlockPos, state: BlockState) : KNodeKineticBlockEntity(typeIn, pos, state), IConnectable, IThinkable {
+    private val inputSide get() = Direction.entries.first {
+        it.axis != blockState.getValue(BlockStateProperties.FACING).axis && it.axis != ValveDuctBlock.getDuctAxis(blockState) &&
+            it.axisDirection == Direction.AxisDirection.POSITIVE
+    }
+
+    override fun acceptsThinkable(side: Direction) = side == inputSide
+    override fun providesThinkable(side: Direction) = side == inputSide.opposite
+    override fun thinkableValue(side: Direction): Double? = pointer.value.toDouble().takeIf { providesThinkable(side) }
+    override fun thinkablePortName(side: Direction): Component? = when {
+        acceptsThinkable(side) -> Component.translatable("thinkable.vs_clockwork.port.valve_target")
+        providesThinkable(side) -> Component.translatable("thinkable.vs_clockwork.port.valve_opening")
+        else -> null
+    }
 
     val pointer: LerpedFloat = LerpedFloat.linear()
         .startWithValue(0.0)
@@ -31,6 +48,7 @@ class ValveDuctBlockEntity(typeIn: BlockEntityType<*>, pos: BlockPos, state: Blo
 
     override fun tick() {
         super.tick()
+        if (level?.isClientSide == false) updateTarget()
         pointer.tickChaser()
 
         if (level == null || level!!.isClientSide || blockState.block !is ValveDuctBlock) return
@@ -43,6 +61,7 @@ class ValveDuctBlockEntity(typeIn: BlockEntityType<*>, pos: BlockPos, state: Blo
         super.onSpeedChanged(previousSpeed)
 
         updateTarget()
+        sendData()
     }
 
     fun updateTarget() {
@@ -51,10 +70,12 @@ class ValveDuctBlockEntity(typeIn: BlockEntityType<*>, pos: BlockPos, state: Blo
         computerTarget?.let {
             target = it
         }
+        ThinkableConnections.input(level, blockPos, inputSide)?.let { target = (it.value ?: 0.0).coerceIn(0.0, 1.0) }
 
+        val changed = pointer.chaseTarget != target.toFloat()
         pointer.chase(target, getChaseSpeed(), LerpedFloat.Chaser.LINEAR)
 
-        sendData()
+        if (changed) sendData()
     }
 
     private fun getChaseSpeed(): Double {

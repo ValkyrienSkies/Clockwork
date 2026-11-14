@@ -2,6 +2,8 @@ package org.valkyrienskies.clockwork.content.contraptions.phys.bearing
 
 import net.minecraft.core.BlockPos
 import com.simibubi.create.content.contraptions.StructureTransform
+import org.valkyrienskies.clockwork.content.curiosities.tools.wanderwand.WandLinkTransfer
+import org.valkyrienskies.clockwork.util.GlueAssembler
 import org.valkyrienskies.mod.util.updateBlock
 import net.minecraft.nbt.CompoundTag
 import net.minecraft.server.level.ServerLevel
@@ -15,6 +17,8 @@ import org.valkyrienskies.core.util.datastructures.DenseBlockPosSet
 import org.valkyrienskies.mod.common.assembly.ICopyableBlock
 import org.valkyrienskies.mod.common.assembly.ShipAssembler
 import org.valkyrienskies.mod.common.assembly.VSAssemblyEvents
+import org.valkyrienskies.mod.common.fluid.FractionalFluidLifecycle
+import org.valkyrienskies.mod.common.fluid.FractionalFluidTransferScope
 import org.valkyrienskies.mod.common.inAssemblyBlacklist
 import org.valkyrienskies.mod.common.util.toBlockPos
 import org.valkyrienskies.mod.common.util.toJOMLD
@@ -37,7 +41,7 @@ object PhysBearingAssembler {
         tag = (if (block is ICopyableBlock) block.onPaste(level, to, rotatedState,
             ShipAssembler.SingleItemMap(originShip?.id ?: -1L, toShip?.id ?: -1L, -1L) {it}, // return actual change (originShip -> toShip), otherwise identity
             ShipAssembler.SingleItemMap(originShip?.id ?: -1L, Vector3d(centerPositions.first) to Vector3d(centerPositions.second), Vector3d() to Vector3d()),
-            tag
+            emptyMap(), tag
         ) else tag) ?: tag
 
         // Transfer pending schedule-ticks
@@ -62,34 +66,46 @@ object PhysBearingAssembler {
         val centers = origin.toJOMLD().add(0.5, 0.5, 0.5) to destination.toJOMLD().add(0.5, 0.5, 0.5)
         val eventData = mutableMapOf<String, CompoundTag>()
         val (min, max) = ShipAssembler.findMinAndMax(moves.keys)
+        val glue = GlueAssembler.prepareMove(level, min, max)
         VSAssemblyEvents.beforeCopy.emit(VSAssemblyEvents.BeforeCopy(level, min.toJOMLD(), max.toJOMLD(),
             centers.first, originShip, moves.keys, eventData))
         VSAssemblyEvents.onPasteBeforeBlocksAreLoaded.emit(VSAssemblyEvents.OnPasteBeforeBlocksAreLoaded(
             level, originShip, toShip, centers, eventData))
+        val fluidTransfers = ArrayList<FractionalFluidTransferScope>()
         try {
-            // Keep every original intact until all destination block entities have been copied successfully.
-            for ((from, to) in moves) copyBlock(level, from, to, originShip, toShip, centers, transforms)
-        } catch (exception: Exception) {
-            org.valkyrienskies.clockwork.ClockworkMod.LOGGER.error("Unable to copy blocks for a weld", exception)
-            for (to in moves.values) {
-                level.removeBlockEntity(to)
-                level.getChunk(to).setBlockState(to, Blocks.AIR.defaultBlockState(), false)
+            try {
+                for ((from, to) in moves) {
+                    FractionalFluidLifecycle.beginBlockMove(level.getChunkAt(from), from, level.getChunkAt(to), to, toShip)
+                        ?.let(fluidTransfers::add)
+                }
+                // Keep every original intact until all destination block entities have been copied successfully.
+                for ((from, to) in moves) copyBlock(level, from, to, originShip, toShip, centers, transforms)
+            } catch (exception: Exception) {
+                org.valkyrienskies.clockwork.ClockworkMod.LOGGER.error("Unable to copy blocks for a weld", exception)
+                for (to in moves.values) {
+                    level.removeBlockEntity(to)
+                    level.getChunk(to).setBlockState(to, Blocks.AIR.defaultBlockState(), false)
+                    level.chunkSource.blockChanged(to)
+                }
+                return false
+            }
+            for (from in moves.keys) {
+                level.removeBlockEntity(from)
+                level.getChunk(from).setBlockState(from, Blocks.AIR.defaultBlockState(), false)
+            }
+            fluidTransfers.forEach { it.complete() }
+            for ((from, to) in moves) {
+                updateBlock(level, from, to, level.getBlockState(to))
+                level.chunkSource.blockChanged(from)
                 level.chunkSource.blockChanged(to)
             }
-            return false
+            GlueAssembler.transferGlue(level, glue, origin, destination, transforms)
+            VSAssemblyEvents.onPasteAfterBlocksAreLoaded.emit(VSAssemblyEvents.OnPasteAfterBlocksAreLoaded(
+                level, originShip, toShip, centers, eventData))
+            return true
+        } finally {
+            fluidTransfers.asReversed().forEach { it.close() }
         }
-        for (from in moves.keys) {
-            level.removeBlockEntity(from)
-            level.getChunk(from).setBlockState(from, Blocks.AIR.defaultBlockState(), false)
-        }
-        for ((from, to) in moves) {
-            updateBlock(level, from, to, level.getBlockState(to))
-            level.chunkSource.blockChanged(from)
-            level.chunkSource.blockChanged(to)
-        }
-        VSAssemblyEvents.onPasteAfterBlocksAreLoaded.emit(VSAssemblyEvents.OnPasteAfterBlocksAreLoaded(
-            level, originShip, toShip, centers, eventData))
-        return true
     }
 
     @JvmStatic
@@ -105,6 +121,7 @@ object PhysBearingAssembler {
         val eventData = mutableMapOf<String, CompoundTag>()
 
         val (minB, maxB) = ShipAssembler.findMinAndMax(blocks)
+        val glue = GlueAssembler.prepareMove(level, minB, maxB)
         val oldMin = minB.toJOMLD()
         val oldMax = maxB.toJOMLD()
         val oldCenter = originCenter.toJOMLD()
@@ -125,6 +142,8 @@ object PhysBearingAssembler {
                 level.removeBlockEntity(itPos)
                 level.getChunk(itPos).setBlockState(itPos, Blocks.AIR.defaultBlockState(), true)
             }
+            WandLinkTransfer.moveRegion(
+                level, blocks.toSet(), originCenter, toCenter)
         }
 
         for (itPos in blocks) {
@@ -135,6 +154,7 @@ object PhysBearingAssembler {
 
 //        VSAssemblyEvents.onPasteAfterBlocksAreLoaded.emit(VSAssemblyEvents.OnPasteAfterBlocksAreLoaded(level, originShip, toShip, oldCenter to newCenter, eventData))
 
+        GlueAssembler.transferGlue(level, glue, originCenter, toCenter, removeOriginal = removeOriginal)
         return true
     }
 }

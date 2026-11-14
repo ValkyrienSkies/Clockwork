@@ -1,5 +1,9 @@
 package org.valkyrienskies.clockwork
 
+import org.valkyrienskies.clockwork.content.curiosities.aeronaut.AeronautShipReadout
+
+import org.valkyrienskies.clockwork.content.curiosities.magnet.Magnetism
+import org.valkyrienskies.clockwork.content.curiosities.clampotron.ClampotronController
 import com.mojang.logging.LogUtils
 import com.simibubi.create.AllBlocks
 import com.simibubi.create.api.boiler.BoilerHeater
@@ -26,11 +30,20 @@ import org.slf4j.LoggerFactory
 import org.valkyrienskies.clockwork.client.render.airpocket.AirpocketRenderer
 import org.valkyrienskies.clockwork.content.contraptions.flap.dual_link.DualLinkHandler
 import org.valkyrienskies.clockwork.content.contraptions.phys.gimbal.quad_link.QuadLinkHandler
+import org.valkyrienskies.clockwork.content.contraptions.phys.hinge.HingeLinks
+import org.valkyrienskies.clockwork.content.contraptions.phys.linear.PhysicalPistonBlock
+import org.valkyrienskies.clockwork.content.curiosities.grippad.GripPadController
+import org.valkyrienskies.clockwork.content.curiosities.lubricant.LubricantData
+import org.valkyrienskies.clockwork.content.curiosities.lubricant.LubricantItem
 import org.valkyrienskies.clockwork.content.curiosities.meteor.MeteorShipAttachment
 import org.valkyrienskies.clockwork.content.curiosities.meteor.MeteorStorm
+import org.valkyrienskies.clockwork.content.curiosities.spring.SpringBendingController
 import org.valkyrienskies.clockwork.content.events.CollisionSoundEffectHandler
+import org.valkyrienskies.clockwork.content.schematics.VdexBlueprintLibrary
+import org.valkyrienskies.clockwork.content.schematics.VdexConstruction
 import org.valkyrienskies.clockwork.content.curiosities.tools.gravitron.GravitronFrozenShip
 import org.valkyrienskies.clockwork.content.forces.*
+import org.valkyrienskies.clockwork.content.forces.GravitronController
 import org.valkyrienskies.clockwork.content.forces.contraption.BearingController
 import org.valkyrienskies.clockwork.content.physicalities.gyro.GyroShipControl
 import org.valkyrienskies.clockwork.integration.cc.GenericPeripheralsCommon
@@ -55,7 +68,7 @@ object ClockworkMod {
 
     // versioning
     const val BUILD_VERSION = 1
-    const val NETWORK_VERSION = 1
+    const val NETWORK_VERSION = 2
     const val NETWORK_VERSION_STR = NETWORK_VERSION.toString()
 
     val NETWORK_CHANNEL: ResourceLocation = asResource("main")
@@ -99,9 +112,11 @@ object ClockworkMod {
     @JvmStatic
     fun init() {
         ClockworkPackets.init()
+        LifecycleEvent.SERVER_STOPPED.register { AeronautShipReadout.clear() }
         ClockworkTags.init()
         ClockworkRecipes.init()
         TAB_REGISTRY.register()
+        PhysicalPistonBlock.registerPhysicsShape()
 
         vsCore.registerAttachment(PocketForcesController::class.java)
         vsCore.registerAttachment(WanderShipControl::class.java)
@@ -112,6 +127,8 @@ object ClockworkMod {
         vsCore.registerAttachment(GyroShipControl::class.java)
         vsCore.registerAttachment(SugarRocketController::class.java)
         vsCore.registerAttachment(GravitronController::class.java) { useTransientSerializer() }
+        vsCore.registerAttachment(ClampotronController::class.java) { useTransientSerializer() }
+        vsCore.registerAttachment(VdexConstruction::class.java) { useJacksonSerializer() }
         vsCore.registerAttachment(GravitronFrozenShip::class.java) {
             useJacksonSerializer()
         }
@@ -155,10 +172,17 @@ object ClockworkMod {
             ClockworkAugmentations.registerSumAugmentation("sealed", it.shipObjectWorld)
         }
 
+        LifecycleEvent.SERVER_STOPPED.register { Magnetism.clear() }
+
         TickEvent.SERVER_LEVEL_POST.register {
+            Magnetism.tick(it)
+            VdexBlueprintLibrary.tick(it)
+            HingeLinks.get(it).tick(it)
+            LubricantData.get(it).tick(it)
             org.valkyrienskies.clockwork.content.curiosities.tools.wanderwand.WanderwandServer.tick(it)
             for (ship in it.shipObjectWorld.loadedShips) {
                 ship.getAttachment(WanderShipControl::class.java)?.reconcileBlocks(it, ship)
+                VdexConstruction.tick(it, ship)
                 GravitronFrozenShip.tick(it, ship)
                 //TODO: UNCOMMENT WHEN POCKET FORCES IS FIXED
                 //ship.getAttachment(PocketForcesController::class.java)?.gameTick(it, ship.id)
@@ -172,6 +196,9 @@ object ClockworkMod {
         }
 
         InteractionEvent.RIGHT_CLICK_BLOCK.register(InteractionEvent.RightClickBlock { player, hand, pos, face ->
+            LubricantItem.interact(player, hand, pos, face)
+        })
+        InteractionEvent.RIGHT_CLICK_BLOCK.register(InteractionEvent.RightClickBlock { player, hand, pos, face ->
             DualLinkHandler.handler(player, hand, pos, face)
         })
         InteractionEvent.RIGHT_CLICK_BLOCK.register(InteractionEvent.RightClickBlock { player, hand, pos, face ->
@@ -182,6 +209,10 @@ object ClockworkMod {
         vsApi.collisionStartEvent.on(MeteorStorm::onCollision)
 
         vsApi.physTickEvent.on {
+            GravitronController.timeStep(it.world, it.delta)
+            Magnetism.physicsTick(it.world)
+            GripPadController.tick(it.world, it.delta)
+            SpringBendingController.tick(it.world)
             val temp = mutableListOf<Pair<DimensionId, (PhysLevel, Double, () -> Unit) -> Unit>>()
             while (physTickOnce.isNotEmpty()) {
                 val (dimension, fn) = physTickOnce.poll() ?: continue

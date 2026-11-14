@@ -4,6 +4,7 @@ import com.mojang.blaze3d.vertex.PoseStack
 import com.simibubi.create.content.kinetics.base.IRotate
 import com.simibubi.create.content.kinetics.base.KineticBlockEntityRenderer.getAngleForBe
 import com.simibubi.create.foundation.blockEntity.renderer.SmartBlockEntityRenderer
+import dev.engine_room.flywheel.lib.model.baked.PartialModel
 import net.createmod.catnip.animation.AnimationTickHolder
 import net.createmod.catnip.math.AngleHelper
 import net.createmod.catnip.render.CachedBuffers
@@ -12,19 +13,15 @@ import net.minecraft.client.renderer.MultiBufferSource
 import net.minecraft.client.renderer.RenderType
 import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider
 import net.minecraft.core.Direction
-import net.minecraft.world.level.block.entity.BlockEntity
-import net.minecraft.world.level.block.state.properties.BlockStateProperties
 import net.minecraft.world.phys.Vec3
 import org.joml.Matrix4f
 import org.joml.Quaterniond
 import org.joml.Quaternionf
 import org.joml.AxisAngle4d
-import org.joml.AxisAngle4f
 import org.joml.Vector3d
 import org.joml.Vector3dc
 import org.joml.Vector3f
 import org.valkyrienskies.clockwork.ClockworkPartials
-import org.valkyrienskies.clockwork.content.contraptions.phys.bearing.PhysBearingBlockEntity
 import org.valkyrienskies.clockwork.content.contraptions.phys.gimbal.quad_link.QuadLinkRenderer
 import org.valkyrienskies.clockwork.util.render.RenderUtil
 import org.valkyrienskies.clockwork.util.render.TransformData
@@ -56,15 +53,14 @@ class GimbalBearingRenderer(context: BlockEntityRendererProvider.Context) : Smar
         val hostShip = level.getLoadedShipManagingPos(be.blockPos) as? ClientShip
         val hostPose = createHostPose(be)
         val platePose = createPlatePose(be, hostShip) ?: hostPose
-        val gimbal_plate = CachedBuffers.partial(ClockworkPartials.GIMBAL_PLATE, blockState).light<SuperByteBuffer>(light)
-
         val axis = (blockState.block as IRotate).getRotationAxis(blockState)
-        val angle = getAngleForBe(be, be.blockPos, axis);
+        val angle = getAngleForBe(be, be.blockPos, axis) * be.getRenderDirection().axisDirection.step
 
         ms.pushPose()
 
-        applyModelPose(gimbal_plate, platePose, PLATE_FACE_CENTER_MODEL)
-        gimbal_plate.renderInto(ms, vertexConsumer)
+        val plate = CachedBuffers.partial(ClockworkPartials.GIMBAL_PLATE, blockState).light<SuperByteBuffer>(light)
+        applyModelPose(plate, platePose, PLATE_FACE_CENTER_MODEL)
+        plate.renderInto(ms, vertexConsumer)
 
         for (i in 0..3) {
             val arm = CachedBuffers.partial(ClockworkPartials.GIMBAL_ARM, blockState).light<SuperByteBuffer>(light)
@@ -82,31 +78,19 @@ class GimbalBearingRenderer(context: BlockEntityRendererProvider.Context) : Smar
             arm.renderInto(ms, vertexConsumer)
         }
 
-        // CachedBuffers returns the same mutable buffer for each partial model.
-        // Render each copy (which resets its transforms) before preparing the next one.
-        val gimbal_attacher = CachedBuffers.partial(ClockworkPartials.GIMBAL_ATTACHER, blockState).light<SuperByteBuffer>(light)
-        rotateDirection(gimbal_attacher, be)
-        RotateShaft(gimbal_attacher, be, angle)
-        gimbal_attacher.renderInto(ms, vertexConsumer)
+        fun renderShaft(model: PartialModel, pose: RenderPose, spin: Float, upper: Boolean, offset: Double = 0.0) {
+            val partial = CachedBuffers.partial(model, blockState).light<SuperByteBuffer>(light)
+            applyModelPose(partial, pose, PLATE_FACE_CENTER_MODEL)
+            partial.rotateCentered(spin, Direction.Axis.Y)
+            if (upper) partial.rotateCentered(AngleHelper.rad(180.0), Direction.Axis.X)
+            partial.translate(0.0, offset, 0.0)
+            partial.renderInto(ms, vertexConsumer)
+        }
 
-        val gimbal_shaft = CachedBuffers.partial(ClockworkPartials.PHYS_SHAFT, blockState).light<SuperByteBuffer>(light)
-        rotateDirection(gimbal_shaft, be)
-        RotateShaft(gimbal_shaft, be, angle)
-        gimbal_shaft.renderInto(ms, vertexConsumer)
-
-        // Apply RPM rotation in the plate's local frame, at the same speed as the input.
-        val gimbal_top_shaft = CachedBuffers.partial(ClockworkPartials.PHYS_SHAFT, blockState).light<SuperByteBuffer>(light)
-        applyModelPose(gimbal_top_shaft, platePose, PLATE_FACE_CENTER_MODEL)
-        RotateShaft(gimbal_top_shaft, be, angle)
-        gimbal_top_shaft.rotateCentered(AngleHelper.rad(180.0), Direction.Axis.X)
-        gimbal_top_shaft.renderInto(ms, vertexConsumer)
-
-        val gimbal_top_attacher = CachedBuffers.partial(ClockworkPartials.GIMBAL_ATTACHER, blockState).light<SuperByteBuffer>(light)
-        applyModelPose(gimbal_top_attacher, platePose, PLATE_FACE_CENTER_MODEL)
-        RotateShaft(gimbal_top_attacher, be, angle)
-        gimbal_top_attacher.rotateCentered(AngleHelper.rad(180.0), Direction.Axis.X)
-        gimbal_top_attacher.translate(0.0, 0.05, 0.0)
-        gimbal_top_attacher.renderInto(ms, vertexConsumer)
+        renderShaft(ClockworkPartials.GIMBAL_ATTACHER, hostPose, angle, false)
+        renderShaft(ClockworkPartials.PHYS_SHAFT, hostPose, angle, false)
+        renderShaft(ClockworkPartials.GIMBAL_ATTACHER, platePose, angle, true, 0.05)
+        renderShaft(ClockworkPartials.PHYS_SHAFT, platePose, angle, true)
 
         //RENDER CRYSTAL MATRIX start
         val interpolatedAngle = be.getInterpolatedCoreAngle(AnimationTickHolder.getPartialTicks() - 1)
@@ -118,30 +102,6 @@ class GimbalBearingRenderer(context: BlockEntityRendererProvider.Context) : Smar
         RenderUtil.renderCubeMatrix(ms, buffer, blockState, innerData, data, outerData, 1.5f,light,overlay)
 
         ms.popPose()
-    }
-
-    private fun rotateDirection(partial: SuperByteBuffer, be: BlockEntity) {
-        val facing = be.blockState.getValue(BlockStateProperties.FACING)
-        rotateDirection(partial, facing)
-    }
-
-    private fun rotateDirection(partial: SuperByteBuffer, facing: Direction) {
-        partial.translate(0.5f)
-        when (facing) {
-            Direction.NORTH -> partial.rotate(Quaternionf(AxisAngle4f(AngleHelper.rad(270.0), 1f, 0f, 0f)))
-            Direction.EAST -> {
-                partial.rotate(Quaternionf(AxisAngle4f(AngleHelper.rad(270.0), 0f, 0f, 1f)))
-                partial.rotate(Quaternionf(AxisAngle4f(AngleHelper.rad(90.0), 0f, 1f, 0f)))
-            }
-            Direction.SOUTH -> partial.rotate(Quaternionf(AxisAngle4f(AngleHelper.rad(90.0), 1f, 0f, 0f)))
-            Direction.WEST -> {
-                partial.rotate(Quaternionf(AxisAngle4f(AngleHelper.rad(90.0), 0f, 0f, 1f)))
-                partial.rotate(Quaternionf(AxisAngle4f(AngleHelper.rad(90.0), 0f, 1f, 0f)))
-            }
-            Direction.UP -> partial.rotate(Quaternionf(AxisAngle4f(AngleHelper.rad(0.0), 1f, 0f, 0f)))
-            Direction.DOWN -> partial.rotate(Quaternionf(AxisAngle4f(AngleHelper.rad(180.0), -1f, 0f, 0f)))
-        }
-        partial.translate(-0.5f)
     }
 
     private fun createHostPose(be: GimbalBearingBlockEntity): RenderPose {
@@ -178,16 +138,6 @@ class GimbalBearingRenderer(context: BlockEntityRendererProvider.Context) : Smar
             worldDirectionToRenderLocal(hostShip, normalWorld),
             worldDirectionToRenderLocal(hostShip, vWorld)
         ).orthonormalized()
-    }
-
-    fun RotateShaft(partial: SuperByteBuffer, be: BlockEntity,angle: Float) {
-        val facing = be.blockState.getValue(BlockStateProperties.FACING)
-        if (facing == Direction.UP || facing == Direction.SOUTH || facing == Direction.EAST) {
-            partial.rotateCentered(angle, Direction.Axis.Y)
-        }
-        else {
-            partial.rotateCentered(-angle, Direction.Axis.Y)
-        }
     }
 
     private fun applyModelPose(partial: SuperByteBuffer, pose: RenderPose, modelPivot: Vector3dc) {

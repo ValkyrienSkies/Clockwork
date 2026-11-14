@@ -147,6 +147,7 @@ open class GravitronHandler {
     }
 
     fun mouseScrolled(delta: Double): Boolean {
+        if (GravitronControlsClient.scroll(delta)) return true
         if (!active) {
             return false
         }

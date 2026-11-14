@@ -54,7 +54,12 @@ import kotlin.math.absoluteValue
 import kotlin.math.min
 import kotlin.math.sin
 
-open class PropellerBearingBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: BlockState, val brass: Boolean = false) : KineticBlockEntity(type, pos, state), IBearingBlockEntity, IForceApplierBE<PropUpdateData, PropData, PropCreateData, PropellerController> {
+open class PropellerBearingBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: BlockState, val brass: Boolean = false) : KineticBlockEntity(type, pos, state), IBearingBlockEntity, IForceApplierBE<PropUpdateData, PropData, PropCreateData, PropellerController>, org.valkyrienskies.clockwork.content.curiosities.aeronaut.AeronautForceSource {
+
+    override fun addPotentialForces(level: ServerLevel, ship: org.valkyrienskies.core.api.ships.LoadedServerShip,
+        thrust: org.valkyrienskies.clockwork.content.curiosities.aeronaut.AeronautForceAccumulator) {
+        org.valkyrienskies.clockwork.content.curiosities.aeronaut.AeronautPropellerReadout.potential(this, ship, thrust)
+    }
 
     var sailPositions: MutableList<Vector3ic> = ArrayList()
     var blades: MutableList<BladeData> = ArrayList()

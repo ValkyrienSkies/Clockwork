@@ -1,10 +1,15 @@
 package org.valkyrienskies.clockwork
 
+import org.valkyrienskies.clockwork.content.kinetics.plotting.PlottingTableBlock
+
+import org.valkyrienskies.clockwork.content.curiosities.magnet.MagnetBlock
+import org.valkyrienskies.clockwork.content.curiosities.clampotron.ClampotronBlock
 import com.simibubi.create.AllBlocks
 import com.simibubi.create.AllTags
 import com.simibubi.create.api.behaviour.display.DisplaySource.displaySource
 import com.simibubi.create.api.behaviour.movement.MovementBehaviour.movementBehaviour
 import com.simibubi.create.api.stress.BlockStressValues
+import com.simibubi.create.content.contraptions.piston.MechanicalPistonHeadBlock
 import com.simibubi.create.content.decoration.encasing.CasingBlock
 import com.simibubi.create.content.decoration.encasing.EncasingRegistry
 import com.simibubi.create.content.fluids.PipeAttachmentModel
@@ -35,7 +40,10 @@ import org.valkyrienskies.clockwork.content.contraptions.flap.FlapBearingBlock
 import org.valkyrienskies.clockwork.content.contraptions.flap.smart_flap.SmartFlapBearingBlock
 import org.valkyrienskies.clockwork.content.contraptions.phys.bearing.PhysBearingBlock
 import org.valkyrienskies.clockwork.content.contraptions.phys.gimbal.GimbalBearingBlock
+import org.valkyrienskies.clockwork.content.contraptions.phys.hinge.HingeBlock
 import org.valkyrienskies.clockwork.content.contraptions.phys.infuser.PhysicsInfuserBlock
+import org.valkyrienskies.clockwork.content.contraptions.phys.linear.PhysicalGantryBlock
+import org.valkyrienskies.clockwork.content.contraptions.phys.linear.PhysicalPistonBlock
 import org.valkyrienskies.clockwork.content.contraptions.phys.slicker.SlickerBlock
 import org.valkyrienskies.clockwork.content.contraptions.propeller.PropellerBearingBlock
 import org.valkyrienskies.clockwork.content.contraptions.propeller.blades.BladeControllerBlock
@@ -49,7 +57,9 @@ import org.valkyrienskies.clockwork.content.curiosities.WanderliteOreBlock
 import org.valkyrienskies.clockwork.content.curiosities.altmeter.AltMeterBlock
 import org.valkyrienskies.clockwork.content.curiosities.clock.ClockBlock
 import org.valkyrienskies.clockwork.content.curiosities.debug.DebugLightningArcerBlock
+import org.valkyrienskies.clockwork.content.curiosities.grippad.GripPadBlock
 import org.valkyrienskies.clockwork.content.curiosities.meteor.MeteorTestBlock
+import org.valkyrienskies.clockwork.content.curiosities.rope.RopeWinchBlock
 import org.valkyrienskies.clockwork.content.curiosities.sensor.distance.DistanceSensorBlock
 import org.valkyrienskies.clockwork.content.curiosities.sensor.impact.ImpactSensorBlock
 import org.valkyrienskies.clockwork.content.curiosities.sensor.rotation.GyroscopicSensorBlock
@@ -58,6 +68,8 @@ import org.valkyrienskies.clockwork.content.curiosities.solver.SolverBlock
 import org.valkyrienskies.clockwork.content.kinetics.casing.ExtendedEncasedShaftBlock
 import org.valkyrienskies.clockwork.content.kinetics.resistor.RedstoneResistorBlock
 import org.valkyrienskies.clockwork.content.kinetics.sequenced_seat.SequencedSeatBlock
+import org.valkyrienskies.clockwork.content.kinetics.combobulator.CombobulatorBlock
+import org.valkyrienskies.clockwork.content.kinetics.combobulator.ThinkableRelayBlock
 import org.valkyrienskies.clockwork.content.kinetics.universal_shaft.UniversalShaftBlock
 import org.valkyrienskies.clockwork.content.logistics.gas.backtank.GasBacktankBlock
 import org.valkyrienskies.clockwork.content.logistics.gas.crafter.GasCrafterBlock
@@ -367,6 +379,44 @@ object ClockworkBlocks {
             .register()
 
     @JvmField
+    val PLOTTING_TABLE: BlockEntry<PlottingTableBlock> = REGISTRATE.block("plotting_table", ::PlottingTableBlock)
+        .initialProperties(AllBlocks.BRASS_CASING)
+        .properties { it.noOcclusion().isRedstoneConductor { _, _, _ -> false } }
+        .addLayer { Supplier { RenderType.cutout() } }
+        .transform(axeOrPickaxe())
+        .tag(AllTags.AllBlockTags.SAFE_NBT.tag)
+        .blockstate { _: DataGenContext<Block?, PlottingTableBlock>, _: RegistrateBlockstateProvider -> }
+        .item()
+        .tab(ClockworkMod.BASE_CREATIVE_TABINFO)
+        .model(AssetLookup.customBlockItemModel("plotting_table", "block"))
+        .build()
+        .register()
+
+    @JvmField
+    val COMBOBULATOR: BlockEntry<CombobulatorBlock> = REGISTRATE.block("combobulator", ::CombobulatorBlock)
+        .initialProperties(AllBlocks.BRASS_CASING)
+        .properties { it.noOcclusion().isRedstoneConductor { _, _, _ -> false } }
+        .transform(axeOrPickaxe())
+        .blockstate { _: DataGenContext<Block?, CombobulatorBlock>, _: RegistrateBlockstateProvider -> }
+        .item()
+        .tab(ClockworkMod.BASE_CREATIVE_TABINFO)
+        .model(AssetLookup.customBlockItemModel("combobulator", "block"))
+        .build()
+        .register()
+
+    @JvmField
+    val THINKABLE_RELAY: BlockEntry<ThinkableRelayBlock> = REGISTRATE.block("thinkable_relay", ::ThinkableRelayBlock)
+        .initialProperties(AllBlocks.BRASS_CASING)
+        .properties { it.noOcclusion().isRedstoneConductor { _, _, _ -> false } }
+        .transform(axeOrPickaxe())
+        .blockstate { _: DataGenContext<Block?, ThinkableRelayBlock>, _: RegistrateBlockstateProvider -> }
+        .item()
+        .tab(ClockworkMod.BASE_CREATIVE_TABINFO)
+        .model(AssetLookup.customBlockItemModel("combobulator", "relay"))
+        .build()
+        .register()
+
+    @JvmField
     val COMMAND_SEAT: BlockEntry<SequencedSeatBlock> =
         REGISTRATE.block("command_seat") { properties: BlockBehaviour.Properties? ->
             SequencedSeatBlock(properties!!)
@@ -436,6 +486,39 @@ object ClockworkBlocks {
             .build()
             .register()
 
+
+    @JvmField
+    val PHYS_GANTRY: BlockEntry<PhysicalGantryBlock> =
+        REGISTRATE.block("phys_gantry", ::PhysicalGantryBlock)
+            .initialProperties(AllBlocks.GANTRY_CARRIAGE)
+            .properties { it.noOcclusion() }
+            .transform(axeOrPickaxe())
+            .addLayer { Supplier { RenderType.cutout() } }
+            .item()
+            .tab(ClockworkMod.PHYSICAL_CREATIVE_TABINFO)
+            .build()
+            .register()
+
+    @JvmField
+    val PHYS_PISTON: BlockEntry<PhysicalPistonBlock> =
+        REGISTRATE.block("phys_piston", ::PhysicalPistonBlock)
+            .initialProperties(AllBlocks.MECHANICAL_PISTON)
+            .properties { it.noOcclusion() }
+            .transform(axeOrPickaxe())
+            .addLayer { Supplier { RenderType.cutout() } }
+            .item()
+            .tab(ClockworkMod.PHYSICAL_CREATIVE_TABINFO)
+            .build()
+            .register()
+
+    @JvmField
+    val PHYS_PISTON_HEAD: BlockEntry<MechanicalPistonHeadBlock> =
+        REGISTRATE.block("phys_piston_head", ::MechanicalPistonHeadBlock)
+            .initialProperties(AllBlocks.MECHANICAL_PISTON_HEAD)
+            .properties { it.noLootTable() }
+            .transform(axeOrPickaxe())
+            .addLayer { Supplier { RenderType.cutout() } }
+            .register()
 
     @JvmField
     val PHYSICS_INFUSER: BlockEntry<PhysicsInfuserBlock> =
@@ -761,6 +844,56 @@ object ClockworkBlocks {
             .tab(ClockworkMod.GAS_CREATIVE_TABINFO)
             .build()
             .register()
+
+    @JvmField
+    val HINGE = REGISTRATE.block("hinge") { p: BlockBehaviour.Properties ->
+        HingeBlock(p, false)
+    }.initialProperties { SharedProperties.softMetal() }
+        .transform(axeOrPickaxe()).properties { it.noOcclusion() }
+        .addLayer { Supplier { RenderType.cutout() } }
+        .item().tab(ClockworkMod.PHYSICAL_CREATIVE_TABINFO).build().register()
+
+    @JvmField
+    val HINGE_ATTACHMENT = REGISTRATE.block("hinge_attachment") { p: BlockBehaviour.Properties ->
+        HingeBlock(p, true)
+    }.initialProperties { SharedProperties.softMetal() }
+        .transform(axeOrPickaxe()).properties { it.noOcclusion().forceSolidOff() }
+        .addLayer { Supplier { RenderType.cutout() } }
+        .register()
+
+    @JvmField
+    val MAGNET = REGISTRATE.block("magnet") { p: BlockBehaviour.Properties -> MagnetBlock(p, false) }
+        .initialProperties { SharedProperties.softMetal() }.transform(axeOrPickaxe())
+        .item().tab(ClockworkMod.BASE_CREATIVE_TABINFO).build().register()
+
+    @JvmField
+    val ELECTROMAGNET = REGISTRATE.block("electromagnet") { p: BlockBehaviour.Properties -> MagnetBlock(p, true) }
+        .initialProperties { SharedProperties.softMetal() }.transform(axeOrPickaxe())
+        .item().tab(ClockworkMod.BASE_CREATIVE_TABINFO).build().register()
+
+    @JvmField
+    val CLAMPOTRON = REGISTRATE.block("clampotron") { p: BlockBehaviour.Properties ->
+        ClampotronBlock(p)
+    }.initialProperties { SharedProperties.softMetal() }
+        .transform(axeOrPickaxe()).properties { it.noOcclusion() }
+        .addLayer { Supplier { RenderType.cutout() } }
+        .item().tab(ClockworkMod.BASE_CREATIVE_TABINFO).build().register()
+
+    @JvmField
+    val ROPE_WINCH = REGISTRATE.block("rope_winch") { p: BlockBehaviour.Properties ->
+        RopeWinchBlock(p)
+    }.initialProperties { SharedProperties.softMetal() }
+        .transform(axeOrPickaxe()).properties { it.noOcclusion() }
+        .addLayer { Supplier { RenderType.cutout() } }
+        .item().tab(ClockworkMod.BASE_CREATIVE_TABINFO).build().register()
+
+    @JvmField
+    val GRIP_PAD = REGISTRATE.block("grip_pad") { p: BlockBehaviour.Properties ->
+        GripPadBlock(p)
+    }.initialProperties { SharedProperties.softMetal() }
+        .transform(axeOrPickaxe()).properties { it.noOcclusion() }
+        .addLayer { Supplier { RenderType.cutout() } }
+        .item().tab(ClockworkMod.BASE_CREATIVE_TABINFO).build().register()
 
     @JvmField
     val EXTENDON: BlockEntry<ExtendonBlock> =

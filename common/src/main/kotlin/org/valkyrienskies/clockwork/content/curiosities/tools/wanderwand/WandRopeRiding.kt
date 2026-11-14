@@ -53,7 +53,7 @@ object WandRopeRiding {
         if (linkId == null) { stop(player, data); return }
         if (!eligible(player) || data.riders.containsKey(player.uuid)) return
         val hand = hand(player) ?: return
-        val link = data.links[linkId]?.takeIf { it.rope && !it.suspended } ?: return
+        val link = data.links[linkId]?.takeIf { it.rope && !it.spring && !it.thinkable && !it.suspended } ?: return
         if (!validEnds(player.serverLevel(), link)) return
         val a = link.a.world(player.level()) ?: return
         val b = link.b.world(player.level()) ?: return

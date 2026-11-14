@@ -1,4 +1,26 @@
 {
+  "polaritron_hum": {"sounds": ["vs_clockwork:polaritron_hum"], "subtitle": "vs_clockwork.subtitle.polaritron_hum"},
+  "thinkable_attach": {"sounds": ["vs_clockwork:thinkable_attach"], "subtitle": "vs_clockwork.subtitle.thinkable_attach"},
+  "thinkable_data_1": {"sounds": ["vs_clockwork:thinkable_data_1", "vs_clockwork:thinkable_data_2", "vs_clockwork:thinkable_data_3"], "subtitle": "vs_clockwork.subtitle.thinkable_data_1"},
+  "combobulator_data_1": {"sounds": ["vs_clockwork:combobulator_data_1", "vs_clockwork:combobulator_data_2"], "subtitle": "vs_clockwork.subtitle.combobulator_data_1"},
+  "thinkable_snap_1": {"sounds": ["vs_clockwork:thinkable_snap_1", "vs_clockwork:thinkable_snap_2"], "subtitle": "vs_clockwork.subtitle.thinkable_snap_1"},
+  "thinkable_overload": {"sounds": ["vs_clockwork:thinkable_overload"], "subtitle": "vs_clockwork.subtitle.thinkable_overload"},
+  "hinge_assemble": {"sounds": ["vs_clockwork:hinge_assemble"], "subtitle": "vs_clockwork.subtitle.hinge_assemble"},
+  "hinge_disassemble": {"sounds": ["vs_clockwork:hinge_disassemble"], "subtitle": "vs_clockwork.subtitle.hinge_disassemble"},
+  "hinge_stress": {"sounds": ["vs_clockwork:hinge_stress"], "subtitle": "vs_clockwork.subtitle.hinge_stress"},
+  "rope_overload": {"sounds": ["vs_clockwork:rope_overload"], "subtitle": "vs_clockwork.subtitle.rope_overload"},
+  "spring_overload": {"sounds": ["vs_clockwork:spring_overload"], "subtitle": "vs_clockwork.subtitle.spring_overload"},
+  "spring_attach_start": {"sounds": ["vs_clockwork:spring_attach_start"], "subtitle": "vs_clockwork.subtitle.spring_attach_start"},
+  "spring_attach_end": {"sounds": ["vs_clockwork:spring_attach_end"], "subtitle": "vs_clockwork.subtitle.spring_attach_end"},
+  "spring_snap_1": {"sounds": ["vs_clockwork:spring_snap_1", "vs_clockwork:spring_snap_2"], "subtitle": "vs_clockwork.subtitle.spring_snap_1"},
+  "rope_tie": {
+    "sounds": ["vs_clockwork:rope_tie"],
+    "subtitle": "vs_clockwork.subtitle.rope_tie"
+  },
+  "rope_snap_1": {
+    "sounds": ["vs_clockwork:rope_snap_1", "vs_clockwork:rope_snap_2"],
+    "subtitle": "vs_clockwork.subtitle.rope_snap_1"
+  },
   "physics_infuser_initialize": {
     "sounds": [
       {
@@ -511,5 +533,105 @@
       }
     ],
     "subtitle": "vs_clockwork.subtitle.balloon_leaking_heavy"
+  },
+  "lubricant_apply_1": {
+  "subtitle": "vs_clockwork.subtitle.lubricant_apply_1",
+  "sounds": [
+    "vs_clockwork:lubricant_apply_1",
+    "vs_clockwork:lubricant_apply_2",
+    "vs_clockwork:lubricant_apply_3"
+  ]
+},
+  "lubricant_remove_1": {
+  "subtitle": "vs_clockwork.subtitle.lubricant_remove_1",
+  "sounds": [
+    "vs_clockwork:lubricant_remove_1",
+    "vs_clockwork:lubricant_remove_2"
+  ]
+},
+  "gravitron_massmode_on": {"sounds": ["vs_clockwork:gravitron_massmode_on"], "subtitle": "vs_clockwork.subtitle.gravitron_massmode_on"},
+  "gravitron_massmode_off": {"sounds": ["vs_clockwork:gravitron_massmode_off"], "subtitle": "vs_clockwork.subtitle.gravitron_massmode_off"},
+  "clampotron_hold_loop": {
+    "subtitle": "vs_clockwork.subtitle.clampotron_hold_loop",
+    "sounds": [
+      {
+        "name": "vs_clockwork:clampotron_hold_loop",
+        "attenuation_distance": 24
+      }
+    ]
+  },
+  "clampotron_overload": {
+    "subtitle": "vs_clockwork.subtitle.clampotron_overload",
+    "sounds": [
+      {
+        "name": "vs_clockwork:clampotron_overload",
+        "attenuation_distance": 24
+      }
+    ]
+  },
+  "clampotron_power_on": {
+    "subtitle": "vs_clockwork.subtitle.clampotron_power_on",
+    "sounds": [
+      {
+        "name": "vs_clockwork:clampotron_power_on",
+        "attenuation_distance": 24
+      }
+    ]
+  },
+  "clampotron_power_off": {
+    "subtitle": "vs_clockwork.subtitle.clampotron_power_off",
+    "sounds": [
+      {
+        "name": "vs_clockwork:clampotron_power_off",
+        "attenuation_distance": 24
+      }
+    ]
+  },
+  "clampotron_grab": {
+    "subtitle": "vs_clockwork.subtitle.clampotron_grab",
+    "sounds": [
+      {
+        "name": "vs_clockwork:clampotron_grab",
+        "attenuation_distance": 24
+      }
+    ]
+  },
+  "clampotron_release": {
+    "subtitle": "vs_clockwork.subtitle.clampotron_release",
+    "sounds": [
+      {
+        "name": "vs_clockwork:clampotron_release",
+        "attenuation_distance": 24
+      }
+    ]
+  },
+  "clampotron_snap_1": {
+    "subtitle": "vs_clockwork.subtitle.clampotron_snap_1",
+    "sounds": [
+      {
+        "name": "vs_clockwork:clampotron_snap_1",
+        "attenuation_distance": 24
+      },
+      {
+        "name": "vs_clockwork:clampotron_snap_2",
+        "attenuation_distance": 24
+      }
+    ]
+  },
+  "vdex_scribble": {
+    "subtitle": "vs_clockwork.subtitle.vdex_scribble",
+    "sounds": [
+      {
+        "name": "vs_clockwork:vdex_scribble",
+        "stream": true
+      }
+    ]
+  },
+  "vdex_erase_1": {
+    "subtitle": "vs_clockwork.subtitle.vdex_erase_1",
+    "sounds": [
+      "vs_clockwork:vdex_erase_1",
+      "vs_clockwork:vdex_erase_2"
+    ]
   }
 }

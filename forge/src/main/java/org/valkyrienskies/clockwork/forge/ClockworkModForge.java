@@ -125,6 +125,7 @@ public class ClockworkModForge {
 
     public static void init(final FMLCommonSetupEvent event) {
         event.enqueueWork(ClockworkMod::registerHeaters);
+        event.enqueueWork(ForgeThinkableCompat::initialize);
     }
 
     private void onClientSetup(FMLClientSetupEvent event) {

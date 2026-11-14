@@ -21,3 +21,5 @@ classes/
 /.architectury-transformer/debug.log
 /common/.architectury-transformer/debug.log
 /.kotlin/
+/MODLOG.md
+/docs/

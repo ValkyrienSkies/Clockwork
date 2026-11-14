@@ -38,6 +38,7 @@ object ClockworkTags {
         optional: Boolean = namespace.optionalDefault,
         alwaysDatagen: Boolean = namespace.alwaysDatagenDefault
     ) {
+        MAGNETIC,
         BALLOON_BLOCK,
         SENSOR_LENS;
 

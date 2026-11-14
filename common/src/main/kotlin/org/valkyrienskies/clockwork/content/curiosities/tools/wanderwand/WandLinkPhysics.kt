@@ -4,6 +4,8 @@ import net.minecraft.world.phys.Vec3
 import org.joml.Quaterniond
 import org.joml.Quaterniondc
 import org.joml.Vector3d
+import org.valkyrienskies.clockwork.content.curiosities.rope.RopeKnotPhysics
+import org.valkyrienskies.core.impl.api_impl.config.ConfigPhysicsBackendType
 import org.valkyrienskies.core.internal.joints.*
 import java.util.EnumMap
 import kotlin.math.max
@@ -50,6 +52,19 @@ internal object WandLinkPhysics {
         return atFace(a, frameA) to atFace(b, frameB)
     }
 
+    fun ropeJoint(a: Long, b: Long, poseA: VSJointPose, poseB: VSJointPose, mass: Double, length: Double,
+                  physical: Boolean, backend: ConfigPhysicsBackendType): VSDistanceJoint {
+        val stiffness = mass * if (physical) RopeKnotPhysics.STIFFNESS else ROPE_STIFFNESS
+        val damping = mass * if (physical) RopeKnotPhysics.DAMPING else ROPE_DAMPING
+        val classic = backend == ConfigPhysicsBackendType.KRUNCH_CLASSIC
+        return VSDistanceJoint(a, poseA, b, poseB,
+            VSJointMaxForceTorque(Float.MAX_VALUE, Float.MAX_VALUE),
+            compliance = if (classic) 1.0 / stiffness else VSJoint.DEFAULT_COMPLIANCE,
+            maxDistance = length.toFloat(),
+            stiffness = if (classic) null else stiffness.toFloat(),
+            damping = if (classic) null else damping.toFloat())
+    }
+
     fun glueJoint(a: Long, b: Long, poseA: VSJointPose, poseB: VSJointPose, mass: Double, age: Int): VSD6Joint {
         val strength = ramp(age)
         val motions = EnumMap<VSD6Joint.D6Axis, VSD6Joint.D6Motion>(VSD6Joint.D6Axis::class.java)
@@ -66,6 +81,14 @@ internal object WandLinkPhysics {
     }
 
     /** Also retire the saved record on solvers which don't publish native joint-break callbacks. */
+    fun stressRatio(rope: Boolean, stretch: Double, separatingSpeed: Double, age: Int): Double {
+        if (rope && stretch < 0.0 || !rope && age < GLUE_RAMP_TICKS) return 0.0
+        val demand = max(0.0, stretch) * (if (rope) ROPE_STIFFNESS else GLUE_STIFFNESS) +
+            max(0.0, separatingSpeed) * (if (rope) ROPE_DAMPING else GLUE_DAMPING)
+        val load = demand / if (rope) ROPE_BREAK_ACCELERATION else GLUE_BREAK_ACCELERATION
+        return if (rope) load else max(load, stretch / GLUE_MAX_STRETCH)
+    }
+
     fun overloaded(rope: Boolean, stretch: Double, separatingSpeed: Double, age: Int): Boolean {
         if (rope) {
             // A rope carries no tension until its slack has been taken up.

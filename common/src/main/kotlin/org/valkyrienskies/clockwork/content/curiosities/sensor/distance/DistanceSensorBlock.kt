@@ -3,6 +3,7 @@ package org.valkyrienskies.clockwork.content.curiosities.sensor.distance
 import com.simibubi.create.content.equipment.wrench.IWrenchable
 import net.minecraft.core.BlockPos
 import net.minecraft.core.Direction
+import net.minecraft.network.chat.Component
 import net.minecraft.server.level.ServerLevel
 import net.minecraft.tags.BlockTags
 import net.minecraft.util.RandomSource
@@ -27,17 +28,22 @@ import org.valkyrienskies.clockwork.ClockworkSounds
 import org.valkyrienskies.clockwork.ClockworkTags
 import org.valkyrienskies.clockwork.content.curiosities.sensor.ISensorBlock
 import org.valkyrienskies.clockwork.content.curiosities.sensor.ISensorBlock.Companion.POWER
+import org.valkyrienskies.clockwork.content.kinetics.combobulator.IThinkableBlock
 import org.valkyrienskies.mod.common.getShipObjectManagingPos
 import org.valkyrienskies.mod.common.toWorldCoordinates
-import org.valkyrienskies.mod.common.util.toDoubles
-import org.valkyrienskies.mod.common.util.toJOML
-import org.valkyrienskies.mod.common.util.toMinecraft
 import org.valkyrienskies.mod.common.world.clipIncludeShips
 import java.util.*
 import kotlin.math.max
-import kotlin.math.min
 
-class DistanceSensorBlock(properties: Properties?): DirectionalBlock(properties), ISensorBlock {
+class DistanceSensorBlock(properties: Properties?): DirectionalBlock(properties), ISensorBlock, IThinkableBlock {
+
+    override fun providesThinkable(state: BlockState, side: Direction) = side == state.getValue(FACING).opposite
+
+    override fun thinkableValue(state: BlockState, level: ServerLevel, pos: BlockPos, side: Direction): Double =
+        distance(state, level, pos) ?: -1.0
+
+    override fun thinkablePortName(state: BlockState, side: Direction): Component? =
+        Component.translatable("thinkable.vs_clockwork.port.distance").takeIf { providesThinkable(state, side) }
 
     companion object {
         val MAX_DISTANCE = IntegerProperty.create("max_distance", 1, 4)
@@ -84,61 +90,42 @@ class DistanceSensorBlock(properties: Properties?): DirectionalBlock(properties)
     }
 
     override fun updatePower(state: BlockState, level: ServerLevel, pos: BlockPos, random: Random): Int {
-        val adjacentState = level.getBlockState(pos.relative(state.getValue(FACING)))
+        val distance = distance(state, level, pos) ?: return 15
+        return (distance / state.getValue(MAX_DISTANCE)).toInt().coerceIn(0, 15)
+    }
 
-        var hasAdjacentLens = adjacentState.`is`(ClockworkTags.AllBlockTags.SENSOR_LENS.tag)
+    fun distance(state: BlockState, level: ServerLevel, pos: BlockPos): Double? {
+        val adjacentState = level.getBlockState(pos.relative(state.getValue(FACING)))
+        val hasAdjacentLens = adjacentState.`is`(ClockworkTags.AllBlockTags.SENSOR_LENS.tag)
         var spotWater = adjacentState.`is`(Blocks.BLUE_STAINED_GLASS)
         var spotAllFluids = adjacentState.`is`(Blocks.RED_STAINED_GLASS)
+        if (!hasAdjacentLens && !adjacentState.isAir && adjacentState.isViewBlocking(level, pos)) return 0.0
 
-        return if (!adjacentState.isAir && adjacentState.isViewBlocking(level, pos)) {
-            0
-        } else {
-            val ship = level.getShipObjectManagingPos(pos)
-            val offsetModifier = if (hasAdjacentLens) 1 else 0
-            var refPos = Vec3.atCenterOf(pos).add(state.getValue(FACING).normal.toDoubles().multiply(0.5, 0.5, 0.5))
-            if (offsetModifier == 1) {
-                refPos = refPos.add(state.getValue(FACING).normal.toDoubles())
-            }
-            val distance = (state.getValue(MAX_DISTANCE) * 16) - 1
-            var targetPos = Vec3.atCenterOf(pos.relative(state.getValue(FACING), distance))
-            if (offsetModifier == 1) {
-                targetPos = targetPos.add(state.getValue(FACING).normal.toDoubles())
-            }
-            if (ship != null) {
-                refPos = ship.toWorldCoordinates(refPos)
-                targetPos = ship.toWorldCoordinates(targetPos)
-            }
-            var shouldCast = true
-            var result = 0
-            do {
-                val fluidContext = if (spotAllFluids) ClipContext.Fluid.ANY else if (spotWater) ClipContext.Fluid.WATER else ClipContext.Fluid.NONE
-                val clipContext = ClipContext(refPos, targetPos, ClipContext.Block.COLLIDER, fluidContext, null)
-                val castResult = level.clipIncludeShips(clipContext, true, ship?.id)
-                if (castResult.type == HitResult.Type.MISS) {
-                    result = 15
-                    shouldCast = false
-                } else {
-                    if (level.getBlockState(castResult.blockPos).`is`(ClockworkTags.AllBlockTags.SENSOR_LENS.tag)) {
-                        if (level.getBlockState(castResult.blockPos).`is`(Blocks.BLUE_STAINED_GLASS)) {
-                            spotWater = true
-                        } else if (level.getBlockState(castResult.blockPos).`is`(Blocks.RED_STAINED_GLASS)) {
-                            spotAllFluids = true
-                        }
-                        refPos = ship?.worldToShip?.transformPosition(castResult.location.toJOML())?.add(state.getValue(FACING).normal.toDoubles().toJOML())?.toMinecraft() ?: castResult.location.add(state.getValue(FACING).normal.toDoubles())
-                        targetPos = refPos.add(state.getValue(FACING).normal.toDoubles().scale(distance.toDouble()))
-                        if (ship != null) {
-                            refPos = ship.toWorldCoordinates(refPos)
-                            targetPos = ship.toWorldCoordinates(targetPos)
-                        }
-                    } else {
-                        val dist = refPos.distanceTo(castResult.location)
-                        result = min((dist / state.getValue(MAX_DISTANCE).toDouble()).toInt(), 15)
-                        shouldCast = false
-                    }
-                }
-            } while (shouldCast)
-            result
+        val ship = level.getShipObjectManagingPos(pos)
+        val direction = Vec3.atLowerCornerOf(state.getValue(FACING).normal)
+        val lensOffset = if (hasAdjacentLens) 1.0 else 0.0
+        var origin = Vec3.atCenterOf(pos).add(direction.scale(0.5 + lensOffset))
+        var end = Vec3.atCenterOf(pos).add(direction.scale(state.getValue(MAX_DISTANCE) * 16 - 1.0 + lensOffset))
+        if (ship != null) {
+            origin = ship.toWorldCoordinates(origin)
+            end = ship.toWorldCoordinates(end)
         }
+        val ray = end.subtract(origin).normalize()
+        val range = origin.distanceTo(end)
+        var start = origin
+        repeat(128) {
+            val fluidContext = if (spotAllFluids) ClipContext.Fluid.ANY else if (spotWater) ClipContext.Fluid.WATER else ClipContext.Fluid.NONE
+            val hit = level.clipIncludeShips(ClipContext(start, end, ClipContext.Block.COLLIDER, fluidContext, null), true, ship?.id)
+            if (hit.type == HitResult.Type.MISS) return null
+            val hitState = level.getBlockState(hit.blockPos)
+            if (!hitState.`is`(ClockworkTags.AllBlockTags.SENSOR_LENS.tag)) return origin.distanceTo(hit.location)
+            if (hitState.`is`(Blocks.BLUE_STAINED_GLASS)) spotWater = true
+            if (hitState.`is`(Blocks.RED_STAINED_GLASS)) spotAllFluids = true
+            val travelled = max(start.distanceTo(origin) + 0.5, origin.distanceTo(hit.location) + 0.5)
+            if (travelled >= range) return null
+            start = origin.add(ray.scale(travelled))
+        }
+        return null
     }
 
     override fun use(

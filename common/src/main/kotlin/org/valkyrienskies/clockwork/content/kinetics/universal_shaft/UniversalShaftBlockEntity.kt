@@ -70,22 +70,12 @@ class UniversalShaftBlockEntity(typeIn: BlockEntityType<*>?, pos: BlockPos?, sta
     }
 
     override fun disconnect() {
-        super.disconnect()
-        if (connectedBe != null) {
-            connectedBe!!.connectedBe = null
-            connectedBe!!.connectedPos = null
-            connectedBe!!.connectedJoint = null
-            connectedBe!!.main = false
-            connectedBe!!.setSpeed(0f)
-            connectedBe!!.detachKinetics()
-            connectedBe!!.clearKineticInformation()
-            connectedBe!!.setChanged()
-            connectedBe!!.sendData()
-        }
+        val other = connectedBe ?: connectedJoint as? UniversalShaftBlockEntity
         connectedPos = null
         connectedBe = null
         connectedJoint = null
         main = false
+        if (other?.connectedJoint === this || other?.connectedBe === this) other?.disconnect()
         setSpeed(0f)
         detachKinetics()
         clearKineticInformation()
@@ -159,9 +149,7 @@ class UniversalShaftBlockEntity(typeIn: BlockEntityType<*>?, pos: BlockPos?, sta
 
             // Used for onPaste
             val ship = level.getShipManagingPos(connectedPos!!)
-            if (ship != null) {
-                compound.putLong("otherShipId", ship.id)
-            }
+            compound.putLong("otherShipId", ship?.id ?: -1L)
         }
 
         super.write(compound, clientPacket)

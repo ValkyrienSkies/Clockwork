@@ -1,0 +1,133 @@
+{
+  "parent": "minecraft:block/block",
+  "texture_size": [
+    64,
+    64
+  ],
+  "textures": {
+    "0": "vs_clockwork:block/rope_winch",
+    "particle": "vs_clockwork:block/rope_winch"
+  },
+  "elements": [
+    {
+      "name": "Shaft",
+      "from": [
+        3,
+        5,
+        5
+      ],
+      "to": [
+        8,
+        11,
+        11
+      ],
+      "rotation": {
+        "angle": 0,
+        "axis": "y",
+        "origin": [
+          0.5,
+          8,
+          8
+        ]
+      },
+      "faces": {
+        "north": {
+          "uv": [
+            7,
+            7.5,
+            7.25,
+            9
+          ],
+          "texture": "#0"
+        },
+        "south": {
+          "uv": [
+            7.25,
+            7.5,
+            7.5,
+            9
+          ],
+          "texture": "#0"
+        },
+        "up": {
+          "uv": [
+            7.5,
+            7.5,
+            7.75,
+            9
+          ],
+          "texture": "#0"
+        },
+        "down": {
+          "uv": [
+            7.75,
+            7.5,
+            8,
+            9
+          ],
+          "texture": "#0"
+        }
+      }
+    },
+    {
+      "name": "Shaft",
+      "from": [
+        8,
+        5,
+        5
+      ],
+      "to": [
+        13,
+        11,
+        11
+      ],
+      "rotation": {
+        "angle": 0,
+        "axis": "y",
+        "origin": [
+          15.5,
+          8,
+          8
+        ]
+      },
+      "faces": {
+        "north": {
+          "uv": [
+            7.25,
+            7.5,
+            7,
+            9
+          ],
+          "texture": "#0"
+        },
+        "south": {
+          "uv": [
+            7.5,
+            7.5,
+            7.25,
+            9
+          ],
+          "texture": "#0"
+        },
+        "up": {
+          "uv": [
+            7.75,
+            7.5,
+            7.5,
+            9
+          ],
+          "texture": "#0"
+        },
+        "down": {
+          "uv": [
+            8,
+            7.5,
+            7.75,
+            9
+          ],
+          "texture": "#0"
+        }
+      }
+    }
+  ]
+}

@@ -1,5 +1,6 @@
 package org.valkyrienskies.clockwork.content.curiosities.tools.gravitron;
 
+import org.valkyrienskies.clockwork.content.schematics.VdexConstruction
 import net.minecraft.core.BlockPos
 import net.minecraft.network.FriendlyByteBuf
 import net.minecraft.server.level.ServerLevel
@@ -44,14 +45,15 @@ class GravitronLeftClickPacket : C2SCWPacket {
                 val heldShip = state.shipID?.let { level.shipObjectWorld.loadedShips.getById(it) }
                 val ship = if (isRegular) heldShip ?: level.getLoadedShipManagingPos(clickedPos!!)
                     else level.getLoadedShipManagingPos(clickedPos!!) ?: heldShip
-                if (ship != null) {
+                if (ship != null && !VdexConstruction.locked(ship)) {
                     val anchor = if (state.shipID == ship.id) state.shipGrabbedPos ?: clickedPos!!.toJOMLD()
                         else clickedPos!!.toJOMLD().add(0.5, 0.5, 0.5)
                     val worldAnchor = ship.shipToWorld.transformPosition(anchor, Vector3d())
                     val range = if (isRegular) ClockworkConfig.SERVER.survivalGravitronMaxRange else 1000.0
                     if (worldAnchor.distanceSquared(serverPlayer.eyePosition.toJOML()) > range * range) return@enqueueWork
                     if (isRegular) {
-                        if (ship.inertiaData.mass > ClockworkConfig.SERVER.maxGravitronMass * 1000.0) {
+                        val mass = GravitronLoad.mass(level, ship, stack)
+                        if (mass > ClockworkConfig.SERVER.maxGravitronMass * 1000.0) {
                             GrabTool.dropShip(serverPlayer, false)
                             GrabTool.overload(serverPlayer, ship, anchor)
                             return@enqueueWork
@@ -59,7 +61,7 @@ class GravitronLeftClickPacket : C2SCWPacket {
                         serverPlayer.cooldowns.addCooldown(stack.item, 20)
 
                         val lookDir = serverPlayer.lookAngle.normalize().toJOML()
-                        val magnitude = ClockworkConfig.SERVER.survivalGravitronYeetForce * ship.inertiaData.mass
+                        val magnitude = ClockworkConfig.SERVER.survivalGravitronYeetForce * mass
                         val launchVec = lookDir.mul(magnitude)
                         ValkyrienSkiesMod.getOrCreateGTPA(level.dimensionId).applyWorldForceToModelPos(ship.id, launchVec, anchor)
                         GrabTool.dropShip(serverPlayer, false)

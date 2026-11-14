@@ -1,5 +1,6 @@
 package org.valkyrienskies.clockwork.content.curiosities.tools.wanderwand
 
+import org.valkyrienskies.clockwork.client.render.goggles.AeronautGoggleOverlayRenderer
 import com.mojang.blaze3d.vertex.PoseStack
 import com.mojang.blaze3d.vertex.VertexConsumer
 import net.minecraft.client.Minecraft
@@ -16,6 +17,7 @@ import net.minecraft.world.phys.HitResult
 import net.minecraft.world.phys.Vec3
 import org.joml.Matrix4f
 import org.valkyrienskies.clockwork.ClockworkMod
+import org.valkyrienskies.clockwork.content.curiosities.rope.RopeKnotRenderer
 import org.valkyrienskies.clockwork.util.render.ShaderPackCompat
 import org.valkyrienskies.clockwork.util.render.SurfaceEffectPass
 import org.valkyrienskies.clockwork.ClockworkRenderTypes
@@ -31,7 +33,10 @@ class WanderwandEffectRenderer {
     private data class State(val tool: ToolType, val first: WandAnchor?, val rope: WandAnchor?, val length: Double, val sync: Long) {
         var previousAnchor: Vec3? = null
     }
-    private data class Link(val a: WandAnchor, val b: WandAnchor, val rope: Boolean, val length: Double)
+    private data class Link(val id: UUID, val a: WandAnchor, val b: WandAnchor, val rope: Boolean, val length: Double, var stress: Float) {
+        var previousStress = stress.takeIf { it.isFinite() }?.coerceIn(0f, 1f) ?: 0f
+        var displayStress = previousStress
+    }
     private data class Pulse(val owner: UUID, val action: String, val anchor: WandAnchor, val other: WandAnchor?, val born: Long)
     private val states = mutableMapOf<UUID, State>()
     private val links = mutableListOf<Link>()
@@ -88,10 +93,16 @@ class WanderwandEffectRenderer {
             }
             "links" -> {
                 WandRopeRidingClient.accept(data)
+                RopeKnotRenderer.accept(data)
+                val previous = links.associateBy { it.id }
                 links.clear()
                 for (entry in data.getList("links", Tag.TAG_COMPOUND.toInt()).take(256)) {
                     val t = entry as CompoundTag
-                    links.add(Link(WandAnchor.load(t.getCompound("a")), WandAnchor.load(t.getCompound("b")), t.getBoolean("rope"), t.getDouble("length")))
+                    if (t.getBoolean("physical") || !t.hasUUID("id")) continue
+                    links.add(Link(t.getUUID("id"), WandAnchor.load(t.getCompound("a")), WandAnchor.load(t.getCompound("b")),
+                        t.getBoolean("rope"), t.getDouble("length"), t.getFloat("stress")).also { next ->
+                        previous[next.id]?.let { next.previousStress = it.previousStress; next.displayStress = it.displayStress }
+                    })
                 }
             }
             "event" -> {
@@ -104,6 +115,15 @@ class WanderwandEffectRenderer {
                 if (pulse.action == "weld_end") blocks.weldPulse(pulse.anchor, level.gameTime)
             }
             "ride" -> WandRopeRidingClient.accept(data)
+            "physical_rope_break" -> RopeKnotRenderer.accept(data)
+            "link_stress" -> {
+                RopeKnotRenderer.accept(data)
+                val byId = links.associateBy { it.id }
+                for (entry in data.getList("links", Tag.TAG_COMPOUND.toInt()).take(256)) {
+                    val tag = entry as CompoundTag
+                    if (tag.hasUUID("id")) byId[tag.getUUID("id")]?.stress = tag.getFloat("stress")
+                }
+            }
         }
     }
     fun handlePacket(packet: WanderwandRenderUpdatePacket) {
@@ -112,6 +132,12 @@ class WanderwandEffectRenderer {
     }
     fun clientTick(clientLevel: ClientLevel) {
         val level = checkWorld() ?: return
+        RopeKnotRenderer.clientTick()
+        for (link in links) {
+            link.previousStress = link.displayStress
+            val target = link.stress.takeIf { it.isFinite() }?.coerceIn(0f, 1f) ?: 0f
+            link.displayStress += (target - link.displayStress) * .4f
+        }
         val player = Minecraft.getInstance().player ?: return
         pulses.removeAll { level.gameTime - it.born > 16 }
         blocks.tickPulses(level)
@@ -179,7 +205,8 @@ class WanderwandEffectRenderer {
             val a = link.a.world(level, true)?.subtract(camera) ?: continue
             val b = link.b.world(level, true)?.subtract(camera) ?: continue
             if (min(a.lengthSqr(), b.lengthSqr()) > 192 * 192) continue
-            tether(vc, matrix, a, b, time, link.rope, link.length, 1f)
+            tether(vc, matrix, a, b, time, link.rope, link.length, 1f,
+                AeronautGoggleOverlayRenderer.stressColor(link.previousStress + (link.displayStress - link.previousStress) * partialTicks))
             ring(vc, matrix, a, b.subtract(a), 0.14, time, 0.7f)
             ring(vc, matrix, b, a.subtract(b), 0.14, -time, 0.7f)
         }
@@ -321,13 +348,15 @@ class WanderwandEffectRenderer {
         }
     }
 
-    private fun tether(vc: VertexConsumer, matrix: Matrix4f, a: Vec3, b: Vec3, time: Float, rope: Boolean, length: Double, alpha: Float) {
+    private fun tether(vc: VertexConsumer, matrix: Matrix4f, a: Vec3, b: Vec3, time: Float, rope: Boolean, length: Double, alpha: Float, tint: Int = 0xFFFFFF) {
         val delta = b.subtract(a)
         val distance = delta.length()
         if (distance < 0.001) return
         val (u, v) = basis(delta)
         val curve = WandRopeCurve(a, b, if (rope) length else distance)
         val count = (distance * 2).toInt().coerceIn(12, 48)
+        val green = (tint shr 8 and 255) / 255f
+        val blue = (tint and 255) / 255f
         val strands = if (rope) 2 else 5
         for (strand in 0 until strands) {
             var previous = a
@@ -337,9 +366,9 @@ class WanderwandEffectRenderer {
                 val phase = t * PI * (if (rope) 6 else 2) + strand * PI * 2 / strands + time * 0.06
                 val p = curve.point(t).add(u.scale(cos(phase) * radius)).add(v.scale(sin(phase) * radius))
                 val width = if (rope) 0.012f else (0.025 + sin(t * PI) * 0.035).toFloat()
-                addRibbonSegment(vc, matrix, previous, p, width * 2.5f, 0.55f, 0.27f, 0.8f, alpha * 0.16f)
-                addRibbonSegment(vc, matrix, previous, p, width, 0.765f, 0.627f, 0.89f, alpha * if (rope) 0.8f else 0.35f)
-                if (rope) addRibbonSegment(vc, matrix, previous, p, width * 0.3f, 0.97f, 0.82f, 1f, alpha * 0.75f)
+                addRibbonSegment(vc, matrix, previous, p, width * 2.5f, 0.55f, 0.27f * green, 0.8f * blue, alpha * 0.16f)
+                addRibbonSegment(vc, matrix, previous, p, width, 0.765f, 0.627f * green, 0.89f * blue, alpha * if (rope) 0.8f else 0.35f)
+                if (rope) addRibbonSegment(vc, matrix, previous, p, width * 0.3f, 0.97f, 0.82f * green, blue, alpha * 0.75f)
                 previous = p
             }
         }

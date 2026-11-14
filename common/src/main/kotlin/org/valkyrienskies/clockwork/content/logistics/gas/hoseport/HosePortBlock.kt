@@ -21,10 +21,11 @@ import net.minecraft.world.level.block.state.StateDefinition
 import net.minecraft.world.phys.BlockHitResult
 import org.valkyrienskies.clockwork.ClockworkBlockEntities
 import org.valkyrienskies.clockwork.ClockworkItems
+import org.valkyrienskies.clockwork.util.ClockworkCopyableBlock
 import org.valkyrienskies.clockwork.util.gui.IHaveDuctStats
 import org.valkyrienskies.kelvin.util.INodeBlock
 
-class HosePortBlock(properties: Properties) : DirectionalBlock(properties), IBE<HosePortBlockEntity>, INodeBlock, IHaveDuctStats {
+class HosePortBlock(properties: Properties) : DirectionalBlock(properties), IBE<HosePortBlockEntity>, INodeBlock, IHaveDuctStats, ClockworkCopyableBlock {
     init {
         registerDefaultState(defaultBlockState().setValue(FACING, Direction.UP))
     }

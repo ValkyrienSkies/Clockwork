@@ -1,0 +1,160 @@
+{
+  "variants": {
+    "axis_along_first=false,facing=down,state=extended": {
+      "model": "vs_clockwork:block/phys_piston/extended",
+      "x": 180
+    },
+    "axis_along_first=false,facing=down,state=moving": {
+      "model": "vs_clockwork:block/phys_piston/moving",
+      "x": 180
+    },
+    "axis_along_first=false,facing=down,state=retracted": {
+      "model": "vs_clockwork:block/phys_piston/retracted",
+      "x": 180
+    },
+    "axis_along_first=false,facing=east,state=extended": {
+      "model": "vs_clockwork:block/phys_piston/extended_rotated",
+      "x": 90,
+      "y": 90
+    },
+    "axis_along_first=false,facing=east,state=moving": {
+      "model": "vs_clockwork:block/phys_piston/moving_rotated",
+      "x": 90,
+      "y": 90
+    },
+    "axis_along_first=false,facing=east,state=retracted": {
+      "model": "vs_clockwork:block/phys_piston/retracted_rotated",
+      "x": 90,
+      "y": 90
+    },
+    "axis_along_first=false,facing=north,state=extended": {
+      "model": "vs_clockwork:block/phys_piston/extended",
+      "x": 90
+    },
+    "axis_along_first=false,facing=north,state=moving": {
+      "model": "vs_clockwork:block/phys_piston/moving",
+      "x": 90
+    },
+    "axis_along_first=false,facing=north,state=retracted": {
+      "model": "vs_clockwork:block/phys_piston/retracted",
+      "x": 90
+    },
+    "axis_along_first=false,facing=south,state=extended": {
+      "model": "vs_clockwork:block/phys_piston/extended",
+      "x": 90,
+      "y": 180
+    },
+    "axis_along_first=false,facing=south,state=moving": {
+      "model": "vs_clockwork:block/phys_piston/moving",
+      "x": 90,
+      "y": 180
+    },
+    "axis_along_first=false,facing=south,state=retracted": {
+      "model": "vs_clockwork:block/phys_piston/retracted",
+      "x": 90,
+      "y": 180
+    },
+    "axis_along_first=false,facing=up,state=extended": {
+      "model": "vs_clockwork:block/phys_piston/extended"
+    },
+    "axis_along_first=false,facing=up,state=moving": {
+      "model": "vs_clockwork:block/phys_piston/moving"
+    },
+    "axis_along_first=false,facing=up,state=retracted": {
+      "model": "vs_clockwork:block/phys_piston/retracted"
+    },
+    "axis_along_first=false,facing=west,state=extended": {
+      "model": "vs_clockwork:block/phys_piston/extended_rotated",
+      "x": 90,
+      "y": 270
+    },
+    "axis_along_first=false,facing=west,state=moving": {
+      "model": "vs_clockwork:block/phys_piston/moving_rotated",
+      "x": 90,
+      "y": 270
+    },
+    "axis_along_first=false,facing=west,state=retracted": {
+      "model": "vs_clockwork:block/phys_piston/retracted_rotated",
+      "x": 90,
+      "y": 270
+    },
+    "axis_along_first=true,facing=down,state=extended": {
+      "model": "vs_clockwork:block/phys_piston/extended_rotated",
+      "x": 180
+    },
+    "axis_along_first=true,facing=down,state=moving": {
+      "model": "vs_clockwork:block/phys_piston/moving_rotated",
+      "x": 180
+    },
+    "axis_along_first=true,facing=down,state=retracted": {
+      "model": "vs_clockwork:block/phys_piston/retracted_rotated",
+      "x": 180
+    },
+    "axis_along_first=true,facing=east,state=extended": {
+      "model": "vs_clockwork:block/phys_piston/extended",
+      "x": 90,
+      "y": 90
+    },
+    "axis_along_first=true,facing=east,state=moving": {
+      "model": "vs_clockwork:block/phys_piston/moving",
+      "x": 90,
+      "y": 90
+    },
+    "axis_along_first=true,facing=east,state=retracted": {
+      "model": "vs_clockwork:block/phys_piston/retracted",
+      "x": 90,
+      "y": 90
+    },
+    "axis_along_first=true,facing=north,state=extended": {
+      "model": "vs_clockwork:block/phys_piston/extended_rotated",
+      "x": 90
+    },
+    "axis_along_first=true,facing=north,state=moving": {
+      "model": "vs_clockwork:block/phys_piston/moving_rotated",
+      "x": 90
+    },
+    "axis_along_first=true,facing=north,state=retracted": {
+      "model": "vs_clockwork:block/phys_piston/retracted_rotated",
+      "x": 90
+    },
+    "axis_along_first=true,facing=south,state=extended": {
+      "model": "vs_clockwork:block/phys_piston/extended_rotated",
+      "x": 90,
+      "y": 180
+    },
+    "axis_along_first=true,facing=south,state=moving": {
+      "model": "vs_clockwork:block/phys_piston/moving_rotated",
+      "x": 90,
+      "y": 180
+    },
+    "axis_along_first=true,facing=south,state=retracted": {
+      "model": "vs_clockwork:block/phys_piston/retracted_rotated",
+      "x": 90,
+      "y": 180
+    },
+    "axis_along_first=true,facing=up,state=extended": {
+      "model": "vs_clockwork:block/phys_piston/extended_rotated"
+    },
+    "axis_along_first=true,facing=up,state=moving": {
+      "model": "vs_clockwork:block/phys_piston/moving_rotated"
+    },
+    "axis_along_first=true,facing=up,state=retracted": {
+      "model": "vs_clockwork:block/phys_piston/retracted_rotated"
+    },
+    "axis_along_first=true,facing=west,state=extended": {
+      "model": "vs_clockwork:block/phys_piston/extended",
+      "x": 90,
+      "y": 270
+    },
+    "axis_along_first=true,facing=west,state=moving": {
+      "model": "vs_clockwork:block/phys_piston/moving",
+      "x": 90,
+      "y": 270
+    },
+    "axis_along_first=true,facing=west,state=retracted": {
+      "model": "vs_clockwork:block/phys_piston/retracted",
+      "x": 90,
+      "y": 270
+    }
+  }
+}

@@ -146,7 +146,8 @@ jobs:
       - run:
           name: Build
           command: "./gradlew build --no-daemon --stacktrace --max-workers 1"
-      - save_artifacts_and_generate_discord
+      - save_artifacts_and_generate_discord:
+          version: '${CIRCLE_TAG##*/}'
       - discord/status:
           success_message: ${DISCORD_MSG}
           success_only: true

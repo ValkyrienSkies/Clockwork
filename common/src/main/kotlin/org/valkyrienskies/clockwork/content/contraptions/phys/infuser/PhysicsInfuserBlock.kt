@@ -19,9 +19,10 @@ import net.minecraft.world.phys.shapes.CollisionContext
 import net.minecraft.world.phys.shapes.VoxelShape
 import org.valkyrienskies.clockwork.ClockworkBlockEntities
 import org.valkyrienskies.clockwork.content.curiosities.tools.wanderwand.WanderwandItem
+import org.valkyrienskies.clockwork.util.ClockworkCopyableBlock
 
 class PhysicsInfuserBlock(properties: Properties) : Block(properties),
-    IBE<PhysicsInfuserBlockEntity> {
+    IBE<PhysicsInfuserBlockEntity>, ClockworkCopyableBlock {
     override fun onPlace(state: BlockState, world: Level, pos: BlockPos, oldState: BlockState, moved: Boolean) {
         if (oldState.block === state.block) {
             return

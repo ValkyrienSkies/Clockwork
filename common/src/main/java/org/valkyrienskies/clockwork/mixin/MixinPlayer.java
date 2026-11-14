@@ -1,8 +1,14 @@
 package org.valkyrienskies.clockwork.mixin;
 
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.network.syncher.EntityDataAccessor;
+import net.minecraft.network.syncher.EntityDataSerializers;
+import net.minecraft.network.syncher.SynchedEntityData;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
+import org.spongepowered.asm.mixin.injection.At;
+import org.spongepowered.asm.mixin.injection.Inject;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.valkyrienskies.clockwork.content.curiosities.aeronaut.AeronautGogglesState;
 import org.valkyrienskies.clockwork.content.curiosities.tools.gravitron.CreativeGravitronItem;
 import org.valkyrienskies.clockwork.content.curiosities.tools.gravitron.GravitronState;
@@ -33,10 +39,16 @@ public class MixinPlayer implements MixinPlayerDuck {
     private float vs_clockwork$prevFlapsAngle = 0f;
 
     @Unique
-    private boolean vs_clockwork$gogglesDown = false;
+    private static final EntityDataAccessor<Boolean> vs_clockwork$GOGGLES_DOWN =
+            SynchedEntityData.defineId(Player.class, EntityDataSerializers.BOOLEAN);
 
     @Unique
     private boolean vs_clockwork$gogglesNeedRefresh = true;
+
+    @Inject(method = "defineSynchedData", at = @At("TAIL"))
+    private void vs_clockwork$defineGogglesData(CallbackInfo ci) {
+        ((Player) (Object) this).getEntityData().define(vs_clockwork$GOGGLES_DOWN, false);
+    }
 
     @Override
     public void setGravitronState(GravitronState s) {
@@ -110,12 +122,12 @@ public class MixinPlayer implements MixinPlayerDuck {
 
     @Override
     public void setGogglesDown(boolean down) {
-        this.vs_clockwork$gogglesDown = down;
+        ((Player) (Object) this).getEntityData().set(vs_clockwork$GOGGLES_DOWN, down);
     }
 
     @Override
     public boolean getGogglesDown() {
-        return this.vs_clockwork$gogglesDown;
+        return ((Player) (Object) this).getEntityData().get(vs_clockwork$GOGGLES_DOWN);
     }
 
     @Override

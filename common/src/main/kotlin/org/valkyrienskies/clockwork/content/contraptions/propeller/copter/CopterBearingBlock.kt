@@ -23,8 +23,9 @@ import net.minecraft.world.phys.BlockHitResult
 import org.valkyrienskies.clockwork.ClockworkBlockEntities
 import org.valkyrienskies.clockwork.content.contraptions.propeller.PropellerBearingBlock.Companion.SPIN_DIRECTION
 import java.util.function.Consumer
+import org.valkyrienskies.clockwork.util.ClockworkCopyableBlock
 
-class CopterBearingBlock(properties: Properties) : BearingBlock(properties), IBE<CopterBearingBlockEntity> {
+class CopterBearingBlock(properties: Properties) : BearingBlock(properties), IBE<CopterBearingBlockEntity>, ClockworkCopyableBlock {
     override fun createBlockStateDefinition(builder: StateDefinition.Builder<Block, BlockState>) {
         builder.add(SPIN_DIRECTION)
         super.createBlockStateDefinition(builder)

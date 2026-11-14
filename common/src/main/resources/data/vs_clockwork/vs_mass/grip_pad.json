@@ -1,0 +1,8 @@
+[
+  {
+    "block": "vs_clockwork:grip_pad",
+    "mass": 350,
+    "friction": 3.0,
+    "elasticity": 0.0
+  }
+]

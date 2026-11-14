@@ -23,10 +23,13 @@ import net.minecraft.world.level.block.state.properties.BlockStateProperties
 import net.minecraft.world.phys.BlockHitResult
 import net.minecraft.world.phys.shapes.CollisionContext
 import net.minecraft.world.phys.shapes.VoxelShape
+import org.joml.Quaterniond
 import org.joml.Vector3d
 import org.joml.Vector3dc
 import org.valkyrienskies.clockwork.ClockworkBlockEntities
 import org.valkyrienskies.core.api.ships.ServerShip
+import org.valkyrienskies.mod.common.getShipManagingPos
+import org.valkyrienskies.clockwork.util.ClockworkConstants
 import org.valkyrienskies.mod.common.assembly.ICopyableBlock
 import java.util.function.Consumer
 
@@ -40,7 +43,11 @@ class GimbalBearingBlock(properties: Properties) : BearingBlock(properties), IBE
         shipsBeingCopied: List<ServerShip>,
         centerPositions: Map<Long, Vector3dc>
     ): CompoundTag? {
-        return null
+        val tag = be?.saveWithFullMetadata() ?: return null
+        val rotation = level.getShipManagingPos(pos)?.transform?.shipToWorldRotation ?: Quaterniond()
+        tag.putDouble("CopyRotX", rotation.x()); tag.putDouble("CopyRotY", rotation.y())
+        tag.putDouble("CopyRotZ", rotation.z()); tag.putDouble("CopyRotW", rotation.w())
+        return tag
     }
 
     override fun onPaste(
@@ -49,9 +56,19 @@ class GimbalBearingBlock(properties: Properties) : BearingBlock(properties), IBE
         state: BlockState,
         oldShipIdToNewId: Map<Long, Long>,
         centerPositions: Map<Long, Pair<Vector3dc, Vector3dc>>,
+        oldJointIdToNewId: Map<Int, Int>,
         tag: CompoundTag?
     ): CompoundTag? {
         tag ?: return null
+        if (tag.contains("CopyRotW")) {
+            val original = Quaterniond(tag.getDouble("CopyRotX"), tag.getDouble("CopyRotY"), tag.getDouble("CopyRotZ"), tag.getDouble("CopyRotW"))
+            val copied = level.getShipManagingPos(pos)?.transform?.shipToWorldRotation ?: Quaterniond()
+            val reference = Quaterniond(tag.getDouble("AssyHostRotX"), tag.getDouble("AssyHostRotY"), tag.getDouble("AssyHostRotZ"), tag.getDouble("AssyHostRotW"))
+            val rotated = Quaterniond(copied).mul(original.invert()).mul(reference)
+            tag.putDouble("AssyHostRotX", rotated.x); tag.putDouble("AssyHostRotY", rotated.y)
+            tag.putDouble("AssyHostRotZ", rotated.z); tag.putDouble("AssyHostRotW", rotated.w)
+            for (axis in listOf("X", "Y", "Z", "W")) tag.remove("CopyRot" + axis)
+        }
 
         if (tag.contains("BearingPosSX")) {
             val x = tag.getDouble("BearingPosSX")
@@ -61,7 +78,14 @@ class GimbalBearingBlock(properties: Properties) : BearingBlock(properties), IBE
             var vectorPartner = Vector3d(x, y, z)
 
             val partnerId = tag.getLong("connectedShip")
-            val centerMigrate = centerPositions[partnerId] ?: return null
+            val centerMigrate = centerPositions[partnerId]
+            if (centerMigrate == null || oldShipIdToNewId[partnerId] == null) {
+                tag.putLong("connectedShip", -1)
+                tag.putInt("JointID", -1)
+                tag.putBoolean(ClockworkConstants.Nbt.RUNNING, false)
+                tag.remove("AttachedBlock")
+                return tag
+            }
             vectorPartner = vectorPartner.sub(centerMigrate.first).add(centerMigrate.second)
             tag.putDouble("BearingPosSX", vectorPartner.x)
             tag.putDouble("BearingPosSY", vectorPartner.y)
@@ -75,7 +99,7 @@ class GimbalBearingBlock(properties: Properties) : BearingBlock(properties), IBE
             }
             tag.putLong("connectedShip", oldShipIdToNewId[partnerId] ?: -1)
 
-            tag.putInt("JointID", -1)
+            tag.putInt("JointID", oldJointIdToNewId[tag.getInt("JointID")] ?: -1)
             return tag
         }
 

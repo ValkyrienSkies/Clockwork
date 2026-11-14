@@ -1,0 +1,8 @@
+{
+  "sources": [
+    {
+      "type": "minecraft:single",
+      "resource": "vs_clockwork:entity/rope"
+    }
+  ]
+}

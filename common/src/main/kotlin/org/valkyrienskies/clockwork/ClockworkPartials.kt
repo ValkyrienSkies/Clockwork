@@ -5,6 +5,7 @@ import dev.engine_room.flywheel.lib.model.baked.PartialModel
 object ClockworkPartials {
 
     val BEARING_TOP_FLAP = block("flap_bearing_top")
+    val PHYS_GANTRY_WHEELS = block("phys_gantry/wheels")
     val JOYSTICK = block("command_seat/joystick")
     val BUTTON_ONE = block("command_seat/buttonone")
     val BUTTON_TWO = block("command_seat/buttontwo")
@@ -46,6 +47,9 @@ object ClockworkPartials {
     val WIDEBLADE_TIP = block("blade_controller/blade/wideblade_tip")
 
     val PROPELLER_TOP = block("propeller_bearing/top")
+    val ROPE_WINCH_DRUM = block("rope_winch/drum")
+    val ROPE_WINCH_ROPE = block("rope_winch/rope")
+    val ROPE_WINCH_LEAD = block("rope_winch/lead")
 
     // region Gravitron
     val GRAV_DIAL_HAND = item("gravitron/dialhand")

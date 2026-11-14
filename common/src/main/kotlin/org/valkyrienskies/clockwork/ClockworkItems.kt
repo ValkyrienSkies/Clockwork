@@ -1,5 +1,9 @@
 package org.valkyrienskies.clockwork
 
+import org.valkyrienskies.clockwork.content.schematics.VdexBlueprintItem
+import org.valkyrienskies.clockwork.content.schematics.EmptyBlueprintItem
+import org.valkyrienskies.clockwork.content.curiosities.spring.SpringItem
+
 import com.simibubi.create.AllTags
 import com.simibubi.create.AllTags.AllItemTags
 import com.simibubi.create.content.equipment.goggles.GogglesItem
@@ -15,6 +19,9 @@ import org.valkyrienskies.clockwork.ClockworkMod.REGISTRATE
 import org.valkyrienskies.clockwork.content.contraptions.propeller.blades.item.BladeItem
 import org.valkyrienskies.clockwork.content.contraptions.propeller.blades.item.BladeItemRenderer
 import org.valkyrienskies.clockwork.content.curiosities.WanderliteCrystal
+import org.valkyrienskies.clockwork.content.curiosities.rope.RopeKnotItem
+import org.valkyrienskies.clockwork.content.kinetics.combobulator.ThinkableItem
+import org.valkyrienskies.clockwork.content.curiosities.lubricant.LubricantItem
 import org.valkyrienskies.clockwork.content.curiosities.WanderliteCubeItemRenderer
 import org.valkyrienskies.clockwork.content.curiosities.WanderliteItem
 import org.valkyrienskies.clockwork.content.curiosities.WanderlustMusicDisc
@@ -41,6 +48,41 @@ import org.valkyrienskies.clockwork.util.builder.ClockworkRegistrate
 import java.util.function.Supplier
 
 object ClockworkItems {
+    @JvmField
+    val EMPTY_BLUEPRINT = REGISTRATE.item<EmptyBlueprintItem>("empty_blueprint") { EmptyBlueprintItem(it!!) }
+        .tab(ClockworkMod.BASE_CREATIVE_TABINFO).model(AssetLookup.existingItemModel()).register()
+
+    @JvmField
+    val VDEX_BLUEPRINT = REGISTRATE.item<VdexBlueprintItem>("vdex_blueprint") { VdexBlueprintItem(it!!) }
+        .properties { it.stacksTo(1) }.tab(ClockworkMod.BASE_CREATIVE_TABINFO)
+        .model(AssetLookup.existingItemModel()).register()
+
+
+    @JvmField
+    val LUBRICANT = REGISTRATE.item<LubricantItem>("lubricant") {
+        LubricantItem(it!!)
+    }.properties { it.durability(256) }.tab(ClockworkMod.BASE_CREATIVE_TABINFO)
+        .model(AssetLookup.existingItemModel()).register()
+
+    @JvmField
+    val SPRING = REGISTRATE.item<SpringItem>("spring") {
+        SpringItem(it!!)
+    }.properties { it.stacksTo(16) }.tab(ClockworkMod.BASE_CREATIVE_TABINFO)
+        .model(AssetLookup.existingItemModel()).register()
+
+    @JvmField
+    val THINKABLE: ItemEntry<ThinkableItem> = REGISTRATE.item("thinkable", ::ThinkableItem)
+        .properties { it.stacksTo(1) }
+        .tab(ClockworkMod.BASE_CREATIVE_TABINFO)
+        .model(AssetLookup.existingItemModel())
+        .register()
+
+    @JvmField
+    val ROPE_KNOT: ItemEntry<RopeKnotItem> = REGISTRATE.item<RopeKnotItem>("rope_knot") { RopeKnotItem(it!!) }
+        .properties { it.stacksTo(16) }
+        .tab(ClockworkMod.BASE_CREATIVE_TABINFO)
+        .model(AssetLookup.existingItemModel())
+        .register()
 
     @JvmField
     val WANDERLUST_DISC: ItemEntry<WanderlustMusicDisc> =

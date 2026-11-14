@@ -221,7 +221,7 @@ class HosePortBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: BlockS
             }
         }
 
-        if (distanceJointId != null && distanceJoint != null) {
+        if (main && distanceJointId != null && distanceJoint != null) {
             val level = level as ServerLevel
             level.gtpa.updateJoint(distanceJointId!!, this.distanceJoint!!)
         }
@@ -236,7 +236,7 @@ class HosePortBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: BlockS
 
         if (distanceJoint != null && distanceJointId != null) {
             // Keep the restored joint state that this side already owns.
-        } else if (connectedBe!!.distanceJoint != null && connectedBe!!.distanceJointId != null) {
+        } else if (connectedBe!!.distanceJoint != null) {
             distanceJoint = connectedBe!!.distanceJoint
             distanceJointId = connectedBe!!.distanceJointId
             main = false
@@ -324,6 +324,7 @@ class HosePortBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: BlockS
                 return@addJoint
             }
             distanceJointId = it
+            connectedBe?.takeIf { other -> other.connectedBe === this }?.distanceJointId = it
             level.gtpa.removeMatchingJointsExcept(distanceJoint!!, it)
         }
 

@@ -149,6 +149,11 @@ class DeliveryCannonBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state
 
         cooldown = max(cooldown, cooldown-1)
 
+        if (currentStack.isEmpty && !midAirStack.isEmpty) {
+            currentStack = midAirStack
+            midAirStack = ItemStack.EMPTY
+        }
+
         if (midAirStack.isEmpty && !currentStack.isEmpty) {
             // TODO: CONFIGURE MAX DISTANCE
             val chutes = ActiveChutes.getSortedChutesWithFrequency(level!!, realPos, 100.0, frequencySlotBehaviour.frequency)
@@ -322,10 +327,10 @@ class DeliveryCannonBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state
             distance.readNBT(it, clientPacket)
         }
 
-        currentStack = ItemStack.of(tag)
-        midAirStack = ItemStack.of(tag)
+        currentStack = ItemStack.of(if (tag.contains("CurrentStack")) tag.getCompound("CurrentStack") else tag)
+        midAirStack = ItemStack.of(tag.getCompound("MidAirStack"))
 
-        if (tag.contains("shootingAtChute")) shootingAtChute = NbtUtils.readBlockPos(tag.get("shootingAtChute") as? CompoundTag? ?: return)
+        shootingAtChute = if (tag.contains("shootingAtChute")) NbtUtils.readBlockPos(tag.getCompound("shootingAtChute")) else null
     }
 
     override fun write(tag: CompoundTag, clientPacket: Boolean) {
@@ -333,8 +338,8 @@ class DeliveryCannonBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state
         tag.put("yRot", yRot.writeNBT())
         tag.put("distance", distance.writeNBT())
 
-        currentStack.save(tag)
-        midAirStack.save(tag)
+        tag.put("CurrentStack", currentStack.save(CompoundTag()))
+        tag.put("MidAirStack", midAirStack.save(CompoundTag()))
 
         if (shootingAtChute != null) tag.put("shootingAtChute",NbtUtils.writeBlockPos(shootingAtChute!!))
         super.write(tag, clientPacket)

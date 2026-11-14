@@ -23,6 +23,7 @@ import net.minecraft.world.phys.shapes.CollisionContext
 import net.minecraft.world.phys.shapes.VoxelShape
 import org.joml.Vector3dc
 import org.valkyrienskies.clockwork.ClockworkBlockEntities
+import org.valkyrienskies.clockwork.content.kinetics.combobulator.ThinkableItem
 import org.valkyrienskies.clockwork.ClockworkConfig
 import org.valkyrienskies.core.api.ships.ServerShip
 import org.valkyrienskies.mod.common.assembly.ICopyableBlock
@@ -38,6 +39,7 @@ class PhysBearingBlock(properties: Properties) : BearingBlock(properties), IBE<P
         state: BlockState,
         oldShipIdToNewId: Map<Long, Long>,
         centerPositions: Map<Long, Pair<Vector3dc, Vector3dc>>,
+        oldJointIdToNewId: Map<Int, Int>,
         tag: CompoundTag?
     ): CompoundTag? {
         tag ?: return null
@@ -45,11 +47,19 @@ class PhysBearingBlock(properties: Properties) : BearingBlock(properties), IBE<P
         if (tag.contains("partnerPosx")) {
             var newPartnerPos = tag.getVector3d("partnerPos")!!
 
-            val partnerId = tag.getInt("partnerShipId").toLong()
-            val centerMigrate = centerPositions[partnerId] ?: return null
+            val partnerId = tag.getLong("partnerShipId")
+            val centerMigrate = centerPositions[partnerId]
+            if (centerMigrate == null || oldShipIdToNewId[partnerId] == null) {
+                for (key in listOf("partnerPosx", "partnerPosy", "partnerPosz", "partnerShipId")) tag.remove(key)
+                for (axis in listOf("x", "y", "z")) tag.remove("PartnerAnchor" + axis)
+                tag.putInt("jointId", -1)
+                return tag
+            }
             newPartnerPos = newPartnerPos.sub(centerMigrate.first).add(centerMigrate.second)
             tag.putVector3d("partnerPos", newPartnerPos)
-            tag.putInt("jointId", -1)
+            tag.getVector3d("PartnerAnchor")?.let { tag.putVector3d("PartnerAnchor", it.sub(centerMigrate.first).add(centerMigrate.second)) }
+            tag.putLong("partnerShipId", oldShipIdToNewId[partnerId] ?: -1)
+            tag.putInt("jointId", oldJointIdToNewId[tag.getInt("jointId")] ?: -1)
             return tag
         }
 
@@ -57,6 +67,7 @@ class PhysBearingBlock(properties: Properties) : BearingBlock(properties), IBE<P
     }
 
     override fun use(state: BlockState, worldIn: Level, pos: BlockPos, player: Player, handIn: InteractionHand, hit: BlockHitResult): InteractionResult {
+        if (player.getItemInHand(handIn).item is ThinkableItem) return InteractionResult.PASS
         if (!player.mayBuild()) return InteractionResult.FAIL
         if (player.isShiftKeyDown) return InteractionResult.FAIL
         if (handIn == InteractionHand.OFF_HAND) return InteractionResult.FAIL

@@ -1,15 +1,31 @@
 package org.valkyrienskies.clockwork
 
+import org.valkyrienskies.clockwork.content.schematics.VdexBlueprintActionPacket
+import org.valkyrienskies.clockwork.content.schematics.VdexBlueprintUploadPacket
+import org.valkyrienskies.clockwork.content.schematics.VdexBlueprintDownloadPacket
+import org.valkyrienskies.clockwork.content.schematics.VdexBlueprintNoticePacket
+import org.valkyrienskies.clockwork.content.schematics.VdexBlueprintCapturePacket
+import org.valkyrienskies.clockwork.content.schematics.VdexBlueprintSavePacket
+import org.valkyrienskies.clockwork.content.schematics.VdexBlueprintSaveResultPacket
+import org.valkyrienskies.clockwork.content.schematics.VdexBuildEffectPacket
+import org.valkyrienskies.clockwork.content.curiosities.magnet.MagneticFieldPacket
 import net.minecraft.core.BlockPos
 import net.minecraft.network.FriendlyByteBuf
 import net.minecraft.server.level.ServerPlayer
 import net.minecraft.world.entity.Entity
 import net.minecraft.world.level.Level
 import org.valkyrienskies.clockwork.client.render.BladeAngleSyncPacket
+import org.valkyrienskies.clockwork.content.curiosities.lubricant.LubricantSyncPacket
+import org.valkyrienskies.clockwork.content.curiosities.lubricant.LubricantRemovePacket
+import org.valkyrienskies.clockwork.content.curiosities.spring.SpringAdjustPacket
+import org.valkyrienskies.clockwork.content.curiosities.tools.gravitron.GravitronInputPacket
 import org.valkyrienskies.clockwork.client.render.airpocket.AirpocketSyncPacket
 import org.valkyrienskies.clockwork.content.contraptions.flap.smart_flap.FlapLinkedControllerBindPacket
 import org.valkyrienskies.clockwork.content.contraptions.phys.gimbal.quad_link.GimbalLinkedControllerBindPacket
 import org.valkyrienskies.clockwork.content.curiosities.altmeter.UpdateAltMeterPacket
+import org.valkyrienskies.clockwork.content.curiosities.aeronaut.AeronautGogglesTogglePacket
+import org.valkyrienskies.clockwork.content.curiosities.aeronaut.AeronautShipRequestPacket
+import org.valkyrienskies.clockwork.content.curiosities.aeronaut.AeronautShipReadoutPacket
 import org.valkyrienskies.clockwork.content.curiosities.meteor.MeteorShipSyncPacket
 import org.valkyrienskies.clockwork.content.contraptions.phys.infuser.PhysicsInfuserSyncPacket
 import org.valkyrienskies.clockwork.content.contraptions.phys.slicker.SlickerAttachmentSyncPacket
@@ -27,6 +43,7 @@ import org.valkyrienskies.clockwork.content.curiosities.tools.wanderwand.Wanderw
 import org.valkyrienskies.clockwork.content.curiosities.tools.wanderwand.WandRopeRidePacket
 import org.valkyrienskies.clockwork.content.kinetics.sequenced_seat.SequencedSeatDrivingPacket
 import org.valkyrienskies.clockwork.content.kinetics.sequenced_seat.UpdateSeatRulesPacket
+import org.valkyrienskies.clockwork.content.kinetics.combobulator.ConfigureCombobulatorPacket
 import org.valkyrienskies.clockwork.content.logistics.gas.duct.DuctEdgeSyncPacket
 import org.valkyrienskies.clockwork.content.logistics.gas.filter.FilterClosePacket
 import org.valkyrienskies.clockwork.content.logistics.gas.filter.FilterScreenOpenPacket
@@ -51,6 +68,8 @@ enum class ClockworkPackets(
     private val factory: Function<FriendlyByteBuf, out CWPacket>
 ) {
     // Client to Server
+    GRAVITRON_INPUT(GravitronInputPacket::class.java, ::GravitronInputPacket),
+    LUBRICANT_REMOVE(LubricantRemovePacket::class.java, ::LubricantRemovePacket),
     UPDATE_SEAT_RULES(UpdateSeatRulesPacket::class.java, ::UpdateSeatRulesPacket),
     SEQUENCER_SEAT_DRIVING(SequencedSeatDrivingPacket::class.java, ::SequencedSeatDrivingPacket),
     UPDATE_ALT_METER(UpdateAltMeterPacket::class.java, ::UpdateAltMeterPacket),
@@ -63,6 +82,7 @@ enum class ClockworkPackets(
     WAND_SELECTION_PACKET(WandSelectionPacket::class.java, ::WandSelectionPacket),
 
     // Server to Client
+    LUBRICANT_SYNC(LubricantSyncPacket::class.java, ::LubricantSyncPacket),
     COLORBLOCKENTITY(BlockEntityColorPacket::class.java, ::BlockEntityColorPacket),
     SYNCABLESTORAGE(SyncableStoragePacket::class.java, ::SyncableStoragePacket),
     BLADEANGLESYNC(BladeAngleSyncPacket::class.java, ::BladeAngleSyncPacket),
@@ -97,9 +117,21 @@ enum class ClockworkPackets(
     WAND_STATE_PACKET(WanderwandStatePacket::class.java, ::WanderwandStatePacket),
     WAND_REEL_PACKET(WanderwandReelPacket::class.java, ::WanderwandReelPacket),
     WAND_ROPE_RIDE_PACKET(WandRopeRidePacket::class.java, ::WandRopeRidePacket),
+    SPRING_ADJUST_PACKET(SpringAdjustPacket::class.java, { SpringAdjustPacket(it) }),
     WAND_ROPE_RIDE_JUMP_PACKET(WandJumpPacket::class.java, ::WandJumpPacket),
-
-    ;
+    CONFIGURE_COMBOBULATOR(ConfigureCombobulatorPacket::class.java, ::ConfigureCombobulatorPacket),
+    VDEX_ACTION(VdexBlueprintActionPacket::class.java, ::VdexBlueprintActionPacket),
+    VDEX_UPLOAD(VdexBlueprintUploadPacket::class.java, ::VdexBlueprintUploadPacket),
+    VDEX_DOWNLOAD(VdexBlueprintDownloadPacket::class.java, ::VdexBlueprintDownloadPacket),
+    VDEX_NOTICE(VdexBlueprintNoticePacket::class.java, ::VdexBlueprintNoticePacket),
+    VDEX_BUILD_EFFECT(VdexBuildEffectPacket::class.java, ::VdexBuildEffectPacket),
+    VDEX_CAPTURE(VdexBlueprintCapturePacket::class.java, ::VdexBlueprintCapturePacket),
+    VDEX_SAVE(VdexBlueprintSavePacket::class.java, ::VdexBlueprintSavePacket),
+    VDEX_SAVE_RESULT(VdexBlueprintSaveResultPacket::class.java, ::VdexBlueprintSaveResultPacket),
+    AERONAUT_GOGGLES_TOGGLE_PACKET(AeronautGogglesTogglePacket::class.java, ::AeronautGogglesTogglePacket),
+    AERONAUT_SHIP_REQUEST_PACKET(AeronautShipRequestPacket::class.java, ::AeronautShipRequestPacket),
+    AERONAUT_SHIP_READOUT_PACKET(AeronautShipReadoutPacket::class.java, ::AeronautShipReadoutPacket),
+    MAGNETIC_FIELD_PACKET(MagneticFieldPacket::class.java, ::MagneticFieldPacket);
 
     init {
         packetChannel.registerPacket(type as Class<CWPacket>, factory as Function<FriendlyByteBuf, CWPacket>)

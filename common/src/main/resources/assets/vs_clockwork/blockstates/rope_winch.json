@@ -1,0 +1,11 @@
+{
+  "variants": {
+    "axis=x": {
+      "model": "vs_clockwork:block/rope_winch/block"
+    },
+    "axis=z": {
+      "model": "vs_clockwork:block/rope_winch/block",
+      "y": 90
+    }
+  }
+}

@@ -1,5 +1,6 @@
 package org.valkyrienskies.clockwork.content.curiosities.tools.gravitron;
 
+import org.valkyrienskies.clockwork.content.schematics.VdexConstruction
 import net.minecraft.core.BlockPos
 import net.minecraft.network.FriendlyByteBuf
 import org.valkyrienskies.clockwork.platform.api.network.C2SCWPacket
@@ -24,7 +25,7 @@ class GravitronDisassemblyPacket : C2SCWPacket {
             val serverLevel = serverPlayer.serverLevel()
 
             val ship = serverLevel.getShipManagingPos(clickedPos!!)
-            if (ship != null) {
+            if (ship != null && !VdexConstruction.locked(serverLevel, clickedPos!!)) {
                 unfillShip(serverLevel, ship)
             }
         }

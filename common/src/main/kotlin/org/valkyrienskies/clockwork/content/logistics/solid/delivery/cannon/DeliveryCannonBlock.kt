@@ -24,8 +24,9 @@ import net.minecraft.world.level.block.state.StateDefinition
 import net.minecraft.world.phys.BlockHitResult
 import org.valkyrienskies.clockwork.ClockworkBlockEntities
 import org.valkyrienskies.clockwork.content.logistics.solid.delivery.frequency_slot.FrequencySlotGlobals
+import org.valkyrienskies.clockwork.util.ClockworkCopyableBlock
 
-class DeliveryCannonBlock(properties: Properties) : HorizontalDirectionalBlock(properties), IBE<DeliveryCannonBlockEntity> {
+class DeliveryCannonBlock(properties: Properties) : HorizontalDirectionalBlock(properties), IBE<DeliveryCannonBlockEntity>, ClockworkCopyableBlock {
 
 
     init {

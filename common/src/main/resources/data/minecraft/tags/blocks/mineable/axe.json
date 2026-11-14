@@ -1,10 +1,16 @@
 {
   "replace": false,
   "values": [
+    "vs_clockwork:thinkable_relay",
+    "vs_clockwork:combobulator",
+    "vs_clockwork:grip_pad",
     "vs_clockwork:brass_propeller_bearing",
     "vs_clockwork:juryrigged_propeller_bearing",
     "vs_clockwork:blade_controller",
     "vs_clockwork:phys_bearing",
+    "vs_clockwork:phys_gantry",
+    "vs_clockwork:phys_piston",
+    "vs_clockwork:phys_piston_head",
     "vs_clockwork:gimbal_bearing",
     "vs_clockwork:andesite_flap_bearing",
     "vs_clockwork:smart_flap_bearing",
@@ -12,6 +18,10 @@
 	"vs_clockwork:redstone_resistor",
 	"vs_clockwork:clock",
 	"vs_clockwork:delivery_cannon",
-	"vs_clockwork:delivery_chute"
+	"vs_clockwork:delivery_chute",
+    "vs_clockwork:clampotron",
+    "vs_clockwork:magnet",
+    "vs_clockwork:electromagnet",
+    "vs_clockwork:plotting_table"
   ]
 }

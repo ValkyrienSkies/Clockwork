@@ -1,5 +1,7 @@
 package org.valkyrienskies.clockwork.fabric;
 
+import org.valkyrienskies.clockwork.content.schematics.VdexPlacementClient;
+
 import io.github.fabricators_of_create.porting_lib.event.client.MouseInputEvents;
 import net.minecraft.client.Minecraft;
 import net.minecraft.world.InteractionResult;
@@ -17,7 +19,7 @@ public class FabricClockworkInputEvents {
     public static boolean onMouseScrolled(double deltaX, double deltaY) {
         if (Minecraft.getInstance().screen != null) return false;
 
-        return ClockworkModFabricClient.GRAVITRON_HANDLER.mouseScrolled(deltaY) || ClockworkModFabricClient.WANDERWAND_HANDLER.mouseScrolled(deltaY);
+        return VdexPlacementClient.mouseScrolled(deltaY) || ClockworkModFabricClient.GRAVITRON_HANDLER.mouseScrolled(deltaY) || ClockworkModFabricClient.WANDERWAND_HANDLER.mouseScrolled(deltaY);
     }
 
     public static boolean onMouseInput(int button, int mod, MouseInputEvents.Action action) {
@@ -25,7 +27,7 @@ public class FabricClockworkInputEvents {
 
         boolean pressed = action == MouseInputEvents.Action.PRESS;
 
-        return ClockworkModFabricClient.GRAVITRON_HANDLER.onMouseInput(button, pressed) || ClockworkModFabricClient.WANDERWAND_HANDLER.onMouseInput(button, pressed);
+        return VdexPlacementClient.onMouseInput(button, pressed) || ClockworkModFabricClient.GRAVITRON_HANDLER.onMouseInput(button, pressed) || ClockworkModFabricClient.WANDERWAND_HANDLER.onMouseInput(button, pressed);
     }
 
 

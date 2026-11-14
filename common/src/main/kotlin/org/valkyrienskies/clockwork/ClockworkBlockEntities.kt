@@ -1,5 +1,9 @@
 package org.valkyrienskies.clockwork
 
+import org.valkyrienskies.clockwork.content.kinetics.plotting.PlottingTableBlockEntity
+
+import org.valkyrienskies.clockwork.content.curiosities.clampotron.ClampotronBlockEntity
+import org.valkyrienskies.clockwork.content.curiosities.clampotron.ClampotronRenderer
 import com.simibubi.create.AllPartialModels
 import com.simibubi.create.content.contraptions.bearing.BearingRenderer
 import com.simibubi.create.content.contraptions.bearing.BearingVisual
@@ -24,8 +28,14 @@ import org.valkyrienskies.clockwork.content.contraptions.phys.bearing.PhysBearin
 import org.valkyrienskies.clockwork.content.contraptions.phys.bearing.PhysBearingRenderer
 import org.valkyrienskies.clockwork.content.contraptions.phys.gimbal.GimbalBearingBlockEntity
 import org.valkyrienskies.clockwork.content.contraptions.phys.gimbal.GimbalBearingRenderer
+import org.valkyrienskies.clockwork.content.contraptions.phys.hinge.HingeRenderer
+import org.valkyrienskies.clockwork.content.contraptions.phys.hinge.HingeBlockEntity
 import org.valkyrienskies.clockwork.content.contraptions.phys.infuser.PhysicsInfuserBlockEntity
 import org.valkyrienskies.clockwork.content.contraptions.phys.infuser.PhysicsInfuserRenderer
+import org.valkyrienskies.clockwork.content.contraptions.phys.linear.PhysicalGantryBlockEntity
+import org.valkyrienskies.clockwork.content.contraptions.phys.linear.PhysicalGantryRenderer
+import org.valkyrienskies.clockwork.content.contraptions.phys.linear.PhysicalPistonBlockEntity
+import org.valkyrienskies.clockwork.content.contraptions.phys.linear.PhysicalPistonRenderer
 import org.valkyrienskies.clockwork.content.contraptions.phys.slicker.SlickerBlockEntity
 import org.valkyrienskies.clockwork.content.contraptions.phys.slicker.SlickerBlockEntityRenderer
 import org.valkyrienskies.clockwork.content.contraptions.propeller.PropellerBearingBlockEntity
@@ -38,6 +48,10 @@ import org.valkyrienskies.clockwork.content.curiosities.altmeter.AltMeterRendere
 import org.valkyrienskies.clockwork.content.curiosities.clock.ClockBlockEntity
 import org.valkyrienskies.clockwork.content.curiosities.clock.ClockRenderer
 import org.valkyrienskies.clockwork.content.curiosities.debug.DebugLightningArcerBlockEntity
+import org.valkyrienskies.clockwork.content.curiosities.grippad.GripPadBlockEntity
+import org.valkyrienskies.clockwork.content.curiosities.grippad.GripPadRenderer
+import org.valkyrienskies.clockwork.content.curiosities.rope.RopeWinchBlockEntity
+import org.valkyrienskies.clockwork.content.curiosities.rope.RopeWinchRenderer
 import org.valkyrienskies.clockwork.content.curiosities.sensor.rotation.LodefocusBlockEntity
 import org.valkyrienskies.clockwork.content.curiosities.sensor.rotation.LodefocusRenderer
 import org.valkyrienskies.clockwork.content.curiosities.solver.SolverBlockEntity
@@ -46,6 +60,8 @@ import org.valkyrienskies.clockwork.content.generic.ColorBlockEntity
 import org.valkyrienskies.clockwork.content.kinetics.resistor.RedstoneResistorBlockEntity
 import org.valkyrienskies.clockwork.content.kinetics.resistor.RedstoneResistorRenderer
 import org.valkyrienskies.clockwork.content.kinetics.sequenced_seat.SequencedSeatBlockEntity
+import org.valkyrienskies.clockwork.content.kinetics.combobulator.CombobulatorBlockEntity
+import org.valkyrienskies.clockwork.content.kinetics.combobulator.ThinkableRelayBlockEntity
 import org.valkyrienskies.clockwork.content.kinetics.sequenced_seat.SequencedSeatRenderer
 import org.valkyrienskies.clockwork.content.kinetics.universal_shaft.UniversalShaftBlockEntity
 import org.valkyrienskies.clockwork.content.kinetics.universal_shaft.UniversalShaftRenderer
@@ -211,6 +227,39 @@ object ClockworkBlockEntities {
         .register()
 
     @JvmField
+    val PHYS_GANTRY: BlockEntityEntry<PhysicalGantryBlockEntity> = (ClockworkMod.REGISTRATE
+        .blockEntity("phys_gantry", ::PhysicalGantryBlockEntity) as ClockworkBlockEntityBuilder)
+        .clockworkVisual {
+            ClockworkSimpleBlockEntityVisualFactory { context, blockEntity, partialTick ->
+                SingleAxisRotatingVisual.shaft(context, blockEntity, partialTick)
+            }
+        }
+        .validBlocks(ClockworkBlocks.PHYS_GANTRY)
+        .renderer { NonNullFunction(::PhysicalGantryRenderer) }
+        .register()
+
+    @JvmField
+    val PHYS_PISTON: BlockEntityEntry<PhysicalPistonBlockEntity> = (ClockworkMod.REGISTRATE
+        .blockEntity("phys_piston", ::PhysicalPistonBlockEntity) as ClockworkBlockEntityBuilder)
+        .clockworkVisual {
+            ClockworkSimpleBlockEntityVisualFactory { context, blockEntity, partialTick ->
+                SingleAxisRotatingVisual.shaft(context, blockEntity, partialTick)
+            }
+        }
+        .validBlocks(ClockworkBlocks.PHYS_PISTON)
+        .renderer { NonNullFunction(::PhysicalPistonRenderer) }
+        .register()
+
+    @JvmField
+    val HINGE = ClockworkMod.REGISTRATE
+        .blockEntity("hinge") { type: BlockEntityType<HingeBlockEntity>, pos: BlockPos, state: BlockState ->
+            HingeBlockEntity(type, pos, state)
+        }
+        .validBlocks(ClockworkBlocks.HINGE, ClockworkBlocks.HINGE_ATTACHMENT)
+        .renderer { NonNullFunction(::HingeRenderer) }
+        .register()
+
+    @JvmField
     val GIMBAL_BEARING: BlockEntityEntry<GimbalBearingBlockEntity> = ClockworkMod.REGISTRATE
         .blockEntity<GimbalBearingBlockEntity>(
             "gimbal_bearing"
@@ -229,6 +278,24 @@ object ClockworkBlockEntities {
                 )
             }
         }
+        .register()
+
+    @JvmField
+    val PLOTTING_TABLE: BlockEntityEntry<PlottingTableBlockEntity> = ClockworkMod.REGISTRATE
+        .blockEntity("plotting_table", ::PlottingTableBlockEntity)
+        .validBlocks(ClockworkBlocks.PLOTTING_TABLE)
+        .register()
+
+    @JvmField
+    val COMBOBULATOR: BlockEntityEntry<CombobulatorBlockEntity> = ClockworkMod.REGISTRATE
+        .blockEntity("combobulator", ::CombobulatorBlockEntity)
+        .validBlocks(ClockworkBlocks.COMBOBULATOR)
+        .register()
+
+    @JvmField
+    val THINKABLE_RELAY: BlockEntityEntry<ThinkableRelayBlockEntity> = ClockworkMod.REGISTRATE
+        .blockEntity("thinkable_relay", ::ThinkableRelayBlockEntity)
+        .validBlocks(ClockworkBlocks.THINKABLE_RELAY)
         .register()
 
     @JvmField
@@ -868,6 +935,33 @@ object ClockworkBlockEntities {
         }
         .validBlocks(ClockworkBlocks.UNIVERSAL_SHAFT)
         .register()
+
+    @JvmField
+    val CLAMPOTRON = ClockworkMod.REGISTRATE
+        .blockEntity("clampotron") { type: BlockEntityType<ClampotronBlockEntity>, pos: BlockPos, state: BlockState ->
+            ClampotronBlockEntity(type, pos, state)
+        }.validBlocks(ClockworkBlocks.CLAMPOTRON)
+        .renderer { NonNullFunction { context: BlockEntityRendererProvider.Context ->
+            ClampotronRenderer(context)
+        } }.register()
+
+    @JvmField
+    val ROPE_WINCH = ClockworkMod.REGISTRATE
+        .blockEntity("rope_winch") { type: BlockEntityType<RopeWinchBlockEntity>, pos: BlockPos, state: BlockState ->
+            RopeWinchBlockEntity(type, pos, state)
+        }.validBlocks(ClockworkBlocks.ROPE_WINCH)
+        .renderer { NonNullFunction { context: BlockEntityRendererProvider.Context ->
+            RopeWinchRenderer(context)
+        } }.register()
+
+    @JvmField
+    val GRIP_PAD = ClockworkMod.REGISTRATE
+        .blockEntity("grip_pad") { type: BlockEntityType<GripPadBlockEntity>, pos: BlockPos, state: BlockState ->
+            GripPadBlockEntity(type, pos, state)
+        }.validBlocks(ClockworkBlocks.GRIP_PAD)
+        .renderer { NonNullFunction { context: BlockEntityRendererProvider.Context ->
+            GripPadRenderer(context)
+        } }.register()
 
     @JvmField
     val EXTENDON: BlockEntityEntry<ExtendonBlockEntity> = ClockworkMod.REGISTRATE

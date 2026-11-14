@@ -1,0 +1,7 @@
+{
+  "parent": "vs_clockwork:block/combobulator/edge_east_down",
+  "textures": {
+    "6": "vs_clockwork:block/combobulator_timing",
+    "particle": "vs_clockwork:block/combobulator_timing"
+  }
+}

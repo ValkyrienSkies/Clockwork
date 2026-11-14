@@ -13,8 +13,9 @@ import net.minecraft.world.level.block.state.BlockState
 import net.minecraft.world.phys.shapes.CollisionContext
 import net.minecraft.world.phys.shapes.VoxelShape
 import org.valkyrienskies.clockwork.ClockworkBlockEntities
+import org.valkyrienskies.clockwork.util.ClockworkCopyableBlock
 
-class ReactionWheelBlock(properties: Properties) : RotatedPillarKineticBlock(properties), IBE<ReactionWheelBlockEntity> {
+class ReactionWheelBlock(properties: Properties) : RotatedPillarKineticBlock(properties), IBE<ReactionWheelBlockEntity>, ClockworkCopyableBlock {
 
     override fun getRotationAxis(state: BlockState): Direction.Axis {
         return state.getValue(AXIS)

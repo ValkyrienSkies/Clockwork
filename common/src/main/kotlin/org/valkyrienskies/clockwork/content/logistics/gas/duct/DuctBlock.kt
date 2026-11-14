@@ -48,6 +48,7 @@ import org.valkyrienskies.clockwork.content.logistics.gas.duct.IDuct.Companion.N
 import org.valkyrienskies.clockwork.content.logistics.gas.duct.IDuct.Companion.SOUTH_CONNECTION
 import org.valkyrienskies.clockwork.content.logistics.gas.duct.IDuct.Companion.UP_CONNECTION
 import org.valkyrienskies.clockwork.content.logistics.gas.duct.IDuct.Companion.WEST_CONNECTION
+import org.valkyrienskies.clockwork.util.ClockworkCopyableBlock
 import org.valkyrienskies.clockwork.util.kelvin.KelvinParticleHelper
 import org.valkyrienskies.clockwork.util.MathFunctions.isWithin
 import org.valkyrienskies.clockwork.util.MathFunctions.removeAxis
@@ -65,7 +66,7 @@ import org.valkyrienskies.mod.common.util.toJOMLD
 
 class DuctBlock(properties: Properties) : Block(properties), INodeBlock, IDuct, IBE<DuctBlockEntity>,
     SimpleWaterloggedBlock, IWrenchable,
-    IScrewdrivable, IHaveDuctStats {
+    IScrewdrivable, IHaveDuctStats, ClockworkCopyableBlock {
 
     //credit to NEEPMeat for the pipe implementation idea :3dsmile:
 

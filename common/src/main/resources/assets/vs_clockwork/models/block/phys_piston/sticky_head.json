@@ -1,0 +1,7 @@
+{
+  "parent": "vs_clockwork:block/phys_piston/head",
+  "textures": {
+    "top": "minecraft:block/piston_top_sticky",
+    "particle": "#top"
+  }
+}
