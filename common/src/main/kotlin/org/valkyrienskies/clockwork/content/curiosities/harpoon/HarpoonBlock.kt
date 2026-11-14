@@ -1,6 +1,7 @@
 package org.valkyrienskies.clockwork.content.curiosities.harpoon
 
 import com.simibubi.create.content.kinetics.base.DirectionalKineticBlock
+import com.simibubi.create.content.kinetics.base.RotatedPillarKineticBlock
 import com.simibubi.create.foundation.block.IBE
 import net.minecraft.core.BlockPos
 import net.minecraft.core.Direction
@@ -26,9 +27,19 @@ class HarpoonBlock(properties: Properties) : DirectionalKineticBlock(properties)
         super.createBlockStateDefinition(builder.add(POWERED))
     }
 
-    override fun getStateForPlacement(context: BlockPlaceContext): BlockState =
-        defaultBlockState().setValue(FACING, context.clickedFace)
+    override fun getStateForPlacement(context: BlockPlaceContext): BlockState {
+        // Match shaft axis selection: align with nearby shafts, use the clicked axis when
+        // sneaking past that preference, otherwise use the player's nearest look axis.
+        val preferred = RotatedPillarKineticBlock.getPreferredAxis(context)
+        val sneaking = context.player?.isShiftKeyDown == true
+        val facing = when {
+            preferred != null && !sneaking -> getPreferredFacing(context)!!.opposite
+            preferred != null -> context.clickedFace
+            else -> context.nearestLookingDirection.opposite
+        }
+        return defaultBlockState().setValue(FACING, facing)
             .setValue(POWERED, context.level.hasNeighborSignal(context.clickedPos))
+    }
 
     override fun getRotationAxis(state: BlockState) = state.getValue(FACING).axis
     override fun hasShaftTowards(world: LevelReader, pos: BlockPos, state: BlockState, face: Direction) =

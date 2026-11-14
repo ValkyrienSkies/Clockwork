@@ -1,7 +1,8 @@
 {
-  "tooltip.vs_clockwork.harpoon.charge": "Charge: %s%%",
-  "tooltip.vs_clockwork.harpoon.loaded": "Harpoon loaded",
-  "tooltip.vs_clockwork.harpoon.empty": "Empty",
+  "vs_clockwork.gui.harpoon.title": "Harpoon Launcher",
+  "vs_clockwork.gui.harpoon.charge": "Charge:",
+  "vs_clockwork.gui.harpoon.loaded": "Harpoon loaded",
+  "vs_clockwork.gui.harpoon.load": "Load a harpoon",
   "block.vs_clockwork.harpoon_launcher": "Harpoon Launcher",
   "item.vs_clockwork.harpoon": "Harpoon",
   "block.vs_clockwork.harpoon_launcher.tooltip.summary": "Loads a single _harpoon_ and charges from the _rear shaft_. More charge increases launch speed. Harpoons inherit the motion of their ship.",

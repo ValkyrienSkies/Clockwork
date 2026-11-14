@@ -1,19 +1,22 @@
 package org.valkyrienskies.clockwork.content.curiosities.harpoon
 
 import com.simibubi.create.content.kinetics.base.KineticBlockEntity
+import com.simibubi.create.foundation.item.TooltipHelper
+import net.minecraft.ChatFormatting
 import net.minecraft.core.BlockPos
 import net.minecraft.nbt.CompoundTag
 import net.minecraft.network.chat.Component
+import net.minecraft.network.chat.CommonComponents
 import net.minecraft.server.level.ServerLevel
 import net.minecraft.world.item.ItemStack
 import net.minecraft.world.level.block.entity.BlockEntityType
 import net.minecraft.world.level.block.state.BlockState
 import org.valkyrienskies.clockwork.ClockworkItems
+import org.valkyrienskies.clockwork.ClockworkLang
 import org.valkyrienskies.clockwork.content.curiosities.rope.RopeWinchBlockEntity
 import org.valkyrienskies.clockwork.content.curiosities.tools.wanderwand.WandLinks
 import java.util.UUID
 import kotlin.math.abs
-import kotlin.math.roundToInt
 
 class HarpoonBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: BlockState) : KineticBlockEntity(type, pos, state) {
     var loadedHarpoon: ItemStack = ItemStack.EMPTY
@@ -110,9 +113,21 @@ class HarpoonBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: BlockSt
     }
 
     override fun addToGoggleTooltip(tooltip: MutableList<Component>, isPlayerSneaking: Boolean): Boolean {
-        super.addToGoggleTooltip(tooltip, isPlayerSneaking)
-        tooltip.add(Component.translatable("tooltip.vs_clockwork.harpoon.charge", (charge * 100).roundToInt()))
-        tooltip.add(Component.translatable("tooltip.vs_clockwork.harpoon.${if (loadedHarpoon.isEmpty) "empty" else "loaded"}"))
+        ClockworkLang.translate("gui.harpoon.title").forGoggles(tooltip)
+        ClockworkLang.translate("gui.harpoon.charge").style(ChatFormatting.GRAY).forGoggles(tooltip)
+        val progress = sanitizeCharge(charge)
+        ClockworkLang.text(TooltipHelper.makeProgressBar(10, (progress * 10).toInt()))
+            .style(if (progress >= 1.0) ChatFormatting.GREEN else ChatFormatting.AQUA)
+            .forGoggles(tooltip, 1)
+        ClockworkLang.translate("gui.harpoon.${if (loadedHarpoon.isEmpty) "load" else "loaded"}")
+            .style(if (loadedHarpoon.isEmpty) ChatFormatting.GRAY else ChatFormatting.GREEN)
+            .forGoggles(tooltip)
+
+        val kineticTooltip = mutableListOf<Component>()
+        if (super.addToGoggleTooltip(kineticTooltip, isPlayerSneaking)) {
+            tooltip.add(CommonComponents.EMPTY)
+            tooltip.addAll(kineticTooltip)
+        }
         return true
     }
 

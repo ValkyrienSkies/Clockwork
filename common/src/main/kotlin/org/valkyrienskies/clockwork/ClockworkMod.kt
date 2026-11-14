@@ -37,6 +37,7 @@ import org.valkyrienskies.clockwork.content.curiosities.lubricant.LubricantData
 import org.valkyrienskies.clockwork.content.curiosities.lubricant.LubricantItem
 import org.valkyrienskies.clockwork.content.curiosities.meteor.MeteorShipAttachment
 import org.valkyrienskies.clockwork.content.curiosities.harpoon.HarpoonProjectiles
+import org.valkyrienskies.clockwork.content.curiosities.harpoon.HarpoonArmInteraction
 import org.valkyrienskies.clockwork.content.curiosities.meteor.MeteorStorm
 import org.valkyrienskies.clockwork.content.curiosities.spring.SpringBendingController
 import org.valkyrienskies.clockwork.content.events.CollisionSoundEffectHandler
@@ -116,6 +117,7 @@ object ClockworkMod {
         LifecycleEvent.SERVER_STOPPED.register { AeronautShipReadout.clear() }
         ClockworkTags.init()
         ClockworkRecipes.init()
+        HarpoonArmInteraction.register()
         TAB_REGISTRY.register()
         PhysicalPistonBlock.registerPhysicsShape()
 
