@@ -1,5 +1,14 @@
-## 0.5.7
+# 0.5.7
 Holy bug fixes batman
+
+## IMPORTANT
+Kelvin is no longer included in the Clockwork Jar. You must download it separately.
+It is still approving on Modrinth (and has been for 3 weeks), for now get it from Curseforge:
+https://www.curseforge.com/minecraft/mc-mods/kelvin-vs
+
+---
+
+Rest of the changelog:
 
 ### Updated Kelvin:
 - New, very performant default solver (JacobiSeidel)
@@ -71,3 +80,4 @@ Holy bug fixes batman
 - Fixed gas valve and pump not working with connections
 - Fixed oneway connection visual not matching 
 - Fixed physics bearing not taking into account the mass of connected ships
+- Fixed extendon tweaking out
