@@ -11,8 +11,9 @@ import org.valkyrienskies.mod.common.getShipManagingPos
 import org.valkyrienskies.mod.common.shipObjectWorld
 
 /** Block coordinates remain in their body's local space, including while the body moves. */
-data class WandAnchor(val pos: BlockPos, val face: Direction, val shipId: Long = -1, val winch: Boolean = false) {
-    fun local(): Vec3 = Vec3.atCenterOf(pos).add(Vec3.atLowerCornerOf(face.normal).scale(0.505))
+data class WandAnchor(val pos: BlockPos, val face: Direction, val shipId: Long = -1, val winch: Boolean = false,
+                      val offset: Vec3? = null) {
+    fun local(): Vec3 = Vec3.atCenterOf(pos).add(offset ?: Vec3.atLowerCornerOf(face.normal).scale(0.505))
 
     fun world(level: Level, render: Boolean = false): Vec3? {
         val p = local()
@@ -24,12 +25,18 @@ data class WandAnchor(val pos: BlockPos, val face: Direction, val shipId: Long =
     }
 
     fun save() = CompoundTag().also {
+        offset?.let { point ->
+            it.put("offset", CompoundTag().also { tag ->
+                tag.putDouble("x", point.x); tag.putDouble("y", point.y); tag.putDouble("z", point.z)
+            })
+        }
         it.putBoolean("winch", winch); it.putLong("pos", pos.asLong()); it.putInt("face", face.ordinal); it.putLong("ship", shipId)
     }
 
     companion object {
         fun at(level: Level, pos: BlockPos, face: Direction) = WandAnchor(pos.immutable(), face, level.getShipManagingPos(pos)?.id ?: -1)
         fun load(tag: CompoundTag) = WandAnchor(BlockPos.of(tag.getLong("pos")),
-            Direction.values()[tag.getInt("face").coerceIn(0, 5)], tag.getLong("ship"), tag.getBoolean("winch"))
+            Direction.values()[tag.getInt("face").coerceIn(0, 5)], tag.getLong("ship"), tag.getBoolean("winch"),
+            if (tag.contains("offset")) tag.getCompound("offset").let { Vec3(it.getDouble("x"), it.getDouble("y"), it.getDouble("z")) } else null)
     }
 }

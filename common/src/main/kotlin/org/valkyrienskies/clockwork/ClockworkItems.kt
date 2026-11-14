@@ -78,6 +78,12 @@ object ClockworkItems {
         .register()
 
     @JvmField
+    val HARPOON: ItemEntry<Item> = REGISTRATE.item<Item>("harpoon") { Item(it!!) }
+        .tab(ClockworkMod.BASE_CREATIVE_TABINFO)
+        .model(AssetLookup.existingItemModel())
+        .register()
+
+    @JvmField
     val ROPE_KNOT: ItemEntry<RopeKnotItem> = REGISTRATE.item<RopeKnotItem>("rope_knot") { RopeKnotItem(it!!) }
         .properties { it.stacksTo(16) }
         .tab(ClockworkMod.BASE_CREATIVE_TABINFO)

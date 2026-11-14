@@ -1,0 +1,171 @@
+package org.valkyrienskies.clockwork.content.curiosities.harpoon
+
+import net.minecraft.core.BlockPos
+import net.minecraft.core.Direction
+import net.minecraft.core.particles.ParticleTypes
+import net.minecraft.server.level.ServerLevel
+import net.minecraft.sounds.SoundEvents
+import net.minecraft.sounds.SoundSource
+import net.minecraft.world.level.block.state.properties.BlockStateProperties
+import net.minecraft.world.phys.Vec3
+import org.joml.Vector3d
+import org.valkyrienskies.clockwork.ClockworkMod
+import org.valkyrienskies.clockwork.content.curiosities.tools.wanderwand.WandAnchor
+import org.valkyrienskies.clockwork.content.curiosities.tools.wanderwand.WandLinks
+import org.valkyrienskies.clockwork.content.curiosities.tools.wanderwand.WanderwandServer
+import org.valkyrienskies.core.api.particles.*
+import org.valkyrienskies.core.api.util.GameTickOnly
+import org.valkyrienskies.mod.common.dimensionId
+import org.valkyrienskies.mod.common.getShipManagingPos
+import org.valkyrienskies.mod.common.shipObjectWorld
+
+/** Owns transient projectiles on the game thread. VS queues contact events from its physics thread. */
+@OptIn(GameTickOnly::class)
+object HarpoonProjectiles {
+    private data class Shot(val level: ServerLevel, val launcher: HarpoonBlockEntity,
+                            val source: WandAnchor, val born: Long)
+    private val shots = linkedMapOf<ParticleId, Shot>()
+    private const val PARTICLE_TAG = 0x434C4B4852504EL // "CLKHRPN", reserved for transient harpoons.
+
+    fun hasProjectile(level: ServerLevel, pos: BlockPos) =
+        shots.values.any { it.level === level && it.launcher.blockPos == pos }
+
+    fun fire(level: ServerLevel, launcher: HarpoonBlockEntity, charge: Double): Boolean {
+        if (!charge.isFinite() || shots.size >= 256 || hasProjectile(level, launcher.blockPos) || launcher.ropeId != null) return false
+        val facing = launcher.blockState.getValue(BlockStateProperties.FACING)
+        val source = WandAnchor.at(level, launcher.blockPos, facing)
+        val origin = source.world(level) ?: return false
+        val ship = level.getShipManagingPos(launcher.blockPos)
+        val direction = Vector3d(facing.stepX.toDouble(), facing.stepY.toDouble(), facing.stepZ.toDouble())
+        ship?.transform?.shipToWorldRotation?.transform(direction)
+        // Spawn the sphere fully outside the muzzle, even on a scaled ship.
+        val position = Vector3d(origin.x, origin.y, origin.z).add(Vector3d(direction).mul(HarpoonBallistics.RADIUS + 0.05))
+        val velocity = HarpoonBallistics.launchVelocity(direction, charge,
+            ship?.velocity ?: Vector3d(), ship?.angularVelocity ?: Vector3d(),
+            ship?.let { Vector3d(position).sub(it.transform.positionInWorld) } ?: Vector3d())
+        val particle = level.shipObjectWorld.createParticle(VsParticleCreateData(
+            dimensionId = level.dimensionId, position = position, velocity = velocity,
+            radius = HarpoonBallistics.RADIUS, mass = 2.0, userTag = PARTICLE_TAG,
+            material = ParticleMaterial(restitution = 0.0), eventSettings = ParticleEventSettings(rigidContacts = true)))
+        if (particle.status.lifecycle == ParticleLifecycle.FAILED) {
+            level.shipObjectWorld.deleteParticle(particle.id)
+            return false
+        }
+        shots[particle.id] = Shot(level, launcher, source, level.gameTime)
+        level.playSound(null, origin.x, origin.y, origin.z, SoundEvents.CROSSBOW_SHOOT, SoundSource.BLOCKS, 1f, 0.7f)
+        return true
+    }
+
+    fun cancelProjectile(level: ServerLevel, launcher: HarpoonBlockEntity) {
+        shots.filterValues { it.level === level && it.launcher === launcher }.keys.toList().forEach(::remove)
+    }
+
+    fun detach(level: ServerLevel, launcher: HarpoonBlockEntity) {
+        cancelProjectile(level, launcher)
+        val data = WandLinks.get(level)
+        // Check ownership: a copied block's NBT must never remove the original launcher's rope.
+        launcher.ropeId?.let { id -> data.links[id]?.takeIf { it.a.pos == launcher.blockPos }?.let { link ->
+            data.remove(level, link)
+            WanderwandServer.syncLinks(level)
+        } }
+        if (launcher.ropeId != null) {
+            launcher.ropeId = null
+            launcher.setChanged()
+            launcher.sendData()
+        }
+    }
+
+    fun tick(level: ServerLevel) {
+        // Core checkpoints particles. Remove any transient harpoons restored without a live owner.
+        if (level.gameTime % 20L == 0L) {
+            level.shipObjectWorld.allParticles.getInDimension(level.dimensionId)
+                .filter { it.userTag == PARTICLE_TAG && it.id !in shots }
+                .forEach { level.shipObjectWorld.deleteParticle(it.id) }
+        }
+        if (shots.isEmpty()) return
+        // This queue belongs to the whole ship world, not one dimension. Route every event to its owner.
+        val batch = level.shipObjectWorld.drainParticleEvents()
+        // Missing contacts cannot safely be reconstructed from a later particle position.
+        if (batch.requiresResynchronization) {
+            ClockworkMod.LOGGER.warn("Harpoon particle contact queue overflowed; cancelling in-flight harpoons")
+            shots.keys.toList().forEach(::remove)
+            return
+        }
+        for (event in batch.events) {
+            if (event.kind != ParticleEventKind.CONTACT_START) continue
+            val shot = shots[event.particle] ?: continue
+            if (event.other !is ParticleContactOther.Body) continue
+            attach(shot, event)
+            remove(event.particle)
+        }
+        for ((id, shot) in shots.toMap()) {
+            if (shot.level !== level) continue
+            val particle = level.shipObjectWorld.getParticleById(id)
+            val origin = shot.source.world(level)
+            if (!valid(shot) || particle == null || origin == null ||
+                particle.status.lifecycle in listOf(ParticleLifecycle.FAILED, ParticleLifecycle.REMOVED, ParticleLifecycle.SUSPENDED) ||
+                level.gameTime - shot.born > HarpoonBallistics.LIFETIME_TICKS ||
+                particle.position.distance(Vector3d(origin.x, origin.y, origin.z)) > HarpoonBallistics.MAX_RANGE) {
+                remove(id)
+                continue
+            }
+            // Debug projectile: a bright head and short tail at the actual VS body's position.
+            val p = particle.position
+            level.sendParticles(ParticleTypes.END_ROD, p.x(), p.y(), p.z(), 1, 0.0, 0.0, 0.0, 0.0)
+            val tail = Vector3d(particle.velocity)
+            if (tail.lengthSquared() > 1e-8) {
+                tail.normalize().mul(-0.25)
+                for (step in 1..3) level.sendParticles(ParticleTypes.CRIT,
+                    p.x() + tail.x * step, p.y() + tail.y * step, p.z() + tail.z * step, 1, 0.0, 0.0, 0.0, 0.0)
+            }
+        }
+    }
+
+    private fun valid(shot: Shot): Boolean = !shot.launcher.isRemoved &&
+        shot.level.hasChunkAt(shot.launcher.blockPos) &&
+        shot.level.getBlockEntity(shot.launcher.blockPos) === shot.launcher &&
+        shot.level.hasNeighborSignal(shot.launcher.blockPos)
+
+    private fun attach(shot: Shot, event: ParticleEvent) {
+        if (!valid(shot)) return
+        val level = shot.level
+        val other = event.other as ParticleContactOther.Body
+        val world = level.shipObjectWorld
+        val ground = world.dimensionToGroundBodyIdImmutable[level.dimensionId]
+        val targetShip = world.loadedShips.firstOrNull { it.bodyId == other.id }
+        if (other.id != ground && targetShip == null) return
+        val point = Vector3d(event.position)
+        val normal = Vector3d(event.normalTowardParticle)
+        if (targetShip != null) {
+            targetShip.worldToShip.transformPosition(point)
+            targetShip.transform.shipToWorldRotation.invert(org.joml.Quaterniond()).transform(normal)
+        }
+        // The contact is on the surface. Step inward only to identify the supporting block;
+        // keep the rope endpoint at the exact collision point in that body's coordinates.
+        val inside = Vector3d(point).sub(Vector3d(normal).normalize().mul(0.02))
+        val pos = BlockPos.containing(inside.x, inside.y, inside.z)
+        if (!level.hasChunkAt(pos) || level.getBlockState(pos).isAir) return
+        val face = Direction.getNearest(normal.x, normal.y, normal.z)
+        val target = WandAnchor(pos, face, targetShip?.id ?: -1,
+            offset = Vec3(point.x - pos.x - 0.5, point.y - pos.y - 0.5, point.z - pos.z - 0.5))
+        val a = shot.source.world(level) ?: return
+        val b = target.world(level) ?: return
+        val distance = a.distanceTo(b)
+        if (distance > HarpoonBallistics.MAX_RANGE) return
+        val link = WandLinks.get(level).add(level, shot.source, target, true,
+            (distance + 0.25).coerceAtMost(HarpoonBallistics.MAX_RANGE), physical = true) ?: return
+        shot.launcher.ropeId = link.id
+        shot.launcher.setChanged()
+        shot.launcher.sendData()
+        WanderwandServer.syncLinks(level)
+        level.playSound(null, b.x, b.y, b.z, SoundEvents.TRIDENT_HIT, SoundSource.BLOCKS, 1f, 1f)
+    }
+
+    private fun remove(id: ParticleId) {
+        val shot = shots.remove(id) ?: return
+        shot.level.shipObjectWorld.deleteParticle(id)
+    }
+
+    /** Restored transient particles are swept by their tag; never retain levels across sessions. */
+    fun clear() { shots.clear() }
+}

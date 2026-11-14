@@ -36,6 +36,7 @@ import org.valkyrienskies.clockwork.content.curiosities.grippad.GripPadControlle
 import org.valkyrienskies.clockwork.content.curiosities.lubricant.LubricantData
 import org.valkyrienskies.clockwork.content.curiosities.lubricant.LubricantItem
 import org.valkyrienskies.clockwork.content.curiosities.meteor.MeteorShipAttachment
+import org.valkyrienskies.clockwork.content.curiosities.harpoon.HarpoonProjectiles
 import org.valkyrienskies.clockwork.content.curiosities.meteor.MeteorStorm
 import org.valkyrienskies.clockwork.content.curiosities.spring.SpringBendingController
 import org.valkyrienskies.clockwork.content.events.CollisionSoundEffectHandler
@@ -172,7 +173,10 @@ object ClockworkMod {
             ClockworkAugmentations.registerSumAugmentation("sealed", it.shipObjectWorld)
         }
 
-        LifecycleEvent.SERVER_STOPPED.register { Magnetism.clear() }
+        LifecycleEvent.SERVER_STOPPED.register {
+            Magnetism.clear()
+            HarpoonProjectiles.clear()
+        }
 
         TickEvent.SERVER_LEVEL_POST.register {
             Magnetism.tick(it)
@@ -192,6 +196,7 @@ object ClockworkMod {
             if (ClockworkConfig.CLIENT.debugRender) AirpocketRenderer.tick(it)
             CollisionSoundEffectHandler.tick(it)
             MeteorStorm.tick(it)
+            HarpoonProjectiles.tick(it)
 
         }
 
