@@ -9,6 +9,7 @@ import net.minecraft.world.item.ItemStack
 import net.minecraft.world.level.block.entity.BlockEntityType
 import net.minecraft.world.level.block.state.BlockState
 import org.valkyrienskies.clockwork.ClockworkItems
+import org.valkyrienskies.clockwork.content.curiosities.rope.RopeWinchBlockEntity
 import org.valkyrienskies.clockwork.content.curiosities.tools.wanderwand.WandLinks
 import java.util.UUID
 import kotlin.math.abs
@@ -41,12 +42,24 @@ class HarpoonBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: BlockSt
     override fun tick() {
         super.tick()
         val world = level as? ServerLevel ?: return
-        if (ropeId != null && WandLinks.get(world).links[ropeId]?.a?.pos != blockPos) {
+        val links = WandLinks.get(world)
+        if (ropeId != null && links.links[ropeId]?.a?.pos != blockPos) {
             ropeId = null
             setChanged()
             sendData()
         }
-        val next = nextCharge(charge, if (isOverStressed) 0.0 else getSpeed().toDouble())
+        val rpm = if (isOverStressed) 0.0 else getSpeed().toDouble()
+        val rope = links.links[ropeId]
+        if (rope != null) {
+            // Release first on a falling edge; an attached rope uses shaft power to reel instead of charge.
+            redstoneChanged()
+            if (ropeId == rope.id && !rope.suspended) {
+                val length = RopeWinchBlockEntity.nextLength(rope.length, -abs(rpm), HarpoonBallistics.MAX_RANGE.toInt())
+                if (length != rope.length) links.resizeRope(world, rope, length)
+            }
+            return
+        }
+        val next = nextCharge(charge, rpm)
         if (next != charge) {
             charge = next
             setChanged()

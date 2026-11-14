@@ -9,6 +9,8 @@
   "block.vs_clockwork.harpoon_launcher.tooltip.behaviour1": "Load a _harpoon_ by hand. _Sneak and use an empty hand_ to unload.",
   "block.vs_clockwork.harpoon_launcher.tooltip.condition2": "With Redstone Power",
   "block.vs_clockwork.harpoon_launcher.tooltip.behaviour2": "Fire when loaded and charged. On impact, a _rope_ connects the launcher to the hit point. _Remove power_ to detach and rearm.",
+  "block.vs_clockwork.harpoon_launcher.tooltip.condition3": "With an Attached Rope",
+  "block.vs_clockwork.harpoon_launcher.tooltip.behaviour3": "Turn the _rear shaft_ in either direction to _reel in_ the rope. Faster rotation reels faster. Stop the shaft to hold the rope length.",
   "item.vs_clockwork.harpoon.tooltip.summary": "Ammunition for the _Harpoon Launcher_. _Right-click the launcher_ to load one harpoon.",
   "gui.vs_clockwork.combobulator.reading": "Reading",
   "gui.vs_clockwork.combobulator.default_reading": "Default reading",

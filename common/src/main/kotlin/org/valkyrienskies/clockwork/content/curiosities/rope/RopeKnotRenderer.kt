@@ -90,6 +90,11 @@ object RopeKnotRenderer {
         var grounding = RopeGrounding()
     }
     private data class Snap(val curve: WandRopeCurve, val born: Long, val untied: Boolean)
+    private data class Flight(val source: WandAnchor, val previous: Vec3, val position: Vec3, val updated: Double) {
+        fun point(time: Double): Vec3 = previous.lerp(position, (time - updated).coerceIn(0.0, 1.0))
+    }
+    private val flights = linkedMapOf<Long, Flight>()
+    private val harpoonModel by lazy { ItemStack(ClockworkItems.HARPOON.get()) }
     private val links = mutableMapOf<UUID, Link>()
     private val snaps = mutableListOf<Snap>()
     private val stressSounds = mutableMapOf<UUID, LinkStressSoundInstance>()
@@ -102,7 +107,7 @@ object RopeKnotRenderer {
         val level = Minecraft.getInstance().level
         if (world !== level) {
             stressSounds.values.forEach { it.stopNow() }; stressSounds.clear()
-            links.clear(); snaps.clear(); world = level
+            links.clear(); snaps.clear(); flights.clear(); world = level
             previewGrounding = RopeGrounding()
             animationTicks = 0
         }
@@ -112,6 +117,7 @@ object RopeKnotRenderer {
     fun clientTick() {
         if (world() == null) return
         animationTicks++
+        flights.entries.removeIf { animationTicks - it.value.updated > 20 }
         for (link in links.values) {
             link.previousStress = link.displayStress
             val target = link.stress.takeIf { it.isFinite() }?.coerceIn(0f, 1f) ?: 0f
@@ -131,6 +137,28 @@ object RopeKnotRenderer {
 
     fun accept(data: CompoundTag) {
         val level = world() ?: return
+        if (data.getString("kind") == "harpoon_flight") {
+            if (data.getString("dimension") != level.dimension().location().toString() || !data.contains("id")) return
+            val id = data.getLong("id")
+            val time = animationTicks + Minecraft.getInstance().frameTime.toDouble()
+            if (!data.getBoolean("active")) {
+                val flight = flights.remove(id) ?: return
+                if (data.getBoolean("snap")) {
+                    val start = flight.source.world(level, true) ?: return
+                    val end = flight.point(time)
+                    if (snaps.size >= 32) snaps.removeAt(0)
+                    snaps.add(Snap(flightCurve(start, end), level.gameTime, false))
+                }
+                return
+            }
+            if (!data.contains("source")) return
+            val point = Vec3(data.getDouble("x"), data.getDouble("y"), data.getDouble("z"))
+            if (!point.x.isFinite() || !point.y.isFinite() || !point.z.isFinite()) return
+            val previous = flights[id]?.point(time) ?: point
+            if (id !in flights && flights.size >= 256) flights.remove(flights.keys.first())
+            flights[id] = Flight(WandAnchor.load(data.getCompound("source")), previous, point, time)
+            return
+        }
         if (data.getString("kind") == "physical_rope_break" && data.hasUUID("id")) {
             val id = data.getUUID("id")
             stressSounds.remove(id)?.stopNow()
@@ -275,8 +303,48 @@ object RopeKnotRenderer {
         }
     }
 
+    private fun flightCurve(start: Vec3, end: Vec3): WandRopeCurve {
+        val distance = start.distanceTo(end)
+        return WandRopeCurve(start, end, distance + min(0.25, distance * 0.01))
+    }
+
+    private fun renderFlights(level: ClientLevel, ms: PoseStack, buffers: MultiBufferSource, camera: Vec3, partialTick: Float) {
+        val time = animationTicks + partialTick.toDouble()
+        for (flight in flights.values) {
+            if (time - flight.updated > 20) continue
+            val start = flight.source.world(level, true) ?: continue
+            val end = flight.point(time)
+            if (min(start.distanceToSqr(camera), end.distanceToSqr(camera)) > 192 * 192) continue
+            val distance = start.distanceTo(end)
+            if (distance < 0.01 || distance > 160) continue
+            val curve = flightCurve(start, end)
+            val segments = ceil(distance * 2).toInt().coerceIn(8, 128)
+            // Airborne tether uses the same material as attached ropes, without terrain grounding.
+            val points = (0..segments).map { curve.point(it.toDouble() / segments) }
+            strand(level, points, camera, ms, buffers.getBuffer(type), RopeGrounding.RADIUS)
+            val travel = flight.position.subtract(flight.previous).takeIf { it.lengthSqr() > 1e-8 }
+                ?: end.subtract(start)
+            harpoon(level, end, travel, camera, ms, buffers)
+        }
+    }
+
+    private fun harpoon(level: ClientLevel, position: Vec3, travel: Vec3, camera: Vec3,
+                        ms: PoseStack, buffers: MultiBufferSource) {
+        val direction = travel.normalize()
+        ms.pushPose()
+        ms.translate(position.x - camera.x, position.y - camera.y, position.z - camera.z)
+        // The debug arrow icon points diagonally up/right in its local item plane.
+        ms.mulPose(Quaternionf().rotationTo(1f, 1f, 0f,
+            direction.x.toFloat(), direction.y.toFloat(), direction.z.toFloat()))
+        ms.scale(0.75f, 0.75f, 0.75f)
+        Minecraft.getInstance().itemRenderer.renderStatic(harpoonModel, ItemDisplayContext.NONE,
+            LevelRenderer.getLightColor(level, BlockPos.containing(position)), OverlayTexture.NO_OVERLAY, ms, buffers, level, 0)
+        ms.popPose()
+    }
+
     fun renderEffects(ms: PoseStack, buffers: MultiBufferSource, camera: Vec3, partialTick: Float) {
         val level = world() ?: return
+        renderFlights(level, ms, buffers, camera, partialTick)
         SpringRenderer.renderEffects(level, camera, ms, buffers, partialTick)
         val player = Minecraft.getInstance().player ?: return
         val stack = player.mainHandItem.takeIf { it.item is RopeKnotItem || it.item is ThinkableItem }

@@ -2,7 +2,7 @@ package org.valkyrienskies.clockwork.content.curiosities.harpoon
 
 import net.minecraft.core.BlockPos
 import net.minecraft.core.Direction
-import net.minecraft.core.particles.ParticleTypes
+import net.minecraft.nbt.CompoundTag
 import net.minecraft.server.level.ServerLevel
 import net.minecraft.sounds.SoundEvents
 import net.minecraft.sounds.SoundSource
@@ -10,9 +10,12 @@ import net.minecraft.world.level.block.state.properties.BlockStateProperties
 import net.minecraft.world.phys.Vec3
 import org.joml.Vector3d
 import org.valkyrienskies.clockwork.ClockworkMod
+import org.valkyrienskies.clockwork.ClockworkPackets
+import org.valkyrienskies.clockwork.ClockworkSounds
 import org.valkyrienskies.clockwork.content.curiosities.tools.wanderwand.WandAnchor
 import org.valkyrienskies.clockwork.content.curiosities.tools.wanderwand.WandLinks
 import org.valkyrienskies.clockwork.content.curiosities.tools.wanderwand.WanderwandServer
+import org.valkyrienskies.clockwork.content.curiosities.tools.wanderwand.WanderwandStatePacket
 import org.valkyrienskies.core.api.particles.*
 import org.valkyrienskies.core.api.util.GameTickOnly
 import org.valkyrienskies.mod.common.dimensionId
@@ -23,7 +26,7 @@ import org.valkyrienskies.mod.common.shipObjectWorld
 @OptIn(GameTickOnly::class)
 object HarpoonProjectiles {
     private data class Shot(val level: ServerLevel, val launcher: HarpoonBlockEntity,
-                            val source: WandAnchor, val born: Long)
+                            val source: WandAnchor, val born: Long, var position: Vec3)
     private val shots = linkedMapOf<ParticleId, Shot>()
     private const val PARTICLE_TAG = 0x434C4B4852504EL // "CLKHRPN", reserved for transient harpoons.
 
@@ -51,21 +54,24 @@ object HarpoonProjectiles {
             level.shipObjectWorld.deleteParticle(particle.id)
             return false
         }
-        shots[particle.id] = Shot(level, launcher, source, level.gameTime)
+        val shot = Shot(level, launcher, source, level.gameTime, Vec3(position.x, position.y, position.z))
+        shots[particle.id] = shot
+        syncFlight(particle.id, shot)
         level.playSound(null, origin.x, origin.y, origin.z, SoundEvents.CROSSBOW_SHOOT, SoundSource.BLOCKS, 1f, 0.7f)
         return true
     }
 
-    fun cancelProjectile(level: ServerLevel, launcher: HarpoonBlockEntity) {
-        shots.filterValues { it.level === level && it.launcher === launcher }.keys.toList().forEach(::remove)
+    fun cancelProjectile(level: ServerLevel, launcher: HarpoonBlockEntity, snap: Boolean = false) {
+        shots.filterValues { it.level === level && it.launcher === launcher }.keys.toList().forEach { remove(it, snap) }
     }
 
     fun detach(level: ServerLevel, launcher: HarpoonBlockEntity) {
-        cancelProjectile(level, launcher)
+        cancelProjectile(level, launcher, snap = true)
         val data = WandLinks.get(level)
         // Check ownership: a copied block's NBT must never remove the original launcher's rope.
         launcher.ropeId?.let { id -> data.links[id]?.takeIf { it.a.pos == launcher.blockPos }?.let { link ->
             data.remove(level, link)
+            WanderwandServer.breakEffect(level, link)
             WanderwandServer.syncLinks(level)
         } }
         if (launcher.ropeId != null) {
@@ -88,7 +94,7 @@ object HarpoonProjectiles {
         // Missing contacts cannot safely be reconstructed from a later particle position.
         if (batch.requiresResynchronization) {
             ClockworkMod.LOGGER.warn("Harpoon particle contact queue overflowed; cancelling in-flight harpoons")
-            shots.keys.toList().forEach(::remove)
+            shots.keys.toList().forEach { remove(it) }
             return
         }
         for (event in batch.events) {
@@ -109,15 +115,9 @@ object HarpoonProjectiles {
                 remove(id)
                 continue
             }
-            // Debug projectile: a bright head and short tail at the actual VS body's position.
             val p = particle.position
-            level.sendParticles(ParticleTypes.END_ROD, p.x(), p.y(), p.z(), 1, 0.0, 0.0, 0.0, 0.0)
-            val tail = Vector3d(particle.velocity)
-            if (tail.lengthSquared() > 1e-8) {
-                tail.normalize().mul(-0.25)
-                for (step in 1..3) level.sendParticles(ParticleTypes.CRIT,
-                    p.x() + tail.x * step, p.y() + tail.y * step, p.z() + tail.z * step, 1, 0.0, 0.0, 0.0, 0.0)
-            }
+            shot.position = Vec3(p.x(), p.y(), p.z())
+            syncFlight(id, shot)
         }
     }
 
@@ -161,8 +161,39 @@ object HarpoonProjectiles {
         level.playSound(null, b.x, b.y, b.z, SoundEvents.TRIDENT_HIT, SoundSource.BLOCKS, 1f, 1f)
     }
 
-    private fun remove(id: ParticleId) {
+    private fun syncFlight(id: ParticleId, shot: Shot, active: Boolean = true, snap: Boolean = false) {
+        val level = shot.level
+        val tag = CompoundTag().also {
+            it.putString("kind", "harpoon_flight")
+            it.putString("dimension", level.dimension().location().toString())
+            it.putLong("id", id.value)
+            it.putBoolean("active", active)
+            it.putBoolean("snap", snap)
+            if (active) {
+                it.put("source", shot.source.save())
+                it.putDouble("x", shot.position.x); it.putDouble("y", shot.position.y); it.putDouble("z", shot.position.z)
+            }
+        }
+        val source = shot.source.world(level) ?: shot.position
+        val delta = shot.position.subtract(source)
+        for (player in level.players()) {
+            // Include viewers along the rope, and clear past observers even if they have moved away.
+            val t = if (delta.lengthSqr() < 1e-8) 0.0 else
+                player.position().subtract(source).dot(delta).div(delta.lengthSqr()).coerceIn(0.0, 1.0)
+            if (!active || source.lerp(shot.position, t).distanceToSqr(player.position()) < 192 * 192)
+                ClockworkPackets.sendTo(WanderwandStatePacket(tag), player)
+        }
+    }
+
+    private fun remove(id: ParticleId, snap: Boolean = false) {
         val shot = shots.remove(id) ?: return
+        syncFlight(id, shot, active = false, snap = snap)
+        if (snap) {
+            val a = shot.source.world(shot.level) ?: shot.position
+            ClockworkSounds.ROPE_SNAP.play(shot.level, null, a, 1f, 0.9f + shot.level.random.nextFloat() * 0.2f)
+            if (a.distanceToSqr(shot.position) > 16 * 16)
+                ClockworkSounds.ROPE_SNAP.play(shot.level, null, shot.position, 1f, 0.9f + shot.level.random.nextFloat() * 0.2f)
+        }
         shot.level.shipObjectWorld.deleteParticle(id)
     }
 
