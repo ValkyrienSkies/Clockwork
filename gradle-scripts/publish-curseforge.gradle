@@ -19,38 +19,40 @@ def fileDisplayName = "Clockwork v${project.version} [${project.loader_platform}
 def curseForgeReleaseType = vsReleaseType == 'alpha' ? 'beta' : vsReleaseType
 
 // Publish to CurseForge
-curseforge {
-    if (project.curse_api_key) {
-        apiKey = project.curse_api_key
-        project {
-            id = project.curse_project_id
-            releaseType = curseForgeReleaseType
-            addGameVersion project.minecraft_version
-            addGameVersion project.loader_platform
+tasks.register('curseforge') {
+    dependsOn remapJar
 
-            mainArtifact(remapJar.archiveFile.get().asFile) {
-                relations {
-                    if (project.loader_platform == 'Forge') {
-                        requiredDependency 'valkyrien-skies'
-                        requiredDependency 'create'
-                    }
-
-                    if (project.loader_platform == 'Fabric') {
-                        requiredDependency 'fabric-api'
-                        requiredDependency 'valkyrien-skies'
-                        requiredDependency 'create-fabric'
-                    }
-                }
-                displayName = fileDisplayName
-
-                changelogType = "markdown"
-                changelog = rootProject.file('changelog.md')
-            }
+    doLast {
+        if (!project.curse_api_key) {
+            throw new GradleException('Set the CurseForge upload token before publishing')
         }
-    }
-    options {
-        forgeGradleIntegration = false
-        javaVersionAutoDetect = false
+
+        def metadata = [
+            displayName: fileDisplayName,
+            releaseType: curseForgeReleaseType,
+            changelog: rootProject.file('changelog.md').getText('UTF-8'),
+            changelogType: 'markdown',
+            gameVersionNames: [project.minecraft_version, project.loader_platform, 'Client', 'Server']
+        ]
+
+        def dependencies = ['valkyrien-skies', 'kelvin-vs']
+        if (project.loader_platform == 'Forge') {
+            dependencies.add('create')
+        }
+        if (project.loader_platform == 'Fabric') {
+            dependencies.addAll(['fabric-api', 'create-fabric'])
+        }
+        metadata.relations = [projects: dependencies.collect { [slug: it, type: 'requiredDependency'] }]
+
+        def jarFile = remapJar.archiveFile.get().asFile
+        project.exec {
+            standardInput = new ByteArrayInputStream("X-Api-Token: ${project.curse_api_key}\n".getBytes('UTF-8'))
+            commandLine 'curl', '--fail-with-body', '--silent', '--show-error',
+                '--header', '@-',
+                '--form-string', "metadata=${groovy.json.JsonOutput.toJson(metadata)}",
+                '--form', "file=@${jarFile}",
+                "https://minecraft.curseforge.com/api/projects/${project.curse_project_id}/upload-file"
+        }
     }
 }
 
@@ -69,11 +71,15 @@ modrinth {
     dependencies {
         if (project.loader_platform == 'Forge') {
             required.project 'valkyrien-skies'
+            // TODO: Uncomment these once Kelvin is approved on modrinth
+            //required.project 'kelvin-vs'
             required.project 'create'
         }
 
         if (project.loader_platform == 'Fabric') {
             required.project 'valkyrien-skies'
+            // TODO: Uncomment these once Kelvin is approved on modrinth
+            //required.project 'kelvin-vs'
             required.project 'create-fabric'
         }
     }

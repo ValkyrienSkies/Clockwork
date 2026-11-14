@@ -22,6 +22,7 @@ import org.valkyrienskies.core.api.ships.properties.ShipTransform
 import org.valkyrienskies.core.api.world.PhysLevel
 import org.valkyrienskies.core.internal.ships.VsiPhysShip
 import kotlin.math.PI
+import kotlin.math.abs
 
 /** Calls the production force functions; only the ship, atmosphere and wind are mocked. */
 class PropellerForceRegressionTest {
@@ -93,7 +94,7 @@ class PropellerForceRegressionTest {
     }
 
     @Test
-    fun `sail boost scales force and moment in moving air without changing blades or collective`() {
+    fun `propeller boost scales force and moment in moving air without changing blades or collective`() {
         val physicsShip = ship(velocity = Vector3d(1.0, -2.0, 3.0),
             wind = Vector3d(-0.5, 1.0, -2.0), omega = Vector3d(0.3, -0.8, 0.2))
         for (sails in listOf(true, false)) for (rpm in listOf(-64.0, 64.0, 128.0)) {
@@ -103,7 +104,7 @@ class PropellerForceRegressionTest {
             val base = forces(baseProp, physicsShip)
             ClockworkConfig.SERVER.sailPropellerForceMultiplier = 4.0
             val boosted = forces(boostedProp, physicsShip)
-            val gain = if (sails) 4.0 else 1.0
+            val gain = 4.0
             assertTrue(base.first.length() > 0.0 && base.second.length() > 0.0)
             assertVectorEquals(Vector3d(base.first).mul(gain), boosted.first)
             assertVectorEquals(Vector3d(base.second).mul(gain), boosted.second)
@@ -129,17 +130,18 @@ class PropellerForceRegressionTest {
     }
 
     @Test
-    fun `disabled or invalid sail boost gives finite zero sail forces without disabling blades`() {
+    fun `disabled or invalid boost gives finite zero forces for every propeller`() {
         val physicsShip = ship()
-        val blade = forces(propeller(false), physicsShip)
-        for (gain in listOf(0.0, -1.0, Double.NaN, Double.POSITIVE_INFINITY)) {
-            ClockworkConfig.SERVER.sailPropellerForceMultiplier = gain
-            val sail = forces(propeller(true), physicsShip)
-            assertVectorEquals(Vector3d(), sail.first)
-            assertVectorEquals(Vector3d(), sail.second)
-            val unchangedBlade = forces(propeller(false), physicsShip)
-            assertVectorEquals(blade.first, unchangedBlade.first)
-            assertVectorEquals(blade.second, unchangedBlade.second)
+        for (sails in listOf(true, false)) {
+            ClockworkConfig.SERVER.sailPropellerForceMultiplier = 1.0
+            val base = forces(propeller(sails), physicsShip)
+            assertTrue(base.first.length() > 0.0)
+            for (gain in listOf(0.0, -1.0, Double.NaN, Double.POSITIVE_INFINITY)) {
+                ClockworkConfig.SERVER.sailPropellerForceMultiplier = gain
+                val boosted = forces(propeller(sails), physicsShip)
+                assertVectorEquals(Vector3d(), boosted.first)
+                assertVectorEquals(Vector3d(), boosted.second)
+            }
         }
     }
 
@@ -377,6 +379,72 @@ class PropellerForceRegressionTest {
             ) }
             verify(exactly = 1) { physicsShip.applyWorldTorque(match { it.distance(expected.second) < 1e-8 }) }
             verify(exactly = 0) { physicsShip.applyWorldForceToModelPos(any(), any()) }
+        }
+    }
+
+    @Test
+    fun `spin torque toggle removes driven shaft moment from raw loads only`() {
+        for (sails in listOf(false, true)) {
+            val physicsShip = ship()
+            ClockworkConfig.SERVER.propellerSpinTorqueEnabled = true
+            val enabled = forces(propeller(sails), physicsShip)
+            assertTrue(abs(enabled.second.z()) > 1e-6, "A spinning rotor should produce shaft reaction")
+            assertTrue(Vector3d(enabled.second.x(), enabled.second.y(), 0.0).length() > 1e-6,
+                "An unbalanced rotor should produce off-axis torque")
+
+            ClockworkConfig.SERVER.propellerSpinTorqueEnabled = false
+            val disabled = forces(propeller(sails), physicsShip)
+            assertVectorEquals(enabled.first, disabled.first)
+            assertVectorEquals(Vector3d(enabled.second.x(), enabled.second.y(), 0.0), disabled.second)
+        }
+    }
+
+    @Test
+    fun `spin setting enters the coupled solve without projecting other rotors moments`() {
+        // Nonparallel axes catch both crossed-axis torque loss and order-dependent projections.
+        for (sails in listOf(false, true)) for (enabled in listOf(false, true))
+            for (tilt in listOf(PI / 2.0, 0.73)) {
+            ClockworkConfig.SERVER.propellerSpinTorqueEnabled = enabled
+            ClockworkConfig.SERVER.propellerMaxForce = 0.0
+            ClockworkConfig.SERVER.propellerMaxTorque = 0.0
+            val rotation = Quaterniond().rotateXYZ(.4, -.2, .3)
+            val physicsShip = ship(rotation = rotation, velocity = Vector3d(3.0, -2.0, 5.0),
+                omega = Vector3d(.4, -.3, .2))
+            val inertia = Matrix3d().scaling(20000.0, 40000.0, 80000.0)
+            every { physicsShip.momentOfInertia } returns inertia
+            fun props() = listOf(
+                propeller(sails, rpm = 128.0, position = Vector3i(-2, 3, 0)),
+                propeller(sails, rpm = -64.0, position = Vector3i(3, -2, 1)).apply {
+                    bearingTiltQuat = Quaterniond().rotateY(tilt)
+                }
+            )
+            val flow = PropellerAerodynamics.Flow(physicsShip.transform.shipToWorld, physicsShip.centerOfMass,
+                physicsShip.velocity, physicsShip.angularVelocity, Vector3d()) { rho }
+            val prepared = props().map {
+                PropellerAerodynamics.prepare(it, flow, 0.0, 12.0, 0.0, 0.0, spinTorqueEnabled = enabled)
+            }
+            val r = Matrix3d().rotation(rotation)
+            val worldInertia = Matrix3d(r).mul(inertia).mul(r.transpose(Matrix3d()))
+            val expected = PropellerImpulseSolver.solve(prepared, physicsShip.mass, worldInertia)
+            assertTrue(abs(expected.second.dot(prepared[0].axis)) > 1e-4,
+                "Fixture must retain torque along the first shaft, including other rotors' moments")
+            assertTrue(abs(expected.second.dot(prepared[1].axis)) > 1e-4)
+            for (reverse in listOf(false, true)) {
+                val appliedForce = Vector3d()
+                val appliedTorque = Vector3d()
+                every { physicsShip.applyWorldForceToBodyPos(any(), any()) } answers {
+                    appliedForce.set(firstArg<Vector3dc>()); Unit
+                }
+                every { physicsShip.applyWorldTorque(any()) } answers {
+                    appliedTorque.set(firstArg<Vector3dc>()); Unit
+                }
+                val tickingController = PropellerController()
+                val ordered = props().let { if (reverse) it.reversed() else it }
+                ordered.forEachIndexed { index, prop -> tickingController.appliers[index] = prop }
+                tickingController.physTick(physicsShip, level)
+                assertVectorEquals(expected.first, appliedForce)
+                assertVectorEquals(expected.second, appliedTorque)
+            }
         }
     }
 

@@ -1,5 +1,6 @@
 package org.valkyrienskies.clockwork.util
 
+import com.simibubi.create.api.contraption.BlockMovementChecks
 import com.simibubi.create.content.contraptions.AssemblyException
 import com.simibubi.create.content.contraptions.StructureTransform
 import com.simibubi.create.content.contraptions.glue.SuperGlueEntity
@@ -9,18 +10,20 @@ import net.minecraft.core.Direction
 import net.minecraft.core.registries.BuiltInRegistries
 import net.minecraft.network.chat.Component
 import net.minecraft.server.level.ServerLevel
-import net.minecraft.world.entity.Entity
 import net.minecraft.world.level.Level
-import net.minecraft.world.level.LevelAccessor
+import net.minecraft.world.level.block.Blocks
 import net.minecraft.world.level.block.state.BlockState
+import net.minecraft.world.level.material.PushReaction
 import net.minecraft.world.phys.AABB
 import net.minecraft.world.phys.Vec3
 import org.valkyrienskies.clockwork.ClockworkConfig
 import org.valkyrienskies.core.util.datastructures.DenseBlockPosSet
 import java.util.*
-import java.util.function.Consumer
 
 object GlueAssembler {
+    // TODO: Config this
+    private const val MAX_BLOCKS = 100000
+
     fun prepareMove(level: ServerLevel, min: BlockPos, max: BlockPos): List<SuperGlueEntity> {
         val bounds = SuperGlueEntity.span(min, max)
         val boxes = HashSet<AABB>()
@@ -81,51 +84,96 @@ object GlueAssembler {
     @Throws(AssemblyException::class)
     fun collectGlued(
         level: Level,
-        pos: BlockPos,
+        startPos: BlockPos,
         canCollect: (BlockPos, BlockState) -> Boolean = { _, _ -> true },
     ): DenseBlockPosSet? {
-        val toRemove: Set<Entity> = HashSet()
-        val result = DenseBlockPosSet()
+        if (level.isOutsideBuildHeight(startPos) || !level.isLoaded(startPos)) return null
+        val start = level.getBlockState(startPos)
+        if (start.isAir || !canCollect(startPos, start)) return null
+
+        val visited = DenseBlockPosSet()
         val frontier: Queue<BlockPos> = UniqueLinkedList()
-        val start = level.getBlockState(pos)
-        if (start.isAir || !canCollect(pos, start)) return null
-        frontier.add(pos)
-        for (limit in 100000 downTo 1) {
-            if (frontier.isEmpty()) {
-                if (result.isEmpty()) throw AssemblyException(Component.literal("No blocks found!"))
-                return result
-            }
-            visitBlock(level, frontier, result, toRemove, canCollect)
+        val glueCache: MutableSet<SuperGlueEntity> = HashSet()
+
+        frontier.add(startPos)
+
+        var processed = 0
+        while (frontier.isNotEmpty()) {
+            if (++processed > MAX_BLOCKS) throw AssemblyException.structureTooLarge()
+            visitBlock(level, frontier, visited, glueCache, canCollect)
         }
-        toRemove.forEach(Consumer { obj: Entity -> obj.discard() })
-        throw AssemblyException.structureTooLarge()
+
+        if (visited.isEmpty()) throw AssemblyException(Component.literal("No blocks found!"))
+        return visited
     }
 
     @Throws(AssemblyException::class)
     private fun visitBlock(
-        level: LevelAccessor,
+        level: Level,
         frontier: Queue<BlockPos>,
         visited: DenseBlockPosSet,
-        cache: Set<Entity>,
+        glueCache: MutableSet<SuperGlueEntity>,
         canCollect: (BlockPos, BlockState) -> Boolean,
     ) {
         val pos = frontier.poll()!!
+        if (!visited.add(pos.x, pos.y, pos.z)) return
 
-        // TODO we should prob make it look like originals create's assembly method more.
-        // So more check etc
-        visited.add(pos.x, pos.y, pos.z)
+        val state = level.getBlockState(pos)
 
-        for (direction in Direction.values()) {
-            if (!SuperGlueEntity.isGlued(level, pos, direction, (cache as Set<SuperGlueEntity>))) continue
+        for (direction in Direction.entries) {
             val newPos = pos.relative(direction)
+
             if (visited.contains(newPos.x, newPos.y, newPos.z)) continue
-            val state = level.getBlockState(newPos)
-            if (!isAllowed(state) || state.isAir || !canCollect(newPos, state)) continue
-            frontier.add(newPos)
+            if (level.isOutsideBuildHeight(newPos)) continue
+            if (!level.isLoaded(newPos)) throw AssemblyException.unloadedChunk(newPos)
+
+            val newState = level.getBlockState(newPos)
+            if (newState.isAir) continue
+            if (!isAllowed(newState) || !canCollect(newPos, newState)) continue
+
+            val glued = SuperGlueEntity.isGlued(level, pos, direction, glueCache)
+
+            val sticky = isStuckTogether(level, pos, state, direction, newPos, newState)
+
+            // Torches, buttons, carpets, etc get glued automatically
+            val attached = BlockMovementChecks.isBlockAttachedTowards(
+                newState, level, newPos, direction.opposite
+            )
+
+            if (glued || sticky || attached) frontier.add(newPos)
         }
     }
 
+    private fun isStuckTogether(
+        level: Level,
+        pos: BlockPos,
+        state: BlockState,
+        direction: Direction,
+        newPos: BlockPos,
+        newState: BlockState,
+    ): Boolean {
+        if (BlockMovementChecks.isBrittle(newState)) return false
+
+        // Either side might be sticky
+        val sticky = SuperGlueEntity.isSideSticky(level, pos, direction) ||
+                SuperGlueEntity.isSideSticky(level, newPos, direction.opposite)
+        if (!sticky) return false
+
+        // Slime / honey but not both
+        val slimeHoney =
+            (state.`is`(Blocks.SLIME_BLOCK) && newState.`is`(Blocks.HONEY_BLOCK)) ||
+                    (state.`is`(Blocks.HONEY_BLOCK) && newState.`is`(Blocks.SLIME_BLOCK))
+        if (slimeHoney) return false
+
+        if (state.pistonPushReaction == PushReaction.PUSH_ONLY ||
+            newState.pistonPushReaction == PushReaction.PUSH_ONLY
+        ) return false
+
+        return true
+    }
+
     private fun isAllowed(state: BlockState): Boolean {
-        return !ClockworkConfig.SERVER.blockBlacklist.contains(BuiltInRegistries.BLOCK.getKey(state.block).toString())
+        val key = BuiltInRegistries.BLOCK.getKey(state.block).toString()
+        return !ClockworkConfig.SERVER.blockBlacklist.contains(key)
     }
 }

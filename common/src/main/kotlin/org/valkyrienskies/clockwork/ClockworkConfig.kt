@@ -169,7 +169,7 @@ object ClockworkConfig {
         @ConfigEntry(min = 0.0, description = "Gameplay strength of sail and item-blade propellers. Scales aerodynamic force and torque together without changing the RPM, pitch, stall or altitude curves.")
         var forceMulPerSailInPropeller = 240.0
 
-        @ConfigEntry(min = 0.0, description = "Additional gameplay strength for sail propellers only, multiplied by forceMulPerSailInPropeller. Scales aerodynamic force and torque together without changing Create stress cost. 1 restores the unboosted strength; item blades are unaffected.")
+        @ConfigEntry(min = 0.0, description = "Additional gameplay strength for all propellers, multiplied by forceMulPerSailInPropeller. Scales aerodynamic force and torque together without changing Create stress cost. 1 restores the unboosted strength; applies to sail and blade-controller propellers alike.")
         var sailPropellerForceMultiplier = 4.0
 
         @ConfigEntry(description = "Whether a powered propeller applies its shaft reaction torque to the ship. Disable to remove axial reaction from rotor spin and airflow while keeping thrust, hub-offset and non-axial moments, and damping of ship rotation. Stopped rotors retain their full aerodynamic response.")

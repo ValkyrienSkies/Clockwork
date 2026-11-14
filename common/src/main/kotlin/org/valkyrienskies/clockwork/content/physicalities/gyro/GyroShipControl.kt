@@ -38,15 +38,18 @@ class GyroShipControl : ShipPhysicsListener, ServerTickListener {
     var consumed = 0f
         private set
 
+    /**
+     * Enabled when the gravitron is moving the ship to prevent a yeet
+     */
+    var overrideDisable = false
+
     @JsonIgnore
     internal var ship: LoadedServerShip? = null
 
     internal var speed: Float = 0f
 
     override fun physTick(physShip: PhysShip, physLevel: PhysLevel) {
-        if (gyros < 1) {
-            return
-        }
+        if ((gyros < 1) || (overrideDisable)) return
 
         val shipWorldUp: Vector3dc = physShip.transform.shipToWorldRotation.transform(shipUp, Vector3d())
         val offAxisOmega = physShip.angularVelocity.sub(

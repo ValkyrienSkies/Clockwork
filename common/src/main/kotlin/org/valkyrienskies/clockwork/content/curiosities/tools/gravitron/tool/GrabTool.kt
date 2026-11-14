@@ -81,7 +81,7 @@ class GrabTool : GravitronToolBase() {
             val level = player.level() as? ServerLevel ?: return false
             val state = getState(player)
             val id = state.shipID ?: return false
-            level.shipObjectWorld.loadedShips.getById(id)?.let { getOrCreate(it).data = null }
+            level.shipObjectWorld.loadedShips.getById(id)?.let { getOrCreate(it).setData(null, it) }
             if (notify) GravitronAnimationPacket.send(player, GravitronAction.RELEASE, id, state.shipGrabbedPos)
             state.shipID = null
             state.shipGrabbedPos = null
@@ -118,7 +118,7 @@ class GrabTool : GravitronToolBase() {
                     val load = (entity as? Player)?.let { GravitronLoad.load(level, ship, it.mainHandItem) }
                     val newData = GravitronForceInducerData(position, rotation, location, load?.mass ?: ship.inertiaData.mass,
                         load?.rigidMass ?: ship.inertiaData.mass, (entity as? Player)?.let { GravitronLoad.enabled(it.mainHandItem) } == true)
-                    gravitronForceInducer.data = newData
+                    gravitronForceInducer.setData(newData, ship)
                 }
             }
         }

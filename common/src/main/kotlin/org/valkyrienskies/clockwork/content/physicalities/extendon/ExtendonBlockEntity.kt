@@ -23,6 +23,7 @@ import org.valkyrienskies.clockwork.ClockworkItems
 import org.valkyrienskies.clockwork.ClockworkMod
 import org.valkyrienskies.clockwork.ClockworkModClient
 import org.valkyrienskies.clockwork.ClockworkSounds
+import org.valkyrienskies.clockwork.content.forces.contraption.BearingDriveSupport
 import org.valkyrienskies.clockwork.util.DuctNetworkUtils.configureMetalDuctEdge
 import org.valkyrienskies.clockwork.util.findMatchingJointIds
 import org.valkyrienskies.clockwork.util.hasFinitePoseData
@@ -141,13 +142,13 @@ class ExtendonBlockEntity(type: BlockEntityType<*>?, pos: BlockPos, state: Block
     private fun buildJointBlueprints(other: ExtendonBlockEntity): Pair<VSDistanceJoint, VSD6Joint>? {
         val level = level as? ServerLevel ?: return null
 
-        val shipId0 = getShipID()
-        val shipId1 = other.getShipID()
         val pos0 = blockPos.toJOMLD().add(0.5, 0.5, 0.5)
         val pos1 = other.blockPos.toJOMLD().add(0.5, 0.5, 0.5)
-        if (shipId0 == shipId1) return null
         val ship0 = level.getShipManagingPos(blockPos)
         val ship1 = level.getShipManagingPos(other.blockPos)
+        val shipId0 = ship0?.id
+        val shipId1 = ship1?.id
+        if (shipId0 == shipId1) return null
         val world0 = ship0?.transform?.shipToWorld?.transformPosition(pos0, Vector3d()) ?: Vector3d(pos0)
         val world1 = ship1?.transform?.shipToWorld?.transformPosition(pos1, Vector3d()) ?: Vector3d(pos1)
         val separation = world0.distance(world1)
@@ -174,13 +175,11 @@ class ExtendonBlockEntity(type: BlockEntityType<*>?, pos: BlockPos, state: Block
         motions[D6Axis.X] = D6Motion.FREE
         motions[D6Axis.Y] = D6Motion.FREE
         motions[D6Axis.Z] = D6Motion.FREE
-        motions[D6Axis.TWIST] = D6Motion.FREE
+        val drives = twistDrive(mass)
+        motions[D6Axis.TWIST] = if (drives == null) D6Motion.LOCKED else D6Motion.FREE
         motions[D6Axis.SWING1] = D6Motion.LIMITED
         motions[D6Axis.SWING2] = D6Motion.LIMITED
 
-        val drives = EnumMap<D6Drive, VSD6Joint.D6JointDrive>(D6Drive::class.java)
-        drives[D6Drive.TWIST] = VSD6Joint.D6JointDrive((mass * 20.0).toFloat(),
-            (mass * 8.0).toFloat(), (mass * 60.0).toFloat())
         val sphericalJoint = VSD6Joint(
             pose0 = VSJointPose(pos0, quater0),
             pose1 = VSJointPose(pos1, quater1),
@@ -189,7 +188,7 @@ class ExtendonBlockEntity(type: BlockEntityType<*>?, pos: BlockPos, state: Block
             swingLimit = limit,
             motions = motions,
             drives = drives,
-            drivePosition = VSD6Joint.DrivePosition(VSJointPose(Vector3d(), Quaterniond()))
+            drivePosition = drives?.let { VSD6Joint.DrivePosition(VSJointPose(Vector3d(), Quaterniond())) }
         )
 
         return distanceJoint to sphericalJoint
@@ -245,6 +244,11 @@ class ExtendonBlockEntity(type: BlockEntityType<*>?, pos: BlockPos, state: Block
 
     private fun restoreConnection(other: ExtendonBlockEntity): Boolean {
         val serverLevel = level as? ServerLevel ?: return false
+        if (other.getShipID() == getShipID()) {
+            disconnect()
+            return true
+        }
+        if (connectedJoint === other && other.connectedJoint === this) return true
 
         if (connectedJoint != null && connectedJoint !== other) {
             disconnect()
@@ -384,11 +388,9 @@ class ExtendonBlockEntity(type: BlockEntityType<*>?, pos: BlockPos, state: Block
         val chord = point1.sub(point0, Vector3d())
         val separation = chord.length()
         if (!separation.isFinite() || separation < 1e-4) return
-        val target = (gasToDistance(kelvin, getDuctNodePosition(), level!!.dimensionId) +
-            gasToDistance(kelvin, other.getDuctNodePosition(), level!!.dimensionId)).toDouble()
-            .coerceIn(MIN_LENGTH, MAX_LENGTH)
+        val target = targetLength(kelvin, other, serverLevel.dimensionId)
         if (!target.isFinite()) return
-        val previous = current.minDistance?.toDouble() ?: separation
+        val previous = current.minDistance?.toDouble()?.takeIf { it.isFinite() } ?: separation
         val length = previous + (target - previous).coerceIn(-MAX_SPEED / 20.0, MAX_SPEED / 20.0)
         val speed = velocityAt(ship1, point1).sub(velocityAt(ship0, point0)).dot(chord.div(separation))
         if (!speed.isFinite()) return
@@ -404,11 +406,8 @@ class ExtendonBlockEntity(type: BlockEntityType<*>?, pos: BlockPos, state: Block
             other.distanceJoint = next
         }
         val angular = sphericalJoint!!
-        val drives = EnumMap<D6Drive, VSD6Joint.D6JointDrive>(D6Drive::class.java)
-        drives[D6Drive.TWIST] = VSD6Joint.D6JointDrive((mass * 20.0).toFloat(),
-            (mass * 8.0).toFloat(), (mass * 60.0).toFloat())
         val nextAngular = angular.copy(shipId0 = angular.shipId0?.takeIf { it >= 0 },
-            shipId1 = angular.shipId1?.takeIf { it >= 0 }, drives = drives, swingLimit = angular.swingLimit?.copy(
+            shipId1 = angular.shipId1?.takeIf { it >= 0 }, drives = twistDrive(mass), swingLimit = angular.swingLimit?.copy(
             stiffness = (mass * 20.0).toFloat(), damping = (mass * 8.0).toFloat()))
         if (nextAngular != angular) {
             serverLevel.gtpa.updateJoint(sphericalJointId!!, nextAngular)
@@ -418,7 +417,10 @@ class ExtendonBlockEntity(type: BlockEntityType<*>?, pos: BlockPos, state: Block
     }
 
     private fun migrateJointDrive(level: ServerLevel, other: ExtendonBlockEntity) {
-        if (distanceJoint?.stiffness != null && sphericalJoint?.motions?.get(D6Axis.TWIST) == D6Motion.FREE) return
+        val expectedTwist = if (BearingDriveSupport.supportsAngularDrives()) D6Motion.FREE else D6Motion.LOCKED
+        if (distanceJoint?.stiffness != null && sphericalJoint?.motions?.get(D6Axis.TWIST) == expectedTwist &&
+            listOf(distanceJoint, sphericalJoint).all { it?.shipId0 != -1L && it?.shipId1 != -1L }
+        ) return
         val (distance, angular) = buildJointBlueprints(other) ?: return
         distanceJointId?.let { level.gtpa.updateJoint(it, distance) }
         sphericalJointId?.let { level.gtpa.updateJoint(it, angular) }
@@ -444,11 +446,10 @@ class ExtendonBlockEntity(type: BlockEntityType<*>?, pos: BlockPos, state: Block
 
         if (hasLoadedJointState()) {
             // Keep the restored joint state that this side already owns.
-        } else if (connectedBe!!.distanceJoint != null && connectedBe!!.sphericalJoint != null) {
-            distanceJoint = connectedBe!!.distanceJoint
-            distanceJointId = connectedBe!!.distanceJointId
-            sphericalJoint = connectedBe!!.sphericalJoint
-            sphericalJointId = connectedBe!!.sphericalJointId
+        } else if (endpoint.connectedJoint === this) {
+            clearJointStateOnly()
+            distanceJoint = endpoint.distanceJoint
+            sphericalJoint = endpoint.sphericalJoint
             main = false
         } else {
             clearJointStateOnly()
@@ -481,6 +482,7 @@ class ExtendonBlockEntity(type: BlockEntityType<*>?, pos: BlockPos, state: Block
         if (hasTrackedJointIds()) {
             removeJoint()
         } else {
+            if (other?.connectedBe === this && other.hasTrackedJointIds()) other.removeJoint()
             clearJointStateOnly()
         }
 
@@ -547,21 +549,21 @@ class ExtendonBlockEntity(type: BlockEntityType<*>?, pos: BlockPos, state: Block
 
         val creationToken = ++pendingJointCreationToken
         level.gtpa.addJoint(distanceJoint) {
+            if (it < 0) return@addJoint
             if (creationToken != pendingJointCreationToken) {
                 level.gtpa.removeJoint(it)
                 return@addJoint
             }
             distanceJointId = it
-            connectedBe?.takeIf { other -> other.connectedBe === this }?.distanceJointId = it
             level.gtpa.removeMatchingJointsExcept(distanceJoint, it)
         }
         level.gtpa.addJoint(sphericalJoint) {
+            if (it < 0) return@addJoint
             if (creationToken != pendingJointCreationToken) {
                 level.gtpa.removeJoint(it)
                 return@addJoint
             }
             sphericalJointId = it
-            connectedBe?.takeIf { other -> other.connectedBe === this }?.sphericalJointId = it
             level.gtpa.removeMatchingJointsExcept(sphericalJoint, it)
         }
 
@@ -658,7 +660,7 @@ class ExtendonBlockEntity(type: BlockEntityType<*>?, pos: BlockPos, state: Block
             else if (Minecraft.getInstance().isLocalServer && Platform.isFabric()) ClockworkMod.getKelvin()
             else ClockworkModClient.getKelvin()
 
-            val currentLength = (max(1.5f,(gasToDistance(kelvin, getDuctNodePosition(), level!!.dimensionId) + gasToDistance(kelvin, connectedBe!!.getDuctNodePosition(), level!!.dimensionId))) * 10.0f).roundToInt() / 10.0f
+            val currentLength = (targetLength(kelvin, connectedBe!!, level!!.dimensionId) * 10.0).roundToInt() / 10.0
             tooltip.add(Component.translatable("vs_clockwork.extendon.current_length").append(Component.literal(currentLength.toString()).append("m").withStyle(ChatFormatting.YELLOW)))
 
 
@@ -674,6 +676,10 @@ class ExtendonBlockEntity(type: BlockEntityType<*>?, pos: BlockPos, state: Block
     override fun getConnectionItem(): ItemStack {
         return ClockworkItems.EXTENDON_HOSE.asStack()
     }
+
+    private fun targetLength(kelvin: DuctNetwork<*>, other: ExtendonBlockEntity, dimension: DimensionId): Double =
+        (gasToDistance(kelvin, getDuctNodePosition(), dimension) +
+            gasToDistance(kelvin, other.getDuctNodePosition(), dimension)).toDouble().coerceIn(MIN_LENGTH, MAX_LENGTH)
 
     fun safeHeatableGoggleTooltip(tooltip: MutableList<Component>, isPlayerSneaking: Boolean): Boolean {
         var found = false
@@ -756,6 +762,14 @@ class ExtendonBlockEntity(type: BlockEntityType<*>?, pos: BlockPos, state: Block
         private const val STIFFNESS = 100.0
         private const val DAMPING = 20.0
         private const val MAX_ACCELERATION = 120.0
+
+        private fun twistDrive(mass: Double): EnumMap<D6Drive, VSD6Joint.D6JointDrive>? {
+            if (!BearingDriveSupport.supportsAngularDrives()) return null
+            return EnumMap<D6Drive, VSD6Joint.D6JointDrive>(D6Drive::class.java).apply {
+                put(D6Drive.TWIST, VSD6Joint.D6JointDrive((mass * 20.0).toFloat(),
+                    (mass * 8.0).toFloat(), (mass * 60.0).toFloat()))
+            }
+        }
 
         private fun effectiveMass(a: ServerShip?, b: ServerShip?): Double {
             val inverseA = a?.takeUnless { it.isStatic }?.inertiaData?.mass?.takeIf { it.isFinite() && it > 0 }?.let { 1.0 / it } ?: 0.0

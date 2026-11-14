@@ -30,14 +30,11 @@
     "content.blade.RepairItemRecipeMixin",
     "content.blade.SawBladeRecipeMixin",
     "content.exhaust.MixinAirCurrent",
-    "content.flap_bearing.MixinLinkedControllerClientHandler",
-    "content.flap_bearing.MixinLinkedControllerItem",
     "content.gas.MixinBacktankUtil",
     "content.gas.MixinComposterBlock",
     "content.gas_engine.MixinSteamEngineBlock",
     "content.gas_engine.MixinSteamEngineBlockEntity",
-    "content.gimbal_bearing.MixinGimbalLinkedControllerClientHandler",
-    "content.gimbal_bearing.MixinGimbalLinkedControllerItem",
+    "content.gimbal_bearing.MixinSuperGlueEntity",
     "content.steam_generator.MixinBoilerData",
     "content.sugar_rocket.MixinDispenseItemBehavior",
     "content.sugar_rocket.MixinFireCharge",
@@ -67,7 +64,11 @@
     "content.gravitron.MixinLocalPlayer",
     "content.wanderwand.MixinLivingEntity",
     "content.wanderwand.MixinMinecraft",
-    "content.wanderwand.MixinPlayerSkyhookRenderer"
+    "content.wanderwand.MixinPlayerSkyhookRenderer",
+    "content.flap_bearing.MixinLinkedControllerClientHandler",
+    "content.flap_bearing.MixinLinkedControllerItem",
+    "content.gimbal_bearing.MixinGimbalLinkedControllerClientHandler",
+    "content.gimbal_bearing.MixinGimbalLinkedControllerItem"
   ],
   "injectors": {
     "defaultRequire": 1
