@@ -18,7 +18,6 @@ import org.joml.Vector3d
 import org.valkyrienskies.clockwork.ClockworkRenderTypes
 import org.valkyrienskies.clockwork.ClockworkTags
 import org.valkyrienskies.clockwork.client.render.goggles.AeronautGoggleOverlayRenderer
-import org.valkyrienskies.clockwork.util.render.RenderUtil.addRibbonSegment
 import org.valkyrienskies.mod.common.shipObjectWorld
 import kotlin.math.PI
 import kotlin.math.abs
@@ -170,6 +169,7 @@ object MagneticFieldView {
         val world = level ?: return
         if (world.gameTime - receivedAt > 20 || builtAt == Long.MIN_VALUE) return
         val blend = ((world.gameTime - builtAt + partialTick) / 2f).coerceIn(0f, 1f).toDouble()
+        val flow = (world.gameTime % 60 + partialTick.toDouble()) * .08
         val consumer = ClockworkRenderTypes.softEnergyBuffer(buffers)
         val pose = stack.last().pose()
         val transforms = HashMap<Long, Matrix4d>()
@@ -202,18 +202,23 @@ object MagneticFieldView {
                     val a = index.toInt()
                     before[a].lerp(before[min(a + 1, before.lastIndex)], index - a).lerp(p, blend)
                 }
-                draw(consumer, pose, interpolated, trace, camera, 1f)
+                draw(consumer, pose, interpolated, trace, camera, 1f, flow + seed.strand * .6)
             } else {
-                if (old != null && before != null && blend < 1) draw(consumer, pose, before, old, camera, (1 - blend).toFloat())
-                draw(consumer, pose, current, trace, camera, if (old == null || before != null) blend.toFloat() else 1f)
+                if (old != null && before != null && blend < 1)
+                    draw(consumer, pose, before, old, camera, (1 - blend).toFloat(), flow + seed.strand * .6)
+                draw(consumer, pose, current, trace, camera, if (old == null || before != null) blend.toFloat() else 1f,
+                    flow + seed.strand * .6)
             }
         }
         if (blend < 1) for ((seed, trace) in previous) {
-            if (seed !in lines) points(seed, trace)?.let { draw(consumer, pose, it, trace, camera, (1 - blend).toFloat()) }
+            if (seed !in lines) points(seed, trace)?.let {
+                draw(consumer, pose, it, trace, camera, (1 - blend).toFloat(), flow + seed.strand * .6)
+            }
         }
     }
 
-    private fun draw(consumer: VertexConsumer, pose: Matrix4f, points: List<Vec3>, trace: Trace, camera: Vec3, opacity: Float) {
+    private fun draw(consumer: VertexConsumer, pose: Matrix4f, points: List<Vec3>, trace: Trace, camera: Vec3,
+                     opacity: Float, flow: Double) {
         if (opacity <= 0f) return
         val lengths = DoubleArray(points.size)
         for (i in 1 until points.size) lengths[i] = lengths[i - 1] + points[i].distanceTo(points[i - 1])
@@ -222,42 +227,36 @@ object MagneticFieldView {
         val red = Vec3(.88, .42, .32)
         val brass = Vec3(.80, .72, .51)
         val blue = Vec3(.37, .66, .79)
+        val white = Vec3(1.0, .97, .90)
+        val gradientLength = if (trace.target != null) total * .5 else maxOf(3.5, total * .5)
+        val brightness = DoubleArray(points.size) { i ->
+            val offset = (lengths[i] - flow).mod(4.8)
+            val falloff = (1 - min(offset, 4.8 - offset) / .8).coerceIn(0.0, 1.0)
+            val smooth = falloff * falloff * (3 - 2 * falloff)
+            smooth * smooth
+        }
         val sides = points.mapIndexed { i, p ->
             val tangent = points[min(i + 1, points.lastIndex)].subtract(points[(i - 1).coerceAtLeast(0)]).normalize()
             var side = tangent.cross(p.subtract(camera))
             if (side.lengthSqr() < 1e-10) side = tangent.cross(Vec3(0.0, 1.0, 0.0))
             if (side.lengthSqr() < 1e-10) side = tangent.cross(Vec3(1.0, 0.0, 0.0))
-            side.normalize().scale(.007 + min(p.distanceTo(camera), 20.0) * .0002)
+            side.normalize().scale((.007 + min(p.distanceTo(camera), 20.0) * .0002) * (1 + brightness[i] * .65))
         }
         fun vertex(i: Int, sign: Double, u: Float, v: Float) {
             val p = points[i].add(sides[i].scale(sign)).subtract(camera)
-            val start = (1 - lengths[i] / .9).coerceIn(0.0, 1.0)
-            val end = if (trace.target != null) (1 - (total - lengths[i]) / .9).coerceIn(0.0, 1.0) else 0.0
-            val color = brass.lerp(red, start).lerp(if (trace.south) blue else red, end)
+            val start = (1 - lengths[i] / gradientLength).coerceIn(0.0, 1.0)
+            val end = if (trace.target != null) (1 - (total - lengths[i]) / gradientLength).coerceIn(0.0, 1.0) else 0.0
+            val color = brass.lerp(red, start).lerp(if (trace.south) blue else red, end).lerp(white, brightness[i] * .55)
             val fade = ((VIEW_RANGE - points[i].distanceTo(camera)) / 4.0).coerceIn(0.0, 1.0)
             val tail = if (trace.target == null) ((total - lengths[i]) / 1.2).coerceIn(0.0, 1.0) else 1.0
             consumer.vertex(pose, p.x.toFloat(), p.y.toFloat(), p.z.toFloat())
-                .color(color.x.toFloat(), color.y.toFloat(), color.z.toFloat(), (fade * tail * .72 * opacity).toFloat())
+                .color(color.x.toFloat(), color.y.toFloat(), color.z.toFloat(),
+                    (fade * tail * (.48 + brightness[i] * .48) * opacity).toFloat())
                 .uv(u, v).endVertex()
         }
         for (i in 1 until points.size) {
             vertex(i - 1, -1.0, 0f, 0f); vertex(i - 1, 1.0, 1f, 0f)
             vertex(i, 1.0, 1f, 1f); vertex(i, -1.0, 0f, 1f)
-        }
-        val markers = (total / 4.0).toInt().coerceIn(1, 4)
-        for (marker in 1..markers) {
-            val distance = total * marker / (markers + 1)
-            val index = lengths.indexOfFirst { it >= distance }.coerceAtLeast(1)
-            val a = points[index - 1]
-            val b = points[index]
-            val span = lengths[index] - lengths[index - 1]
-            val tip = a.lerp(b, if (span > 1e-6) (distance - lengths[index - 1]) / span else 0.0)
-            val direction = b.subtract(a).normalize()
-            val side = sides[index].normalize().scale(.065)
-            val back = tip.subtract(direction.scale(.12))
-            val alpha = ((VIEW_RANGE - tip.distanceTo(camera)) / 4.0).coerceIn(0.0, 1.0).toFloat() * opacity * .9f
-            for (sign in listOf(-1.0, 1.0)) addRibbonSegment(consumer, pose, tip.subtract(camera),
-                back.add(side.scale(sign)).subtract(camera), .009f, .98f, .87f, .61f, alpha)
         }
     }
 
