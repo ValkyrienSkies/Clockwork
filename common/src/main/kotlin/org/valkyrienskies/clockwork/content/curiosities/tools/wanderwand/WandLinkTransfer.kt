@@ -1,5 +1,7 @@
 package org.valkyrienskies.clockwork.content.curiosities.tools.wanderwand
 
+import org.valkyrienskies.clockwork.content.physicalities.wheel.WheelHubBlockEntity
+
 import net.minecraft.core.BlockPos
 import net.minecraft.core.Direction
 import net.minecraft.server.level.ServerLevel
@@ -63,6 +65,7 @@ object WandLinkTransfer {
     }
 
     private fun remap(level: ServerLevel, destination: (WandAnchor) -> Destination?) {
+        WheelHubBlockEntity.moveBodies(level) { pos -> destination(WandAnchor.at(level, pos, Direction.UP))?.anchor?.pos }
         HingeLinks.get(level).remap(level, destination)
         val data = WandLinks.get(level)
         var changed = false

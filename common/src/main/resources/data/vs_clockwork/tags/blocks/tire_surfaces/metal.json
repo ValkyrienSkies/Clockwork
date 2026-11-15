@@ -1,0 +1,11 @@
+{
+  "replace": false,
+  "values": [
+    "minecraft:iron_block",
+    "minecraft:gold_block",
+    "minecraft:netherite_block",
+    "minecraft:iron_trapdoor",
+    "minecraft:heavy_weighted_pressure_plate",
+    "minecraft:light_weighted_pressure_plate"
+  ]
+}

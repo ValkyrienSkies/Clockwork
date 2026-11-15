@@ -31,6 +31,7 @@ import org.valkyrienskies.clockwork.ClockworkConfig
 import org.valkyrienskies.clockwork.ClockworkMod.MOD_ID
 import org.valkyrienskies.clockwork.ClockworkSounds
 import org.valkyrienskies.clockwork.content.kinetics.combobulator.IThinkable
+import org.valkyrienskies.clockwork.content.kinetics.combobulator.ThinkableConnections
 import org.valkyrienskies.clockwork.content.contraptions.flap.dual_link.DualLinkBehaviour
 import org.valkyrienskies.clockwork.content.forces.contraption.BearingController.Companion.getAngle
 import org.valkyrienskies.clockwork.content.forces.contraption.BearingData
@@ -80,8 +81,12 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
     ContraptionController, BlockEntityPhysicsListener, IThinkable {
 
     override fun providesThinkable(side: Direction) = side.axis != facing.axis
-    override fun thinkablePortName(side: Direction): Component? =
-        Component.translatable("thinkable.vs_clockwork.port.angle").takeIf { providesThinkable(side) }
+    override fun acceptsThinkable(side: Direction) = side == facing.opposite && movementMode?.get() == LockedMode.FOLLOW_ANGLE
+    override fun thinkablePortName(side: Direction): Component? = when {
+        acceptsThinkable(side) -> Component.translatable("thinkable.vs_clockwork.port.bearing_target")
+        providesThinkable(side) -> Component.translatable("thinkable.vs_clockwork.port.angle")
+        else -> null
+    }
     override fun thinkableValue(side: Direction): Double? {
         val world = level as? ServerLevel ?: return null
         if (!providesThinkable(side) || !isRunning || world.getLoadedShipManagingPos(partnerPos ?: return null) == null) return null
@@ -549,9 +554,14 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
         }
 
         if (joint != null) {
-            val angularSpeed = convertToAngular(getSpeed()) * if (originalFacing == Direction.WEST || originalFacing == Direction.NORTH || originalFacing == Direction.DOWN) 1 else -1
+            val steering = ThinkableConnections.input(level, blockPos, facing.opposite)
+            val angularSpeed = if (steering != null && !aligning) {
+                val goal = steering.value?.coerceIn(-180.0, 180.0)?.toFloat() ?: targetAngle
+                val travel = abs(convertToAngular(getSpeed()))
+                shortestAngleDeltaDegrees(targetAngle, goal).coerceIn(-travel, travel)
+            } else convertToAngular(getSpeed()) * if (originalFacing == Direction.WEST || originalFacing == Direction.NORTH || originalFacing == Direction.DOWN) 1 else -1
             var diff = 0.0f
-            if (sequencedAngleLimit >= 0.0f) {
+            if (steering == null && sequencedAngleLimit >= 0.0f) {
                 val sequencedAngleLimit = sequencedAngleLimit * angularSpeed.sign
 
                 sequencedAngleProgress += angularSpeed

@@ -1,5 +1,8 @@
 package org.valkyrienskies.clockwork
 
+import org.valkyrienskies.clockwork.content.physicalities.wheel.WheelItem
+import org.valkyrienskies.clockwork.content.physicalities.wheel.WheelSize
+
 import org.valkyrienskies.clockwork.content.schematics.VdexBlueprintItem
 import org.valkyrienskies.clockwork.content.schematics.EmptyBlueprintItem
 import org.valkyrienskies.clockwork.content.curiosities.spring.SpringItem
@@ -48,6 +51,17 @@ import org.valkyrienskies.clockwork.util.builder.ClockworkRegistrate
 import java.util.function.Supplier
 
 object ClockworkItems {
+    @JvmField
+    val SMALL_WHEEL = wheel(WheelSize.SMALL)
+    @JvmField
+    val MEDIUM_WHEEL = wheel(WheelSize.MEDIUM)
+    @JvmField
+    val LARGE_WHEEL = wheel(WheelSize.LARGE)
+
+    private fun wheel(size: WheelSize) = REGISTRATE.item<WheelItem>(size.id) { WheelItem(it!!, size) }
+        .properties { it.stacksTo(16) }.tab(ClockworkMod.PHYSICAL_CREATIVE_TABINFO)
+        .model(AssetLookup.existingItemModel()).register()
+
     @JvmField
     val EMPTY_BLUEPRINT = REGISTRATE.item<EmptyBlueprintItem>("empty_blueprint") { EmptyBlueprintItem(it!!) }
         .tab(ClockworkMod.BASE_CREATIVE_TABINFO).model(AssetLookup.existingItemModel()).register()

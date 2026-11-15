@@ -8,6 +8,23 @@ import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
 
 class BearingAttachmentGeometryTest {
+    @Test fun attachmentZeroUsesTheNearestAxesRelativeToItsOwner() {
+        val owner = Quaterniond().rotateXYZ(.3, -.7, .2)
+        for (facing in Direction.values()) for (face in Direction.values()) {
+            val axis = Vector3d(facing.stepX.toDouble(), facing.stepY.toDouble(), facing.stepZ.toDouble())
+            val targetAxis = Vector3d(-face.stepX.toDouble(), -face.stepY.toDouble(), -face.stepZ.toDouble())
+            val base = Quaterniond().rotationTo(targetAxis, axis)
+            for (quarter in 0..3) for (offset in listOf(-.6, -.03, .05, .6)) {
+                val expected = Quaterniond().rotationAxis(quarter * Math.PI / 2, axis.x, axis.y, axis.z).mul(base)
+                val relative = Quaterniond().rotationAxis(offset, axis.x, axis.y, axis.z).mul(expected)
+                val target = Quaterniond(owner).mul(relative)
+                val neutral = BearingAttachmentGeometry.neutral(facing, face, owner, target)
+                assertEquals(1.0, kotlin.math.abs(neutral.dot(expected)), 1e-9)
+                assertEquals(offset, BearingAttachmentGeometry.angle(axis, relative, neutral), 1e-9)
+            }
+        }
+    }
+
     @Test fun everyTargetFaceAlignsWithoutUsingTheTargetsBlockAxis() {
         val owner = Quaterniond().rotateXYZ(.3, -.7, .2)
         val target = Quaterniond().rotateXYZ(-.2, 1.1, .6)

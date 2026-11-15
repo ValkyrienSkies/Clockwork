@@ -4,6 +4,11 @@ import dev.engine_room.flywheel.lib.model.baked.PartialModel
 
 object ClockworkPartials {
 
+    val WHEEL_RIM = block("wheel/rim")
+    val MEDIUM_WHEEL_RIM = block("wheel/rim_medium")
+    val LARGE_WHEEL_RIM = block("wheel/rim_large")
+    val STEERING_WHEEL = block("steering_wheel/wheel")
+
     val BEARING_TOP_FLAP = block("flap_bearing_top")
     val PHYS_GANTRY_WHEELS = block("phys_gantry/wheels")
     val JOYSTICK = block("command_seat/joystick")

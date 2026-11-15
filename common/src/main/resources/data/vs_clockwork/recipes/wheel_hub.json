@@ -1,0 +1,22 @@
+{
+  "result": {
+    "item": "vs_clockwork:wheel_hub"
+  },
+  "pattern": [
+    " I ",
+    " B ",
+    " S "
+  ],
+  "type": "minecraft:crafting_shaped",
+  "key": {
+    "B": {
+      "item": "create:andesite_casing"
+    },
+    "S": {
+      "item": "create:shaft"
+    },
+    "I": {
+      "item": "create:iron_sheet"
+    }
+  }
+}

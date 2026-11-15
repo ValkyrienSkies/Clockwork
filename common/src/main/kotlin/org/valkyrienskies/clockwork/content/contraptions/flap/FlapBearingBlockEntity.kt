@@ -26,7 +26,6 @@ import org.valkyrienskies.clockwork.ClockworkMod
 import org.valkyrienskies.clockwork.content.kinetics.combobulator.IThinkable
 import org.valkyrienskies.clockwork.content.kinetics.combobulator.ThinkableConnections
 import org.valkyrienskies.clockwork.content.contraptions.flap.contraption.FlapContraption
-import org.valkyrienskies.core.impl.shadow.re
 
 open class FlapBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos, state: BlockState) :
     KineticBlockEntity(type, pos, state), IBearingBlockEntity, IDisplayAssemblyExceptions, IThinkable {

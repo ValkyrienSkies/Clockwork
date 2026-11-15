@@ -1,5 +1,6 @@
 package org.valkyrienskies.clockwork
 
+import org.valkyrienskies.clockwork.content.physicalities.wheel.WheelContacts
 import org.valkyrienskies.clockwork.content.curiosities.aeronaut.AeronautShipReadout
 
 import org.valkyrienskies.clockwork.content.curiosities.magnet.Magnetism
@@ -172,10 +173,11 @@ object ClockworkMod {
             ClockworkAugmentations.registerSumAugmentation("sealed", it.shipObjectWorld)
         }
 
-        LifecycleEvent.SERVER_STOPPED.register { Magnetism.clear() }
+        LifecycleEvent.SERVER_STOPPED.register { Magnetism.clear(); WheelContacts.clear() }
 
         TickEvent.SERVER_LEVEL_POST.register {
             Magnetism.tick(it)
+            WheelContacts.tick(it)
             VdexBlueprintLibrary.tick(it)
             HingeLinks.get(it).tick(it)
             LubricantData.get(it).tick(it)
@@ -211,6 +213,7 @@ object ClockworkMod {
         vsApi.physTickEvent.on {
             GravitronController.timeStep(it.world, it.delta)
             Magnetism.physicsTick(it.world)
+            WheelContacts.physicsTick(it.world)
             GripPadController.tick(it.world, it.delta)
             SpringBendingController.tick(it.world)
             val temp = mutableListOf<Pair<DimensionId, (PhysLevel, Double, () -> Unit) -> Unit>>()

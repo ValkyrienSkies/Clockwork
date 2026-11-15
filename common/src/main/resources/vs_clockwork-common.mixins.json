@@ -53,6 +53,7 @@
     "content.schematics.MixinVdexCannonRemoval"
   ],
   "client": [
+    "client.MixinKeyboardInput",
     "content.gravitron.MixinMouseHandler",
     "content.lubricant.MixinMinecraft",
     "MixinLevelRenderer",

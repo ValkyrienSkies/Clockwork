@@ -1,5 +1,10 @@
 package org.valkyrienskies.clockwork
 
+import org.valkyrienskies.clockwork.content.physicalities.wheel.WheelHubBlockEntity
+import org.valkyrienskies.clockwork.content.physicalities.wheel.WheelHubRenderer
+import org.valkyrienskies.clockwork.content.physicalities.steering.SteeringWheelBlockEntity
+import org.valkyrienskies.clockwork.content.physicalities.steering.SteeringWheelRenderer
+
 import org.valkyrienskies.clockwork.content.kinetics.plotting.PlottingTableBlockEntity
 
 import org.valkyrienskies.clockwork.content.curiosities.clampotron.ClampotronBlockEntity
@@ -944,6 +949,22 @@ object ClockworkBlockEntities {
         .renderer { NonNullFunction { context: BlockEntityRendererProvider.Context ->
             ClampotronRenderer(context)
         } }.register()
+
+    @JvmField
+    val STEERING_WHEEL = ClockworkMod.REGISTRATE
+        .blockEntity("steering_wheel") { type: BlockEntityType<SteeringWheelBlockEntity>, pos: BlockPos, state: BlockState ->
+            SteeringWheelBlockEntity(type, pos, state)
+        }.validBlocks(ClockworkBlocks.STEERING_WHEEL)
+        .renderer { NonNullFunction { context: BlockEntityRendererProvider.Context -> SteeringWheelRenderer(context) } }
+        .register()
+
+    @JvmField
+    val WHEEL_HUB = ClockworkMod.REGISTRATE
+        .blockEntity("wheel_hub") { type: BlockEntityType<WheelHubBlockEntity>, pos: BlockPos, state: BlockState ->
+            WheelHubBlockEntity(type, pos, state)
+        }.validBlocks(ClockworkBlocks.WHEEL_HUB)
+        .renderer { NonNullFunction { context: BlockEntityRendererProvider.Context -> WheelHubRenderer(context) } }
+        .register()
 
     @JvmField
     val ROPE_WINCH = ClockworkMod.REGISTRATE

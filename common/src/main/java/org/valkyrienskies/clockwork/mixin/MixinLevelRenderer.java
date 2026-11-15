@@ -17,6 +17,7 @@ import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+import org.valkyrienskies.clockwork.content.physicalities.wheel.WheelEffects;
 import org.valkyrienskies.clockwork.client.render.scanner.ScannerRenderer;
 import org.valkyrienskies.clockwork.util.render.ToolWorldEffects;
 
@@ -48,6 +49,7 @@ public class MixinLevelRenderer {
     @Inject(method = "renderLevel", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/OutlineBufferSource;endOutlineBatch()V", shift = At.Shift.BEFORE))
     private void vs_clockwork$renderScanner(PoseStack poseStack, float partialTick, long finishNanoTime, boolean renderBlockOutline, Camera camera, GameRenderer gameRenderer, LightTexture lightTexture, org.joml.Matrix4f projectionMatrix, CallbackInfo ci) {
         ScannerRenderer.Companion.getINSTANCE().doRender(poseStack);
+        WheelEffects.renderSkidmarks(poseStack, camera, partialTick);
     }
 
     @Inject(method = "renderLevel", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/OutlineBufferSource;endOutlineBatch()V", shift = At.Shift.BEFORE))

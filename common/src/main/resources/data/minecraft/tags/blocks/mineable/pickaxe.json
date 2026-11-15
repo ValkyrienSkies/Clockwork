@@ -1,6 +1,8 @@
 {
   "replace": false,
   "values": [
+    "vs_clockwork:steering_wheel",
+    "vs_clockwork:wheel_hub",
     "vs_clockwork:thinkable_relay",
     "vs_clockwork:combobulator",
     "vs_clockwork:grip_pad",

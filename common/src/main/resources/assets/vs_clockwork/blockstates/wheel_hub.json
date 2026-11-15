@@ -1,0 +1,30 @@
+{
+  "variants": {
+    "facing=up": {
+      "model": "vs_clockwork:block/wheel/half_shaft"
+    },
+    "facing=down": {
+      "model": "vs_clockwork:block/wheel/half_shaft",
+      "x": 180
+    },
+    "facing=north": {
+      "model": "vs_clockwork:block/wheel/half_shaft",
+      "x": 90
+    },
+    "facing=south": {
+      "model": "vs_clockwork:block/wheel/half_shaft",
+      "x": 90,
+      "y": 180
+    },
+    "facing=west": {
+      "model": "vs_clockwork:block/wheel/half_shaft",
+      "x": 90,
+      "y": 270
+    },
+    "facing=east": {
+      "model": "vs_clockwork:block/wheel/half_shaft",
+      "x": 90,
+      "y": 90
+    }
+  }
+}

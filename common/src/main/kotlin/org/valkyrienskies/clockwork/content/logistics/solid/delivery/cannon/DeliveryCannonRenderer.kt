@@ -27,7 +27,6 @@ import org.valkyrienskies.clockwork.ClockworkPartials
 import org.valkyrienskies.clockwork.content.logistics.solid.delivery.frequency_slot.FrequencySlotRenderer
 import org.valkyrienskies.clockwork.util.ClockworkUtils
 import org.valkyrienskies.clockwork.util.EaseHelper
-import org.valkyrienskies.core.impl.shadow.rX
 import org.valkyrienskies.mod.api.getShipManagingBlock
 import org.valkyrienskies.mod.api.positionToWorld
 import org.valkyrienskies.mod.api.vsApi

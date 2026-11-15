@@ -1,5 +1,8 @@
 package org.valkyrienskies.clockwork
 
+import org.valkyrienskies.clockwork.content.physicalities.wheel.WheelEffects
+import org.valkyrienskies.clockwork.content.physicalities.steering.SteeringWheelClient
+
 import org.valkyrienskies.clockwork.content.curiosities.magnet.MagneticFieldView
 import org.valkyrienskies.clockwork.content.curiosities.magnet.PolaritronSound
 import org.valkyrienskies.clockwork.client.render.goggles.AeronautGoggleOverlayRenderer
@@ -117,11 +120,13 @@ object ClockworkModClient {
 
         ClientTickEvent.CLIENT_POST.register(ClientTickEvent.Client {
             GravitronControlsClient.tick()
+            SteeringWheelClient.tick()
             LubricantClient.tick()
             VdexBlueprintClient.tick()
             AeronautGoggleOverlayRenderer.tick()
             MagneticFieldView.tick()
             PolaritronSound.tickSounds()
+            WheelEffects.tick()
             org.valkyrienskies.clockwork.content.curiosities.tools.wanderwand.WandRopeRidingClient.tick()
             org.valkyrienskies.clockwork.content.curiosities.tools.gravitron.GravitronEffects.tick()
             org.valkyrienskies.clockwork.content.curiosities.tools.wanderwand.WanderwandHandEffects.tick()
