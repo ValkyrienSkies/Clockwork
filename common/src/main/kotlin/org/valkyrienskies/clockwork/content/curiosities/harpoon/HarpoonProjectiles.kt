@@ -62,8 +62,10 @@ object HarpoonProjectiles {
         val direction = Vector3d(facing.stepX.toDouble(), facing.stepY.toDouble(), facing.stepZ.toDouble())
         ship?.transform?.shipToWorldRotation?.transform(direction)
         val projectileRadius = radius
-        // Spawn the sphere fully outside the muzzle, even on a scaled ship.
-        val position = Vector3d(origin.x, origin.y, origin.z).add(Vector3d(direction).mul(projectileRadius + 0.05))
+        // Clear both the collision sphere and the full visible harpoon (13 pixels long).
+        // Start from the transformed muzzle so scaled ships retain the same world-space clearance.
+        val clearance = maxOf(13.0 / 16.0, projectileRadius + 0.25)
+        val position = Vector3d(origin.x, origin.y, origin.z).add(Vector3d(direction).mul(clearance))
         val velocity = launchVelocity(direction, charge,
             ship?.velocity ?: Vector3d(), ship?.angularVelocity ?: Vector3d(),
             ship?.let { Vector3d(position).sub(it.transform.positionInWorld) } ?: Vector3d())
@@ -123,8 +125,8 @@ object HarpoonProjectiles {
             if (event.kind != ParticleEventKind.CONTACT_START) continue
             val shot = shots[event.particle] ?: continue
             if (event.other !is ParticleContactOther.Body) continue
-            attach(shot, event)
-            remove(event.particle)
+            // A rejected contact must not consume the projectile before a valid impact arrives.
+            if (attach(shot, event)) remove(event.particle)
         }
         for ((id, shot) in shots.toMap()) {
             if (shot.level !== level) continue
@@ -149,14 +151,14 @@ object HarpoonProjectiles {
         shot.level.getBlockEntity(shot.launcher.blockPos) === shot.launcher &&
         shot.level.hasNeighborSignal(shot.launcher.blockPos)
 
-    private fun attach(shot: Shot, event: ParticleEvent) {
-        if (!valid(shot)) return
+    private fun attach(shot: Shot, event: ParticleEvent): Boolean {
+        if (!valid(shot)) return false
         val level = shot.level
         val other = event.other as ParticleContactOther.Body
         val world = level.shipObjectWorld
         val ground = world.dimensionToGroundBodyIdImmutable[level.dimensionId]
         val targetShip = world.loadedShips.firstOrNull { it.bodyId == other.id }
-        if (other.id != ground && targetShip == null) return
+        if (other.id != ground && targetShip == null) return false
         val point = Vector3d(event.position)
         val normal = Vector3d(event.normalTowardParticle)
         if (targetShip != null) {
@@ -167,21 +169,25 @@ object HarpoonProjectiles {
         // keep the rope endpoint at the exact collision point in that body's coordinates.
         val inside = Vector3d(point).sub(Vector3d(normal).normalize().mul(0.02))
         val pos = BlockPos.containing(inside.x, inside.y, inside.z)
-        if (!level.hasChunkAt(pos) || level.getBlockState(pos).isAir) return
+        // Never anchor the rope back onto the block that launched it. Other blocks on
+        // the same ship (or terrain body) are still legitimate targets.
+        if (pos == shot.source.pos && (targetShip?.id ?: -1L) == shot.source.shipId) return false
+        if (!level.hasChunkAt(pos) || level.getBlockState(pos).isAir) return false
         val face = Direction.getNearest(normal.x, normal.y, normal.z)
         val target = WandAnchor(pos, face, targetShip?.id ?: -1,
             offset = Vec3(point.x - pos.x - 0.5, point.y - pos.y - 0.5, point.z - pos.z - 0.5))
-        val a = shot.source.world(level) ?: return
-        val b = target.world(level) ?: return
+        val a = shot.source.world(level) ?: return false
+        val b = target.world(level) ?: return false
         val distance = a.distanceTo(b)
-        if (distance > maxRange) return
+        if (distance > maxRange) return false
         val link = WandLinks.get(level).add(level, shot.source, target, true,
-            (distance + 0.25).coerceAtMost(maxRange), physical = true, harpoon = true) ?: return
+            (distance + 0.25).coerceAtMost(maxRange), physical = true, harpoon = true) ?: return false
         shot.launcher.ropeId = link.id
         shot.launcher.setChanged()
         shot.launcher.sendData()
         WanderwandServer.syncLinks(level)
         level.playSound(null, b.x, b.y, b.z, SoundEvents.TRIDENT_HIT, SoundSource.BLOCKS, 1f, 1f)
+        return true
     }
 
     private fun syncFlight(id: ParticleId, shot: Shot, active: Boolean = true, snap: Boolean = false) {
