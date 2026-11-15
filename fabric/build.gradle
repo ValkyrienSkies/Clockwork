@@ -1,6 +1,5 @@
 plugins {
     id "com.github.johnrengelman.shadow" version "7.1.2"
-    id "com.matthewprenger.cursegradle"
     id "com.modrinth.minotaur"
 }
 
@@ -75,9 +74,9 @@ dependencies {
 
     //Kelvin
 
-    include(modImplementation("org.valkyrienskies.kelvin:kelvin-fabric:${rootProject.minecraft_version}-${rootProject.kelvin_version}") {
+    modImplementation("org.valkyrienskies.kelvin:kelvin-fabric:${rootProject.minecraft_version}-${rootProject.kelvin_version}") {
         exclude group: 'org.joml', module: ''
-    })
+    }
 
     //modImplementation("maven.modrinth:vlib:${rootProject.vlib_version}+fabric")
 

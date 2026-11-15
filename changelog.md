@@ -1,10 +1,20 @@
-## 0.5.7
+# 0.5.7
 Holy bug fixes batman
 
+## IMPORTANT
+Kelvin is no longer included in the Clockwork Jar. You must download it separately.
+It is still approving on Modrinth (and has been for 3 weeks), for now get it from Curseforge:
+https://www.curseforge.com/minecraft/mc-mods/kelvin-vs
+
+---
+
+Rest of the changelog:
+
 ### Updated Kelvin:
-- New and shiny default solver (JacobiSeidel)
+- New, very performant default solver (JacobiSeidel)
 - Prettier gas particles
-- Removed the wall heat system
+- Replaced the wall heat system with node heatCapacity
+- Added a consistent way to get flow rate for an edge
 - More usable by other mods with the new Connectable system
 - More usable by other mods with it being published as its own mod instead of included in the clockwork jar
 - Fixed a few bugs (thanks G_Mungus)
@@ -21,16 +31,23 @@ Holy bug fixes batman
 - Added polish translations (by SuperKotz)
 - Added bind, attach, and weld mode to the Wanderwand
 - Added new shiny visuals to the Wanderwand and Gravitrons
+- Added custom recipes for everything that activate when TFG is present, to better fit into its progression
+- Added a config to enable propellers generating torque (off by default)
 
 ### Changes:
-- Changed how the gas engine works
+- Changed the gas engine to use flowrate
 - Changed the delivery cannon to maintain its previous angle instead of resetting after firing
 - Changed the model for the creative gas generator, gas back tank, and the redstone duct
-- Rewrote all serialization code for the Physics and Spinoff bearings, making them much stabler on world reload
 - Added VMod compatibility for all the bearings
 - Rewrote all the propeller math, making sails and blade controllers more balanced (and hopefully better to use)
+- Reworked phys bearing
+- Made phys bearing count as glued to other blocks, making nesting phys bearings easier
 - Allowed the universal shaft to be waterlogged
 - Added more gas related blocks to the wrenchable tag
+- Added new visuals to the physics assembler
+- Reworked the smart duct completely
+- Rewrote how the balloons calculate buoyancy, making them much more fun to use
+- Made wanderglass have backface culling and connected textures
 
 ### Bugfixes:
 - Fixed aeronaut goggles not rendering on armor stands or other players
@@ -48,11 +65,19 @@ Holy bug fixes batman
 - Fixed gyroscope and reaction wheel rendering an extra shaft
 - Fixed reaction wheel applying torque in the wrong direction
 - Fixed spinoff bearings not copying/pasting in VMod schematics properly
+- Fixed phys bearings not copying/pasting in VMod schematics properly
 - Fixed spinoff bearings not serialising, causing a jolt on world reload
+- Fixed phys bearings not serialising, causing a jolt on world reload
 - Fixed the item model of the wanderlite matrix
 - Fixed balloons sometimes not being detected
 - Fixed universal shaft not dropping compressible shaft item when broken
 - Fixed universal shafts sometimes having reversed rotation
 - Fixed universal shafts looking glitched out when one end is unloaded
+- Fixed universal shafts not pasting linked in create schematics
 - Fixed Z-Fighting on the physics bearing model
 - Fixed Creative Gravitron ring spinning at different speeds depending on FPS
+- Fixed gas tanks having all sorts of bugs
+- Fixed gas valve and pump not working with connections
+- Fixed oneway connection visual not matching
+- Fixed physics bearing not taking into account the mass of connected ships
+- Fixed extendon tweaking out

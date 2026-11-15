@@ -127,6 +127,21 @@ object ClockworkConfig {
         @ConfigEntry(description = "Clampotron maximum holding force in newtons per RPM", min = 1.0)
         var clampotronForcePerRpm = 160000.0
 
+        @ConfigEntry(description = "Harpoon projectile collision radius in blocks", min = 0.01, max = 1.0)
+        var harpoonRadius = 0.125
+
+        @ConfigEntry(description = "Maximum harpoon flight distance and rope length in blocks", min = 1.0, max = 128.0)
+        var harpoonMaxRange = 128.0
+
+        @ConfigEntry(description = "Maximum time a harpoon can remain in flight, in game ticks", min = 1.0, max = 12000.0)
+        var harpoonLifetimeTicks = 200
+
+        @ConfigEntry(description = "Harpoon launch speed before the charge bonus, in metres per second", min = 0.0, max = 1000.0)
+        var harpoonBaseLaunchSpeed = 10.0
+
+        @ConfigEntry(description = "Additional harpoon launch speed at full charge, in metres per second", min = 0.0, max = 1000.0)
+        var harpoonChargeLaunchSpeed = 50.0
+
         @ConfigEntry(description = "Sets the gas retention efficiency of the balloon material; lower values simulate airtight rubber/synthetic, while higher values represent porous fabrics. Default 0.001.", min = 0.0, max = 1.0)
         var permeabilityConstant = 0.01
 
@@ -181,7 +196,7 @@ object ClockworkConfig {
         @ConfigEntry(min = 0.0, description = "Gameplay strength of sail and item-blade propellers. Scales aerodynamic force and torque together without changing the RPM, pitch, stall or altitude curves.")
         var forceMulPerSailInPropeller = 240.0
 
-        @ConfigEntry(min = 0.0, description = "Additional gameplay strength for sail propellers only, multiplied by forceMulPerSailInPropeller. Scales aerodynamic force and torque together without changing Create stress cost. 1 restores the unboosted strength; item blades are unaffected.")
+        @ConfigEntry(min = 0.0, description = "Additional gameplay strength for all propellers, multiplied by forceMulPerSailInPropeller. Scales aerodynamic force and torque together without changing Create stress cost. 1 restores the unboosted strength; applies to sail and blade-controller propellers alike.")
         var sailPropellerForceMultiplier = 4.0
 
         @ConfigEntry(description = "Whether a powered propeller applies its shaft reaction torque to the ship. Disable to remove axial reaction from rotor spin and airflow while keeping thrust, hub-offset and non-axial moments, and damping of ship rotation. Stopped rotors retain their full aerodynamic response.")

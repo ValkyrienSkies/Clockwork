@@ -23,6 +23,8 @@ object SpringToolClient {
         if (mc.screen != null || !player.mayBuild() || player.isSpectator) return null
         val endpoint = ((mc.hitResult as? EntityHitResult)?.entity as? RopeKnotEntity)
             ?.takeIf { !it.winch && it.distanceToSqr(player) <= 36 } ?: return null
+        val link = RopeKnotRenderer.link(endpoint.linkId) ?: return null
+        if (link.harpoon) return null
         if (!(endpoint.spring && SpringClipboard.isClipboard(player.mainHandItem)) &&
             !SpringControls.isTool(player.mainHandItem, endpoint.spring) &&
             !SpringControls.isTool(player.offhandItem, endpoint.spring)) return null
@@ -46,7 +48,12 @@ object SpringToolClient {
         val stack = player.mainHandItem.takeIf { (endpoint.spring && SpringClipboard.isClipboard(it)) ||
             SpringControls.isTool(it, endpoint.spring) } ?: player.offhandItem
         val tooltip = mutableListOf<Component>()
-        CreateLang.builder().add(Component.translatable(if (endpoint.spring) "item.vs_clockwork.spring" else "item.vs_clockwork.rope_knot"))
+        val name = when {
+            link.thinkable -> "item.vs_clockwork.thinkable"
+            link.spring -> "item.vs_clockwork.spring"
+            else -> "item.vs_clockwork.rope_knot"
+        }
+        CreateLang.builder().add(Component.translatable(name))
             .style(ChatFormatting.WHITE).forGoggles(tooltip)
         if (SpringClipboard.isClipboard(stack)) {
             CreateLang.builder().add(CreateLang.translateDirect("clipboard.to_copy", mc.options.keyUse.translatedKeyMessage))

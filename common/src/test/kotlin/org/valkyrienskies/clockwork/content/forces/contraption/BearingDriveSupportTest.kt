@@ -2,7 +2,9 @@ package org.valkyrienskies.clockwork.content.forces.contraption
 
 import io.mockk.*
 import org.joml.*
+import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions.*
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.valkyrienskies.clockwork.ClockworkConfig
 import org.valkyrienskies.core.api.ships.PhysShip
@@ -24,6 +26,19 @@ class BearingDriveSupportTest {
             joints.filterValues { it.shipId0 == id || it.shipId1 == id }.keys
         }
         every { updateJoint(any(), any()) } answers { joints[firstArg()] = secondArg(); true }
+    }
+
+    private lateinit var previousBackend: ConfigPhysicsBackendType
+
+    @BeforeEach
+    fun useAngularDriveBackend() {
+        previousBackend = VSCoreConfig.SERVER.physics.physicsBackend
+        VSCoreConfig.SERVER.physics.physicsBackend = ConfigPhysicsBackendType.KRUNCH_PHYSX
+    }
+
+    @AfterEach
+    fun restoreBackend() {
+        VSCoreConfig.SERVER.physics.physicsBackend = previousBackend
     }
 
     private fun ship(id: Long, mass: Double, position: Vector3d, rotation: Quaterniond = Quaterniond(), fixed: Boolean = false): PhysShip {

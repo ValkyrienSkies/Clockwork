@@ -18,6 +18,7 @@ import net.minecraft.world.phys.Vec3
 import org.joml.Matrix4f
 import org.valkyrienskies.clockwork.ClockworkMod
 import org.valkyrienskies.clockwork.content.curiosities.rope.RopeKnotRenderer
+import org.valkyrienskies.clockwork.content.kinetics.combobulator.ThinkableSchematicCapture
 import org.valkyrienskies.clockwork.util.render.ShaderPackCompat
 import org.valkyrienskies.clockwork.util.render.SurfaceEffectPass
 import org.valkyrienskies.clockwork.ClockworkRenderTypes
@@ -92,6 +93,7 @@ class WanderwandEffectRenderer {
                 }
             }
             "links" -> {
+                ThinkableSchematicCapture.acceptLinks(level, data)
                 WandRopeRidingClient.accept(data)
                 RopeKnotRenderer.accept(data)
                 val previous = links.associateBy { it.id }
@@ -115,7 +117,7 @@ class WanderwandEffectRenderer {
                 if (pulse.action == "weld_end") blocks.weldPulse(pulse.anchor, level.gameTime)
             }
             "ride" -> WandRopeRidingClient.accept(data)
-            "physical_rope_break" -> RopeKnotRenderer.accept(data)
+            "physical_rope_break", "harpoon_flight" -> RopeKnotRenderer.accept(data)
             "link_stress" -> {
                 RopeKnotRenderer.accept(data)
                 val byId = links.associateBy { it.id }

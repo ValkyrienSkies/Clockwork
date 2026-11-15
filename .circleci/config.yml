@@ -118,13 +118,26 @@ jobs:
       - run:
           name: "Build"
           command: "./gradlew build publish --no-daemon --stacktrace --max-workers 1"
-  deploy_to_curse:
+  publish_to_curseforge:
     executor: java_large
     steps:
       - checkout_and_cache
-      - run: echo 'export ORG_GRADLE_PROJECT_CustomReleaseVersion=${CIRCLE_TAG}' >> "$BASH_ENV"
       - run:
-          command: "./gradlew build modrinth curseforge --no-daemon --stacktrace --continue --max-workers 1"
+          name: Publish to CurseForge
+          command: |
+            : "${ORG_GRADLE_PROJECT_curse_api_key:?Set the CurseForge upload token in curse_publishing}"
+            export ORG_GRADLE_PROJECT_CustomReleaseVersion="$CIRCLE_TAG"
+            ./gradlew build :fabric:curseforge :forge:curseforge --no-daemon --stacktrace --max-workers 1
+  publish_to_modrinth:
+    executor: java_large
+    steps:
+      - checkout_and_cache
+      - run:
+          name: Publish to Modrinth
+          command: |
+            : "${ORG_GRADLE_PROJECT_modrinth_api_key:?Set the Modrinth upload token in curse_publishing}"
+            export ORG_GRADLE_PROJECT_CustomReleaseVersion="$CIRCLE_TAG"
+            ./gradlew build :fabric:modrinth :forge:modrinth --no-daemon --stacktrace --max-workers 1
   
   notify_playtesters:
     executor: java_large
@@ -207,7 +220,16 @@ workflows:
           context:
             - discord_webhooks
             - valkyrien_maven
-      - deploy_to_curse:
+      - publish_to_curseforge:
+          filters:
+            tags:
+              only: /^release.*/
+            branches:
+              ignore: /.*/
+          context:
+            - curse_publishing
+            - valkyrien_maven
+      - publish_to_modrinth:
           filters:
             tags:
               only: /^release.*/

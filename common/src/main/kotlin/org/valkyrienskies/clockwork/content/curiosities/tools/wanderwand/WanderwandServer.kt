@@ -280,6 +280,18 @@ object WanderwandServer {
 
     fun syncLinks(level: ServerLevel) {
         val data = WandLinks.get(level)
+        // Create exports on the client. Its selection can exceed the visual cable range/cap,
+        // so send a compact topology snapshot separately from the nearby rendering payload.
+        val thinkables = ListTag().also { list ->
+            data.links.values.filter { it.thinkable }.forEach { link ->
+                list.add(CompoundTag().also {
+                    it.putLong("Source", link.a.pos.asLong())
+                    it.putInt("SourceFace", link.a.face.ordinal)
+                    it.putLong("Sink", link.b.pos.asLong())
+                    it.putInt("SinkFace", link.b.face.ordinal)
+                })
+            }
+        }
         for (player in level.players()) {
             val list = ListTag()
             data.links.values.asSequence().filter {
@@ -294,7 +306,11 @@ object WanderwandServer {
                         (level.gameTime - link.pulseStart).coerceIn(0, Int.MAX_VALUE.toLong()).toInt())
                 }
             }) }
-            ClockworkPackets.sendTo(WanderwandStatePacket(CompoundTag().also { it.putString("kind", "links"); it.put("links", list) }), player)
+            ClockworkPackets.sendTo(WanderwandStatePacket(CompoundTag().also {
+                it.putString("kind", "links")
+                it.put("links", list)
+                it.put("schematicThinkables", thinkables)
+            }), player)
         }
     }
 

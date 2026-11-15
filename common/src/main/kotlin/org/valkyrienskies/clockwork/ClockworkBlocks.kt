@@ -62,6 +62,7 @@ import org.valkyrienskies.clockwork.content.curiosities.clock.ClockBlock
 import org.valkyrienskies.clockwork.content.curiosities.debug.DebugLightningArcerBlock
 import org.valkyrienskies.clockwork.content.curiosities.grippad.GripPadBlock
 import org.valkyrienskies.clockwork.content.curiosities.meteor.MeteorTestBlock
+import org.valkyrienskies.clockwork.content.curiosities.harpoon.HarpoonBlock
 import org.valkyrienskies.clockwork.content.curiosities.rope.RopeWinchBlock
 import org.valkyrienskies.clockwork.content.curiosities.sensor.distance.DistanceSensorBlock
 import org.valkyrienskies.clockwork.content.curiosities.sensor.impact.ImpactSensorBlock
@@ -400,6 +401,7 @@ object ClockworkBlocks {
         .initialProperties(AllBlocks.BRASS_CASING)
         .properties { it.noOcclusion().isRedstoneConductor { _, _, _ -> false } }
         .transform(axeOrPickaxe())
+        .transform(displaySource(ClockworkDisplaySources.COMBOBULATOR))
         .blockstate { _: DataGenContext<Block?, CombobulatorBlock>, _: RegistrateBlockstateProvider -> }
         .item()
         .tab(ClockworkMod.BASE_CREATIVE_TABINFO)
@@ -890,6 +892,14 @@ object ClockworkBlocks {
     @JvmField
     val CLAMPOTRON = REGISTRATE.block("clampotron") { p: BlockBehaviour.Properties ->
         ClampotronBlock(p)
+    }.initialProperties { SharedProperties.softMetal() }
+        .transform(axeOrPickaxe()).properties { it.noOcclusion() }
+        .addLayer { Supplier { RenderType.cutout() } }
+        .item().tab(ClockworkMod.BASE_CREATIVE_TABINFO).build().register()
+
+    @JvmField
+    val HARPOON = REGISTRATE.block("harpoon_launcher") { p: BlockBehaviour.Properties ->
+        HarpoonBlock(p)
     }.initialProperties { SharedProperties.softMetal() }
         .transform(axeOrPickaxe()).properties { it.noOcclusion() }
         .addLayer { Supplier { RenderType.cutout() } }

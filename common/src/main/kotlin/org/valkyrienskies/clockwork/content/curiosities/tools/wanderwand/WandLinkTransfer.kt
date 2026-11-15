@@ -7,6 +7,7 @@ import net.minecraft.core.Direction
 import net.minecraft.server.level.ServerLevel
 import net.minecraft.world.level.Level
 import net.minecraft.world.level.block.Rotation
+import net.minecraft.world.phys.Vec3
 import org.joml.Matrix3d
 import org.joml.Quaterniond
 import org.joml.Quaterniondc
@@ -20,6 +21,15 @@ import org.valkyrienskies.mod.common.getShipManagingPos
 object WandLinkTransfer {
     internal data class Destination(val anchor: WandAnchor, val rotation: Quaterniondc = Quaterniond())
 
+    internal fun rotatedDestination(anchor: WandAnchor, pos: BlockPos, shipId: Long, turn: Quaterniondc): Destination {
+        val face = turn.transform(Vector3d(anchor.face.stepX.toDouble(), anchor.face.stepY.toDouble(), anchor.face.stepZ.toDouble()))
+        val offset = anchor.offset?.let {
+            turn.transform(Vector3d(it.x, it.y, it.z)).let { rotated -> Vec3(rotated.x, rotated.y, rotated.z) }
+        }
+        return Destination(anchor.copy(pos = pos.immutable(), face = Direction.getNearest(face.x, face.y, face.z),
+            shipId = shipId, offset = offset), turn)
+    }
+
     internal fun pose(pose: VSJointPose, from: WandAnchor, to: Destination): VSJointPose {
         val offset = Vector3d(pose.pos).sub(from.pos.x + 0.5, from.pos.y + 0.5, from.pos.z + 0.5)
         to.rotation.transform(offset)
@@ -32,8 +42,7 @@ object WandLinkTransfer {
         if (level !is ServerLevel || from == to) return
         val turn = Quaterniond().rotationY(-rotation.ordinal * Math.PI / 2)
         remap(level) { anchor ->
-            if (anchor.pos != from) null else Destination(anchor.copy(pos = to.immutable(),
-                face = rotation.rotate(anchor.face), shipId = level.getShipManagingPos(to)?.id ?: -1), turn)
+            if (anchor.pos != from) null else rotatedDestination(anchor, to, level.getShipManagingPos(to)?.id ?: -1, turn)
         }
     }
 
@@ -57,9 +66,7 @@ object WandLinkTransfer {
     fun moveRotated(level: ServerLevel, moves: Map<BlockPos, BlockPos>, turn: Quaterniondc) {
         remap(level) { anchor ->
             moves[anchor.pos]?.let { pos ->
-                val face = turn.transform(Vector3d(anchor.face.stepX.toDouble(), anchor.face.stepY.toDouble(), anchor.face.stepZ.toDouble()))
-                Destination(anchor.copy(pos = pos.immutable(), face = Direction.getNearest(face.x, face.y, face.z),
-                    shipId = level.getShipManagingPos(pos)?.id ?: -1), turn)
+                rotatedDestination(anchor, pos, level.getShipManagingPos(pos)?.id ?: -1, turn)
             }
         }
     }

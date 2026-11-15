@@ -55,6 +55,9 @@ object ClockworkPartials {
     val ROPE_WINCH_DRUM = block("rope_winch/drum")
     val ROPE_WINCH_ROPE = block("rope_winch/rope")
     val ROPE_WINCH_LEAD = block("rope_winch/lead")
+    val HARPOON_COG = block("harpoon_launcher/cog")
+    val HARPOON_CHUTE = block("harpoon_launcher/chute")
+    val HARPOON = block("harpoon_launcher/harpoon")
 
     // region Gravitron
     val GRAV_DIAL_HAND = item("gravitron/dialhand")

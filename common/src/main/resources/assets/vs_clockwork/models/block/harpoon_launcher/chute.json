@@ -1,0 +1,150 @@
+{
+  "credit": "Made with Blockbench",
+  "parent": "minecraft:block/block",
+  "texture_size": [
+    64,
+    64
+  ],
+  "textures": {
+    "5": "vs_clockwork:block/harpoon_launcher",
+    "particle": "vs_clockwork:block/harpoon_launcher"
+  },
+  "elements": [
+    {
+      "from": [
+        3,
+        12,
+        3
+      ],
+      "to": [
+        13,
+        13,
+        13
+      ],
+      "rotation": {
+        "angle": 0,
+        "axis": "y",
+        "origin": [
+          8,
+          13,
+          8
+        ]
+      },
+      "faces": {
+        "north": {
+          "uv": [
+            7.75,
+            6.75,
+            10.25,
+            7
+          ],
+          "texture": "#5"
+        },
+        "east": {
+          "uv": [
+            7.75,
+            6.75,
+            10.25,
+            7
+          ],
+          "texture": "#5"
+        },
+        "south": {
+          "uv": [
+            7.75,
+            6.75,
+            10.25,
+            7
+          ],
+          "texture": "#5"
+        },
+        "west": {
+          "uv": [
+            7.75,
+            6.75,
+            10.25,
+            7
+          ],
+          "texture": "#5"
+        }
+      }
+    },
+    {
+      "from": [
+        2,
+        13,
+        2
+      ],
+      "to": [
+        14,
+        16,
+        14
+      ],
+      "rotation": {
+        "angle": 0,
+        "axis": "y",
+        "origin": [
+          8,
+          13,
+          8
+        ]
+      },
+      "faces": {
+        "north": {
+          "uv": [
+            7,
+            5.5,
+            10,
+            6.25
+          ],
+          "texture": "#5"
+        },
+        "east": {
+          "uv": [
+            7,
+            5.5,
+            10,
+            6.25
+          ],
+          "texture": "#5"
+        },
+        "south": {
+          "uv": [
+            7,
+            5.5,
+            10,
+            6.25
+          ],
+          "texture": "#5"
+        },
+        "west": {
+          "uv": [
+            7,
+            5.5,
+            10,
+            6.25
+          ],
+          "texture": "#5"
+        },
+        "up": {
+          "uv": [
+            4,
+            6,
+            7,
+            9
+          ],
+          "texture": "#5"
+        },
+        "down": {
+          "uv": [
+            4,
+            6,
+            7,
+            9
+          ],
+          "texture": "#5"
+        }
+      }
+    }
+  ]
+}

@@ -1,12 +1,21 @@
 package org.valkyrienskies.clockwork.forge.gametest
 
+import com.mojang.authlib.GameProfile
+import io.netty.channel.embedded.EmbeddedChannel
 import net.minecraft.core.BlockPos
 import net.minecraft.gametest.framework.AfterBatch
 import net.minecraft.gametest.framework.BeforeBatch
 import net.minecraft.gametest.framework.GameTest
 import net.minecraft.gametest.framework.GameTestAssertException
 import net.minecraft.gametest.framework.GameTestHelper
+import net.minecraft.network.Connection
+import net.minecraft.network.ConnectionProtocol
+import net.minecraft.network.PacketSendListener
+import net.minecraft.network.protocol.Packet
+import net.minecraft.network.protocol.PacketFlow
+import net.minecraft.network.protocol.handshake.ClientIntentionPacket
 import net.minecraft.server.level.ServerLevel
+import net.minecraft.server.level.ServerPlayer
 import net.minecraft.world.InteractionResult
 import net.minecraft.world.level.ChunkPos
 import net.minecraft.world.level.block.Blocks
@@ -14,6 +23,7 @@ import net.minecraft.world.level.block.SlabBlock
 import net.minecraft.world.level.block.state.properties.SlabType
 import net.minecraftforge.gametest.GameTestHolder
 import net.minecraftforge.gametest.PrefixGameTestTemplate
+import net.minecraftforge.network.NetworkHooks
 import org.joml.Vector3d
 import org.valkyrienskies.clockwork.ClockworkBlocks
 import org.valkyrienskies.clockwork.ClockworkConfig
@@ -24,6 +34,32 @@ import org.valkyrienskies.mod.common.BlockStateInfo
 import org.valkyrienskies.mod.common.assembly.ShipAssembler
 import org.valkyrienskies.mod.common.shipObjectWorld
 import org.valkyrienskies.mod.common.util.toJOML
+import java.util.UUID
+
+internal class ShipTestObserver(private val level: ServerLevel, pos: BlockPos) : AutoCloseable {
+    private val channel = EmbeddedChannel()
+    private val player = ServerPlayer(level.server, level, GameProfile(UUID.randomUUID(), "ship-test"))
+
+    init {
+        val connection = object : Connection(PacketFlow.SERVERBOUND) {
+            override fun send(packet: Packet<*>, listener: PacketSendListener?) {
+                listener?.onSuccess()
+            }
+        }
+        channel.pipeline().addLast("packet_handler", connection)
+        channel.pipeline().fireChannelActive()
+        NetworkHooks.registerServerLoginChannel(connection, ClientIntentionPacket("localhost", 0, ConnectionProtocol.LOGIN))
+        level.server.playerList.placeNewPlayer(connection, player)
+        player.setPos(pos.x + 0.5, pos.y + 10.0, pos.z + 0.5)
+        player.setNoGravity(true)
+        player.abilities.flying = true
+    }
+
+    override fun close() {
+        level.server.playerList.remove(player)
+        channel.finishAndReleaseAll()
+    }
+}
 
 @GameTestHolder(ClockworkMod.MOD_ID)
 @PrefixGameTestTemplate(false)
@@ -33,6 +69,7 @@ class WanderliteGameTests {
         private const val TEMPLATE = "clockworkforgegametests.bladetestpositive"
         private val ships = mutableSetOf<Long>()
         private val forcedChunks = mutableSetOf<ChunkPos>()
+        private val observers = mutableListOf<ShipTestObserver>()
         private var previousPhysicsSync = false
         private var previousLiftMultiplier = 0.0
 
@@ -52,6 +89,8 @@ class WanderliteGameTests {
             forcedChunks.forEach { level.setChunkForced(it.x, it.z, false) }
             ships.clear()
             forcedChunks.clear()
+            observers.forEach { it.close() }
+            observers.clear()
             VSCoreConfig.SERVER.pt.synchronizePhysics = previousPhysicsSync
             ClockworkConfig.SERVER.wanderOreForceMultiplier = previousLiftMultiplier
         }
@@ -61,6 +100,7 @@ class WanderliteGameTests {
         fun liftFollowsTheBlocksThroughAssemblyAndEdits(helper: GameTestHelper) {
             val level = helper.level
             val base = helper.absolutePos(BlockPos(1, 1, 1)).atY(220)
+            observers.add(ShipTestObserver(level, base))
             val slabPos = base.east()
             val block = ClockworkBlocks.WANDERLITE_BLOCK.get()
             val slab = ClockworkBlocks.SMOOTH_WANDERLITE_SLAB.defaultState
