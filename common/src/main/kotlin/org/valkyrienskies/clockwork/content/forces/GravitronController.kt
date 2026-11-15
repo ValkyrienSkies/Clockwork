@@ -68,7 +68,7 @@ class GravitronController : ShipPhysicsListener {
     fun setData(data: GravitronForceInducerData?, ship: LoadedServerShip) {
         this.data = data
 
-        GyroShipControl.getOrCreate(ship).overrideDisable = (data == null)
+        GyroShipControl.getOrCreate(ship).overrideDisable = (data != null)
     }
 
     companion object {
