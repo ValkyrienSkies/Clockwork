@@ -11,21 +11,25 @@ import net.minecraft.client.renderer.texture.TextureAtlasSprite
 import net.minecraft.resources.ResourceLocation
 import org.joml.Vector3d
 import org.valkyrienskies.core.api.bodies.ClientVsBody
+import org.valkyrienskies.core.api.bodies.properties.BodyTransform
+import org.valkyrienskies.core.api.ships.ClientShip
 import org.valkyrienskies.mod.common.shipObjectWorld
 import kotlin.math.PI
 import kotlin.math.abs
 import kotlin.math.ceil
 import kotlin.math.cos
 import kotlin.math.sin
-import kotlin.math.sqrt
+import kotlin.math.round
 
 internal object LayeredTireRenderer {
-    private data class Strand(val surface: Long, val anchor: Vector3d, val tread: Vector3d,
+    private data class Strand(val surface: Long, val anchor: Vector3d, val site: Int,
                               val born: Long, val width: Double, var touched: Long = born)
+    private data class Glob(val point: Vector3d, val width: Double)
     private data class MappedVertex(val point: Vector3d, val u: Double, val v: Double)
     private class Trail {
         val strands = ArrayList<Strand>()
         var tick = Long.MIN_VALUE
+        var tire: WheelTire? = null
     }
     private val trails = HashMap<Long, Trail>()
     private var level: ClientLevel? = null
@@ -35,6 +39,10 @@ internal object LayeredTireRenderer {
         level = null
     }
 
+    private fun surfaceTransform(world: ClientLevel, id: Long): BodyTransform? =
+        (world.shipObjectWorld.allShips.getById(id) as? ClientShip)?.renderTransform
+            ?: (world.shipObjectWorld.allBodies.getById(id) as? ClientVsBody)?.renderTransform
+
     fun render(world: ClientLevel?, body: ClientVsBody?, tire: WheelTire, contacts: List<TireContact>,
                stack: PoseStack, buffers: MultiBufferSource, light: Int, overlay: Int, partialTick: Float,
                material: TextureAtlasSprite? = null) {
@@ -42,37 +50,42 @@ internal object LayeredTireRenderer {
         val time = world?.gameTime ?: 0L
         if (time % 40L == 0L) trails.entries.removeIf { time - it.value.tick > 40 }
         val appearance = tire.type.appearance
-        val trail = body?.takeIf { appearance.webs }?.let { trails.getOrPut(it.id) { Trail() } }
+        val globs = if (appearance.webs) globs(tire, contacts) else emptyList()
+        val trail = body?.takeIf { appearance.webs }?.let { trails.getOrPut(it.id) { Trail() } }?.also {
+            if (it.tire != tire) { it.strands.clear(); it.tire = tire; it.tick = Long.MIN_VALUE }
+        }
         if (world != null && body != null && trail != null && trail.tick != time) {
             trail.tick = time
             val contact = WheelEffects.surfaceContact(body.id)
             if (contact != null) {
-                val surface = world.shipObjectWorld.allBodies.getById(contact.surface) as? ClientVsBody
+                val surface = surfaceTransform(world, contact.surface)
                 val point = Vector3d(contact.point)
                 val normal = Vector3d(contact.normal)
-                surface?.renderTransform?.toWorld?.transformPosition(point)
-                surface?.renderTransform?.toWorld?.transformDirection(normal)?.normalize()
-                val local = body.renderTransform.toModel.transformPosition(point, Vector3d())
-                val radial = sqrt(local.y * local.y + local.z * local.z)
-                if (radial > .01) for (side in listOf(-.32, .32)) {
-                    val radius = minOf(radial, tire.radius) - minOf(.08, tire.thickness * .35)
-                    val tread = Vector3d(side * tire.width, local.y * radius / radial, local.z * radius / radial)
-                    val anchor = body.renderTransform.toWorld.transformPosition(Vector3d(local).apply { x = tread.x }, Vector3d())
-                        .fma(.015, normal)
-                    surface?.renderTransform?.toModel?.transformPosition(anchor)
-                    val existing = trail.strands.lastOrNull { it.surface == contact.surface &&
-                        it.tread.distanceSquared(tread) < .012 && it.anchor.distanceSquared(anchor) < .012 }
+                surface?.toWorld?.transformPosition(point)
+                surface?.toWorld?.transformDirection(normal)?.normalize()
+                val localNormal = body.renderTransform.toModel.transformDirection(normal, Vector3d()).normalize()
+                for ((site, glob) in globs.withIndex()) {
+                    val radial = Vector3d(0.0, glob.point.y, glob.point.z).normalize()
+                    if (radial.dot(localNormal) > -.5) continue
+                    val anchor = body.renderTransform.toWorld.transformPosition(glob.point, Vector3d())
+                    val gap = Vector3d(anchor).sub(point).dot(normal)
+                    val reach = glob.width * body.renderTransform.scaling.x() + .08
+                    if (gap !in -reach..reach) continue
+                    anchor.fma(.015 - gap, normal)
+                    surface?.toModel?.transformPosition(anchor)
+                    val existing = trail.strands.lastOrNull { it.surface == contact.surface && it.site == site &&
+                        it.anchor.distanceSquared(anchor) < .012 }
                     if (existing != null) existing.touched = time
-                    else trail.strands.add(Strand(contact.surface, anchor, tread, time, minOf(.22, tire.width * .32)))
+                    else trail.strands.add(Strand(contact.surface, anchor, site, time, glob.width))
                 }
             }
             trail.strands.removeIf { strand ->
-                val surface = world.shipObjectWorld.allBodies.getById(strand.surface) as? ClientVsBody
+                val surface = surfaceTransform(world, strand.surface)
                 val anchor = Vector3d(strand.anchor)
-                surface?.renderTransform?.toWorld?.transformPosition(anchor)
+                surface?.toWorld?.transformPosition(anchor)
                 body.renderTransform.toModel.transformPosition(anchor)
                 time - strand.touched > 30 || strand.surface != -1L && surface == null ||
-                    anchor.distance(strand.tread) > minOf(1.6, tire.radius * 1.4)
+                    anchor.distance(globs[strand.site].point) > minOf(1.6, tire.radius * 1.4)
             }
             while (trail.strands.size > 24) trail.strands.removeAt(0)
         }
@@ -83,22 +96,61 @@ internal object LayeredTireRenderer {
             val buffer = buffers.getBuffer(if (outer) Sheets.translucentCullBlockSheet() else Sheets.solidBlockSheet())
             val sprite = if (outer) requireNotNull(shell) else inside
             ring(tire, contacts, outer || shell == null, stack, buffer, sprite, light, overlay)
+            for (glob in globs) renderGlob(glob, outer || shell == null, stack, buffer, sprite, light, overlay)
             if (world != null && body != null && trail != null) for (strand in trail.strands) {
                 val anchor = Vector3d(strand.anchor)
                 if (strand.surface != -1L) {
-                    val surface = world.shipObjectWorld.allBodies.getById(strand.surface) as? ClientVsBody ?: continue
-                    surface.renderTransform.toWorld.transformPosition(anchor)
+                    val surface = surfaceTransform(world, strand.surface) ?: continue
+                    surface.toWorld.transformPosition(anchor)
                 }
                 body.renderTransform.toModel.transformPosition(anchor)
-                val length = anchor.distance(strand.tread)
+                val tread = globs[strand.site].point
+                val length = anchor.distance(tread)
                 val maximum = minOf(1.6, tire.radius * 1.4)
                 if (length > maximum || length < .008) continue
                 val age = time - strand.touched + partialTick
                 val growth = ((time - strand.born + partialTick + 1) / 3.0).coerceAtMost(1.0)
                 val fade = growth * minOf(1.0, (30 - age) / 8.0, (maximum - length) / .25).coerceAtLeast(0.0)
-                web(strand.tread, anchor, strand.width * fade, outer || shell == null, stack, buffer, sprite, light, overlay)
+                web(tread, anchor, strand.width * fade, outer || shell == null, stack, buffer, sprite, light, overlay)
             }
         }
+    }
+
+    private fun globs(tire: WheelTire, contacts: List<TireContact>): List<Glob> {
+        val planes = contacts.map { contact ->
+            val support = (0 until 8).maxOf { i ->
+                val angle = (i - .5) * PI / 4
+                -tire.radius * (cos(angle) * contact.normal.y + sin(angle) * contact.normal.z)
+            }
+            contact.normal to (support - contact.compression.coerceAtMost((tire.thickness * tire.type.physics.compression).toFloat()))
+        }
+        return (0 until 24).map { site ->
+            val row = site % 2
+            val angle = (site / 2 + row * .43) * PI / 6
+            val faceAngle = round(angle / (PI / 4)) * PI / 4
+            val radius = tire.radius * cos(PI / 8) / cos(angle - faceAngle)
+            val point = Vector3d((if (row == 0) -.24 else .24) * tire.width, cos(angle) * radius, sin(angle) * radius)
+            val rubber = ((radius - tire.rimRadius) / tire.thickness).coerceIn(0.0, 1.0)
+            for ((normal, limit) in planes) {
+                val depth = -limit - point.dot(normal)
+                if (depth > 0) point.fma(depth * rubber, normal)
+            }
+            Glob(point, minOf(.14, tire.width * .23) * (.75 + .25 * sin(site * 2.4)))
+        }
+    }
+
+    private fun renderGlob(glob: Glob, outer: Boolean, stack: PoseStack, buffer: VertexConsumer,
+                     sprite: TextureAtlasSprite, light: Int, overlay: Int) {
+        val radial = Vector3d(0.0, glob.point.y, glob.point.z).normalize()
+        val tangent = Vector3d(0.0, radial.z, -radial.y)
+        val width = glob.width * if (outer) 1.0 else .65
+        val points = (0..7).map { i -> Vector3d(glob.point)
+            .add(if (i and 1 == 0) -width else width, 0.0, 0.0)
+            .fma(if (i and 2 == 0) -width else width, tangent)
+            .fma(if (i and 4 == 0) -width * .45 else width * .7, radial) }
+        for (face in arrayOf(intArrayOf(0, 4, 6, 2), intArrayOf(1, 3, 7, 5), intArrayOf(0, 1, 5, 4),
+            intArrayOf(2, 6, 7, 3), intArrayOf(0, 2, 3, 1), intArrayOf(4, 5, 7, 6)))
+            quad(points[face[0]], points[face[1]], points[face[2]], points[face[3]], stack, buffer, sprite, light, overlay)
     }
 
     fun cleats(tire: WheelTire, stack: PoseStack, buffers: MultiBufferSource, light: Int, overlay: Int,
@@ -110,16 +162,17 @@ internal object LayeredTireRenderer {
             .apply(ResourceLocation("minecraft", "block/$texture"))
         val buffer = buffers.getBuffer(Sheets.solidBlockSheet())
         val height = cleatHeight(tire)
+        val phase = if (tire.type.appearance.mesh == TireType.Mesh.TREAD) .5 else 0.0
         val planes = contacts.map { contact ->
             val support = (0 until 8).maxOf { i ->
-                val angle = (i + .5) * PI / 4
+                val angle = (i + phase) * PI / 4
                 -tire.radius * (cos(angle) * contact.normal.y + sin(angle) * contact.normal.z)
             }
             contact.normal to (support - contact.compression.coerceIn(0f,
                 (tire.thickness * tire.type.physics.compression).toFloat()))
         }
         for (segment in 0 until 8) {
-            val angle = (segment + .5) * PI / 4
+            val angle = (segment + phase) * PI / 4
             val radial = Vector3d(0.0, cos(angle), sin(angle))
             val tangent = Vector3d(0.0, -sin(angle), cos(angle))
             val span = if (kind == TireType.Cleats.LUGS) tire.width * .32 else tire.width * .48
@@ -159,7 +212,8 @@ internal object LayeredTireRenderer {
             tire.rimWidth / 2 to tire.rimRadius)
         val planes = contacts.map { contact ->
             val support = (0 until 8).maxOf { i ->
-                -radius * (cos(i * PI / 4) * contact.normal.y + sin(i * PI / 4) * contact.normal.z)
+                val angle = (i - .5) * PI / 4
+                -radius * (cos(angle) * contact.normal.y + sin(angle) * contact.normal.z)
             }
             contact.normal to (support - contact.compression.coerceAtMost((tire.thickness * tire.type.physics.compression).toFloat()))
         }
@@ -174,7 +228,7 @@ internal object LayeredTireRenderer {
         }
         for (band in 0 until profile.lastIndex) for (segment in 0 until 8) {
             val a = profile[band]; val b = profile[band + 1]
-            val angle = segment * PI / 4; val next = (segment + 1) * PI / 4
+            val angle = (segment - .5) * PI / 4; val next = (segment + .5) * PI / 4
             quad(vertex(a.first, a.second, angle), vertex(a.first, a.second, next),
                 vertex(b.first, b.second, next), vertex(b.first, b.second, angle), stack, buffer, sprite, light, overlay)
         }

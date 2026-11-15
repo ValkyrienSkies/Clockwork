@@ -53,7 +53,7 @@ object ClockworkConfig {
 
     class Server {
         @ConfigEntry(description = "Enable raycast-based wheel assistance when climbing terrain steps")
-        var wheelStepAssist = false
+        var wheelStepAssist = true
 
         @ConfigEntry(description = "Extra wheel step-assist lift reserve as a fraction of the supported load", min = 0.0, max = 1.0)
         var wheelStepAssistStrength = 0.35

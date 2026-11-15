@@ -93,8 +93,6 @@ class WheelItemRenderer : CustomRenderedItemModelRenderer() {
         val item = stack.item as? WheelItem ?: return
         val tire = item.size.tire(type = item.tireType)
         ms.pushPose()
-        val scale = (.5 / tire.radius).toFloat()
-        ms.scale(scale, scale, scale)
         ms.mulPose(Quaternionf().rotationY((PI / 2).toFloat()))
         when (tire.type.appearance.mesh) {
             TireType.Mesh.LAYERED -> LayeredTireRenderer.render(Minecraft.getInstance().level, null, tire, emptyList(), ms,

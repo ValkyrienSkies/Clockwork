@@ -21,11 +21,12 @@ import net.minecraft.world.phys.shapes.CollisionContext
 import org.joml.Vector3dc
 import org.valkyrienskies.clockwork.ClockworkBlockEntities
 import org.valkyrienskies.clockwork.ClockworkItems
+import org.valkyrienskies.clockwork.content.curiosities.tools.screwdriver.IScrewdrivable
 import org.valkyrienskies.core.api.ships.ServerShip
 import org.valkyrienskies.mod.common.assembly.ICopyableBlock
 import java.util.function.Supplier
 
-class WheelHubBlock(properties: Properties) : BearingBlock(properties), IBE<WheelHubBlockEntity>, ICopyableBlock {
+class WheelHubBlock(properties: Properties) : BearingBlock(properties), IBE<WheelHubBlockEntity>, ICopyableBlock, IScrewdrivable {
     override fun getBlockEntityClass() = WheelHubBlockEntity::class.java
     override fun getBlockEntityType() = ClockworkBlockEntities.WHEEL_HUB.get()
     override fun getRenderShape(state: BlockState) = RenderShape.ENTITYBLOCK_ANIMATED
@@ -48,7 +49,17 @@ class WheelHubBlock(properties: Properties) : BearingBlock(properties), IBE<Whee
 
     override fun onSneakWrenched(state: BlockState, context: UseOnContext): InteractionResult {
         val hub = context.level.getBlockEntity(context.clickedPos) as? WheelHubBlockEntity
-        if (hub?.wheel == null || context.clickedFace != hub.facing) return super.onSneakWrenched(state, context)
+        if (hub?.wheel != null) return InteractionResult.PASS
+        return super.onSneakWrenched(state, context)
+    }
+
+    override fun onScrewdrived(state: BlockState, context: UseOnContext) = InteractionResult.PASS
+
+    override fun onSneakScrewdrived(state: BlockState, context: UseOnContext): InteractionResult {
+        val hub = context.level.getBlockEntity(context.clickedPos) as? WheelHubBlockEntity
+        if (hub?.wheel == null || context.clickedFace != hub.facing) return InteractionResult.PASS
+        if (context.hand == InteractionHand.OFF_HAND && context.player?.mainHandItem?.item is WheelItem)
+            return InteractionResult.PASS
         if (!context.level.isClientSide) hub.uninstall(context.player)
         return InteractionResult.sidedSuccess(context.level.isClientSide)
     }

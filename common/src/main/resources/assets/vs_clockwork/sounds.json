@@ -1,4 +1,8 @@
 {
+  "wheel_unscrew_1": {
+    "sounds": ["vs_clockwork:wheel_unscrew_1", "vs_clockwork:wheel_unscrew_2"],
+    "subtitle": "vs_clockwork.subtitle.wheel_unscrew_1"
+  },
   "driving_wood": {"sounds": ["vs_clockwork:driving_wood"], "subtitle": "vs_clockwork.subtitle.driving_wood"},
   "driving_generic": {"sounds": ["vs_clockwork:driving_generic"], "subtitle": "vs_clockwork.subtitle.driving_generic"},
   "driving_gritty": {"sounds": ["vs_clockwork:driving_gritty"], "subtitle": "vs_clockwork.subtitle.driving_gritty"},
@@ -336,6 +340,14 @@
       }
     ],
     "subtitle": "vs_clockwork.subtitle.gas_hiss"
+  },
+  "thinking_with_voxels": {
+    "sounds": [
+      {
+        "name": "vs_clockwork:thinking_with_voxels",
+        "stream": true
+      }
+    ]
   },
   "wanderlust": {
     "sounds": [

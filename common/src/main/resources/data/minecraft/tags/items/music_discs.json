@@ -1,6 +1,7 @@
 {
   "replace": false,
   "values": [
-    "vs_clockwork:music_disc_wanderlust"
+    "vs_clockwork:music_disc_wanderlust",
+    "vs_clockwork:music_disc_thinking_with_voxels"
   ]
 }

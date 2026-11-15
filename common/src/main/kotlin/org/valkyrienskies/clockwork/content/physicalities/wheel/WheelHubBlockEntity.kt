@@ -30,6 +30,7 @@ import net.minecraft.world.phys.BlockHitResult
 import org.joml.Quaterniond
 import org.joml.Vector3d
 import org.valkyrienskies.clockwork.ClockworkConfig
+import org.valkyrienskies.clockwork.ClockworkSounds
 import org.valkyrienskies.clockwork.util.gtpa
 import org.valkyrienskies.core.api.bodies.ServerVsBody
 import org.valkyrienskies.core.api.bodies.VsBodyCreateData
@@ -106,8 +107,9 @@ class WheelHubBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: BlockS
         tireThickness.value = tireThickness.value.coerceIn(5, maximum)
     }
 
-    fun install(size: WheelSize, player: Player, settings: CompoundTag? = null, type: TireType = TireType.RUBBER): Boolean {
-        if (wheel != null) return false
+    fun install(size: WheelSize, player: Player, settings: CompoundTag? = null, type: TireType = TireType.RUBBER,
+                replace: Boolean = false): Boolean {
+        if (wheel != null && !replace) return false
         if (!supportsTires()) {
             player.displayClientMessage(Component.translatable("block.vs_clockwork.wheel_hub.unsupported"), true)
             return false
@@ -118,6 +120,8 @@ class WheelHubBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: BlockS
         val thickness = (settings?.takeIf { it.contains("WheelThickness") }?.getInt("WheelThickness") ?: tireThickness.value)
             .coerceIn(5, size.maximumThicknessPercent / 5)
         val pressure = settings?.takeIf { it.contains("WheelPressure") }?.getInt("WheelPressure")?.coerceIn(20, 320) ?: tirePressure.value
+        val replacing = wheel != null
+        if (replacing) uninstall(player)
         wheel = size
         tireType = type
         wood = WheelItem.wood(settings)
@@ -129,7 +133,7 @@ class WheelHubBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: BlockS
         refreshStress()
         setChanged()
         sendData()
-        AllSoundEvents.WRENCH_ROTATE.playOnServer(level, blockPos)
+        if (!replacing) AllSoundEvents.WRENCH_ROTATE.playOnServer(level, blockPos)
         return true
     }
 
@@ -149,23 +153,24 @@ class WheelHubBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: BlockS
 
     fun uninstall(player: Player?) {
         val size = wheel ?: return
+        if (level !is ServerLevel) return
+        val stack = ItemStack(WheelHubBlock.item(size, tireType))
+        stack.orCreateTag.apply {
+            putInt("WheelWidth", tireWidth.value)
+            putInt("WheelThickness", tireThickness.value)
+            putInt("WheelPressure", tirePressure.value)
+            if (tireType == TireType.WOOD) putString("WheelWood", BuiltInRegistries.BLOCK.getKey(wood).toString())
+        }
         removeBody()
         wheel = null
         updateTireRanges()
         refreshStress()
         if (player?.isCreative != true) {
-            val stack = ItemStack(WheelHubBlock.item(size, tireType))
-            if (tireType == TireType.WOOD) stack.orCreateTag.putString("WheelWood", BuiltInRegistries.BLOCK.getKey(wood).toString())
-            if (tireWidth.value != 20 || tireThickness.value != 20 || tirePressure.value != 160) stack.orCreateTag.apply {
-                putInt("WheelWidth", tireWidth.value)
-                putInt("WheelThickness", tireThickness.value)
-                putInt("WheelPressure", tirePressure.value)
-            }
             if (player == null || !player.inventory.add(stack)) Block.popResource(level, blockPos, stack)
         }
         setChanged()
         sendData()
-        AllSoundEvents.WRENCH_REMOVE.playOnServer(level, blockPos)
+        ClockworkSounds.WHEEL_UNSCREW.playOnServer(level, blockPos)
     }
 
     override fun tick() {

@@ -403,8 +403,11 @@ object WheelEffects {
         return interpolated(wheel, partialTick).mapNotNull { contact ->
             val normal = Vector3d(contact.normal)
             if (contact.surface != -1L) {
-                val surface = level?.shipObjectWorld?.allBodies?.getById(contact.surface) as? ClientVsBody ?: return@mapNotNull null
-                surface.renderTransform.toWorld.transformDirection(normal)
+                val world = level ?: return@mapNotNull null
+                val transform = (world.shipObjectWorld.allShips.getById(contact.surface) as? ClientShip)?.renderTransform
+                    ?: (world.shipObjectWorld.allBodies.getById(contact.surface) as? ClientVsBody)?.renderTransform
+                    ?: return@mapNotNull null
+                transform.toWorld.transformDirection(normal)
             }
             body.renderTransform.toModel.transformDirection(normal).normalize()
             TireContact(contact.surface, normal, (contact.compression * fade / body.renderTransform.scaling.x()).toFloat())

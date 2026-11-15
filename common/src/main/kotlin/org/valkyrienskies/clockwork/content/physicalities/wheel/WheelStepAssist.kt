@@ -110,7 +110,7 @@ internal class WheelStepAssist {
         val arm = Vector3d(normal).mul(-radius)
         val contactVelocity = Vector3d(wheel.angularVelocity).sub(surface.angularVelocity).cross(arm).add(relative)
         val grip = traction(contactVelocity.dot(tangent), normalLoad, current.friction,
-            wheel.inertiaData.mass, wheel.inertiaData.inertiaTensor.m00(), radius, dt)
+            wheel.inertiaData.mass, wheel.inertiaData.inertiaTensor.m00(), radius, dt, settings.maximumForce)
         if (grip != 0.0) {
             val point = Vector3d(center).add(arm)
             val force = tangent.mul(grip)
@@ -158,26 +158,36 @@ internal class WheelStepAssist {
             val topStart = Vector3d(start).fma(wall.distance + inset, forward).fma(heightLimit + .1 - toe, up)
             var height = 0.0
             var friction = Double.POSITIVE_INFINITY
+            var supported = 0
             for (side in -1..1) {
-                val top = cast(Vector3d(topStart).fma(side * .9 * halfWidth, axle), down, heightLimit + .1) ?: return null
+                val sample = Vector3d(topStart).fma(side * .9 * halfWidth, axle)
+                sample.fma(-side * .9 * halfWidth * axle.dot(up), up)
+                val top = cast(sample, down, heightLimit + .1)
+                if (top == null) { if (side == 0) return null else continue }
                 val rise = heightLimit + .1 - top.distance
-                if (top.body != wall.body || top.normal.dot(up) < .7 || rise < .08 || rise > heightLimit + 1e-6) return null
-                if (height > 0.0 && abs(rise - height) > .2) return null
+                if (top.body != wall.body || top.normal.dot(up) < .7 || rise < .08 || rise > heightLimit + 1e-6) {
+                    if (side == 0) return null else continue
+                }
                 height = maxOf(height, rise)
                 if (!top.friction.isFinite()) return null
                 friction = minOf(friction, top.friction.coerceIn(0.0, 2.0))
+                supported++
             }
+            if (supported < 2) return null
             if (cast(Vector3d(topStart).fma(height - heightLimit - .06, up), up, radius * 2.0 + .08) != null ||
                 cast(Vector3d(center).fma(radius, up), up, height + .1) != null) return null
             return Step(wall.body, Vector3d(base).fma(wall.distance, forward).fma(height, up), forward, Vector3d(up),
-                height, reach, radius - .02, friction)
+                height, reach, minOf(support.distance, radius - .02), friction)
         }
 
-        internal fun traction(slip: Double, load: Double, friction: Double, mass: Double, axialInertia: Double, radius: Double, dt: Double): Double {
+        internal fun traction(slip: Double, load: Double, friction: Double, mass: Double, axialInertia: Double, radius: Double, dt: Double,
+                              maximumForce: Double = Double.POSITIVE_INFINITY): Double {
             if (!slip.isFinite() || !load.isFinite() || !friction.isFinite() || !mass.isFinite() || !axialInertia.isFinite() ||
                 !radius.isFinite() || !dt.isFinite() || mass <= 0.0 || axialInertia <= 0.0 || radius <= 0.0 || dt <= 0.0) return 0.0
+            if (maximumForce.isNaN() || maximumForce <= 0.0) return 0.0
             val effectiveMass = 1.0 / (1.0 / mass + radius * radius / axialInertia)
-            val limit = (load * friction).coerceAtLeast(0.0)
+            val remaining = sqrt((maximumForce * maximumForce - load * load).coerceAtLeast(0.0))
+            val limit = (load * friction).coerceIn(0.0, remaining)
             return (-slip * effectiveMass / maxOf(dt, 1.0 / 120.0)).coerceIn(-limit, limit)
         }
 
@@ -190,21 +200,30 @@ internal class WheelStepAssist {
             if (abs(direction.dot(step.forward)) < .8) return null
             val offset = Vector3d(center).sub(step.edge)
             val distance = -offset.dot(step.forward)
-            if (distance < -.1 || distance > step.run || abs(offset.dot(axle)) > .6) return null
+            val sideways = Vector3d(step.up).cross(step.forward).normalize()
+            if (distance < -.1 || distance > step.run || abs(offset.dot(sideways)) > .6) return null
             val speed = relative.dot(step.forward)
             if (speed < -1.0 || rpm == null && speed < .2) return null
             val progress = (1.0 - distance / step.run).coerceIn(0.0, 1.0)
-            val rise = step.height * progress * progress * (3.0 - 2.0 * progress)
-            val slope = step.height * 6.0 * progress * (1.0 - progress) / step.run
+            var rise = step.height * progress * progress * (3.0 - 2.0 * progress)
+            var slope = step.height * 6.0 * progress * (1.0 - progress) / step.run
+            if (distance in 0.0..radius) {
+                val cornerHeight = sqrt((radius * radius - distance * distance).coerceAtLeast(0.0))
+                val envelopeRise = step.height + cornerHeight - .02 - step.rideHeight
+                if (envelopeRise > rise) {
+                    rise = envelopeRise
+                    slope = distance / maxOf(.05, cornerHeight)
+                }
+            }
             val error = step.rideHeight + rise - (offset.dot(step.up) + step.height)
             if (error < -.15) return null
-            val targetSpeed = (maxOf(.4, speed) * slope).coerceAtMost(1.5)
+            val targetSpeed = (maxOf(0.0, speed) * slope).coerceAtMost(1.5)
             val engagement = (progress * 4.0).coerceIn(0.0, 1.0)
             val demand = load * engagement * engagement * (3.0 - 2.0 * engagement) +
                 load / gravity * (64.0 * error + 12.0 * (targetSpeed - relative.dot(step.up)))
-            val normal = Vector3d(step.up).fma(-slope, step.forward)
-            val limit = minOf(settings.maximumForce / (normal.length() * sqrt(1.0 + step.friction * step.friction)), load * (1.0 + settings.strength.coerceAtMost(1.0)),
-                torque / (radius * maxOf(.2, slope)))
+            val normal = Vector3d(step.up)
+            val reserve = minOf(load * settings.strength.coerceAtMost(1.0), torque / (radius * maxOf(.2, slope)))
+            val limit = minOf(settings.maximumForce, load + reserve)
             val lift = demand.coerceIn(0.0, limit) * ((1.5 - relative.dot(step.up)) / .4).coerceIn(0.0, 1.0)
             return if (lift > 0.0) Push(step.surface, normal.mul(lift)) else null
         }

@@ -1,6 +1,7 @@
 package org.valkyrienskies.clockwork.content.physicalities.wheel
 
 import net.minecraft.world.InteractionResult
+import net.minecraft.world.InteractionHand
 import net.minecraft.world.item.Item
 import net.minecraft.world.item.context.UseOnContext
 import net.minecraft.core.RegistryAccess
@@ -18,6 +19,7 @@ import net.minecraft.world.item.crafting.CustomRecipe
 import net.minecraft.world.level.Level
 import net.minecraft.world.level.block.Blocks
 import org.valkyrienskies.clockwork.ClockworkRecipes
+import org.valkyrienskies.clockwork.ClockworkItems
 
 class WheelItem(properties: Properties, val size: WheelSize, val tireType: TireType = TireType.RUBBER) : Item(properties) {
     override fun appendHoverText(stack: ItemStack, level: Level?, tooltip: MutableList<Component>, flag: TooltipFlag) {
@@ -26,9 +28,16 @@ class WheelItem(properties: Properties, val size: WheelSize, val tireType: TireT
     override fun useOn(context: UseOnContext): InteractionResult {
         val hub = context.level.getBlockEntity(context.clickedPos) as? WheelHubBlockEntity ?: return InteractionResult.PASS
         val player = context.player ?: return InteractionResult.PASS
-        if (!player.mayBuild() || hub.wheel != null || context.clickedFace != hub.facing) return InteractionResult.PASS
+        if (!player.mayBuild() || context.clickedFace != hub.facing) return InteractionResult.PASS
+        val replacing = hub.wheel != null
+        if (replacing) {
+            if (context.hand != InteractionHand.MAIN_HAND || !player.offhandItem.`is`(ClockworkItems.SCREWDRIVER.get()))
+                return InteractionResult.PASS
+            if (hub.wheel == size && hub.tireType == tireType && (tireType != TireType.WOOD || hub.wood == wood(context.itemInHand.tag)))
+                return InteractionResult.FAIL
+        }
         if (context.level.isClientSide) return InteractionResult.SUCCESS
-        if (!hub.install(size, player, context.itemInHand.tag, tireType)) return InteractionResult.FAIL
+        if (!hub.install(size, player, context.itemInHand.tag, tireType, replacing)) return InteractionResult.FAIL
         if (!player.isCreative) context.itemInHand.shrink(1)
         return InteractionResult.CONSUME
     }

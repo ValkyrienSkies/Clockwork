@@ -23,6 +23,8 @@ import java.util.function.Supplier
 
 object ClockworkSounds {
     val ALL: MutableMap<ResourceLocation, SoundEntry> = HashMap()
+    val WHEEL_UNSCREW = create("wheel_unscrew_1").addVariant("wheel_unscrew_2")
+        .subtitle("Wheel unscrewed").category(SoundSource.BLOCKS).build()
     val DRIVING_WOOD = create("driving_wood").subtitle("Tires roll on wood").category(SoundSource.BLOCKS).build()
     val DRIVING_HONEY = create("driving_honey").subtitle("Honey tires roll").category(SoundSource.BLOCKS).build()
     val TIRE_SKID_HONEY = create("tire_skid_honey").subtitle("Honey tires skid").category(SoundSource.BLOCKS).build()
@@ -177,6 +179,10 @@ object ClockworkSounds {
         .attenuationDistance(1024)
         .build()
     val WANDERLUST = create("wanderlust").subtitle("'Wanderlust' plays")
+        .category(SoundSource.RECORDS)
+        .attenuationDistance(32)
+        .build()
+    val THINKING_WITH_VOXELS = create("thinking_with_voxels").subtitle("'Thinking With Voxels' plays")
         .category(SoundSource.RECORDS)
         .attenuationDistance(32)
         .build()

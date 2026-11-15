@@ -19,6 +19,7 @@ import net.minecraft.tags.ItemTags
 import net.minecraft.world.entity.EquipmentSlot
 import net.minecraft.world.item.Item
 import net.minecraft.world.item.Rarity
+import net.minecraft.world.item.RecordItem
 import net.minecraft.world.item.Tiers
 import org.valkyrienskies.clockwork.ClockworkMod.REGISTRATE
 import org.valkyrienskies.clockwork.content.contraptions.propeller.blades.item.BladeItem
@@ -122,6 +123,17 @@ object ClockworkItems {
         }
             .properties { it.rarity(Rarity.EPIC).stacksTo(1) }
             .tab(ClockworkMod.BASE_CREATIVE_TABINFO)
+            .tag(ItemTags.MUSIC_DISCS)
+            .register()
+
+    @JvmField
+    val THINKING_WITH_VOXELS_DISC: ItemEntry<RecordItem> =
+        REGISTRATE.item<RecordItem>("music_disc_thinking_with_voxels") { properties ->
+            object : RecordItem(8, ClockworkSounds.THINKING_WITH_VOXELS.mainEvent!!, properties!!, 112) {}
+        }
+            .properties { it.rarity(Rarity.EPIC).stacksTo(1) }
+            .tab(ClockworkMod.BASE_CREATIVE_TABINFO)
+            .model(AssetLookup.existingItemModel())
             .tag(ItemTags.MUSIC_DISCS)
             .register()
 

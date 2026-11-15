@@ -20,6 +20,7 @@ object GravitronLoad {
         val ground = level.shipObjectWorld.dimensionToGroundBodyIdImmutable[level.dimensionId]
         val graph = ConnectedShipMass(level.gtpa.getAllJoints().values, groundBody = ground, elastic = { true }) { id ->
             level.shipObjectWorld.loadedShips.getById(id)?.let { ConnectedShipMass.Load(it.inertiaData.mass, it.isStatic && it.id != ship.id) }
+                ?: level.shipObjectWorld.allBodies.getById(id)?.let { ConnectedShipMass.Load(it.inertiaData.mass, it.isStatic) }
         }
         return Load(graph.total(ship.id).mass.coerceAtLeast(ship.inertiaData.mass), graph.rigidMass(ship.id).coerceAtLeast(ship.inertiaData.mass))
     }
