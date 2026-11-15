@@ -17,6 +17,7 @@ import org.valkyrienskies.clockwork.content.curiosities.tools.wanderwand.WandAnc
 import org.valkyrienskies.clockwork.content.curiosities.tools.wanderwand.WandLinkSchematics
 import org.valkyrienskies.clockwork.content.curiosities.tools.wanderwand.WandLinks
 import org.valkyrienskies.clockwork.content.curiosities.tools.wanderwand.WandRopeCurve
+import org.valkyrienskies.clockwork.util.render.JoinedStrip
 import kotlin.math.PI
 import kotlin.math.abs
 import kotlin.math.cos
@@ -151,24 +152,28 @@ object VdexSketchInk {
         val builder = BufferBuilder(65536)
         builder.begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_COLOR_TEX)
         var segments = 0
+        // Each stroke fades out over .45 px past its solid core on both sides. Joints are worked out in
+        // pixels, where the screen isn't stretched, and converted back to screen fractions here.
+        class Ink(val color: Int, val alpha: Float)
+        val strip = JoinedStrip<Ink> { p, station, ink ->
+            val x = p.x.toFloat() / width
+            val y = p.y.toFloat() / height
+            val alpha = if (station == 1 || station == 2) ink.alpha else 0f
+            builder.vertex(x.toDouble(), y.toDouble(), p.z)
+                .color((ink.color shr 16) and 255, (ink.color shr 8) and 255, ink.color and 255, (alpha.coerceIn(0f, 1f) * 255).toInt())
+                .uv(x, y).endVertex()
+        }
         fun segment(a: Vector3f, b: Vector3f, color: Int, lineWidth: Float, alpha: Float) {
             if (segments >= 65536 || (a.z < 0 && b.z < 0) || (a.z > 1 && b.z > 1)) return
             val delta = Vector2f((b.x - a.x) * width, (b.y - a.y) * height)
             if (delta.lengthSquared() < .0001f) return
             segments++
             delta.normalize()
-            val normal = Vector2f(-delta.y / width, delta.x / height)
-            val half = lineWidth.coerceIn(.2f, 4f) * .5f
-            val offsets = floatArrayOf(-half - .45f, -half, half, half + .45f)
-            val opacity = floatArrayOf(0f, alpha, alpha, 0f)
-            fun vertex(p: Vector3f, edge: Int) {
-                val x = p.x + normal.x * offsets[edge]
-                val y = p.y + normal.y * offsets[edge]
-                builder.vertex(x.toDouble(), y.toDouble(), p.z.toDouble())
-                    .color((color shr 16) and 255, (color shr 8) and 255, color and 255, (opacity[edge].coerceIn(0f, 1f) * 255).toInt())
-                    .uv(x, y).endVertex()
-            }
-            for (i in 0..2) { vertex(a, i); vertex(b, i); vertex(b, i + 1); vertex(a, i + 1) }
+            val normal = Vec3(-delta.y.toDouble(), delta.x.toDouble(), 0.0)
+            val half = (lineWidth.coerceIn(.2f, 4f) * .5f).toDouble()
+            val offsets = arrayOf(normal.scale(-half - .45), normal.scale(-half), normal.scale(half), normal.scale(half + .45))
+            fun pixels(p: Vector3f) = Vec3((p.x * width).toDouble(), (p.y * height).toDouble(), p.z.toDouble())
+            strip.segment(pixels(a), pixels(b), offsets, Ink(color, alpha))
         }
         for (stroke in drawing.strokes) {
             var previous: Vector3f? = null
@@ -177,6 +182,7 @@ object VdexSketchInk {
                 if (previous != null && projected != null) segment(previous, projected, stroke.color, stroke.width, stroke.alpha)
                 previous = projected
             }
+            strip.end()
         }
         for (symbol in drawing.symbols) {
             val anchor = project(symbol.anchor) ?: continue
@@ -189,6 +195,7 @@ object VdexSketchInk {
                     anchor.y + (axis.y * p.x + axis.x * p.y) / height, anchor.z)
                 segment(offset(pair.first), offset(pair.second), symbol.color, symbol.width, .9f)
             }
+            strip.close()
         }
         val vertices = builder.end()
         if (vertices.isEmpty) { vertices.release(); return null }

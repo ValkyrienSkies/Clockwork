@@ -19,6 +19,7 @@ import org.valkyrienskies.clockwork.ClockworkPartials
 import org.valkyrienskies.clockwork.util.render.ShaderPackCompat
 import org.valkyrienskies.clockwork.ClockworkRenderTypes
 import org.valkyrienskies.clockwork.util.render.RenderUtil
+import org.valkyrienskies.clockwork.util.render.RibbonLine
 import kotlin.math.sin
 import kotlin.math.cos
 
@@ -68,14 +69,16 @@ class WanderwandItemRenderer : CustomRenderedItemModelRenderer() {
         val vc = ClockworkRenderTypes.energyBuffer(buffer)
         for (strand in 0..2) {
             var previous: Vec3? = null
+            val line = RibbonLine(vc, ms.last().pose())
             for (i in 0..8) {
                 val angle = i / 8.0 * Math.PI * 1.3 + time * 0.08 + strand * 2.094
                 val radius = 0.13 + sin(time * 0.35 + i * 1.8 + strand) * 0.014
                 val point = Vec3(cos(angle) * radius, centerY + bob + sin(angle * 1.5) * 0.085, sin(angle) * radius)
-                previous?.let { RenderUtil.addRibbonSegment(vc, ms.last().pose(), it, point, 0.003f + pose.charge * 0.002f,
+                previous?.let { line.segment(it, point, 0.003f + pose.charge * 0.002f,
                     0.765f, 0.627f, 0.89f, 0.25f + pose.charge * 0.5f) }
                 previous = point
             }
+            line.end()
         }
         ms.popPose()
     }
