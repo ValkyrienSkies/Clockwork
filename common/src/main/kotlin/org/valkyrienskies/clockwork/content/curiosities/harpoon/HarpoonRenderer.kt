@@ -41,6 +41,12 @@ class HarpoonRenderer(context: BlockEntityRendererProvider.Context) : KineticBlo
         CachedBuffers.partial(ClockworkPartials.HARPOON_CHUTE, be.blockState)
             .translate(0.0, -be.getRecoil(partialTicks).toDouble(), 0.0)
             .light<SuperByteBuffer>(light).overlay<SuperByteBuffer>(overlay).renderInto(ms, buffer)
+        if (!be.loadedHarpoon.isEmpty && !be.hasDeployedHarpoon) {
+            // Seat the tail inside the chute, leaving the head and part of the shaft exposed.
+            CachedBuffers.partial(ClockworkPartials.HARPOON, be.blockState)
+                .translate(0.0, 0.5, 0.0)
+                .light<SuperByteBuffer>(light).overlay<SuperByteBuffer>(overlay).renderInto(ms, buffer)
+        }
         ms.popPose()
     }
 }

@@ -38,6 +38,12 @@ class HarpoonBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: BlockSt
     private var clientShotStartedAt = -1L
     private var cogAngle = 0.0
     private var previousCogAngle = 0.0
+    private var chargingSoundActive = false
+
+    val isCharging: Boolean get() = !loadedHarpoon.isEmpty && !hasDeployedHarpoon && charge < 1.0 &&
+        !isOverStressed && getSpeed().isFinite() && getSpeed() != 0f
+
+    internal fun chargingSoundStopped() { chargingSoundActive = false }
 
     fun projectileLaunched(speed: Double) {
         shotStartedAt = level?.gameTime ?: -1L
@@ -71,13 +77,13 @@ class HarpoonBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: BlockSt
 
     private fun tickAnimation() {
         previousCogAngle = cogAngle
-        // Model cog radius is nine pixels. Convert flight metres/second to radians/tick.
+        // Reduce payout animation tenfold; it still follows actual projectile speed.
         val shotAge = (level?.gameTime ?: 0L) - clientShotStartedAt
         // A nearby impact may arrive before the first client tick. Keep a brief launch impulse visible.
         val kick = if (clientShotStartedAt >= 0 && shotAge in 0L..3L) launchSpeed * (1.0 - shotAge / 4.0) else 0.0
         val payoutSpeed = if (projectileInFlight) projectileSpeed else kick
         val facingSign = blockState.getValue(BlockStateProperties.FACING).axisDirection.step
-        cogAngle += if (projectileInFlight || kick > 0.0) payoutSpeed / (20.0 * 9.0 / 16.0)
+        cogAngle += if (projectileInFlight || kick > 0.0) payoutSpeed / (200.0 * 9.0 / 16.0)
             else if (!isOverStressed) getSpeed().toDouble() * facingSign * 2.0 * PI / 1200.0 else 0.0
         val turns = floor(cogAngle / (2.0 * PI)) * 2.0 * PI
         cogAngle -= turns
@@ -119,6 +125,10 @@ class HarpoonBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: BlockSt
         super.tick()
         if (level?.isClientSide == true) {
             tickAnimation()
+            if (isCharging && !chargingSoundActive) {
+                chargingSoundActive = true
+                HarpoonChargeSound.play(this)
+            }
             return
         }
         val world = level as? ServerLevel ?: return
@@ -221,19 +231,21 @@ class HarpoonBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: BlockSt
                 ClockworkLang.translate("gui.harpoon.reel").style(ChatFormatting.GRAY).forGoggles(tooltip)
             }
             ClockworkLang.translate("gui.harpoon.release").style(ChatFormatting.GRAY).forGoggles(tooltip)
+        } else if (loadedHarpoon.isEmpty) {
+            ClockworkLang.translate("gui.harpoon.load").style(ChatFormatting.GRAY).forGoggles(tooltip)
         } else {
             ClockworkLang.translate("gui.harpoon.charge").style(ChatFormatting.GRAY).forGoggles(tooltip)
             val progress = sanitizeCharge(charge)
             val color = when {
-                loadedHarpoon.isEmpty || firedThisActivation || progress < MIN_CHARGE -> ChatFormatting.DARK_GRAY
+                progress < MIN_CHARGE -> ChatFormatting.DARK_GRAY
                 progress < 0.5 -> ChatFormatting.GOLD
                 progress < 1.0 -> ChatFormatting.GREEN
                 else -> ChatFormatting.AQUA
             }
             ClockworkLang.text(TooltipHelper.makeProgressBar(10, (progress * 10).toInt()))
                 .style(color).forGoggles(tooltip, 1)
-            ClockworkLang.translate("gui.harpoon.${if (loadedHarpoon.isEmpty) "load" else "loaded"}")
-                .style(if (loadedHarpoon.isEmpty) ChatFormatting.GRAY else ChatFormatting.GREEN)
+            ClockworkLang.translate("gui.harpoon.loaded")
+                .style(ChatFormatting.GREEN)
                 .forGoggles(tooltip)
         }
 

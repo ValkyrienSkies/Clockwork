@@ -69,7 +69,8 @@ class RopeKnotEntityRenderer(context: EntityRendererProvider.Context) : EntityRe
         val level = entity.level() as ClientLevel
         val link = RopeKnotRenderer.link(entity.linkId) ?: return
         val anchor = if (entity.end == 0) link.a else link.b
-        val point = anchor.world(level, true) ?: return
+        val point = (if (link.harpoon && entity.end == 0) RopeKnotRenderer.harpoonStart(level, anchor)
+            else anchor.world(level, true)) ?: return
         val origin = entity.getPosition(partialTick)
         val tint = RopeKnotRenderer.stressColor(link, partialTick)
         if (link.harpoon) {
@@ -165,7 +166,7 @@ object RopeKnotRenderer {
             if (!data.getBoolean("active")) {
                 val flight = flights.remove(id) ?: return
                 if (data.getBoolean("snap")) {
-                    val start = flight.source.world(level, true) ?: return
+                    val start = harpoonStart(level, flight.source) ?: return
                     val tip = flight.point(time)
                     val end = tip.subtract(flight.direction(start, tip).scale(HARPOON_LENGTH))
                     if (snaps.size >= 32) snaps.removeAt(0)
@@ -237,7 +238,8 @@ object RopeKnotRenderer {
         } else if (data.getString("kind") == "physical_rope_break" && (data.getBoolean("spring") || data.getBoolean("thinkable"))) {
             SpringRenderer.acceptBreak(level, data)
         } else if (data.getString("kind") == "physical_rope_break") {
-            val a = Vec3(data.getDouble("ax"), data.getDouble("ay"), data.getDouble("az"))
+            val source = Vec3(data.getDouble("ax"), data.getDouble("ay"), data.getDouble("az"))
+            val a = brokenLink?.takeIf { it.harpoon }?.let { harpoonStart(level, it.a) } ?: source
             val tip = Vec3(data.getDouble("bx"), data.getDouble("by"), data.getDouble("bz"))
             val b = brokenLink?.takeIf { it.harpoon }?.let { harpoonTail(level, it.b, tip) } ?: tip
             val length = data.getDouble("length").let { if (brokenLink?.harpoon == true) harpoonRopeLength(it) else it }
@@ -287,6 +289,13 @@ object RopeKnotRenderer {
     private fun knotModel(level: ClientLevel, point: Vec3, ms: PoseStack, buffers: MultiBufferSource) {
         Minecraft.getInstance().itemRenderer.renderStatic(ItemStack(ClockworkItems.ROPE_KNOT.get()), ItemDisplayContext.NONE,
             LevelRenderer.getLightColor(level, BlockPos.containing(point)), OverlayTexture.NO_OVERLAY, ms, buffers, level, 0)
+    }
+
+    /** Visual-only inset in launcher space, so it also follows rotated/scaled ships. */
+    internal fun harpoonStart(level: ClientLevel, anchor: WandAnchor): Vec3? {
+        val local = anchor.local().subtract(Vec3.atCenterOf(anchor.pos))
+            .subtract(Vec3.atLowerCornerOf(anchor.face.normal).scale(3.0 / 16.0))
+        return anchor.copy(offset = local).world(level, true)
     }
 
     /** The saved anchor is the impact point; the rope ties to the exposed tail behind it. */
@@ -359,7 +368,7 @@ object RopeKnotRenderer {
         val time = animationTicks + partialTick.toDouble()
         for (flight in flights.values) {
             if (time - flight.updated > 20) continue
-            val start = flight.source.world(level, true) ?: continue
+            val start = harpoonStart(level, flight.source) ?: continue
             val tip = flight.point(time)
             if (min(start.distanceToSqr(camera), tip.distanceToSqr(camera)) > 192 * 192) continue
             val distance = start.distanceTo(tip)
