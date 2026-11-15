@@ -13,6 +13,7 @@ object SteeringWheelClient {
     private var pendingUntil = 0L
     private var lastSent = 0L
     private var lastInput = 0
+    private var lastThrottle = 0
 
     fun use(pos: BlockPos) {
         val level = Minecraft.getInstance().level ?: return
@@ -22,6 +23,8 @@ object SteeringWheelClient {
         position = pos.immutable()
         pendingUntil = level.gameTime + 20
         lastSent = 0
+        lastInput = 0
+        lastThrottle = 0
     }
 
     fun tick() {
@@ -49,14 +52,19 @@ object SteeringWheelClient {
         if (world !== mc.level || wheel.driver != player.uuid || mc.screen != null || mc.isPaused) return
         if (input.shiftKeyDown) { stop(); return }
         val direction = (if (input.right) 1 else 0) - (if (input.left) 1 else 0)
-        if (direction != lastInput || world!!.gameTime - lastSent >= 5) {
-            ClockworkPackets.sendToServer(SteeringWheelInputPacket(pos, direction))
+        val throttle = (if (input.up) 1 else 0) - (if (input.down) 1 else 0)
+        if (direction != lastInput || throttle != lastThrottle || world!!.gameTime - lastSent >= 5) {
+            ClockworkPackets.sendToServer(SteeringWheelInputPacket(pos, direction, throttle))
             lastInput = direction
+            lastThrottle = throttle
             lastSent = world!!.gameTime
         }
         input.left = false
         input.right = false
+        input.up = false
+        input.down = false
         input.leftImpulse = 0f
+        input.forwardImpulse = 0f
     }
 
     private fun stop(send: Boolean = true) {

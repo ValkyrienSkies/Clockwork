@@ -27,6 +27,8 @@ import net.minecraft.world.item.context.UseOnContext
 import net.minecraft.world.level.ChunkPos
 import net.minecraft.world.level.block.Block
 import net.minecraft.world.level.block.Blocks
+import net.minecraft.world.level.block.SnowLayerBlock
+import net.minecraft.world.level.block.state.properties.BlockStateProperties.WATERLOGGED
 import net.minecraft.world.level.block.state.properties.BlockStateProperties.FACING
 import net.minecraft.world.phys.BlockHitResult
 import net.minecraft.world.phys.Vec3
@@ -45,6 +47,9 @@ import org.valkyrienskies.clockwork.content.physicalities.wheel.WheelSize
 import org.valkyrienskies.clockwork.util.gtpa
 import org.valkyrienskies.core.api.ships.ServerShip
 import org.valkyrienskies.clockwork.content.physicalities.wheel.WheelContacts
+import org.valkyrienskies.clockwork.content.curiosities.lubricant.LubricantMaterials
+import org.valkyrienskies.core.api.physics.blockstates.TireSurfaceSolidState
+import org.valkyrienskies.mod.common.BlockStateInfo
 import org.valkyrienskies.core.api.physics.TirePatchSnapshot
 import org.valkyrienskies.core.impl.config.VSCoreConfig
 import org.valkyrienskies.core.internal.joints.VSRevoluteJoint
@@ -98,6 +103,28 @@ class WheelGameTests {
             observers.forEach { (player, channel) -> level.removeTestPlayer(player); channel.finishAndReleaseAll() }
             observers.clear()
             VSCoreConfig.SERVER.pt.synchronizePhysics = previousSync
+        }
+
+        @JvmStatic @GameTest(template = "wheel", batch = BATCH, timeoutTicks = 20)
+        fun tireSurfacesPreserveBlockMaterials(helper: GameTestHelper) {
+            val roadType = BlockStateInfo.get(Blocks.GRAY_CONCRETE.defaultBlockState())!!.second
+            val sandType = BlockStateInfo.get(Blocks.SAND.defaultBlockState())!!.second
+            val road = vsCore.blockTypes.getState(roadType)!!.solidState as TireSurfaceSolidState
+            val sand = vsCore.blockTypes.getState(sandType)!!.solidState as TireSurfaceSolidState
+            helper.assertTrue(road.tireSurface!!.rollingResistance < sand.tireSurface!!.rollingResistance,
+                "Road and sand did not retain distinct tire materials")
+            helper.assertTrue(road.tireSurface!!.maximumSinkage == 0.0 && sand.tireSurface!!.maximumSinkage == .12,
+                "Soft-ground profile did not reach the registered solid state")
+            val slippery = vsCore.blockTypes.getState(LubricantMaterials.lubricated(sandType))!!.solidState as TireSurfaceSolidState
+            helper.assertTrue(slippery.tireSurface == sand.tireSurface && slippery.friction == LubricantMaterials.FRICTION,
+                "Lubricant lost the soil profile or failed to reduce friction")
+            val waterlogged = Blocks.OAK_SLAB.defaultBlockState().setValue(WATERLOGGED, true)
+            val wetSolid = vsCore.blockTypes.getState(BlockStateInfo.get(waterlogged)!!.second)!!.solidState as TireSurfaceSolidState
+            helper.assertTrue(wetSolid.tireSurface!!.maximumSinkage == 0.0, "Waterlogged wood became soft mud")
+            val snow = Blocks.SNOW.defaultBlockState().setValue(SnowLayerBlock.LAYERS, 2)
+            val snowSolid = vsCore.blockTypes.getState(BlockStateInfo.get(snow)!!.second)!!.solidState as TireSurfaceSolidState
+            helper.assertTrue(snowSolid.tireSurface!!.maximumSinkage <= .0625, "Thin snow layer allows excessive sinking")
+            helper.succeed()
         }
 
         @JvmStatic @GameTest(template = "wheel", batch = BATCH, timeoutTicks = 300)

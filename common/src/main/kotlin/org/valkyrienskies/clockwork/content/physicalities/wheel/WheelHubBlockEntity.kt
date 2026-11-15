@@ -27,6 +27,7 @@ import net.minecraft.world.phys.Vec3
 import net.minecraft.world.phys.BlockHitResult
 import org.joml.Quaterniond
 import org.joml.Vector3d
+import org.valkyrienskies.clockwork.ClockworkConfig
 import org.valkyrienskies.clockwork.util.gtpa
 import org.valkyrienskies.core.api.bodies.ServerVsBody
 import org.valkyrienskies.core.api.bodies.VsBodyCreateData
@@ -51,6 +52,8 @@ class WheelHubBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: BlockS
     KineticBlockEntity(type, pos, state), BlockEntityPhysicsListener, SpecialBlockEntityItemRequirement {
     var wheel: WheelSize? = null
         private set
+    var tireType = TireType.RUBBER
+        private set
     var bodyId = -1L
         private set
     var engaged = true
@@ -59,7 +62,7 @@ class WheelHubBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: BlockS
     lateinit var tireWidth: ScrollValueBehaviour
     lateinit var tireThickness: ScrollValueBehaviour
     lateinit var tirePressure: ScrollValueBehaviour
-    val tire: WheelTire? get() = wheel?.tire(tireWidth.value * 5, tireThickness.value * 5, tirePressure.value * 5)
+    val tire: WheelTire? get() = wheel?.tire(tireWidth.value * 5, tireThickness.value * 5, tirePressure.value * 5, tireType)
     val facing: Direction get() = blockState.getValue(BlockStateProperties.FACING)
     @Volatile override lateinit var dimension: DimensionId
     @Volatile private var drive: Drive? = null
@@ -69,11 +72,12 @@ class WheelHubBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: BlockS
     private var bodyDimension: String? = null
     private var appliedJoint: VSRevoluteJoint? = null
     private var collisionParent: Long? = null
+    private val stepAssist = WheelStepAssist()
 
     override fun addBehaviours(behaviours: MutableList<BlockEntityBehaviour>) {
         super.addBehaviours(behaviours)
         torque = ScrollValueBehaviour(Component.translatable("block.vs_clockwork.wheel_hub.torque"), this, SettingSlot(0))
-            .between(1, 64).withFormatter { "${it * 1000} Nm" }.requiresWrench()
+            .between(1, 256).withFormatter { "${it * 1000} Nm" }.requiresWrench()
             .withCallback { refreshStress() }
         torque.setValue(8)
         behaviours.add(torque)
@@ -97,7 +101,7 @@ class WheelHubBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: BlockS
         tireThickness.value = tireThickness.value.coerceIn(5, maximum)
     }
 
-    fun install(size: WheelSize, player: Player, settings: CompoundTag? = null): Boolean {
+    fun install(size: WheelSize, player: Player, settings: CompoundTag? = null, type: TireType = TireType.RUBBER): Boolean {
         if (wheel != null) return false
         if (!supportsTires()) {
             player.displayClientMessage(Component.translatable("block.vs_clockwork.wheel_hub.unsupported"), true)
@@ -110,6 +114,7 @@ class WheelHubBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: BlockS
             .coerceIn(5, size.maximumThicknessPercent / 5)
         val pressure = settings?.takeIf { it.contains("WheelPressure") }?.getInt("WheelPressure")?.coerceIn(20, 320) ?: tirePressure.value
         wheel = size
+        tireType = type
         tireWidth.value = width
         tireThickness.value = thickness
         tirePressure.value = pressure
@@ -137,7 +142,7 @@ class WheelHubBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: BlockS
         updateTireRanges()
         refreshStress()
         if (player?.isCreative != true) {
-            val stack = ItemStack(WheelHubBlock.item(size))
+            val stack = ItemStack(WheelHubBlock.item(size, tireType))
             if (tireWidth.value != 20 || tireThickness.value != 20 || tirePressure.value != 160) stack.orCreateTag.apply {
                 putInt("WheelWidth", tireWidth.value)
                 putInt("WheelThickness", tireThickness.value)
@@ -177,8 +182,8 @@ class WheelHubBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: BlockS
                 inertiaData = vsCore.newShipInertiaData(Vector3d(), size.mass, size.inertia()),
                 kinematics = vsCore.newBodyKinematics(velocity, parent?.angularVelocity ?: Vector3d(),
                     position, worldRotation, Vector3d(scale), Vector3d()),
-                collisionShape = size.shape(), staticFrictionCoefficient = 1.8,
-                dynamicFrictionCoefficient = 1.4, restitutionCoefficient = 0.0,
+                collisionShape = size.shape(), staticFrictionCoefficient = size.type.physics.staticFriction,
+                dynamicFrictionCoefficient = size.type.physics.dynamicFriction, restitutionCoefficient = size.type.physics.restitution,
             ))
             bodyId = body.id
             owner = blockPos
@@ -198,8 +203,11 @@ class WheelHubBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: BlockS
         }
         if (body.isStatic) body.isStatic = false
         val rpm = if (engaged && !isOverStressed) getSpeed() * facing.axisDirection.step else null
-        WheelContacts.watch(world, bodyId, size.width)
-        drive = Drive(bodyId, parent?.id, VSJointPose(center, rotation), rpm, torque.value * 1000f)
+        val config = ClockworkConfig.SERVER
+        WheelContacts.watch(world, bodyId, size.width, config.wheelStepAssist && tireType.stepAssist, tireType)
+        val assist = if (config.wheelStepAssist && tireType.stepAssist) WheelStepAssist.Settings(config.wheelStepAssistHeight,
+            config.wheelStepAssistStrength, config.wheelStepAssistMaxForce) else null
+        drive = Drive(bodyId, parent?.id, VSJointPose(center, rotation), rpm, torque.value * 1000f, size, assist)
     }
 
     private fun copiedFromLiveHub(world: ServerLevel): Boolean {
@@ -243,6 +251,10 @@ class WheelHubBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: BlockS
             collisionParent?.let { physics.enableCollisionBetween(it, current.bodyId) }
             current.parentId?.let { physics.disableCollisionBetween(it, current.bodyId) }
             collisionParent = current.parentId
+        }
+        current.assist?.let { settings ->
+            if (physShip != null && !physShip.isStatic)
+                physics.getBodyById(current.bodyId)?.let { stepAssist.apply(physics, it, current.tire, current.rpm, current.torque.toDouble(), settings) }
         }
     }
 
@@ -290,6 +302,7 @@ class WheelHubBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: BlockS
     override fun write(tag: CompoundTag, clientPacket: Boolean) {
         super.write(tag, clientPacket)
         wheel?.let { tag.putString("Wheel", it.id) }
+        tag.putString("TireType", tireType.id.toString())
         tag.putBoolean("WheelDrive", engaged)
         tag.putLong("WheelBody", bodyId)
         tag.putInt("WheelJoint", jointId)
@@ -303,6 +316,7 @@ class WheelHubBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: BlockS
         super.read(tag, clientPacket)
         drive = null
         wheel = WheelSize.byId(tag.getString("Wheel"))
+        tireType = TireType.read(tag)
         updateTireRanges()
         engaged = !tag.contains("WheelDrive") || tag.getBoolean("WheelDrive")
         bodyId = if (tag.contains("WheelBody")) tag.getLong("WheelBody") else -1
@@ -322,11 +336,12 @@ class WheelHubBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: BlockS
     override fun writeSafe(tag: CompoundTag) {
         super.writeSafe(tag)
         wheel?.let { tag.putString("Wheel", it.id) }
+        tag.putString("TireType", tireType.id.toString())
         tag.putBoolean("WheelDrive", engaged)
     }
 
     override fun getRequiredItems(state: BlockState): ItemRequirement = wheel?.let {
-        ItemRequirement(ItemRequirement.ItemUseType.CONSUME, WheelHubBlock.item(it))
+        ItemRequirement(ItemRequirement.ItemUseType.CONSUME, WheelHubBlock.item(it, tireType))
     } ?: ItemRequirement.NONE
 
     fun prepareMove(world: ServerLevel) {
@@ -335,7 +350,7 @@ class WheelHubBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: BlockS
     }
 
     private data class Drive(val bodyId: Long, val parentId: Long?, val pose: VSJointPose,
-                             val rpm: Float?, val torque: Float) {
+                             val rpm: Float?, val torque: Float, val tire: WheelTire, val assist: WheelStepAssist.Settings?) {
         fun joint() = VSRevoluteJoint(parentId, pose, bodyId, VSJointPose(Vector3d(), Quaterniond()),
             compliance = 1e-10,
             driveVelocity = rpm?.let { VSRevoluteJoint.VSRevoluteDriveVelocity((it * Math.PI / 30).toFloat()) },
@@ -347,7 +362,7 @@ class WheelHubBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: BlockS
         val current = tire ?: return null
         if (index == 3) return null
         val next = current.size.tire(if (index == 1) value * 5 else current.widthPercent,
-            if (index == 2) value * 5 else current.thicknessPercent, current.pressureKpa)
+            if (index == 2) value * 5 else current.thicknessPercent, current.pressureKpa, current.type)
         if (next == current) return null
         val body = world.shipObjectWorld.allBodies.getById(bodyId) ?: return null
         if (body.velocity.lengthSquared() > .04 || body.angularVelocity.lengthSquared() > .25) return "moving"

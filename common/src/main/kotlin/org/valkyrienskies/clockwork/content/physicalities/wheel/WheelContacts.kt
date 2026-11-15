@@ -20,6 +20,7 @@ import org.valkyrienskies.mod.common.dimensionId
 import org.valkyrienskies.mod.common.shipObjectWorld
 import java.util.concurrent.ArrayBlockingQueue
 import java.util.concurrent.ConcurrentHashMap
+import kotlin.math.abs
 
 data class TireContact(val surface: Long, val normal: Vector3d, val compression: Float)
 data class TireSurfaceContact(val surface: Long, val point: Vector3d, val normal: Vector3d,
@@ -27,12 +28,13 @@ data class TireSurfaceContact(val surface: Long, val point: Vector3d, val normal
                               val peak: Float, val sliding: Float, val width: Float,
                               val blockState: Int = 0, val material: WheelSurface = WheelSurface.HARD)
 data class TireState(val body: Long, val contacts: List<TireContact>, val slip: Float,
-                     val effect: TireSurfaceContact? = null)
+                     val effect: TireSurfaceContact? = null, val type: TireType = TireType.RUBBER)
 data class TireMark(val surface: Long, val center: Vector3d, val normal: Vector3d, val forward: Vector3d,
                     val width: Float, val length: Float, val strength: Float, val rolling: Float = 0f)
 
 object WheelContacts {
-    private data class Wheel(val width: Double, val tick: Long)
+    internal data class Support(val position: Vector3d, val force: Vector3d)
+    private data class Wheel(val width: Double, val tick: Long, val assist: Boolean, val type: TireType)
     private data class TrailKey(val stream: Long, val epoch: Long, val patch: Long, val wheelRevision: Long,
                                 val surfaceRevision: Long)
     private data class Trail(val point: Vector3d, val time: Double)
@@ -46,17 +48,19 @@ object WheelContacts {
         @Volatile var ground = -1L
         @Volatile var contacts = emptyList<TireState>()
         @Volatile var frame: ContactDiagnosticsFrame? = null
+        @Volatile var supports = emptyMap<Long, Support>()
     }
     private val dimensions = ConcurrentHashMap<String, State>()
 
-    fun watch(level: ServerLevel, body: Long, width: Double) {
+    fun watch(level: ServerLevel, body: Long, width: Double, assist: Boolean, type: TireType) {
         val state = dimensions.computeIfAbsent(level.dimensionId) { State() }
         state.ground = level.shipObjectWorld.dimensionToGroundBodyIdImmutable[level.dimensionId] ?: -1L
-        state.wheels[body] = Wheel(width, level.gameTime)
+        state.wheels[body] = Wheel(width, level.gameTime, assist, type)
     }
 
     fun clear() = dimensions.clear()
     fun lastFrame(dimension: String): ContactDiagnosticsFrame? = dimensions[dimension]?.frame
+    internal fun support(dimension: String, wheel: Long): Support? = dimensions[dimension]?.supports?.get(wheel)
 
     fun tick(level: ServerLevel) {
         val state = dimensions[level.dimensionId] ?: return
@@ -127,12 +131,19 @@ object WheelContacts {
         val contacts = HashMap<Long, MutableList<TireContact>>()
         val slipping = HashMap<Long, Float>()
         val effects = HashMap<Long, TireSurfaceContact>()
+        val supports = HashMap<Long, Support>()
         for (batch in frame.tires) {
             if (batch.reset || batch.overflow) state.trails.keys.removeIf { it.stream == batch.stream }
             for (patch in batch.patches) {
                 val wheel = wheels[patch.wheelBody] ?: continue
                 val key = TrailKey(batch.stream, batch.epoch, patch.patch, patch.wheelRevision, patch.surfaceRevision)
                 if (patch.events and TirePatchSnapshot.END != 0) { state.trails.remove(key); continue }
+                if (wheel.assist && !frame.reset && !frame.overflow && !batch.reset && !batch.overflow && patch.normal.isFinite &&
+                    patch.normalForce.isFinite() && patch.normalForce > 0 &&
+                    (patch.sleeping || frame.endTime - patch.lastSolvedTime <= .05)) {
+                    supports.getOrPut(patch.wheelBody) { Support(Vector3d(patch.wheelFrame.position), Vector3d()) }
+                        .force.fma(patch.normalForce, patch.normal)
+                }
                 val ship = if (patch.surfaceBody == state.ground) null else level.getShipById(patch.surfaceBody)
                 val surface = ship?.id ?: -1L
                 val normal = Vector3d(patch.normal)
@@ -146,7 +157,8 @@ object WheelContacts {
                 val slip = ((sliding - .08) / 2.0).coerceIn(0.0, 1.0).toFloat()
                 slipping[patch.wheelBody] = maxOf(slipping[patch.wheelBody] ?: 0f, slip)
                 var rolling = 0f
-                if (patch.normalForce > 100 && patch.normalForce.isFinite()) {
+                val contactLoad = if (wheel.type.physics.adhesion > 0) abs(patch.normalForce) else patch.normalForce
+                if (contactLoad.isFinite() && (contactLoad > 100 || wheel.type.appearance.webs)) {
                     val point = patch.surfaceFrame.rotation.transform(Vector3d(patch.surfaceLocalPoint)).add(patch.surfaceFrame.position)
                     val surfaceVelocity = Vector3d(patch.surfaceFrame.angularVelocity)
                         .cross(Vector3d(point).sub(patch.surfaceFrame.position)).add(patch.surfaceFrame.velocity)
@@ -160,9 +172,9 @@ object WheelContacts {
                     ship?.transform?.toModel?.transformDirection(scrub)
                     if (point.isFinite && velocity.isFinite && scrub.isFinite && surfaceVelocity.isFinite) {
                         val effect = TireSurfaceContact(surface, point, Vector3d(normal), velocity, scrub, surfaceVelocity,
-                            patch.normalForce.toFloat(), (if (patch.sleeping) patch.normalForce else patch.peakNormalForce).toFloat(),
+                            contactLoad.toFloat(), (if (patch.sleeping) contactLoad else maxOf(0.0, patch.peakNormalForce)).toFloat(),
                             sliding.toFloat(), wheel.width.toFloat())
-                        if (effect.load > (effects[patch.wheelBody]?.load ?: 0f)) effects[patch.wheelBody] = effect
+                        if (effect.load > (effects[patch.wheelBody]?.load ?: -1f)) effects[patch.wheelBody] = effect
                         if (effect.peak.isFinite()) state.peaks.merge(patch.wheelBody, effect.peak) { a, b -> maxOf(a, b) }
                     }
                 }
@@ -204,8 +216,9 @@ object WheelContacts {
                 }
             }
         }
-        state.contacts = wheels.keys.map { id ->
-            TireState(id, contacts[id].orEmpty().sortedByDescending { it.compression }.take(4), slipping[id] ?: 0f, effects[id])
+        state.supports = supports
+        state.contacts = wheels.map { (id, wheel) ->
+            TireState(id, contacts[id].orEmpty().sortedByDescending { it.compression }.take(4), slipping[id] ?: 0f, effects[id], wheel.type)
         }
     }
 }
@@ -215,7 +228,7 @@ class WheelContactPacket(val dimension: ResourceLocation, val wheels: List<TireS
     constructor(buffer: FriendlyByteBuf) : this(buffer.readResourceLocation(), List(count(buffer, 128)) {
         TireState(buffer.readLong(), List(count(buffer, 4)) {
             TireContact(buffer.readLong(), vector(buffer), scalar(buffer, 0f, 1024f))
-        }, scalar(buffer, 0f, 1f), if (buffer.readBoolean()) readEffect(buffer) else null)
+        }, scalar(buffer, 0f, 1f), if (buffer.readBoolean()) readEffect(buffer) else null, TireType.byId(buffer.readResourceLocation()))
     }, List(count(buffer, 256)) {
         TireMark(buffer.readLong(), vector(buffer), vector(buffer), vector(buffer), scalar(buffer, 0f, 1024f),
             scalar(buffer, 0f, 1024f), scalar(buffer, 0f, 1f), scalar(buffer, 0f, 1f))
@@ -237,6 +250,7 @@ class WheelContactPacket(val dimension: ResourceLocation, val wheels: List<TireS
                 buffer.writeFloat(effect.load); buffer.writeFloat(effect.peak); buffer.writeFloat(effect.sliding)
                 buffer.writeFloat(effect.width); buffer.writeVarInt(effect.blockState); buffer.writeEnum(effect.material)
             }
+            buffer.writeResourceLocation(wheel.type.id)
         }
         buffer.writeVarInt(marks.size)
         for (mark in marks) {

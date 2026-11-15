@@ -69,8 +69,9 @@ class WheelHubBlock(properties: Properties) : BearingBlock(properties), IBE<Whee
                          tag: CompoundTag?) = tag
 
     override fun pasteSurvivalCost(data: Supplier<CompoundTag>?): Map<Item, Int>? {
-        val size = data?.get()?.getString("Wheel")?.let(WheelSize::byId) ?: return null
-        return mapOf(item(size) to 1)
+        val tag = data?.get() ?: return null
+        val size = WheelSize.byId(tag.getString("Wheel")) ?: return null
+        return mapOf(item(size, TireType.read(tag)) to 1)
     }
 
     companion object {
@@ -85,10 +86,7 @@ class WheelHubBlock(properties: Properties) : BearingBlock(properties), IBE<Whee
             for (key in listOf("WheelBody", "WheelJoint", "WheelOwner", "WheelParent", "WheelDimension")) tag.remove(key)
         }
 
-        fun item(size: WheelSize): Item = when (size) {
-            WheelSize.SMALL -> ClockworkItems.SMALL_WHEEL.get()
-            WheelSize.MEDIUM -> ClockworkItems.MEDIUM_WHEEL.get()
-            WheelSize.LARGE -> ClockworkItems.LARGE_WHEEL.get()
-        }
+        fun item(size: WheelSize, type: TireType = TireType.RUBBER): Item =
+            ClockworkItems.WHEELS.getValue(type).getValue(size).get()
     }
 }

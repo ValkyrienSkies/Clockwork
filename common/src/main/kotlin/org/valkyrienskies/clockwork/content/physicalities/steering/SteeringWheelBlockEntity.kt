@@ -1,7 +1,6 @@
 package org.valkyrienskies.clockwork.content.physicalities.steering
 
-import com.simibubi.create.AllBlocks
-import com.simibubi.create.content.kinetics.base.GeneratingKineticBlockEntity
+import com.simibubi.create.foundation.blockEntity.SmartBlockEntity
 import com.simibubi.create.foundation.blockEntity.behaviour.BlockEntityBehaviour
 import com.simibubi.create.foundation.blockEntity.behaviour.BehaviourType
 import com.simibubi.create.foundation.blockEntity.behaviour.ValueBoxTransform
@@ -19,12 +18,13 @@ import net.minecraft.world.level.block.entity.BlockEntityType
 import net.minecraft.world.level.block.state.BlockState
 import net.minecraft.world.phys.Vec3
 import org.valkyrienskies.clockwork.content.kinetics.combobulator.IThinkable
+import org.valkyrienskies.clockwork.api.thinkable.ThinkableReading
 import org.valkyrienskies.mod.common.toWorldCoordinates
 import java.util.UUID
 import kotlin.math.abs
 
 class SteeringWheelBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: BlockState) :
-    GeneratingKineticBlockEntity(type, pos, state), IThinkable {
+    SmartBlockEntity(type, pos, state), IThinkable {
     lateinit var range: ScrollValueBehaviour
         private set
     lateinit var centring: ScrollOptionBehaviour<Centring>
@@ -36,11 +36,10 @@ class SteeringWheelBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: B
     private var previousAngle = 0f
     private var displayedAngle = 0f
     private var input = 0
+    private var throttle = 0
     private var lastInput = 0L
-    private var outputSpeed = 0f
 
     override fun addBehaviours(behaviours: MutableList<BlockEntityBehaviour>) {
-        super.addBehaviours(behaviours)
         range = object : ScrollValueBehaviour(Component.translatable("block.vs_clockwork.steering_wheel.range"), this, SettingSlot(false)) {
             override fun getType() = RANGE
             override fun netId() = 0
@@ -67,12 +66,17 @@ class SteeringWheelBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: B
         behaviours.add(centring)
     }
 
-    override fun providesThinkable(side: Direction) = side != Direction.DOWN
-    override fun thinkableValue(side: Direction): Double? = angle.toDouble().takeIf { providesThinkable(side) }
-    override fun thinkablePortName(side: Direction): Component? =
-        Component.translatable("thinkable.vs_clockwork.port.steering_angle").takeIf { providesThinkable(side) }
-    override fun getGeneratedSpeed() = outputSpeed
-    override fun getStressConfigKey() = AllBlocks.COPPER_VALVE_HANDLE.get()
+    override fun providesThinkable(side: Direction) = true
+    override fun thinkableReadings(side: Direction) = listOf(
+        ThinkableReading("steering_angle", Component.translatable("thinkable.vs_clockwork.port.steering_angle")),
+        ThinkableReading("throttle", Component.translatable("thinkable.vs_clockwork.reading.throttle")))
+    override fun thinkableValue(side: Direction) = angle.toDouble()
+    override fun thinkableValue(side: Direction, reading: String): Double? = when (reading) {
+        "", "steering_angle" -> angle.toDouble()
+        "throttle" -> throttle.toDouble()
+        else -> null
+    }
+    override fun thinkablePortName(side: Direction): Component = Component.translatable("thinkable.vs_clockwork.port.driving_controls")
 
     fun canReach(player: Player): Boolean = player.isAlive && !player.isSpectator && player.level() === level &&
         player.eyePosition.distanceToSqr(level!!.toWorldCoordinates(Vec3.atCenterOf(blockPos))) <= 36.0
@@ -83,24 +87,27 @@ class SteeringWheelBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: B
             player.displayClientMessage(Component.translatable("block.vs_clockwork.steering_wheel.occupied"), true)
             return
         }
-        if (hasSource()) {
-            player.displayClientMessage(Component.translatable("block.vs_clockwork.steering_wheel.driven"), true)
-            return
-        }
         driver = if (driver == player.uuid) null else player.uuid
         input = 0
+        throttle = 0
         lastInput = level!!.gameTime
         sendData()
     }
 
-    fun control(player: Player, direction: Int) {
+    fun control(player: Player, direction: Int, throttle: Int) {
         if (driver != player.uuid || !canReach(player)) return
         if (direction == 2) {
             driver = null
             input = 0
+            this.throttle = 0
             sendData()
         } else {
             input = direction.coerceIn(-1, 1)
+            val nextThrottle = throttle.coerceIn(-1, 1)
+            if (this.throttle != nextThrottle) {
+                this.throttle = nextThrottle
+                sendData()
+            }
             lastInput = level!!.gameTime
         }
     }
@@ -114,9 +121,10 @@ class SteeringWheelBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: B
             return
         }
         val player = driver?.let(world::getPlayerByUUID)
-        if (driver != null && (player == null || !canReach(player) || world.gameTime - lastInput > 20 || hasSource())) {
+        if (driver != null && (player == null || !canReach(player) || world.gameTime - lastInput > 20)) {
             driver = null
             input = 0
+            throttle = 0
             sendData()
         }
         val limit = range.value.toFloat()
@@ -126,14 +134,8 @@ class SteeringWheelBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: B
             else -> angle.coerceIn(-limit, limit)
         }
         val delta = (target - angle).coerceIn(-4.5f, 4.5f)
-        val requested = if (hasSource() || abs(delta) < .001f) 0f else -delta / convertToAngular(1f)
-        if (outputSpeed != requested) {
-            outputSpeed = requested
-            updateGeneratedRotation()
-        }
-        val actualSpeed = getSpeed()
-        if (!hasSource() && actualSpeed != 0f) {
-            angle -= convertToAngular(actualSpeed)
+        if (abs(delta) >= .001f) {
+            angle += delta
             setChanged()
             sendData()
         }
@@ -144,19 +146,21 @@ class SteeringWheelBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: B
     override fun write(tag: CompoundTag, clientPacket: Boolean) {
         super.write(tag, clientPacket)
         tag.putFloat("SteeringAngle", angle)
-        if (clientPacket) driver?.let { tag.putUUID("SteeringDriver", it) }
+        if (clientPacket) {
+            driver?.let { tag.putUUID("SteeringDriver", it) }
+            tag.putInt("Throttle", throttle)
+        }
     }
 
     override fun read(tag: CompoundTag, clientPacket: Boolean) {
         super.read(tag, clientPacket)
         angle = tag.getFloat("SteeringAngle").takeIf { it.isFinite() }?.coerceIn(-180f, 180f) ?: 0f
         driver = if (clientPacket && tag.hasUUID("SteeringDriver")) tag.getUUID("SteeringDriver") else null
+        throttle = if (clientPacket && driver != null) tag.getInt("Throttle").coerceIn(-1, 1) else 0
         if (!clientPacket) {
             input = 0
-            outputSpeed = 0f
             previousAngle = angle
             displayedAngle = angle
-            reActivateSource = true
         }
     }
 

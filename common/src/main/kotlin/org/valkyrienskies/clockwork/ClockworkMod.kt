@@ -1,6 +1,7 @@
 package org.valkyrienskies.clockwork
 
 import org.valkyrienskies.clockwork.content.physicalities.wheel.WheelContacts
+import org.valkyrienskies.clockwork.content.physicalities.wheel.WheelSurface
 import org.valkyrienskies.clockwork.content.curiosities.aeronaut.AeronautShipReadout
 
 import org.valkyrienskies.clockwork.content.curiosities.magnet.Magnetism
@@ -118,6 +119,7 @@ object ClockworkMod {
         ClockworkRecipes.init()
         TAB_REGISTRY.register()
         PhysicalPistonBlock.registerPhysicsShape()
+        WheelSurface.registerPhysics()
 
         vsCore.registerAttachment(PocketForcesController::class.java)
         vsCore.registerAttachment(WanderShipControl::class.java)

@@ -24,6 +24,8 @@ import java.util.function.Supplier
 object ClockworkSounds {
     val ALL: MutableMap<ResourceLocation, SoundEntry> = HashMap()
     val DRIVING_WOOD = create("driving_wood").subtitle("Tires roll on wood").category(SoundSource.BLOCKS).build()
+    val DRIVING_HONEY = create("driving_honey").subtitle("Honey tires roll").category(SoundSource.BLOCKS).build()
+    val TIRE_SKID_HONEY = create("tire_skid_honey").subtitle("Honey tires skid").category(SoundSource.BLOCKS).build()
     val DRIVING_GENERIC = create("driving_generic").subtitle("Tires roll").category(SoundSource.BLOCKS).build()
     val DRIVING_GRITTY = create("driving_gritty").subtitle("Tires roll").category(SoundSource.BLOCKS).build()
     val DRIVING_ICY = create("driving_icy").subtitle("Tires roll").category(SoundSource.BLOCKS).build()

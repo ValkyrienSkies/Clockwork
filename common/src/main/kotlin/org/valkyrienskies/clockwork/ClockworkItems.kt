@@ -2,6 +2,7 @@ package org.valkyrienskies.clockwork
 
 import org.valkyrienskies.clockwork.content.physicalities.wheel.WheelItem
 import org.valkyrienskies.clockwork.content.physicalities.wheel.WheelSize
+import org.valkyrienskies.clockwork.content.physicalities.wheel.TireType
 
 import org.valkyrienskies.clockwork.content.schematics.VdexBlueprintItem
 import org.valkyrienskies.clockwork.content.schematics.EmptyBlueprintItem
@@ -51,14 +52,21 @@ import org.valkyrienskies.clockwork.util.builder.ClockworkRegistrate
 import java.util.function.Supplier
 
 object ClockworkItems {
+    val WHEELS = TireType.entries.associateWith { type -> WheelSize.entries.associateWith { wheel(it, type) } }
     @JvmField
-    val SMALL_WHEEL = wheel(WheelSize.SMALL)
+    val SMALL_WHEEL = WHEELS.getValue(TireType.RUBBER).getValue(WheelSize.SMALL)
     @JvmField
-    val MEDIUM_WHEEL = wheel(WheelSize.MEDIUM)
+    val MEDIUM_WHEEL = WHEELS.getValue(TireType.RUBBER).getValue(WheelSize.MEDIUM)
     @JvmField
-    val LARGE_WHEEL = wheel(WheelSize.LARGE)
+    val LARGE_WHEEL = WHEELS.getValue(TireType.RUBBER).getValue(WheelSize.LARGE)
+    @JvmField
+    val SMALL_HONEY_WHEEL = WHEELS.getValue(TireType.HONEY).getValue(WheelSize.SMALL)
+    @JvmField
+    val MEDIUM_HONEY_WHEEL = WHEELS.getValue(TireType.HONEY).getValue(WheelSize.MEDIUM)
+    @JvmField
+    val LARGE_HONEY_WHEEL = WHEELS.getValue(TireType.HONEY).getValue(WheelSize.LARGE)
 
-    private fun wheel(size: WheelSize) = REGISTRATE.item<WheelItem>(size.id) { WheelItem(it!!, size) }
+    private fun wheel(size: WheelSize, type: TireType) = REGISTRATE.item<WheelItem>(type.itemId(size)) { WheelItem(it!!, size, type) }
         .properties { it.stacksTo(16) }.tab(ClockworkMod.PHYSICAL_CREATIVE_TABINFO)
         .model(AssetLookup.existingItemModel()).register()
 

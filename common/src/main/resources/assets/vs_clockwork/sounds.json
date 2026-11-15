@@ -647,5 +647,17 @@
       "vs_clockwork:vdex_erase_1",
       "vs_clockwork:vdex_erase_2"
     ]
+  },
+  "driving_honey": {
+    "subtitle": "vs_clockwork.subtitle.driving_honey",
+    "sounds": [
+      "vs_clockwork:driving_honey"
+    ]
+  },
+  "tire_skid_honey": {
+    "subtitle": "vs_clockwork.subtitle.tire_skid_honey",
+    "sounds": [
+      "vs_clockwork:tire_skid_honey"
+    ]
   }
 }

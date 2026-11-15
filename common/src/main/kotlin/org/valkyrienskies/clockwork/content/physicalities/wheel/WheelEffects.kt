@@ -23,8 +23,11 @@ import net.minecraft.client.renderer.texture.TextureAtlasSprite
 import net.minecraft.resources.ResourceLocation
 import net.minecraft.client.resources.sounds.AbstractTickableSoundInstance
 import net.minecraft.core.BlockPos
+import net.minecraft.core.registries.BuiltInRegistries
 import net.minecraft.core.Direction
 import net.minecraft.sounds.SoundSource
+import net.minecraft.tags.FluidTags
+import net.minecraft.world.phys.AABB
 import net.minecraft.util.RandomSource
 import net.minecraft.world.level.block.state.BlockState
 import org.joml.Matrix4f
@@ -35,10 +38,16 @@ import org.valkyrienskies.clockwork.ClockworkSounds
 import org.valkyrienskies.clockwork.ClockworkRenderTypes
 import org.valkyrienskies.clockwork.util.render.ShaderPackCompat
 import org.valkyrienskies.core.api.bodies.ClientVsBody
+import org.valkyrienskies.core.api.bodies.shape.WheelBodyShapeData
+import org.valkyrienskies.core.api.ships.ClientShip
+import org.valkyrienskies.mod.common.getShipsIntersecting
 import org.valkyrienskies.mod.common.shipObjectWorld
 import kotlin.math.abs
 import kotlin.math.floor
 import kotlin.math.sqrt
+import kotlin.math.PI
+import kotlin.math.cos
+import kotlin.math.sin
 
 object WheelEffects {
     class Coating {
@@ -51,6 +60,7 @@ object WheelEffects {
         val coating = Coating()
         var trackPoint: Vector3d? = null
         var trackSurface = -1L
+        var trackDistance = 0.0
         var material = state.effect?.material ?: WheelSurface.HARD
         var candidate = material
         var candidateTicks = 0
@@ -78,12 +88,39 @@ object WheelEffects {
     private var pixelCount = 0
     private var level: ClientLevel? = null
     private var clock = 0L
+    private val waterSamples = (-1..1).flatMap { side -> (0 until 8).map { i ->
+        Vector3d(side * .7, cos(i * PI / 4) * .94, sin(i * PI / 4) * .94)
+    } }
+
+    private fun waterCoverage(world: ClientLevel, body: ClientVsBody): Float {
+        val shape = body.collisionShape as? WheelBodyShapeData ?: return 0f
+        val bounds = body.renderAABB
+        val ships = world.getShipsIntersecting(AABB(bounds.minX(), bounds.minY(), bounds.minZ(),
+            bounds.maxX(), bounds.maxY(), bounds.maxZ())).mapNotNull { (it as? ClientShip)?.renderTransform?.worldToShip }
+        val pos = BlockPos.MutableBlockPos()
+        fun containsWater(point: Vector3d): Boolean {
+            pos.set(point.x, point.y, point.z)
+            if (!world.hasChunkAt(pos)) return false
+            val fluid = world.getFluidState(pos)
+            return fluid.`is`(FluidTags.WATER) && point.y < pos.y + fluid.getHeight(world, pos)
+        }
+        val point = Vector3d()
+        val local = Vector3d()
+        var wet = 0
+        for (sample in waterSamples) {
+            point.set(sample.x * shape.halfThickness, sample.y * shape.radius, sample.z * shape.radius)
+            body.renderTransform.toWorld.transformPosition(point)
+            if (containsWater(point) || ships.any { containsWater(it.transformPosition(point, local)) }) wet++
+        }
+        return wet.toFloat() / waterSamples.size
+    }
 
     private fun checkLevel() {
         val current = Minecraft.getInstance().level
         if (current === level) return
         sounds.forEach { Minecraft.getInstance().soundManager.stop(it) }
         sounds.clear(); wheels.clear(); marks.clear()
+        LayeredTireRenderer.clear()
         pixelCount = 0
         level = current
         clock = 0
@@ -120,6 +157,8 @@ object WheelEffects {
 
     fun coating(body: Long): Coating? = wheels[body]?.coating?.takeIf { it.amount > .01f }
 
+    fun surfaceContact(body: Long): TireSurfaceContact? = wheels[body]?.takeIf { clock - it.time <= 3 }?.state?.effect
+
     fun coatingSprite(state: BlockState): TextureAtlasSprite {
         val mc = Minecraft.getInstance()
         return if (state.`is`(Blocks.GRASS_BLOCK))
@@ -149,17 +188,23 @@ object WheelEffects {
                 ?.setParticleSpeed(velocity.x / 20, velocity.y / 20, velocity.z / 20)
         }
         for ((id, wheel) in wheels) {
+            val body = world.shipObjectWorld.allBodies.getById(id) as? ClientVsBody ?: continue
             wheel.coating.amount = (wheel.coating.amount - .0004f).coerceAtLeast(0f)
             val effect = wheel.state.effect?.takeIf { clock - wheel.time <= 4 }
+            val water = if (wheel.coating.amount > 0f || effect != null) waterCoverage(world, body) else 0f
+            if (water > 0f) {
+                wheel.coating.amount = (wheel.coating.amount - water * .025f).coerceAtLeast(0f)
+                wheel.coating.trail = (wheel.coating.trail - 1).coerceAtLeast(0)
+            }
             if (effect == null) {
                 wheel.trackPoint = null
+                wheel.trackDistance = 0.0
                 wheel.coating.trail = (wheel.coating.trail - 1).coerceAtLeast(0)
                 wheel.heat = (wheel.heat - .012f).coerceAtLeast(0f)
                 wheel.airborne++
                 wheel.dust = 0.0; wheel.smoke = 0.0
                 continue
             }
-            if (world.shipObjectWorld.allBodies.getById(id) !is ClientVsBody) continue
             val surface = if (effect.surface == -1L) null else world.shipObjectWorld.allBodies.getById(effect.surface) as? ClientVsBody
             if (effect.surface != -1L && surface == null) continue
             val point = Vector3d(effect.point)
@@ -186,13 +231,14 @@ object WheelEffects {
             wheel.heat = (wheel.heat + heating - .008f).coerceIn(0f, 1.5f)
             val roll = ((speed - .2) / 10).coerceIn(0.0, 1.0).toFloat()
             val skid = ((effect.sliding - .5f) / 3.5f).coerceIn(0f, 1f)
-            voice(rollingSound(wheel.material), point, sqrt(roll) * .3f,
+            val type = wheel.state.type
+            voice(type.rollingSound?.let { BuiltInRegistries.SOUND_EVENT.get(it) } ?: rollingSound(wheel.material), point, sqrt(roll) * .3f,
                 (.75 + speed * .025).coerceIn(.75, 1.3).toFloat())
-            voice(skidSound(wheel.material), point, skid * .55f, .85f + skid * .3f)
+            voice(type.skidSound?.let { BuiltInRegistries.SOUND_EVENT.get(it) } ?: skidSound(wheel.material), point, skid * .55f, .85f + skid * .3f)
             val state = Block.stateById(effect.blockState)
             val grassSkid = effect.material == WheelSurface.GRASS && skid > .25f
-            val smears = grassSkid ||
-                effect.material == WheelSurface.SAND || effect.material == WheelSurface.SNOW || effect.material.rollingTracks(state)
+            val smears = water == 0f && (grassSkid ||
+                effect.material == WheelSurface.SAND || effect.material == WheelSurface.SNOW || effect.material.rollingTracks(state))
             val coating = wheel.coating
             val travel = (speed / 20).coerceAtMost(1.0).toFloat()
             if (smears && (travel > .005f || skid > .05f)) {
@@ -213,13 +259,21 @@ object WheelEffects {
             }
             val trackPoint = Vector3d(effect.point).fma((clock - wheel.time).coerceAtMost(2) / 20.0, effect.velocity)
             val previous = wheel.trackPoint
-            if (!smears && coating.trail > 0 && coating.amount > .03f && previous != null && wheel.trackSurface == effect.surface) {
+            if (previous != null && wheel.trackSurface == effect.surface) {
                 val delta = Vector3d(trackPoint).sub(previous)
                 val distance = delta.length()
-                if (distance in .015..1.5) stamp(world, TireMark(effect.surface, Vector3d(trackPoint).add(previous).mul(.5),
-                    effect.normal, delta.div(distance), effect.width * .58f, (distance + .02).toFloat(), 0f, 1f), coating)
+                if (distance in .015..1.5) {
+                    if (!smears && water == 0f && coating.trail > 0 && coating.amount > .03f)
+                        stamp(world, TireMark(effect.surface, Vector3d(trackPoint).add(previous).mul(.5),
+                            effect.normal, delta.div(distance), effect.width * .84f, (distance + .04).toFloat(), 0f, 1f),
+                            coating, wheel.trackDistance + distance * .5)
+                    wheel.trackDistance = (wheel.trackDistance + distance) % 16.0
+                } else if (distance > 1.5) wheel.trackDistance = 0.0
+                if (distance >= .015) wheel.trackPoint = trackPoint
+            } else {
+                wheel.trackPoint = trackPoint
+                wheel.trackDistance = 0.0
             }
-            wheel.trackPoint = trackPoint
             wheel.trackSurface = effect.surface
             val sourcePos = BlockPos.containing(effect.point.x - effect.normal.x * .02,
                 effect.point.y - effect.normal.y * .02, effect.point.z - effect.normal.z * .02)
@@ -248,7 +302,7 @@ object WheelEffects {
                 wheel.dust = (wheel.dust + (speed * .035 + skid * .65).coerceAtMost(1.5) * density).coerceAtMost(3.0)
                 while (wheel.dust >= 1 && budget > 0) { debris(); wheel.dust-- }
             } else wheel.dust = 0.0
-            if (effect.material.rubber && wheel.heat > .35f) {
+            if (type.skidSmoke && effect.material.rubber && wheel.heat > .35f) {
                 wheel.smoke = (wheel.smoke + (wheel.heat - .35) * .6).coerceAtMost(2.0)
                 while (wheel.smoke >= 1 && budget > 0) {
                     val drift = Vector3d(effect.surfaceVelocity).fma(.1, velocity).fma(.5, normal).add(0.0, .4, 0.0)
@@ -341,7 +395,7 @@ object WheelEffects {
         }
     }
 
-    private fun stamp(world: ClientLevel, mark: TireMark, residue: Coating? = null) {
+    private fun stamp(world: ClientLevel, mark: TireMark, residue: Coating? = null, trailDistance: Double = 0.0) {
         if (mark.normal.lengthSquared() < .5 || mark.forward.lengthSquared() < .5 || mark.width <= 0 || mark.length <= 0) return
         val amount = ((mark.strength - .1f) / .9f).coerceIn(0f, 1f)
         val skid = amount * amount * (3 - 2 * amount)
@@ -379,7 +433,8 @@ object WheelEffects {
                 val high = doubleArrayOf(box.maxX + pos.x, box.maxY + pos.y, box.maxZ + pos.z)
                 val plane = if (sign > 0) high[axis] else low[axis]
                 val contactPlane = plane - if (raisedSurface) .125 else 0.0
-                if (abs(contactPlane - mark.center[axis]) > .06) continue
+                if (abs(contactPlane - mark.center[axis]) > .06 &&
+                    (!raisedSurface || abs(plane - mark.center[axis]) > .06)) continue
                 var polygon = corners
                 for (a in intArrayOf(u, v)) {
                     polygon = clip(polygon, a, low[a], true)
@@ -393,7 +448,8 @@ object WheelEffects {
                 val minV = floor((polygon.minOf { it[v] } - origin[v]) * 16).toInt().coerceIn(0, 15)
                 val maxV = floor((polygon.maxOf { it[v] } - origin[v]) * 16).toInt().coerceIn(0, 15)
                 val key = MarkKey(mark.surface, block, axis, sign, plane, residue != null)
-                marks[key]?.takeIf { it.state != state }?.let { pixelCount -= it.pixels.size; marks.remove(key) }
+                marks[key]?.takeIf { it.state != state || it.texture != residue?.state }
+                    ?.let { pixelCount -= it.pixels.size; marks.remove(key) }
                 for (x in minU..maxU) for (y in minV..maxV) {
                     val u0 = maxOf(low[u], origin[u] + x / 16.0)
                     val u1 = minOf(high[u], origin[u] + (x + 1) / 16.0)
@@ -419,9 +475,12 @@ object WheelEffects {
                     val color: Vector3f
                     val opacity: Float
                     if (residue != null) {
-                        if (grain > strength * .8f || !tread) continue
-                        color = Vector3f(residue.color).mul(.9f)
-                        opacity = strength * .35f * residue.trail / 80f
+                        if (lateral > .85 && grain > .7f) continue
+                        val along = trailDistance + Vector3d(center).sub(mark.center).dot(forward) / forward.length()
+                        val groove = Math.floorMod(floor(along * 16).toInt(), 8) < 2
+                        val fade = residue.trail / 80f
+                        color = Vector3f(residue.color).mul(.82f + grain * .15f)
+                        opacity = sqrt(strength) * fade * .65f * (if (groove) .65f else 1f) * (if (edge) .7f else 1f)
                     } else when (material) {
                         WheelSurface.GRASS -> {
                             if (grain > (.2f + .7f * skid) * (if (edge) .6f else 1f)) continue
