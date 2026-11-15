@@ -85,6 +85,7 @@ class BearingAttachmentGameTests {
             val target = BlockPos(bounds.minX(), bounds.minY(), bounds.minZ())
             force(level, target)
             val rotation = Quaterniond().rotationY(Math.PI / 2)
+            if (follow || gimbal) rotation.premul(Quaterniond().rotationAxis(.08, 1.0, 0.0, 0.0))
             level.shipObjectWorld.teleportShip(ship, vsCore.newShipTeleportData(
                 Vector3d(base.x + 1.75, base.y + .7, base.z + .7), rotation, Vector3d(), Vector3d()))
             var duplicateId: Int? = null
@@ -124,6 +125,8 @@ class BearingAttachmentGameTests {
                 if (follow) (be as PhysBearingBlockEntity).movementMode!!.setValue(LockedMode.FOLLOW_ANGLE.ordinal)
             }.thenIdle(20).thenExecute {
                 aligned()
+                if (follow || gimbal) helper.assertTrue(ship.transform.shipToWorldRotation.transform(Vector3d(0.0, 1.0, 0.0))
+                    .distance(Vector3d(0.0, 1.0, 0.0)) < .01, "Bearing kept the attachment twist as its zero angle")
                 helper.assertTrue(level.gtpa.getAllJoints().values.count { it.shipId0 == ship.id || it.shipId1 == ship.id } == 1,
                     "Reload did not retain exactly one bearing joint")
             }.thenSucceed()

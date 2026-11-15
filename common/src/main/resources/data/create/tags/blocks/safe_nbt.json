@@ -1,6 +1,7 @@
 {
   "replace": false,
   "values": [
+    "vs_clockwork:steering_wheel",
     "vs_clockwork:universal_shaft"
   ]
 }

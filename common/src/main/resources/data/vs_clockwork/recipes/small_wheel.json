@@ -1,0 +1,19 @@
+{
+  "result": {
+    "item": "vs_clockwork:small_wheel"
+  },
+  "pattern": [
+    " K ",
+    "KCK",
+    " K "
+  ],
+  "type": "minecraft:crafting_shaped",
+  "key": {
+    "C": {
+      "item": "create:cogwheel"
+    },
+    "K": {
+      "item": "minecraft:dried_kelp_block"
+    }
+  }
+}

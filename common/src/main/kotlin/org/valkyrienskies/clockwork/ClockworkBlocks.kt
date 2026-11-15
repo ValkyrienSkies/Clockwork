@@ -1,5 +1,8 @@
 package org.valkyrienskies.clockwork
 
+import org.valkyrienskies.clockwork.content.physicalities.wheel.WheelHubBlock
+import org.valkyrienskies.clockwork.content.physicalities.steering.SteeringWheelBlock
+
 import org.valkyrienskies.clockwork.content.kinetics.plotting.PlottingTableBlock
 
 import org.valkyrienskies.clockwork.content.curiosities.magnet.MagnetBlock
@@ -846,6 +849,19 @@ object ClockworkBlocks {
             .tab(ClockworkMod.GAS_CREATIVE_TABINFO)
             .build()
             .register()
+
+    @JvmField
+    val STEERING_WHEEL = REGISTRATE.block("steering_wheel") { p: BlockBehaviour.Properties -> SteeringWheelBlock(p) }
+        .initialProperties { SharedProperties.softMetal() }.transform(axeOrPickaxe())
+        .properties { it.noOcclusion() }.addLayer { Supplier { RenderType.cutout() } }
+        .tag(AllTags.AllBlockTags.SAFE_NBT.tag)
+        .item().tab(ClockworkMod.PHYSICAL_CREATIVE_TABINFO).build().register()
+
+    @JvmField
+    val WHEEL_HUB = REGISTRATE.block("wheel_hub") { p: BlockBehaviour.Properties -> WheelHubBlock(p) }
+        .initialProperties { SharedProperties.softMetal() }.transform(axeOrPickaxe())
+        .properties { it.noOcclusion() }.addLayer { Supplier { RenderType.cutout() } }
+        .item().tab(ClockworkMod.PHYSICAL_CREATIVE_TABINFO).build().register()
 
     @JvmField
     val HINGE = REGISTRATE.block("hinge") { p: BlockBehaviour.Properties ->

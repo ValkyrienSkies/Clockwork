@@ -1,0 +1,22 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    " W ",
+    " C ",
+    " S "
+  ],
+  "key": {
+    "W": {
+      "item": "create:copper_valve_handle"
+    },
+    "C": {
+      "item": "create:andesite_casing"
+    },
+    "S": {
+      "item": "create:shaft"
+    }
+  },
+  "result": {
+    "item": "vs_clockwork:steering_wheel"
+  }
+}

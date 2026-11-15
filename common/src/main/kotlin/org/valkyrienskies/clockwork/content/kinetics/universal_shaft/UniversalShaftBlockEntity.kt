@@ -1,15 +1,17 @@
 package org.valkyrienskies.clockwork.content.kinetics.universal_shaft
 
-import com.simibubi.create.api.contraption.transformable.TransformableBlockEntity
+import org.valkyrienskies.clockwork.util.universal_joint.BlockAnchorLinks
+import org.valkyrienskies.clockwork.util.universal_joint.BlockAnchorEndpoint
+
 import com.simibubi.create.api.schematic.requirement.SpecialBlockEntityItemRequirement
-import com.simibubi.create.content.contraptions.StructureTransform
 import com.simibubi.create.content.kinetics.base.IRotate
 import com.simibubi.create.content.kinetics.base.KineticBlockEntity
 import com.simibubi.create.content.schematics.requirement.ItemRequirement
 import net.minecraft.core.BlockPos
+import net.minecraft.client.Minecraft
 import net.minecraft.nbt.CompoundTag
 import net.minecraft.server.level.ServerLevel
-import net.minecraft.sounds.SoundSource
+import net.minecraft.world.level.Level
 import net.minecraft.world.item.ItemStack
 import net.minecraft.world.level.block.entity.BlockEntity
 import net.minecraft.world.level.block.entity.BlockEntityType
@@ -18,18 +20,26 @@ import net.minecraft.world.level.block.state.properties.BlockStateProperties
 import net.minecraft.world.phys.AABB
 import org.valkyrienskies.clockwork.ClockworkConfig
 import org.valkyrienskies.clockwork.ClockworkItems
-import org.valkyrienskies.clockwork.ClockworkSounds
 import org.valkyrienskies.clockwork.util.universal_joint.IUniversalJoint
 import org.valkyrienskies.mod.common.getShipManagingPos
-import org.valkyrienskies.mod.common.toWorldCoordinates
+import java.util.UUID
 
-class UniversalShaftBlockEntity(typeIn: BlockEntityType<*>?, pos: BlockPos?, state: BlockState?) : KineticBlockEntity(typeIn, pos, state), IUniversalJoint, SpecialBlockEntityItemRequirement {
+class UniversalShaftBlockEntity(typeIn: BlockEntityType<*>?, pos: BlockPos?, state: BlockState?) : KineticBlockEntity(typeIn, pos, state), BlockAnchorEndpoint, SpecialBlockEntityItemRequirement {
+    override val linkKind = BlockAnchorLinks.Kind.SHAFT
     override var connectedJoint: IUniversalJoint? = null
     override var pos = blockPos
-    var connectedPos: BlockPos? = null
+    override var connectedPos: BlockPos? = null
     var connectedBe: UniversalShaftBlockEntity? = null
+    override var linkId: UUID? = null
+    override var stress = 0f
+        private set
+    var previousStress = 0f
+        private set
+    var displayStress = 0f
+        private set
+    private var stressSound: UniversalShaftStressSound? = null
 
-    var main: Boolean = false
+    override var main: Boolean = false
 
     override val maxCreationDistance: Double
         get() = ClockworkConfig.SERVER.maxUniversalJointDistance
@@ -70,65 +80,61 @@ class UniversalShaftBlockEntity(typeIn: BlockEntityType<*>?, pos: BlockPos?, sta
     }
 
     override fun disconnect() {
-        val other = connectedBe ?: connectedJoint as? UniversalShaftBlockEntity
-        connectedPos = null
-        connectedBe = null
-        connectedJoint = null
-        main = false
-        if (other?.connectedJoint === this || other?.connectedBe === this) other?.disconnect()
-        setSpeed(0f)
-        detachKinetics()
-        clearKineticInformation()
-        setChanged()
-        sendData()
+        val world = level as? ServerLevel ?: return
+        val data = BlockAnchorLinks.get(world)
+        val link = data.at(blockPos)
+        if (link != null) data.remove(world, link) else setConnection(null, null, false)
     }
 
     override fun connectTo(other: IUniversalJoint) {
+        val world = level as? ServerLevel ?: return
+        if (other is UniversalShaftBlockEntity) BlockAnchorLinks.get(world).add(world, this, other)
+    }
 
-        connectedPos = other.pos
-        connectedJoint = other
-        main = true
+    override fun tryConnect(level: Level, blockPos: BlockPos): Boolean {
+        if (level !is ServerLevel || this.level !== level) return false
+        val other = level.getBlockEntity(blockPos) as? UniversalShaftBlockEntity ?: return false
+        if (connectedPos != null || other.connectedPos != null) return false
+        return BlockAnchorLinks.get(level).add(level, this, other) != null
+    }
 
-        super.connectTo(other)
-
-        sendData()
-        attachKinetics()
-        if (other is UniversalShaftBlockEntity) {
-            other.connectedBe = this
-            other.connectedPos = this.pos
-
-            other.connectedJoint = this
-            other.main = false
-            other.attachKinetics()
-            other.sendData()
+    override fun setConnection(id: UUID?, target: BlockPos?, primary: Boolean) {
+        val changed = linkId != id || connectedPos != target || main != primary
+        val other = target?.takeIf { level?.hasChunkAt(it) == true }?.let { level?.getBlockEntity(it) as? UniversalShaftBlockEntity }
+        val reconnect = connectedPos != target || connectedBe !== other
+        if (reconnect && !isRemoved) {
+            detachKinetics()
+            clearKineticInformation()
+            setSpeed(0f)
         }
+        linkId = id; connectedPos = target; main = primary
+        connectedBe = other; connectedJoint = other
+        if (target == null) updateStress(0f)
+        if (reconnect && !isRemoved) attachKinetics()
+        if (changed) { setChanged(); sendData() }
+    }
+
+    override fun updateStress(value: Float) {
+        val next = (value.coerceIn(0f, 1f) * 20).toInt() / 20f
+        if (stress == next) return
+        stress = next
+        sendData()
     }
 
     override fun tick() {
         super.tick()
 
-        if ((connectedJoint == null || connectedBe == null) && connectedPos != null) {
-            val be = level!!.getBlockEntity(connectedPos!!)
-            if (be != null && be !is UniversalShaftBlockEntity) {
-                connectedPos = null
-            }
-            else if(be != null) {
-                connectedJoint = be
-                connectedBe = be
-            }
+        val world = level ?: return
+        if (world is ServerLevel) BlockAnchorLinks.get(world).reconcile(world, this)
+        else {
+            previousStress = displayStress
+            displayStress += (stress - displayStress) * .4f
+            connectedBe = connectedPos?.takeIf { world.hasChunkAt(it) }?.let { world.getBlockEntity(it) as? UniversalShaftBlockEntity }
+                ?.takeIf { it.connectedPos == blockPos && it.linkId == linkId }
+            connectedJoint = connectedBe
+            if (main && stress > .15f && stressSound?.isStopped != false)
+                stressSound = UniversalShaftStressSound(this).also { Minecraft.getInstance().soundManager.play(it) }
         }
-        if (level == null || level!!.isClientSide) return
-        if (connectedPos != null && main) {
-            val posInWorld = level.toWorldCoordinates(pos)
-            val otherPosInWorld = level.toWorldCoordinates(connectedPos!!)
-            val distance = posInWorld.distanceTo(otherPosInWorld)
-            if (distance > maxCreationDistance && connectedBe != null) {
-                connectedBe!!.disconnect()
-                disconnect()
-                (level as ServerLevel).playSound(null, pos, ClockworkSounds.JOINT_BREAK.mainEvent, SoundSource.BLOCKS, 1.0f, 1.0f)
-            }
-        }
-
     }
 
     override fun isThisJoint(be: BlockEntity): Boolean {
@@ -140,6 +146,8 @@ class UniversalShaftBlockEntity(typeIn: BlockEntityType<*>?, pos: BlockPos?, sta
     }
 
     override fun write(compound: CompoundTag, clientPacket: Boolean) {
+        if (clientPacket) compound.putFloat("Stress", stress)
+        linkId?.let { compound.putUUID("ShaftLink", it) }
         if (connectedPos != null) {
             val offset = connectedPos!!.subtract(worldPosition)
             compound.putInt("otherPosXr",offset.x)
@@ -156,6 +164,9 @@ class UniversalShaftBlockEntity(typeIn: BlockEntityType<*>?, pos: BlockPos?, sta
     }
 
     override fun read(compound: CompoundTag, clientPacket: Boolean) {
+        val previousLink = linkId
+        if (clientPacket) stress = compound.getFloat("Stress").takeIf { it.isFinite() }?.coerceIn(0f, 1f) ?: 0f
+        linkId = if (compound.hasUUID("ShaftLink")) compound.getUUID("ShaftLink") else null
         // Old serialization
         if (compound.contains("otherPosX")) {
             connectedPos = BlockPos(compound.getInt("otherPosX"),compound.getInt("otherPosY"),compound.getInt("otherPosZ"))
@@ -175,6 +186,10 @@ class UniversalShaftBlockEntity(typeIn: BlockEntityType<*>?, pos: BlockPos?, sta
         }
 
         super.read(compound, clientPacket)
+        if (previousLink != linkId || connectedBe?.blockPos != connectedPos || connectedBe?.isRemoved == true) {
+            connectedBe = null
+            connectedJoint = null
+        }
     }
 
     override fun getRequiredItems(state: BlockState?): ItemRequirement? {
@@ -183,8 +198,4 @@ class UniversalShaftBlockEntity(typeIn: BlockEntityType<*>?, pos: BlockPos?, sta
         else ItemRequirement.NONE
     }
 
-    override fun remove() {
-        disconnect()
-        super.remove()
-    }
 }

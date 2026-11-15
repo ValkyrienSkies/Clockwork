@@ -1,5 +1,8 @@
 package org.valkyrienskies.clockwork
 
+import org.valkyrienskies.clockwork.content.physicalities.wheel.WheelContactPacket
+import org.valkyrienskies.clockwork.content.physicalities.steering.SteeringWheelInputPacket
+
 import org.valkyrienskies.clockwork.content.schematics.VdexBlueprintActionPacket
 import org.valkyrienskies.clockwork.content.schematics.VdexBlueprintUploadPacket
 import org.valkyrienskies.clockwork.content.schematics.VdexBlueprintDownloadPacket
@@ -82,6 +85,7 @@ enum class ClockworkPackets(
     WAND_SELECTION_PACKET(WandSelectionPacket::class.java, ::WandSelectionPacket),
 
     // Server to Client
+    WHEEL_CONTACTS(WheelContactPacket::class.java, ::WheelContactPacket),
     LUBRICANT_SYNC(LubricantSyncPacket::class.java, ::LubricantSyncPacket),
     COLORBLOCKENTITY(BlockEntityColorPacket::class.java, ::BlockEntityColorPacket),
     SYNCABLESTORAGE(SyncableStoragePacket::class.java, ::SyncableStoragePacket),
@@ -99,6 +103,7 @@ enum class ClockworkPackets(
     //SYNC_TEMPERATURE(TemperatureSyncPacket::class.java, ::TemperatureSyncPacket),
 
     PHYSICS_INFUSER(PhysicsInfuserSyncPacket::class.java, ::PhysicsInfuserSyncPacket),
+    STEERING_WHEEL_INPUT(SteeringWheelInputPacket::class.java, ::SteeringWheelInputPacket),
 
     WAND_RENDER_UPDATE_PACKET(WanderwandRenderUpdatePacket::class.java, ::WanderwandRenderUpdatePacket),
 

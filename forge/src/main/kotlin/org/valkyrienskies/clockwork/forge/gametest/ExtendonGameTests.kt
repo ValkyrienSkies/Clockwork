@@ -136,6 +136,10 @@ class ExtendonGameTests {
             }.thenIdle(3).thenExecute {
                 initialRotation = Quaterniond(child.transform.shipToWorldRotation)
                 upper.connectTo(lower)
+            }.thenWaitUntil {
+                helper.assertTrue((upper.distanceJointId ?: -1) >= 0 && (upper.sphericalJointId ?: -1) >= 0,
+                    "Extendon joints were not created")
+            }.thenExecute {
                 val joint = upper.distanceJoint!!
                 helper.assertTrue(abs(joint.minDistance!! - distance()) < .01, "Extendon did not start at its actual separation")
                 val angular = upper.sphericalJoint!!
@@ -143,9 +147,6 @@ class ExtendonGameTests {
                 val frame1 = Quaterniond(child.transform.shipToWorldRotation).mul(angular.pose1.rot)
                 helper.assertTrue(abs(frame0.dot(frame1)) > .9999, "Extendon starts with mismatched angular frames")
                 lastLength = joint.minDistance!!.toDouble()
-            }.thenWaitUntil {
-                helper.assertTrue((upper.distanceJointId ?: -1) >= 0 && (upper.sphericalJointId ?: -1) >= 0,
-                    "Extendon joints were not created")
             }.thenExecute {
                 child.isStatic = false
             }.thenExecuteFor(65) {

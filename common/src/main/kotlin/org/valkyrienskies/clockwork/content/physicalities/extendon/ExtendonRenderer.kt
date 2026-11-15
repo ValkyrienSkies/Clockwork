@@ -1,5 +1,6 @@
 package org.valkyrienskies.clockwork.content.physicalities.extendon
 
+import org.valkyrienskies.clockwork.client.render.goggles.AeronautGoggleOverlayRenderer
 import com.mojang.blaze3d.vertex.PoseStack
 import com.mojang.blaze3d.vertex.VertexConsumer
 import com.simibubi.create.foundation.blockEntity.renderer.SmartBlockEntityRenderer
@@ -38,10 +39,21 @@ class ExtendonRenderer(context: BlockEntityRendererProvider.Context?) : SmartBlo
         be: ExtendonBlockEntity,
         partialTicks: Float,
         ms: PoseStack,
-        buffer: MultiBufferSource,
+        buffers: MultiBufferSource,
         light: Int,
         overlay: Int
     ) {
+        val stress = be.previousStress + (be.displayStress - be.previousStress) * partialTicks
+        val buffer = AeronautGoggleOverlayRenderer.stressBuffers(buffers, stress)
+        val tint = AeronautGoggleOverlayRenderer.stressColor(stress)
+        if (tint != 0xFFFFFF) {
+            ms.pushPose()
+            ms.translate(-.001, -.001, -.001)
+            ms.scale(1.002f, 1.002f, 1.002f)
+            CachedBuffers.block(be.blockState).color<SuperByteBuffer>(tint).light<SuperByteBuffer>(light)
+                .renderInto(ms, buffers.getBuffer(RenderType.cutout()))
+            ms.popPose()
+        }
         val tubebuffer = buffer.getBuffer(RenderType.entitySolid(texture))
 
         var axis0 = CachedBuffers.partial(ClockworkPartials.EXTENDON_AXIS0,be.blockState)

@@ -6,16 +6,26 @@ import com.mojang.blaze3d.vertex.DefaultVertexFormat
 import com.mojang.blaze3d.vertex.PoseStack
 import com.mojang.blaze3d.vertex.VertexBuffer
 import com.mojang.blaze3d.vertex.VertexFormat
+import com.mojang.blaze3d.vertex.VertexConsumer
+import com.simibubi.create.AllPartialModels
+import net.createmod.catnip.render.CachedBuffers
 import net.minecraft.client.Minecraft
 import net.minecraft.client.renderer.MultiBufferSource
 import net.minecraft.core.BlockPos
 import net.minecraft.core.Direction
 import net.minecraft.nbt.CompoundTag
+import net.minecraft.world.level.block.state.properties.BlockStateProperties
 import net.minecraft.util.RandomSource
 import net.minecraft.world.phys.Vec3
 import org.joml.Matrix4f
 import org.joml.Quaternionf
 import org.joml.Vector3d
+import org.valkyrienskies.clockwork.ClockworkPartials
+import org.valkyrienskies.clockwork.content.physicalities.wheel.LayeredTireRenderer
+import org.valkyrienskies.clockwork.content.physicalities.wheel.TireMesh
+import org.valkyrienskies.clockwork.content.physicalities.wheel.TireType
+import org.valkyrienskies.clockwork.content.physicalities.wheel.WheelItem
+import org.valkyrienskies.clockwork.content.physicalities.wheel.WheelSize
 import org.valkyrienskies.clockwork.content.curiosities.tools.wanderwand.WandAnchor
 import org.valkyrienskies.clockwork.content.curiosities.tools.wanderwand.WandLinks
 import org.valkyrienskies.clockwork.content.curiosities.tools.wanderwand.WandLinkSchematics
@@ -74,6 +84,7 @@ object VdexBlueprintPreview {
                         quads++
                     }
                 }
+                wheel(source, entry)
                 if (block == source.blocks.size) { ship++; block = 0 }
             }
             if (ship == data.ships.size) {
@@ -83,6 +94,62 @@ object VdexBlueprintPreview {
                 val vertices = builder.end()
                 if (vertices.isEmpty) vertices.release()
                 else connectionBuffer = VertexBuffer(VertexBuffer.Usage.STATIC).also { it.bind(); it.upload(vertices); VertexBuffer.unbind() }
+            }
+        }
+
+        private fun wheel(source: VdexBlueprintData.Ship, entry: VdexBlueprintData.Block) {
+            val tire = entry.wheel() ?: return
+            val facing = entry.state.getValue(BlockStateProperties.FACING)
+            val pose = PoseStack()
+            pose.translate(source.entry.relativePos.x(), source.entry.relativePos.y(), source.entry.relativePos.z())
+            pose.mulPose(Quaternionf(source.entry.relativeRot))
+            val scale = source.entry.scale.toFloat()
+            pose.scale(scale, scale, scale)
+            pose.translate(entry.pos.x - source.pivot.x, entry.pos.y - source.pivot.y, entry.pos.z - source.pivot.z)
+            val atlas = WheelConsumer(true)
+            CachedBuffers.partialFacing(AllPartialModels.SHAFT_HALF, entry.state, facing.opposite).renderInto(pose, atlas)
+            pose.translate(.5, .5, .5)
+            pose.mulPose(Quaternionf(WheelSize.axleRotation(facing.stepX.toDouble(), facing.stepY.toDouble(), facing.stepZ.toDouble())))
+            val buffers = MultiBufferSource { atlas }
+            when (tire.type.appearance.mesh) {
+                TireType.Mesh.TREAD -> TireMesh.render(tire, emptyList(), pose, WheelConsumer(false), 0, 0)
+                TireType.Mesh.LAYERED -> LayeredTireRenderer.render(null, null, tire, emptyList(), pose, buffers, 0, 0, 0f,
+                    if (tire.type == TireType.WOOD) Minecraft.getInstance().blockRenderer
+                        .getBlockModel(WheelItem.wood(entry.nbt).defaultBlockState()).particleIcon else null)
+            }
+            LayeredTireRenderer.cleats(tire, pose, buffers, 0, 0)
+            pose.mulPose(Quaternionf().rotationY((-PI / 2).toFloat()))
+            pose.translate(-.5, -.5, -.5)
+            val rim = when (tire.size) {
+                WheelSize.SMALL -> ClockworkPartials.WHEEL_RIM
+                WheelSize.MEDIUM -> ClockworkPartials.MEDIUM_WHEEL_RIM
+                WheelSize.LARGE -> ClockworkPartials.LARGE_WHEEL_RIM
+            }
+            CachedBuffers.partial(rim, entry.state).renderInto(pose, atlas)
+        }
+
+        private inner class WheelConsumer(private val textured: Boolean) : VertexConsumer {
+            private val point = Vector3d()
+            private val normal = Vector3d()
+            private var u = -1f
+            private var v = -1f
+            private var tint = 0xFFFFFF
+            private var vertices = 0
+            override fun vertex(x: Double, y: Double, z: Double) = apply { point.set(x, y, z) }
+            override fun color(r: Int, g: Int, b: Int, a: Int) = apply {
+                val shade = if (textured) 1.0 else .45
+                tint = ((r * shade).toInt() shl 16) or ((g * shade).toInt() shl 8) or (b * shade).toInt()
+            }
+            override fun uv(u: Float, v: Float) = apply { this.u = if (textured) u else -1f; this.v = if (textured) v else -1f }
+            override fun overlayCoords(u: Int, v: Int) = this
+            override fun uv2(u: Int, v: Int) = this
+            override fun normal(x: Float, y: Float, z: Float) = apply { normal.set(x.toDouble(), y.toDouble(), z.toDouble()) }
+            override fun defaultColor(r: Int, g: Int, b: Int, a: Int) { color(r, g, b, a) }
+            override fun unsetDefaultColor() { tint = 0xFFFFFF }
+            override fun endVertex() {
+                if (quads >= 300000) return
+                vertex(point, normal, u, v, tint)
+                if (++vertices % 4 == 0) quads++
             }
         }
 

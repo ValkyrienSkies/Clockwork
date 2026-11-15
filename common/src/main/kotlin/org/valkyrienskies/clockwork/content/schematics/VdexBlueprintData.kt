@@ -1,6 +1,7 @@
 package org.valkyrienskies.clockwork.content.schematics
 
 import net.minecraft.core.BlockPos
+import net.minecraft.core.Direction
 import net.minecraft.core.registries.BuiltInRegistries
 import net.minecraft.nbt.CompoundTag
 import net.minecraft.nbt.NbtAccounter
@@ -8,6 +9,7 @@ import net.minecraft.nbt.NbtIo
 import net.minecraft.nbt.NbtUtils
 import net.minecraft.resources.ResourceLocation
 import net.minecraft.world.level.block.state.BlockState
+import net.minecraft.world.level.block.state.properties.BlockStateProperties
 import net.minecraft.world.phys.AABB
 import org.joml.Vector3d
 import org.joml.Quaterniondc
@@ -19,6 +21,9 @@ import org.valkyrienskies.mod.common.shipObjectWorld
 import org.valkyrienskies.mod.common.schematic.VdexData
 import org.valkyrienskies.mod.common.schematic.VdexIO
 import org.valkyrienskies.mod.common.schematic.VdexShipEntry
+import org.valkyrienskies.clockwork.content.physicalities.wheel.WheelHubBlock
+import org.valkyrienskies.clockwork.content.physicalities.wheel.WheelSize
+import org.valkyrienskies.clockwork.content.physicalities.wheel.TireType
 import java.io.ByteArrayInputStream
 import java.io.DataInputStream
 import java.nio.file.Files
@@ -27,7 +32,13 @@ import java.security.MessageDigest
 import java.util.zip.ZipInputStream
 
 class VdexBlueprintData(val data: VdexData, val ships: List<Ship>) {
-    data class Block(val pos: BlockPos, val state: BlockState, val nbt: CompoundTag?)
+    data class Block(val pos: BlockPos, val state: BlockState, val nbt: CompoundTag?) {
+        fun wheel() = if (state.block !is WheelHubBlock || nbt == null) null else
+            WheelSize.byId(nbt.getString("Wheel"))?.tire(
+                if (nbt.contains("WheelWidth")) nbt.getInt("WheelWidth") * 5 else 100,
+                if (nbt.contains("WheelThickness")) nbt.getInt("WheelThickness") * 5 else 100,
+                if (nbt.contains("WheelPressure")) nbt.getInt("WheelPressure") * 5 else 800, TireType.read(nbt))
+    }
     data class Ship(val entry: VdexShipEntry, val size: BlockPos, val blocks: List<Block>, val entities: List<CompoundTag>,
                     val pivot: Vector3d = massCenter(blocks, size)) {
         fun relativePoint(point: Vector3d): Vector3d = point.sub(pivot).mul(entry.scale)
@@ -43,6 +54,16 @@ class VdexBlueprintData(val data: VdexData, val ships: List<Ship>) {
             buildList {
                 for (x in listOf(0, ship.size.x)) for (y in listOf(0, ship.size.y)) for (z in listOf(0, ship.size.z))
                     add(ship.relativePoint(Vector3d(x.toDouble(), y.toDouble(), z.toDouble())))
+                for (block in ship.blocks) {
+                    val wheel = block.wheel() ?: continue
+                    val axis = block.state.getValue(BlockStateProperties.FACING).axis
+                    val halfWidth = maxOf(wheel.width, wheel.rimWidth) / 2
+                    for (x in listOf(-1, 1)) for (y in listOf(-1, 1)) for (z in listOf(-1, 1))
+                        add(ship.relativePoint(Vector3d(
+                            block.pos.x + .5 + x * (if (axis == Direction.Axis.X) halfWidth else wheel.radius),
+                            block.pos.y + .5 + y * (if (axis == Direction.Axis.Y) halfWidth else wheel.radius),
+                            block.pos.z + .5 + z * (if (axis == Direction.Axis.Z) halfWidth else wheel.radius))))
+                }
             }
         }
         AABB(points.minOf { it.x }, points.minOf { it.y }, points.minOf { it.z },

@@ -6,6 +6,8 @@ import org.joml.Quaterniond
 import org.joml.Quaterniondc
 import org.joml.Vector3d
 import org.joml.Vector3dc
+import kotlin.math.PI
+import kotlin.math.abs
 import kotlin.math.atan2
 
 object BearingAttachmentGeometry {
@@ -15,9 +17,15 @@ object BearingAttachmentGeometry {
 
     fun neutral(ownerFace: Direction, targetFace: Direction, ownerRotation: Quaterniondc, targetRotation: Quaterniondc): Quaterniond {
         val relative = Quaterniond(ownerRotation).invert().mul(targetRotation)
-        val targetAxis = relative.transform(Vector3d(-targetFace.stepX.toDouble(), -targetFace.stepY.toDouble(), -targetFace.stepZ.toDouble()))
+        val targetAxis = Vector3d(-targetFace.stepX.toDouble(), -targetFace.stepY.toDouble(), -targetFace.stepZ.toDouble())
         val ownerAxis = Vector3d(ownerFace.stepX.toDouble(), ownerFace.stepY.toDouble(), ownerFace.stepZ.toDouble())
-        return Quaterniond().rotationTo(targetAxis, ownerAxis).mul(relative).normalize()
+        val base = Quaterniond().rotationTo(targetAxis, ownerAxis)
+        var nearest = base
+        for (quarter in 1..3) {
+            val candidate = Quaterniond().rotationAxis(quarter * PI / 2, ownerAxis.x, ownerAxis.y, ownerAxis.z).mul(base)
+            if (abs(candidate.dot(relative)) > abs(nearest.dot(relative))) nearest = candidate
+        }
+        return nearest.normalize()
     }
 
     fun angle(axis: Vector3dc, relative: Quaterniondc, neutral: Quaterniondc): Double {

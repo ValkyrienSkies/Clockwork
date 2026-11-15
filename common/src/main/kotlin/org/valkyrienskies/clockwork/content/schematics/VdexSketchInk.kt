@@ -17,13 +17,17 @@ import org.valkyrienskies.clockwork.content.curiosities.tools.wanderwand.WandAnc
 import org.valkyrienskies.clockwork.content.curiosities.tools.wanderwand.WandLinkSchematics
 import org.valkyrienskies.clockwork.content.curiosities.tools.wanderwand.WandLinks
 import org.valkyrienskies.clockwork.content.curiosities.tools.wanderwand.WandRopeCurve
+import org.valkyrienskies.clockwork.util.universal_joint.BlockAnchorLinks
+import org.valkyrienskies.clockwork.content.physicalities.extendon.ExtendonBlock
+import org.valkyrienskies.clockwork.content.logistics.gas.hoseport.HosePortBlock
+import org.valkyrienskies.clockwork.content.kinetics.universal_shaft.UniversalShaftBlock
 import kotlin.math.PI
 import kotlin.math.abs
 import kotlin.math.cos
 import kotlin.math.sin
 
 object VdexSketchInk {
-    enum class Kind { SPRING, ROPE, THINKABLE, BIND, ATTACHMENT }
+    enum class Kind { SPRING, ROPE, THINKABLE, BIND, ATTACHMENT, UNIVERSAL_SHAFT, EXTENDON, HOSE }
     data class Stroke(val points: List<Vec3>, val color: Int, val width: Float, val alpha: Float = .85f)
     data class Symbol(val anchor: Vec3, val points: List<Vector2f>, val color: Int, val width: Float = .65f, val toward: Vec3? = null)
     data class Drawing(val strokes: List<Stroke>, val symbols: List<Symbol>)
@@ -43,7 +47,7 @@ object VdexSketchInk {
     }
 
     private fun connections(data: VdexBlueprintData): Drawing {
-        val payload = data.data.nbtData[WandLinkSchematics.ENTRY] ?: return Drawing(emptyList(), emptyList())
+        val payload = data.data.nbtData[WandLinkSchematics.ENTRY] ?: CompoundTag()
         val origins = payload.getList("origins", 10).filterIsInstance<CompoundTag>()
             .associate { it.getLong("ship") to BlockPos.of(it.getLong("pos")) }
         val ships = data.ships.associateBy { it.entry.previousId }
@@ -64,6 +68,43 @@ object VdexSketchInk {
                 else -> Kind.ATTACHMENT
             }
             connection(kind, a, b, link.length)
+        }.toMutableList()
+        val shafts = CompoundTag().also { it.put("links", payload.getList("universalShafts", 10)) }
+        for (link in BlockAnchorLinks.load(shafts).links.values) {
+            val a = point(link.a) ?: continue
+            val b = point(link.b) ?: continue
+            val kind = when (link.kind) {
+                BlockAnchorLinks.Kind.SHAFT -> Kind.UNIVERSAL_SHAFT
+                BlockAnchorLinks.Kind.EXTENDON -> Kind.EXTENDON
+                BlockAnchorLinks.Kind.HOSE -> Kind.HOSE
+            }
+            drawings.add(connection(kind, a, b, link.length))
+        }
+        val oldShafts = data.ships.flatMap { ship -> ship.blocks.mapNotNull { block ->
+            val tag = block.nbt ?: return@mapNotNull null
+            if ((block.state.block !is UniversalShaftBlock && block.state.block !is ExtendonBlock && block.state.block !is HosePortBlock) || tag.hasUUID("ShaftLink") || tag.hasUUID("BlockAnchorLink")) return@mapNotNull null
+            val pos = if (tag.contains("ClockworkSourcePos")) BlockPos.of(tag.getLong("ClockworkSourcePos"))
+                else if (tag.contains("x")) BlockPos(tag.getInt("x"), tag.getInt("y"), tag.getInt("z")) else return@mapNotNull null
+            pos to (ship to block)
+        } }.toMap()
+        for ((pos, entry) in oldShafts) {
+            val (ship, block) = entry
+            val tag = block.nbt ?: continue
+            if (!tag.getBoolean("main") && !tag.getBoolean("IsMain")) continue
+            val target = if (tag.contains("ConnectedPosX")) BlockPos(tag.getInt("ConnectedPosX"), tag.getInt("ConnectedPosY"), tag.getInt("ConnectedPosZ")) else if (tag.contains("otherPosXa")) BlockPos(tag.getInt("otherPosXa"), tag.getInt("otherPosYa"), tag.getInt("otherPosZa"))
+                else pos.offset(tag.getInt("otherPosXr"), tag.getInt("otherPosYr"), tag.getInt("otherPosZr"))
+            val (otherShip, otherBlock) = oldShafts[target] ?: continue
+            fun center(source: VdexBlueprintData.Ship, at: BlockPos): Vec3 {
+                val p = source.relativePoint(Vector3d(at.x + .5, at.y + .5, at.z + .5))
+                return Vec3(p.x, p.y, p.z)
+            }
+            val a = center(ship, block.pos); val b = center(otherShip, otherBlock.pos)
+            val kind = when (block.state.block) {
+                is UniversalShaftBlock -> Kind.UNIVERSAL_SHAFT
+                is ExtendonBlock -> Kind.EXTENDON
+                else -> Kind.HOSE
+            }
+            drawings.add(connection(kind, a, b, a.distanceTo(b) + 1))
         }
         return Drawing(drawings.flatMap { it.strokes }, drawings.flatMap { it.symbols })
     }
@@ -84,6 +125,29 @@ object VdexSketchInk {
             Vector2f(cos(angle).toFloat() * radius, sin(angle).toFloat() * radius)
         }, color)
         when (kind) {
+            Kind.UNIVERSAL_SHAFT, Kind.EXTENDON -> {
+                val color = if (kind == Kind.EXTENDON) 0x6C7355 else 0x536C7B
+                for (sign in listOf(-1, 1)) {
+                    strokes.add(Stroke(path(24) { t ->
+                        val taper = minOf(1.0, t / .08, (1 - t) / .08)
+                        a.lerp(b, t).add(side.scale(sign * taper * (if (kind == Kind.EXTENDON) .2 else if (t < .5) .12 else .085)))
+                    }, color, .85f))
+                }
+                strokes.add(Stroke(listOf(a.lerp(b, .47).add(side.scale(-.15)), a.lerp(b, .47).add(side.scale(.15))), color, 1f))
+                for (t in listOf(.12, .88)) symbols.add(Symbol(a.lerp(b, t), listOf(Vector2f(-1.6f, -1.6f), Vector2f(1.6f, 1.6f),
+                    Vector2f(0f, 0f), Vector2f(-1.6f, 1.6f), Vector2f(1.6f, -1.6f)), color, .7f, b))
+                symbols.add(ring(a, color, 2f)); symbols.add(ring(b, color, 2f))
+            }
+            Kind.HOSE -> {
+                val color = 0x65664E
+                strokes.add(Stroke(path(64) { curve.point(it) }, color, 1.5f))
+                for (i in 1..8) {
+                    val t = i / 9.0
+                    symbols.add(Symbol(curve.point(t), listOf(Vector2f(-1.2f, 0f), Vector2f(1.2f, 0f)),
+                        0xA29873, .6f, curve.point(t + .01)))
+                }
+                symbols.add(ring(a, color, 2f)); symbols.add(ring(b, color, 2f))
+            }
             Kind.SPRING -> {
                 val turns = (distance * 1.6).coerceIn(4.0, 14.0)
                 val points = path((turns * 14).toInt()) { t ->

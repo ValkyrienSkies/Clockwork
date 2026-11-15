@@ -1,5 +1,10 @@
 package org.valkyrienskies.clockwork
 
+import org.valkyrienskies.clockwork.content.physicalities.wheel.WheelHubBlockEntity
+import org.valkyrienskies.clockwork.content.physicalities.wheel.WheelHubRenderer
+import org.valkyrienskies.clockwork.content.physicalities.steering.SteeringWheelBlockEntity
+import org.valkyrienskies.clockwork.content.physicalities.steering.SteeringWheelRenderer
+
 import org.valkyrienskies.clockwork.content.kinetics.plotting.PlottingTableBlockEntity
 
 import org.valkyrienskies.clockwork.content.curiosities.clampotron.ClampotronBlockEntity
@@ -84,6 +89,7 @@ import org.valkyrienskies.clockwork.content.logistics.gas.generation.steam_gener
 import org.valkyrienskies.clockwork.content.logistics.gas.heater.GasHeaterBlockEntity
 import org.valkyrienskies.clockwork.content.logistics.gas.thermal.HeatExchangerBlockEntity
 import org.valkyrienskies.clockwork.content.logistics.gas.thermal.RadiatorBlockEntity
+import org.valkyrienskies.clockwork.content.logistics.gas.hoseport.HosePortRenderer
 import org.valkyrienskies.clockwork.content.logistics.gas.hoseport.HosePortBlockEntity
 import org.valkyrienskies.clockwork.content.logistics.gas.pockets.nozzle.GasNozzleBlockEntity
 import org.valkyrienskies.clockwork.content.logistics.gas.pockets.nozzle.GasNozzleRenderer
@@ -948,6 +954,22 @@ object ClockworkBlockEntities {
         } }.register()
 
     @JvmField
+    val STEERING_WHEEL = ClockworkMod.REGISTRATE
+        .blockEntity("steering_wheel") { type: BlockEntityType<SteeringWheelBlockEntity>, pos: BlockPos, state: BlockState ->
+            SteeringWheelBlockEntity(type, pos, state)
+        }.validBlocks(ClockworkBlocks.STEERING_WHEEL)
+        .renderer { NonNullFunction { context: BlockEntityRendererProvider.Context -> SteeringWheelRenderer(context) } }
+        .register()
+
+    @JvmField
+    val WHEEL_HUB = ClockworkMod.REGISTRATE
+        .blockEntity("wheel_hub") { type: BlockEntityType<WheelHubBlockEntity>, pos: BlockPos, state: BlockState ->
+            WheelHubBlockEntity(type, pos, state)
+        }.validBlocks(ClockworkBlocks.WHEEL_HUB)
+        .renderer { NonNullFunction { context: BlockEntityRendererProvider.Context -> WheelHubRenderer(context) } }
+        .register()
+
+    @JvmField
     val HARPOON = ClockworkMod.REGISTRATE
         .blockEntity("harpoon_launcher") { type: BlockEntityType<HarpoonBlockEntity>, pos: BlockPos, state: BlockState ->
             HarpoonBlockEntity(type, pos, state)
@@ -1004,13 +1026,7 @@ object ClockworkBlockEntities {
                 pos, state
             )
         }
-//        .renderer {
-//            NonNullFunction { context: BlockEntityRendererProvider.Context? ->
-//                ExtendonRenderer(
-//                    context!!
-//                )
-//            }
-//        }
+        .renderer { NonNullFunction { context -> HosePortRenderer(context) } }
         .validBlocks(ClockworkBlocks.HOSE_PORT)
         .register()
 

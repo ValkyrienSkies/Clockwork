@@ -1,5 +1,7 @@
 package org.valkyrienskies.clockwork
 
+import org.valkyrienskies.clockwork.content.physicalities.wheel.WheelContacts
+import org.valkyrienskies.clockwork.content.physicalities.wheel.WheelSurface
 import org.valkyrienskies.clockwork.content.curiosities.aeronaut.AeronautShipReadout
 
 import org.valkyrienskies.clockwork.content.curiosities.magnet.Magnetism
@@ -31,6 +33,7 @@ import org.valkyrienskies.clockwork.client.render.airpocket.AirpocketRenderer
 import org.valkyrienskies.clockwork.content.contraptions.flap.dual_link.DualLinkHandler
 import org.valkyrienskies.clockwork.content.contraptions.phys.gimbal.quad_link.QuadLinkHandler
 import org.valkyrienskies.clockwork.content.contraptions.phys.hinge.HingeLinks
+import org.valkyrienskies.clockwork.util.universal_joint.BlockAnchorLinks
 import org.valkyrienskies.clockwork.content.contraptions.phys.linear.PhysicalPistonBlock
 import org.valkyrienskies.clockwork.content.curiosities.grippad.GripPadController
 import org.valkyrienskies.clockwork.content.curiosities.lubricant.LubricantData
@@ -120,6 +123,7 @@ object ClockworkMod {
         HarpoonArmInteraction.register()
         TAB_REGISTRY.register()
         PhysicalPistonBlock.registerPhysicsShape()
+        WheelSurface.registerPhysics()
 
         vsCore.registerAttachment(PocketForcesController::class.java)
         vsCore.registerAttachment(WanderShipControl::class.java)
@@ -177,13 +181,16 @@ object ClockworkMod {
 
         LifecycleEvent.SERVER_STOPPED.register {
             Magnetism.clear()
+            WheelContacts.clear()
             HarpoonProjectiles.clear()
         }
 
         TickEvent.SERVER_LEVEL_POST.register {
             Magnetism.tick(it)
+            WheelContacts.tick(it)
             VdexBlueprintLibrary.tick(it)
             HingeLinks.get(it).tick(it)
+            BlockAnchorLinks.get(it).tick(it)
             LubricantData.get(it).tick(it)
             org.valkyrienskies.clockwork.content.curiosities.tools.wanderwand.WanderwandServer.tick(it)
             for (ship in it.shipObjectWorld.loadedShips) {
@@ -218,6 +225,7 @@ object ClockworkMod {
         vsApi.physTickEvent.on {
             GravitronController.timeStep(it.world, it.delta)
             Magnetism.physicsTick(it.world)
+            WheelContacts.physicsTick(it.world)
             GripPadController.tick(it.world, it.delta)
             SpringBendingController.tick(it.world)
             val temp = mutableListOf<Pair<DimensionId, (PhysLevel, Double, () -> Unit) -> Unit>>()

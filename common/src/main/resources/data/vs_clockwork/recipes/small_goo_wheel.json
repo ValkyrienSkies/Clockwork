@@ -1,0 +1,14 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "ingredients": [
+    {
+      "item": "vs_clockwork:small_wheel"
+    },
+    {
+      "item": "vs_clockwork:goo_block"
+    }
+  ],
+  "result": {
+    "item": "vs_clockwork:small_goo_wheel"
+  }
+}

@@ -1,0 +1,22 @@
+{
+  "result": {
+    "item": "vs_clockwork:large_wheel"
+  },
+  "pattern": [
+    "KKK",
+    "KCK",
+    "KIK"
+  ],
+  "type": "minecraft:crafting_shaped",
+  "key": {
+    "C": {
+      "item": "create:large_cogwheel"
+    },
+    "K": {
+      "item": "minecraft:dried_kelp_block"
+    },
+    "I": {
+      "item": "create:iron_sheet"
+    }
+  }
+}

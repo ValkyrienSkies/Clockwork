@@ -7,6 +7,7 @@ import net.minecraft.world.level.block.state.BlockState
 import net.minecraft.world.level.chunk.LevelChunkSection
 import org.joml.Vector3ic
 import org.valkyrienskies.core.api.physics.blockstates.FluidBoundarySolidState
+import org.valkyrienskies.core.api.physics.blockstates.TireSurfaceSolidState
 import org.valkyrienskies.core.internal.physics.blockstates.VsiBlockState
 import org.valkyrienskies.core.internal.world.chunks.VsiBlockType
 import org.valkyrienskies.core.internal.world.chunks.VsiTerrainUpdate
@@ -31,6 +32,7 @@ object LubricantMaterials {
                 VsiBlockState(vsCore.newSolidStateBuilder()
                     .shape(solid.shape).elasticity(solid.elasticity).hardness(solid.hardness)
                     .friction(minOf(solid.friction, FRICTION))
+                    .tireSurface((solid as? TireSurfaceSolidState)?.tireSurface)
                     .fluidBoundary((solid as? FluidBoundarySolidState)?.fluidBoundary).build(),
                     state.liquidState, state.displacementState)
             }

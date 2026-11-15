@@ -16,6 +16,7 @@ import org.valkyrienskies.clockwork.ClockworkMod.MOD_ID
 import org.valkyrienskies.clockwork.content.contraptions.propeller.blades.item.CraftingTableBladeRecipe
 import org.valkyrienskies.clockwork.content.contraptions.propeller.blades.item.CuttingBladeRecipe
 import org.valkyrienskies.clockwork.content.logistics.gas.crafter.GasCraftingRecipe
+import org.valkyrienskies.clockwork.content.physicalities.wheel.WoodenWheelRecipe
 import java.util.function.Supplier
 
 object ClockworkRecipes {
@@ -25,6 +26,10 @@ object ClockworkRecipes {
 
     val BLADE_CRAFTING_SERIALIZER = RECIPE_SERIALIZERS.register("blade_crafting") {
         SimpleCraftingRecipeSerializer(::CraftingTableBladeRecipe)
+    }
+
+    val WOODEN_WHEEL_SERIALIZER = RECIPE_SERIALIZERS.register("wooden_wheel") {
+        SimpleCraftingRecipeSerializer(::WoodenWheelRecipe)
     }
 
     enum class ClockworkRecipeTypes(private val serializerSupplier: Supplier<RecipeSerializer<*>>,

@@ -5,6 +5,7 @@ import org.valkyrienskies.clockwork.content.contraptions.phys.hinge.HingeLinks
 import org.valkyrienskies.clockwork.content.contraptions.phys.linear.PhysicalLinearBlockEntity
 import org.valkyrienskies.clockwork.content.curiosities.tools.wanderwand.WandLinks
 import org.valkyrienskies.clockwork.content.kinetics.universal_shaft.UniversalShaftBlockEntity
+import org.valkyrienskies.clockwork.util.universal_joint.BlockAnchorLinks
 import org.valkyrienskies.clockwork.util.universal_joint.IUniversalJoint
 import org.valkyrienskies.mod.common.getShipManagingPos
 import org.valkyrienskies.mod.common.shipObjectWorld
@@ -40,6 +41,10 @@ object ClockworkSchematicConnections {
                 if (link.b.shipId == id) include(link.a.shipId)
             }
             for (link in HingeLinks.get(level).links.values.filter { it.connected }) {
+                if (link.a.shipId == id) include(link.b.shipId)
+                if (link.b.shipId == id) include(link.a.shipId)
+            }
+            for (link in BlockAnchorLinks.get(level).links.values) {
                 if (link.a.shipId == id) include(link.b.shipId)
                 if (link.b.shipId == id) include(link.a.shipId)
             }

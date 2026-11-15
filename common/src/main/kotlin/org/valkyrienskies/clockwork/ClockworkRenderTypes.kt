@@ -45,6 +45,24 @@ class ClockworkRenderTypes(
         private val TEX = ResourceLocation("minecraft", "textures/misc/white.png")
         private val BEAM_TEX = ResourceLocation(ClockworkMod.MOD_ID, "textures/effects/beam.png")
 
+        val SKID_MARKS = tireMarks(TEX)
+        val TERRAIN_TRACKS = tireMarks(TextureAtlas.LOCATION_BLOCKS)
+
+        private fun tireMarks(texture: ResourceLocation): RenderType = create(
+            if (texture == TEX) "skid_marks" else "terrain_tracks", DefaultVertexFormat.NEW_ENTITY, VertexFormat.Mode.QUADS, 262144, false, true,
+            CompositeState.builder()
+                .setShaderState(RENDERTYPE_ENTITY_TRANSLUCENT_SHADER)
+                .setTextureState(TextureStateShard(texture, false, false))
+                .setTransparencyState(TRANSLUCENT_TRANSPARENCY)
+                .setLightmapState(LIGHTMAP)
+                .setOverlayState(OVERLAY)
+                .setCullState(NO_CULL)
+                .setLayeringState(POLYGON_OFFSET_LAYERING)
+                .setWriteMaskState(COLOR_WRITE)
+                .setDepthTestState(LEQUAL_DEPTH_TEST)
+                .createCompositeState(false)
+        )
+
         val CRYSTAL = Util.memoize { resourceLocation: ResourceLocation? ->
             val compositeState: CompositeState? =
                 CompositeState.builder()

@@ -9,7 +9,7 @@ import net.minecraft.world.level.Level
 import org.valkyrienskies.clockwork.ClockworkSounds
 
 class WanderlustMusicDisc : RecordItem {
-    constructor(properties: Properties) : super(7, ClockworkSounds.WANDERLUST.mainEvent!!, properties, 84)
+    constructor(properties: Properties) : super(7, ClockworkSounds.WANDERLUST.mainEvent!!, properties, 139)
 
     override fun appendHoverText(
         stack: ItemStack,

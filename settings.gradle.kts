@@ -38,7 +38,7 @@ include("fabric")
 
 try {
     val kelvin = file("Kelvin")
-    if (kelvin.isDirectory) {
+    if (kelvin.resolve("settings.gradle.kts").isFile || kelvin.resolve("settings.gradle").isFile) {
         //ts is evil as hell, but we have to do it because of an intellij bug :(
         includeBuild(kelvin.toPath().toRealPath().toAbsolutePath().toString()) {
             name = "kelvin"

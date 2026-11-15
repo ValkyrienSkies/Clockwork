@@ -52,6 +52,18 @@ object ClockworkConfig {
     }
 
     class Server {
+        @ConfigEntry(description = "Enable raycast-based wheel assistance when climbing terrain steps")
+        var wheelStepAssist = true
+
+        @ConfigEntry(description = "Extra wheel step-assist lift reserve as a fraction of the supported load", min = 0.0, max = 1.0)
+        var wheelStepAssistStrength = 0.35
+
+        @ConfigEntry(description = "Maximum assisted step height in blocks, also limited by tire radius", min = 0.0, max = 2.0)
+        var wheelStepAssistHeight = 1.05
+
+        @ConfigEntry(description = "Maximum combined step-assist support and traction force per wheel in newtons", min = 0.0, max = 1000000.0)
+        var wheelStepAssistMaxForce = 200000.0
+
         @ConfigEntry(description = "Force multiplier for permanent magnets and electromagnets")
         var magnetForceMultiplier = 1.0
 

@@ -108,6 +108,11 @@ class UniversalShaftBlock(properties: Properties?) : DirectionalKineticBlock(pro
         oldJointIdToNewId: Map<Int, Int>,
         tag: CompoundTag?
     ): CompoundTag? {
+        if (tag?.hasUUID("ShaftLink") == true) {
+            for (key in listOf("ShaftLink", "otherPosXa", "otherPosYa", "otherPosZa", "otherPosXr", "otherPosYr", "otherPosZr",
+                "otherShipId", "main", "ClockworkSourcePos", "ClockworkSourceShip")) tag.remove(key)
+            return tag
+        }
         if (!(tag?.contains("otherPosXa") ?: false)) return tag
         if (!(tag.contains("otherShipId"))) return tag
 
@@ -126,7 +131,7 @@ class UniversalShaftBlock(properties: Properties?) : DirectionalKineticBlock(pro
 
         val centers = centerPositions[oldId]
         if (centers == null || oldShipIdToNewId[oldId] == null) {
-            for (key in listOf("otherPosXa", "otherPosYa", "otherPosZa", "otherPosXr", "otherPosYr", "otherPosZr", "otherShipId", "main")) tag.remove(key)
+            for (key in listOf("otherPosXa", "otherPosYa", "otherPosZa", "otherPosXr", "otherPosYr", "otherPosZr", "otherShipId", "main", "ShaftLink")) tag.remove(key)
             return tag
         }
         val offset = connectedPos.center.toJOML().sub(centers.first)
@@ -205,8 +210,8 @@ class UniversalShaftBlock(properties: Properties?) : DirectionalKineticBlock(pro
         hit: BlockHitResult
     ): InteractionResult {
         val be = level.getBlockEntity(pos) as? UniversalShaftBlockEntity ?: return InteractionResult.PASS
-        if (player.isShiftKeyDown && player.getItemInHand(InteractionHand.MAIN_HAND) == ItemStack.EMPTY) {
-            if (be.connectedBe != null) be.connectedBe!!.disconnect()
+        if (player.isShiftKeyDown && player.getItemInHand(InteractionHand.MAIN_HAND).isEmpty && be.connectedPos != null) {
+            if (level.isClientSide) return InteractionResult.SUCCESS
             be.disconnect()
             level.playSound(null, be.blockPos, ClockworkSounds.HOSE_RELEASE.mainEvent, SoundSource.BLOCKS, 1.0f, 1.0f)
             if (!player.isCreative) player.addItem(be.getConnectionItem())

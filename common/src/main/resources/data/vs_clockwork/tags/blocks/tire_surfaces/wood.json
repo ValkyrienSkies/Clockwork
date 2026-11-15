@@ -1,0 +1,9 @@
+{
+  "replace": false,
+  "values": [
+    "#minecraft:planks",
+    "#minecraft:logs",
+    "#minecraft:wooden_slabs",
+    "#minecraft:wooden_stairs"
+  ]
+}

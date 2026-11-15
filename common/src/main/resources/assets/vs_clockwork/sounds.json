@@ -1,4 +1,22 @@
 {
+  "wheel_unscrew_1": {
+    "sounds": ["vs_clockwork:wheel_unscrew_1", "vs_clockwork:wheel_unscrew_2"],
+    "subtitle": "vs_clockwork.subtitle.wheel_unscrew_1"
+  },
+  "driving_wood": {"sounds": ["vs_clockwork:driving_wood"], "subtitle": "vs_clockwork.subtitle.driving_wood"},
+  "driving_generic": {"sounds": ["vs_clockwork:driving_generic"], "subtitle": "vs_clockwork.subtitle.driving_generic"},
+  "driving_gritty": {"sounds": ["vs_clockwork:driving_gritty"], "subtitle": "vs_clockwork.subtitle.driving_gritty"},
+  "driving_icy": {"sounds": ["vs_clockwork:driving_icy"], "subtitle": "vs_clockwork.subtitle.driving_icy"},
+  "driving_metal": {"sounds": ["vs_clockwork:driving_metal"], "subtitle": "vs_clockwork.subtitle.driving_metal"},
+  "driving_snow": {"sounds": ["vs_clockwork:driving_snow"], "subtitle": "vs_clockwork.subtitle.driving_snow"},
+  "driving_wet": {"sounds": ["vs_clockwork:driving_wet"], "subtitle": "vs_clockwork.subtitle.driving_wet"},
+  "tire_skid_grassy": {"sounds": ["vs_clockwork:tire_skid_grassy"], "subtitle": "vs_clockwork.subtitle.tire_skid_grassy"},
+  "tire_skid_gritty": {"sounds": ["vs_clockwork:tire_skid_gritty"], "subtitle": "vs_clockwork.subtitle.tire_skid_gritty"},
+  "tire_skid_icy": {"sounds": ["vs_clockwork:tire_skid_icy"], "subtitle": "vs_clockwork.subtitle.tire_skid_icy"},
+  "tire_skid_metal": {"sounds": ["vs_clockwork:tire_skid_metal"], "subtitle": "vs_clockwork.subtitle.tire_skid_metal"},
+  "tire_skid_snow": {"sounds": ["vs_clockwork:tire_skid_snow"], "subtitle": "vs_clockwork.subtitle.tire_skid_snow"},
+  "tire_skid_wet": {"sounds": ["vs_clockwork:tire_skid_wet"], "subtitle": "vs_clockwork.subtitle.tire_skid_wet"},
+  "tire_squeal": {"sounds": ["vs_clockwork:tire_squeal"], "subtitle": "vs_clockwork.subtitle.tire_squeal"},
   "polaritron_hum": {"sounds": ["vs_clockwork:polaritron_hum"], "subtitle": "vs_clockwork.subtitle.polaritron_hum"},
   "thinkable_attach": {"sounds": ["vs_clockwork:thinkable_attach"], "subtitle": "vs_clockwork.subtitle.thinkable_attach"},
   "thinkable_data_1": {"sounds": ["vs_clockwork:thinkable_data_1", "vs_clockwork:thinkable_data_2", "vs_clockwork:thinkable_data_3"], "subtitle": "vs_clockwork.subtitle.thinkable_data_1"},
@@ -323,6 +341,14 @@
     ],
     "subtitle": "vs_clockwork.subtitle.gas_hiss"
   },
+  "thinking_with_voxels": {
+    "sounds": [
+      {
+        "name": "vs_clockwork:thinking_with_voxels",
+        "stream": true
+      }
+    ]
+  },
   "wanderlust": {
     "sounds": [
       {
@@ -400,6 +426,10 @@
       }
     ],
     "subtitle": "vs_clockwork.subtitle.hose_release"
+  },
+  "joint_overload": {
+    "subtitle": "vs_clockwork.subtitle.joint_overload",
+    "sounds": [{ "name": "vs_clockwork:joint_overload", "attenuation_distance": 16 }]
   },
   "joint_break": {
     "sounds": [
@@ -632,6 +662,18 @@
     "sounds": [
       "vs_clockwork:vdex_erase_1",
       "vs_clockwork:vdex_erase_2"
+    ]
+  },
+  "driving_honey": {
+    "subtitle": "vs_clockwork.subtitle.driving_honey",
+    "sounds": [
+      "vs_clockwork:driving_honey"
+    ]
+  },
+  "tire_skid_honey": {
+    "subtitle": "vs_clockwork.subtitle.tire_skid_honey",
+    "sounds": [
+      "vs_clockwork:tire_skid_honey"
     ]
   }
 }

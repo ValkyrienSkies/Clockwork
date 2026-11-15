@@ -23,7 +23,7 @@ class GravitronController : ShipPhysicsListener {
         val dataCopy = data ?: return
         val connected = if (dataCopy.connectedMass && physLevel is VsiPhysLevel)
             ConnectedShipMass(physLevel.getAllJoints().values, elastic = { true }) { id ->
-                physLevel.getShipById(id)?.let { ConnectedShipMass.Load(it.mass, it.isStatic) }
+                physLevel.getBodyById(id)?.let { ConnectedShipMass.Load(it.inertiaData.mass, it.isStatic) }
                     ?: ConnectedShipMass.Load(0.0, true)
             } else null
         val gain = GravitronManipulation.supportedGain(physShip.mass, connected?.total(physShip.id)?.mass ?: physShip.mass,

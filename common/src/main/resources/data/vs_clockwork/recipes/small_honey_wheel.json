@@ -1,0 +1,14 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "ingredients": [
+    {
+      "item": "vs_clockwork:small_wheel"
+    },
+    {
+      "item": "minecraft:honey_block"
+    }
+  ],
+  "result": {
+    "item": "vs_clockwork:small_honey_wheel"
+  }
+}

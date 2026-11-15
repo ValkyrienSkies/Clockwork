@@ -1,5 +1,10 @@
 package org.valkyrienskies.clockwork
 
+import org.valkyrienskies.clockwork.content.physicalities.wheel.WheelItem
+import org.valkyrienskies.clockwork.content.physicalities.wheel.WheelSize
+import org.valkyrienskies.clockwork.content.physicalities.wheel.TireType
+import org.valkyrienskies.clockwork.content.physicalities.wheel.WheelItemRenderer
+
 import org.valkyrienskies.clockwork.content.schematics.VdexBlueprintItem
 import org.valkyrienskies.clockwork.content.schematics.EmptyBlueprintItem
 import org.valkyrienskies.clockwork.content.curiosities.spring.SpringItem
@@ -14,6 +19,7 @@ import net.minecraft.tags.ItemTags
 import net.minecraft.world.entity.EquipmentSlot
 import net.minecraft.world.item.Item
 import net.minecraft.world.item.Rarity
+import net.minecraft.world.item.RecordItem
 import net.minecraft.world.item.Tiers
 import org.valkyrienskies.clockwork.ClockworkMod.REGISTRATE
 import org.valkyrienskies.clockwork.content.contraptions.propeller.blades.item.BladeItem
@@ -48,6 +54,26 @@ import org.valkyrienskies.clockwork.util.builder.ClockworkRegistrate
 import java.util.function.Supplier
 
 object ClockworkItems {
+    val WHEELS = TireType.entries.associateWith { type -> WheelSize.entries.associateWith { wheel(it, type) } }
+    @JvmField
+    val SMALL_WHEEL = WHEELS.getValue(TireType.RUBBER).getValue(WheelSize.SMALL)
+    @JvmField
+    val MEDIUM_WHEEL = WHEELS.getValue(TireType.RUBBER).getValue(WheelSize.MEDIUM)
+    @JvmField
+    val LARGE_WHEEL = WHEELS.getValue(TireType.RUBBER).getValue(WheelSize.LARGE)
+    @JvmField
+    val SMALL_HONEY_WHEEL = WHEELS.getValue(TireType.HONEY).getValue(WheelSize.SMALL)
+    @JvmField
+    val MEDIUM_HONEY_WHEEL = WHEELS.getValue(TireType.HONEY).getValue(WheelSize.MEDIUM)
+    @JvmField
+    val LARGE_HONEY_WHEEL = WHEELS.getValue(TireType.HONEY).getValue(WheelSize.LARGE)
+
+    private fun wheel(size: WheelSize, type: TireType) = REGISTRATE.item<WheelItem>(type.itemId(size)) { WheelItem(it!!, size, type) }
+        .properties { it.stacksTo(16) }.tab(ClockworkMod.PHYSICAL_CREATIVE_TABINFO)
+        .let { if (type in listOf(TireType.RUBBER, TireType.HONEY)) it else
+            it.transform(ClockworkRegistrate.customRenderedItem { Supplier { WheelItemRenderer() } }) }
+        .model(AssetLookup.existingItemModel()).register()
+
     @JvmField
     val EMPTY_BLUEPRINT = REGISTRATE.item<EmptyBlueprintItem>("empty_blueprint") { EmptyBlueprintItem(it!!) }
         .tab(ClockworkMod.BASE_CREATIVE_TABINFO).model(AssetLookup.existingItemModel()).register()
@@ -97,6 +123,17 @@ object ClockworkItems {
         }
             .properties { it.rarity(Rarity.EPIC).stacksTo(1) }
             .tab(ClockworkMod.BASE_CREATIVE_TABINFO)
+            .tag(ItemTags.MUSIC_DISCS)
+            .register()
+
+    @JvmField
+    val THINKING_WITH_VOXELS_DISC: ItemEntry<RecordItem> =
+        REGISTRATE.item<RecordItem>("music_disc_thinking_with_voxels") { properties ->
+            object : RecordItem(8, ClockworkSounds.THINKING_WITH_VOXELS.mainEvent!!, properties!!, 112) {}
+        }
+            .properties { it.rarity(Rarity.EPIC).stacksTo(1) }
+            .tab(ClockworkMod.BASE_CREATIVE_TABINFO)
+            .model(AssetLookup.existingItemModel())
             .tag(ItemTags.MUSIC_DISCS)
             .register()
 
