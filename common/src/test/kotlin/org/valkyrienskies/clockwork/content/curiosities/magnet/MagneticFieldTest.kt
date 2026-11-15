@@ -68,7 +68,8 @@ class MagneticFieldTest {
             torque.add(Vector3d(point).cross(f)).sub(Vector3d(pole.position).cross(f))
         }
         assertTrue(torque.length() < 1e-7)
-        fun energy(p: Vector3d) = -MagneticField.FORCE * 4.0 * kotlin.math.sqrt(1.0 + MagneticField.field(poles, p).lengthSquared() / 4.0)
+        fun energy(p: Vector3d) = -MagneticField.FORCE / 24.0 *
+            kotlin.math.sqrt(1.0 + 24.0 * 24.0 * MagneticField.field(poles, p).lengthSquared())
         val h = 1e-4
         val numericalX = -(energy(Vector3d(point).add(h, 0.0, 0.0)) - energy(Vector3d(point).sub(h, 0.0, 0.0))) / (2.0 * h)
         assertEquals(numericalX, total.x, 0.01)
@@ -80,8 +81,8 @@ class MagneticFieldTest {
         assertTrue(force(a, magnet(1.0)).x in 90000.0..125000.0)
         assertTrue(force(a, magnet(2.0)).x in 24000.0..36000.0)
         assertTrue(force(a, magnet(4.0)).x > 3400.0)
-        assertTrue(force(a, magnet(8.0)).x > 400.0)
-        assertTrue(force(a, magnet(12.0)).x > 150.0)
+        assertTrue(force(a, magnet(8.0)).x > 1000.0)
+        assertTrue(force(a, magnet(12.0)).x > 800.0)
         var previous = Double.POSITIVE_INFINITY
         for (i in 100..150) assertTrue(force(a, magnet(i / 100.0)).x in 0.0..130000.0)
         for (i in 15..160) {
@@ -158,7 +159,7 @@ class MagneticFieldTest {
         val solver = MagneticField.CoreSolver()
         val poles = MagneticField.poles(Vector3d(-1.0, 0.0, 0.0), Vector3d(1.0, 0.0, 0.0), 1000.0)
         val moments = solver.solve(poles, centers)
-        assertTrue(moments.all { it.isFinite && it.length() <= 1.5 })
+        assertTrue(moments.all { it.isFinite && it.length() <= .65 })
         val saved = moments.map(::Vector3d)
         assertTrue(solver.solve(poles, centers) === moments)
         assertTrue(solver.solve(emptyList(), centers).all { it.lengthSquared() == 0.0 })
@@ -166,7 +167,7 @@ class MagneticFieldTest {
         for (i in centers.indices) assertTrue(restored[i].distance(saved[i]) < 1e-10)
         assertTrue(solver.solve(poles, emptyList()).isEmpty())
         val coincident = solver.solve(poles, List(8) { Vector3d() })
-        assertTrue(coincident.all { it.isFinite && it.length() <= 1.5 })
+        assertTrue(coincident.all { it.isFinite && it.length() <= .65 })
         val moving = listOf(Vector3d(1.0, 0.0, 0.0), Vector3d(6.2, 0.0, 0.0))
         for (x in listOf(6.2, 5.4, 5.1, 4.9, 4.7, 3.0, 8.0)) {
             moving[1].x = x

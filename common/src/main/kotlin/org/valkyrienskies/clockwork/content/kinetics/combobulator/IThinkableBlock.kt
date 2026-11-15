@@ -7,6 +7,8 @@ import net.minecraft.server.level.ServerLevel
 import net.minecraft.world.level.block.state.BlockState
 
 interface IThinkableBlock {
+    fun acceptsThinkable(state: BlockState, side: Direction): Boolean = false
+    fun receiveThinkable(state: BlockState, level: ServerLevel, pos: BlockPos, side: Direction, value: Double?) {}
     fun providesThinkable(state: BlockState, side: Direction): Boolean
     fun thinkableValue(state: BlockState, level: ServerLevel, pos: BlockPos, side: Direction): Double?
     fun thinkablePortName(state: BlockState, side: Direction): Component?

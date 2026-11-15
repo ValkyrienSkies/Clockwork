@@ -33,6 +33,7 @@ internal object PlottingDevices {
             val device = ThinkableCompat.find(context) ?: entity as? Thinkable ?: (block as? IThinkableBlock)?.let { native ->
                 object : Thinkable {
                     override fun providesThinkable(side: Direction) = native.providesThinkable(state, side)
+                    override fun acceptsThinkable(side: Direction) = native.acceptsThinkable(state, side)
                     override fun thinkablePortName(side: Direction) = native.thinkablePortName(state, side)
                 }
             } ?: return@mapNotNull null

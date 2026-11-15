@@ -1,4 +1,5 @@
 {
+  "thinkable.vs_clockwork.port.magnet_power": "In: magnet power (0–15)",
   "vs_clockwork.gui.harpoon.title": "Harpoon Launcher",
   "vs_clockwork.gui.harpoon.charge": "Charge:",
   "vs_clockwork.gui.harpoon.loaded": "Harpoon loaded",

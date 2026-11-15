@@ -65,6 +65,16 @@ object ThinkableConnections {
             override fun providesThinkable(side: Direction): Boolean =
                 currentState()?.let { block.providesThinkable(it, side) } == true
 
+            override fun acceptsThinkable(side: Direction): Boolean =
+                currentState()?.let { block.acceptsThinkable(it, side) } == true
+
+            override fun receiveThinkable(side: Direction, value: Double?) {
+                val world = level as? ServerLevel ?: return
+                val current = currentState() ?: return
+                if (block.acceptsThinkable(current, side))
+                    block.receiveThinkable(current, world, position, side, value?.takeIf { it.isFinite() })
+            }
+
             override fun thinkableValue(side: Direction): Double? {
                 val world = level as? ServerLevel ?: return null
                 val current = currentState() ?: return null

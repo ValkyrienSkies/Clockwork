@@ -11,8 +11,11 @@ internal object MagneticField {
     const val RANGE = 16.0
     const val FORCE = 120000.0
     private const val SOFTENING_SQUARED = 0.0625
-    private const val LONG_RANGE_WEIGHT = 0.8
-    private const val SATURATION_SQUARED = 4.0
+    private const val FIELD_SPREAD_SQUARED = 0.81
+    private const val FIELD_SCALE = 1.6
+    private const val IRON_RESPONSE = 24.0
+    private const val SATURATION_SQUARED = 1.0
+    private const val CORE_SATURATION_SQUARED = 0.4225
 
     data class Pole(val position: Vector3d, val charge: Double)
 
@@ -103,12 +106,14 @@ internal object MagneticField {
             val value = Vector3d()
             for (i in centers.indices) {
                 field(poles, centers[i], value)
-                excitation[i * 3] = value.x; excitation[i * 3 + 1] = value.y; excitation[i * 3 + 2] = value.z
+                excitation[i * 3] = value.x * IRON_RESPONSE
+                excitation[i * 3 + 1] = value.y * IRON_RESPONSE
+                excitation[i * 3 + 2] = value.z * IRON_RESPONSE
             }
             current.fill(0.0)
             iterations = 0
             for (iteration in 0 until 32) {
-                excitation.copyInto(field)
+                field.fill(0.0)
                 for (link in links) {
                     val a = link.a * 3; val b = link.b * 3
                     val ax = current[a]; val ay = current[a + 1]; val az = current[a + 2]
@@ -123,10 +128,10 @@ internal object MagneticField {
                 var error = 0.0
                 for (i in centers.indices) {
                     val offset = i * 3
-                    val x = field[offset] * susceptibility[i]
-                    val y = field[offset + 1] * susceptibility[i]
-                    val z = field[offset + 2] * susceptibility[i]
-                    val saturation = 1.0 / sqrt(1.0 + (x * x + y * y + z * z) / 2.25)
+                    val x = excitation[offset] * .45 + field[offset] * susceptibility[i]
+                    val y = excitation[offset + 1] * .45 + field[offset + 1] * susceptibility[i]
+                    val z = excitation[offset + 2] * .45 + field[offset + 2] * susceptibility[i]
+                    val saturation = 1.0 / sqrt(1.0 + (x * x + y * y + z * z) / CORE_SATURATION_SQUARED)
                     next[offset] = x * saturation; next[offset + 1] = y * saturation; next[offset + 2] = z * saturation
                     for (axis in 0..2) error = max(error, abs(next[offset + axis] - current[offset + axis]))
                 }
@@ -169,13 +174,8 @@ internal object MagneticField {
                     link.xx = 0.0; link.yy = 0.0; link.zz = 0.0; link.xy = 0.0; link.xz = 0.0; link.yz = 0.0
                     continue
                 }
-                val t = s + SOFTENING_SQUARED
-                val inv = 1.0 / t
-                val taper = 1.0 - s / (RANGE * RANGE)
-                val base = (sqrt(inv) + LONG_RANGE_WEIGHT) * inv
-                val k = taper * taper * taper * base
-                val derivative = -3.0 * taper * taper * base / (RANGE * RANGE) +
-                    taper * taper * taper * (-1.5 * sqrt(inv) - LONG_RANGE_WEIGHT) * inv * inv
+                val k = kernel(s)
+                val derivative = kernelDerivative(s, k)
                 val blend = ((16.0 - s) / 12.0).coerceIn(0.0, 1.0)
                 val weight = blend * blend * (3.0 - 2.0 * blend)
                 val a = -k * weight
@@ -211,18 +211,12 @@ internal object MagneticField {
                 coefficients[offset + 3] = 0.0; coefficients[offset + 4] = 0.0
                 continue
             }
-            val t = s + SOFTENING_SQUARED
-            val inverseT = 1.0 / t
-            val inverseRoot = sqrt(inverseT)
-            val taper = 1.0 - s / (RANGE * RANGE)
-            val base = (inverseRoot + LONG_RANGE_WEIGHT) * inverseT
-            val a = pole.charge * taper * taper * taper * base
-            val derivative = pole.charge * (-3.0 * taper * taper * base / (RANGE * RANGE) +
-                taper * taper * taper * (-1.5 * inverseRoot - LONG_RANGE_WEIGHT) * inverseT * inverseT)
+            val a = pole.charge * kernel(s)
+            val derivative = kernelDerivative(s, a)
             coefficients[offset + 3] = a; coefficients[offset + 4] = derivative
             result.field.add(x * a, y * a, z * a)
         }
-        result.response = FORCE / sqrt(1.0 + result.field.lengthSquared() / SATURATION_SQUARED)
+        result.response = ironResponse(result.field.lengthSquared())
     }
 
     fun ironForce(sample: Sample, index: Int, volume: Double, result: Vector3d): Vector3d {
@@ -239,23 +233,25 @@ internal object MagneticField {
         val r = Vector3d(point).sub(pole.position)
         val s = r.lengthSquared()
         if (s >= RANGE * RANGE) return Vector3d()
-        val t = s + SOFTENING_SQUARED
-        val inverseT = 1.0 / t
-        val inverseRoot = sqrt(inverseT)
-        val taper = 1.0 - s / (RANGE * RANGE)
-        val base = (inverseRoot + LONG_RANGE_WEIGHT) * inverseT
-        val a = taper * taper * taper * base
-        val derivative = -3.0 * taper * taper * base / (RANGE * RANGE) +
-            taper * taper * taper * (-1.5 * inverseRoot - LONG_RANGE_WEIGHT) * inverseT * inverseT
+        val a = kernel(s)
+        val derivative = kernelDerivative(s, a)
         return Vector3d(totalField).mul(a).fma(2.0 * derivative * r.dot(totalField), r)
-            .mul(FORCE * volume * pole.charge / sqrt(1.0 + totalField.lengthSquared() / SATURATION_SQUARED))
+            .mul(volume * pole.charge * ironResponse(totalField.lengthSquared()))
     }
+
+    private fun ironResponse(fieldSquared: Double) =
+        FORCE * IRON_RESPONSE / sqrt(1.0 + IRON_RESPONSE * IRON_RESPONSE * fieldSquared / SATURATION_SQUARED)
+
+    private fun kernelDerivative(s: Double, value: Double): Double =
+        if (s >= RANGE * RANGE) 0.0 else value * (-3.0 / (RANGE * RANGE - s) -
+            1.5 / (s + SOFTENING_SQUARED) + 0.75 / (s + FIELD_SPREAD_SQUARED))
 
     private fun kernel(s: Double): Double {
         if (s >= RANGE * RANGE) return 0.0
         val taper = 1.0 - s / (RANGE * RANGE)
         val t = s + SOFTENING_SQUARED
         val inverseT = 1.0 / t
-        return taper * taper * taper * (sqrt(inverseT) + LONG_RANGE_WEIGHT) * inverseT
+        val spread = 1.0 + s / FIELD_SPREAD_SQUARED
+        return FIELD_SCALE * taper * taper * taper * sqrt(inverseT) * inverseT * sqrt(spread * sqrt(spread))
     }
 }
