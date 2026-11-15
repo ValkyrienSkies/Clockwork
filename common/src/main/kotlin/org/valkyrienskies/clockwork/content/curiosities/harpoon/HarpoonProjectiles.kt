@@ -77,7 +77,7 @@ object HarpoonProjectiles {
         }
         val shot = Shot(level, launcher, source, level.gameTime, Vec3(position.x, position.y, position.z))
         shots[particle.id] = shot
-        launcher.setProjectileInFlight(true)
+        launcher.projectileLaunched(velocity.length())
         syncFlight(particle.id, shot)
         level.playSound(null, origin.x, origin.y, origin.z, SoundEvents.CROSSBOW_SHOOT, SoundSource.BLOCKS, 1f, 0.7f)
         return true
@@ -137,6 +137,7 @@ object HarpoonProjectiles {
                 remove(id)
                 continue
             }
+            shot.launcher.updateProjectileSpeed(particle.velocity.length())
             val p = particle.position
             shot.position = Vec3(p.x(), p.y(), p.z())
             syncFlight(id, shot)

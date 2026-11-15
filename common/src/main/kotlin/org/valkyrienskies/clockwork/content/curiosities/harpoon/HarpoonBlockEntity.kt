@@ -11,6 +11,7 @@ import net.minecraft.server.level.ServerLevel
 import net.minecraft.world.item.ItemStack
 import net.minecraft.world.level.block.entity.BlockEntityType
 import net.minecraft.world.level.block.state.BlockState
+import net.minecraft.world.level.block.state.properties.BlockStateProperties
 import org.valkyrienskies.clockwork.ClockworkItems
 import org.valkyrienskies.clockwork.ClockworkLang
 import org.valkyrienskies.clockwork.content.curiosities.rope.RopeWinchBlockEntity
@@ -18,6 +19,8 @@ import org.valkyrienskies.clockwork.content.curiosities.tools.wanderwand.WandLin
 import org.valkyrienskies.clockwork.content.curiosities.tools.wanderwand.WanderwandServer
 import java.util.UUID
 import kotlin.math.abs
+import kotlin.math.PI
+import kotlin.math.floor
 
 class HarpoonBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: BlockState) : KineticBlockEntity(type, pos, state) {
     var loadedHarpoon: ItemStack = ItemStack.EMPTY
@@ -29,6 +32,57 @@ class HarpoonBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: BlockSt
     private var projectileInFlight = false
     private var ropeLength = 0.0
     private var tooltipSyncPending = false
+    private var shotStartedAt = -1L
+    private var projectileSpeed = 0.0
+    private var launchSpeed = 0.0
+    private var clientShotStartedAt = -1L
+    private var cogAngle = 0.0
+    private var previousCogAngle = 0.0
+
+    fun projectileLaunched(speed: Double) {
+        shotStartedAt = level?.gameTime ?: -1L
+        projectileSpeed = speed.takeIf { it.isFinite() }?.coerceAtLeast(0.0) ?: 0.0
+        launchSpeed = projectileSpeed
+        setProjectileInFlight(true)
+    }
+
+    /** Actual VS speed drives the payout cog, including changes during flight. */
+    fun updateProjectileSpeed(speed: Double) {
+        projectileSpeed = speed.takeIf { it.isFinite() }?.coerceAtLeast(0.0) ?: 0.0
+        if ((level?.gameTime ?: 0L) % 2L == 0L) sendData()
+    }
+
+    fun getCogAngle(partialTicks: Float): Float =
+        (previousCogAngle + (cogAngle - previousCogAngle) * partialTicks).toFloat()
+
+    fun getRecoil(partialTicks: Float): Float {
+        if (clientShotStartedAt < 0) return 0f
+        val elapsed = (level?.gameTime ?: 0L) - clientShotStartedAt + partialTicks.toDouble()
+        if (elapsed < 0.0 || elapsed >= 12.0) return 0f
+        val progress = if (elapsed < 3.0) {
+            val t = elapsed / 3.0
+            1.0 - (1.0 - t) * (1.0 - t)
+        } else {
+            val t = (elapsed - 3.0) / 9.0
+            (1.0 - t) * (1.0 - t)
+        }
+        return (progress * 2.0 / 16.0).toFloat()
+    }
+
+    private fun tickAnimation() {
+        previousCogAngle = cogAngle
+        // Model cog radius is nine pixels. Convert flight metres/second to radians/tick.
+        val shotAge = (level?.gameTime ?: 0L) - clientShotStartedAt
+        // A nearby impact may arrive before the first client tick. Keep a brief launch impulse visible.
+        val kick = if (clientShotStartedAt >= 0 && shotAge in 0L..3L) launchSpeed * (1.0 - shotAge / 4.0) else 0.0
+        val payoutSpeed = if (projectileInFlight) projectileSpeed else kick
+        val facingSign = blockState.getValue(BlockStateProperties.FACING).axisDirection.step
+        cogAngle += if (projectileInFlight || kick > 0.0) payoutSpeed / (20.0 * 9.0 / 16.0)
+            else if (!isOverStressed) getSpeed().toDouble() * facingSign * 2.0 * PI / 1200.0 else 0.0
+        val turns = floor(cogAngle / (2.0 * PI)) * 2.0 * PI
+        cogAngle -= turns
+        previousCogAngle -= turns
+    }
 
     val hasDeployedHarpoon: Boolean get() = ropeId != null || projectileInFlight
 
@@ -39,6 +93,7 @@ class HarpoonBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: BlockSt
     fun setProjectileInFlight(inFlight: Boolean) {
         if (projectileInFlight == inFlight) return
         projectileInFlight = inFlight
+        if (!inFlight) projectileSpeed = 0.0
         sendData()
     }
 
@@ -62,6 +117,10 @@ class HarpoonBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: BlockSt
 
     override fun tick() {
         super.tick()
+        if (level?.isClientSide == true) {
+            tickAnimation()
+            return
+        }
         val world = level as? ServerLevel ?: return
         val links = WandLinks.get(world)
         if (ropeId != null && links.links[ropeId]?.a?.pos != blockPos) {
@@ -194,6 +253,9 @@ class HarpoonBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: BlockSt
         ropeId?.let { tag.putUUID("Rope", it) }
         if (clientPacket) {
             tag.putBoolean("InFlight", projectileInFlight)
+            tag.putLong("ShotStartedAt", shotStartedAt)
+            tag.putDouble("ProjectileSpeed", projectileSpeed)
+            tag.putDouble("LaunchSpeed", launchSpeed)
             val currentLength = (level as? ServerLevel)?.let { WandLinks.get(it).links[ropeId]?.length }
             tag.putDouble("RopeLength", currentLength ?: 0.0)
         }
@@ -209,6 +271,13 @@ class HarpoonBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: BlockSt
         ropeId = if (tag.hasUUID("Rope")) tag.getUUID("Rope") else null
         if (clientPacket) {
             projectileInFlight = tag.getBoolean("InFlight")
+            val receivedShot = if (tag.contains("ShotStartedAt")) tag.getLong("ShotStartedAt") else -1L
+            val now = level?.gameTime ?: receivedShot
+            if (receivedShot >= 0 && receivedShot != shotStartedAt && abs(now - receivedShot) <= 20L)
+                clientShotStartedAt = now
+            shotStartedAt = receivedShot
+            launchSpeed = tag.getDouble("LaunchSpeed").let { if (it.isFinite()) it.coerceAtLeast(0.0) else 0.0 }
+            projectileSpeed = tag.getDouble("ProjectileSpeed").let { if (it.isFinite()) it.coerceAtLeast(0.0) else 0.0 }
             ropeLength = tag.getDouble("RopeLength").let { if (it.isFinite()) it.coerceAtLeast(0.0) else 0.0 }
         }
     }

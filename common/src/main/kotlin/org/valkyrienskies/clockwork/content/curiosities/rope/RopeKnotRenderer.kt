@@ -7,6 +7,8 @@ import org.valkyrienskies.clockwork.content.curiosities.spring.SpringItem
 import org.valkyrienskies.clockwork.client.render.goggles.AeronautGoggleOverlayRenderer
 import com.mojang.blaze3d.vertex.PoseStack
 import com.mojang.blaze3d.vertex.VertexConsumer
+import net.createmod.catnip.render.CachedBuffers
+import net.createmod.catnip.render.SuperByteBuffer
 import net.minecraft.client.Minecraft
 import net.minecraft.client.multiplayer.ClientLevel
 import net.minecraft.client.renderer.LevelRenderer
@@ -21,11 +23,14 @@ import net.minecraft.nbt.CompoundTag
 import net.minecraft.nbt.Tag
 import net.minecraft.world.item.ItemDisplayContext
 import net.minecraft.world.item.ItemStack
+import net.minecraft.world.level.block.Blocks
 import net.minecraft.world.phys.AABB
 import net.minecraft.world.phys.Vec3
 import org.joml.Quaterniond
 import org.joml.Quaternionf
+import org.joml.Vector3d
 import org.valkyrienskies.clockwork.ClockworkItems
+import org.valkyrienskies.clockwork.ClockworkPartials
 import org.valkyrienskies.clockwork.util.sound.LinkStressSoundInstance
 import org.valkyrienskies.clockwork.util.sound.ThinkableDataSoundInstance
 import org.valkyrienskies.clockwork.ClockworkMod
@@ -45,8 +50,14 @@ class RopeKnotEntityRenderer(context: EntityRendererProvider.Context) : EntityRe
 
     override fun shouldRender(entity: RopeKnotEntity, frustum: Frustum, x: Double, y: Double, z: Double): Boolean {
         if (super.shouldRender(entity, frustum, x, y, z)) return true
-        if (entity.end != 0) return false
         val link = RopeKnotRenderer.link(entity.linkId) ?: return false
+        if (entity.end != 0) {
+            if (!link.harpoon) return false
+            val level = entity.level() as ClientLevel
+            val tip = link.b.world(level, true) ?: return false
+            val tail = RopeKnotRenderer.harpoonTail(level, link.b, tip)
+            return tip.distanceToSqr(x, y, z) < 192 * 192 && frustum.isVisible(AABB(tip, tail).inflate(0.25))
+        }
         val a = link.a.world(entity.level(), true) ?: return false
         val b = link.b.world(entity.level(), true) ?: return false
         return min(a.distanceToSqr(x, y, z), b.distanceToSqr(x, y, z)) < 192 * 192 &&
@@ -61,7 +72,11 @@ class RopeKnotEntityRenderer(context: EntityRendererProvider.Context) : EntityRe
         val point = anchor.world(level, true) ?: return
         val origin = entity.getPosition(partialTick)
         val tint = RopeKnotRenderer.stressColor(link, partialTick)
-        if (!link.spring && !link.thinkable) RopeKnotRenderer.knot(level, anchor, point.subtract(origin), ms, buffers)
+        if (link.harpoon) {
+            if (entity.end == 1) RopeKnotRenderer.attachedHarpoon(level, anchor, point, origin, ms, buffers)
+        } else if (!link.spring && !link.thinkable) {
+            RopeKnotRenderer.knot(level, anchor, point.subtract(origin), ms, buffers)
+        }
         if (entity.end == 0) {
             val other = link.b.world(level, true) ?: return
             if (link.thinkable) {
@@ -72,7 +87,11 @@ class RopeKnotEntityRenderer(context: EntityRendererProvider.Context) : EntityRe
                 val length = SpringSettings.easeLength(link.appliedLength, link.length, ticks)
                 SpringRenderer.render(level, link.a, link.b, link.frameA, link.frameB, length, origin, ms, buffers, tint)
             }
-            else RopeKnotRenderer.rope(level, WandRopeCurve(point, other, link.length), origin, ms, buffers, tint, link.grounding)
+            else {
+                val end = if (link.harpoon) RopeKnotRenderer.harpoonTail(level, link.b, other) else other
+                val length = if (link.harpoon) RopeKnotRenderer.harpoonRopeLength(link.length) else link.length
+                RopeKnotRenderer.rope(level, WandRopeCurve(point, end, length), origin, ms, buffers, tint, link.grounding)
+            }
         }
         super.render(entity, yaw, partialTick, ms, buffers, light)
     }
@@ -92,9 +111,11 @@ object RopeKnotRenderer {
     private data class Snap(val curve: WandRopeCurve, val born: Long, val untied: Boolean)
     private data class Flight(val source: WandAnchor, val previous: Vec3, val position: Vec3, val updated: Double) {
         fun point(time: Double): Vec3 = previous.lerp(position, (time - updated).coerceIn(0.0, 1.0))
+        fun direction(start: Vec3, end: Vec3): Vec3 =
+            (position.subtract(previous).takeIf { it.lengthSqr() > 1e-8 } ?: end.subtract(start)).normalize()
     }
     private val flights = linkedMapOf<Long, Flight>()
-    private val harpoonModel by lazy { ItemStack(ClockworkItems.HARPOON.get()) }
+    private const val HARPOON_LENGTH = 13.0 / 16.0
     private val links = mutableMapOf<UUID, Link>()
     private val snaps = mutableListOf<Snap>()
     private val stressSounds = mutableMapOf<UUID, LinkStressSoundInstance>()
@@ -145,7 +166,8 @@ object RopeKnotRenderer {
                 val flight = flights.remove(id) ?: return
                 if (data.getBoolean("snap")) {
                     val start = flight.source.world(level, true) ?: return
-                    val end = flight.point(time)
+                    val tip = flight.point(time)
+                    val end = tip.subtract(flight.direction(start, tip).scale(HARPOON_LENGTH))
                     if (snaps.size >= 32) snaps.removeAt(0)
                     snaps.add(Snap(flightCurve(start, end), level.gameTime, false))
                 }
@@ -159,10 +181,11 @@ object RopeKnotRenderer {
             flights[id] = Flight(WandAnchor.load(data.getCompound("source")), previous, point, time)
             return
         }
+        var brokenLink: Link? = null
         if (data.getString("kind") == "physical_rope_break" && data.hasUUID("id")) {
             val id = data.getUUID("id")
             stressSounds.remove(id)?.stopNow()
-            links.remove(id)
+            brokenLink = links.remove(id)
         }
         if (data.getString("kind") == "link_stress") {
             for (entry in data.getList("links", Tag.TAG_COMPOUND.toInt()).take(256)) {
@@ -215,9 +238,11 @@ object RopeKnotRenderer {
             SpringRenderer.acceptBreak(level, data)
         } else if (data.getString("kind") == "physical_rope_break") {
             val a = Vec3(data.getDouble("ax"), data.getDouble("ay"), data.getDouble("az"))
-            val b = Vec3(data.getDouble("bx"), data.getDouble("by"), data.getDouble("bz"))
+            val tip = Vec3(data.getDouble("bx"), data.getDouble("by"), data.getDouble("bz"))
+            val b = brokenLink?.takeIf { it.harpoon }?.let { harpoonTail(level, it.b, tip) } ?: tip
+            val length = data.getDouble("length").let { if (brokenLink?.harpoon == true) harpoonRopeLength(it) else it }
             if (snaps.size >= 32) snaps.removeAt(0)
-            snaps.add(Snap(WandRopeCurve(a, b, data.getDouble("length")), level.gameTime, data.getBoolean("untied")))
+            snaps.add(Snap(WandRopeCurve(a, b, length), level.gameTime, data.getBoolean("untied")))
         }
     }
 
@@ -262,6 +287,28 @@ object RopeKnotRenderer {
     private fun knotModel(level: ClientLevel, point: Vec3, ms: PoseStack, buffers: MultiBufferSource) {
         Minecraft.getInstance().itemRenderer.renderStatic(ItemStack(ClockworkItems.ROPE_KNOT.get()), ItemDisplayContext.NONE,
             LevelRenderer.getLightColor(level, BlockPos.containing(point)), OverlayTexture.NO_OVERLAY, ms, buffers, level, 0)
+    }
+
+    /** The saved anchor is the impact point; the rope ties to the exposed tail behind it. */
+    internal fun harpoonTail(level: ClientLevel, anchor: WandAnchor, tip: Vec3): Vec3 =
+        tip.subtract(impactDirection(level, anchor).scale(HARPOON_LENGTH))
+
+    internal fun harpoonRopeLength(length: Double): Double = (length - HARPOON_LENGTH).coerceAtLeast(0.0)
+
+    internal fun attachedHarpoon(level: ClientLevel, anchor: WandAnchor, tip: Vec3, origin: Vec3,
+                                 ms: PoseStack, buffers: MultiBufferSource) {
+        val ship = level.shipObjectWorld.loadedShips.getById(anchor.shipId) as? ClientShip
+        val rotation = ship?.let { Quaternionf(it.renderTransform.shipToWorldRotation) } ?: Quaternionf()
+        rotation.mul(anchor.face.opposite.rotation)
+        harpoon(level, tip, impactDirection(level, anchor), origin, ms, buffers, rotation)
+    }
+
+    private fun impactDirection(level: ClientLevel, anchor: WandAnchor): Vec3 {
+        val normal = anchor.face.opposite.normal
+        val direction = Vector3d(normal.x.toDouble(), normal.y.toDouble(), normal.z.toDouble())
+        val ship = level.shipObjectWorld.loadedShips.getById(anchor.shipId) as? ClientShip
+        ship?.renderTransform?.shipToWorldRotation?.transform(direction)
+        return Vec3(direction.x, direction.y, direction.z).normalize()
     }
 
     internal fun rope(level: ClientLevel, curve: WandRopeCurve, origin: Vec3, ms: PoseStack, buffers: MultiBufferSource,
@@ -313,32 +360,34 @@ object RopeKnotRenderer {
         for (flight in flights.values) {
             if (time - flight.updated > 20) continue
             val start = flight.source.world(level, true) ?: continue
-            val end = flight.point(time)
-            if (min(start.distanceToSqr(camera), end.distanceToSqr(camera)) > 192 * 192) continue
-            val distance = start.distanceTo(end)
+            val tip = flight.point(time)
+            if (min(start.distanceToSqr(camera), tip.distanceToSqr(camera)) > 192 * 192) continue
+            val distance = start.distanceTo(tip)
             if (distance < 0.01 || distance > 160) continue
+            val direction = flight.direction(start, tip)
+            val end = tip.subtract(direction.scale(HARPOON_LENGTH))
             val curve = flightCurve(start, end)
             val segments = ceil(distance * 2).toInt().coerceIn(8, 128)
             // Airborne tether uses the same material as attached ropes, without terrain grounding.
             val points = (0..segments).map { curve.point(it.toDouble() / segments) }
             strand(level, points, camera, ms, buffers.getBuffer(type), RopeGrounding.RADIUS)
-            val travel = flight.position.subtract(flight.previous).takeIf { it.lengthSqr() > 1e-8 }
-                ?: end.subtract(start)
-            harpoon(level, end, travel, camera, ms, buffers)
+            harpoon(level, tip, direction, camera, ms, buffers)
         }
     }
 
-    private fun harpoon(level: ClientLevel, position: Vec3, travel: Vec3, camera: Vec3,
-                        ms: PoseStack, buffers: MultiBufferSource) {
+    private fun harpoon(level: ClientLevel, position: Vec3, travel: Vec3, origin: Vec3,
+                        ms: PoseStack, buffers: MultiBufferSource, attachedRotation: Quaternionf? = null) {
         val direction = travel.normalize()
         ms.pushPose()
-        ms.translate(position.x - camera.x, position.y - camera.y, position.z - camera.z)
-        // The debug arrow icon points diagonally up/right in its local item plane.
-        ms.mulPose(Quaternionf().rotationTo(1f, 1f, 0f,
+        ms.translate(position.x - origin.x, position.y - origin.y, position.z - origin.z)
+        // The supplied model points up, with its tip at (8, 13, 8) pixels.
+        ms.mulPose(attachedRotation ?: Quaternionf().rotationTo(0f, 1f, 0f,
             direction.x.toFloat(), direction.y.toFloat(), direction.z.toFloat()))
-        ms.scale(0.75f, 0.75f, 0.75f)
-        Minecraft.getInstance().itemRenderer.renderStatic(harpoonModel, ItemDisplayContext.NONE,
-            LevelRenderer.getLightColor(level, BlockPos.containing(position)), OverlayTexture.NO_OVERLAY, ms, buffers, level, 0)
+        ms.translate(-0.5, -HARPOON_LENGTH, -0.5)
+        val litPosition = position.subtract(direction.scale(HARPOON_LENGTH * 0.5))
+        CachedBuffers.partial(ClockworkPartials.HARPOON, Blocks.AIR.defaultBlockState())
+            .light<SuperByteBuffer>(LevelRenderer.getLightColor(level, BlockPos.containing(litPosition)))
+            .renderInto(ms, buffers.getBuffer(RenderType.cutoutMipped()))
         ms.popPose()
     }
 

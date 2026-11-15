@@ -2,10 +2,28 @@
   "multipart": [
     {
       "when": {
-        "facing": "north"
+        "facing": "up"
       },
       "apply": {
         "model": "vs_clockwork:block/harpoon_launcher"
+      }
+    },
+    {
+      "when": {
+        "facing": "down"
+      },
+      "apply": {
+        "model": "vs_clockwork:block/harpoon_launcher",
+        "x": 180
+      }
+    },
+    {
+      "when": {
+        "facing": "north"
+      },
+      "apply": {
+        "model": "vs_clockwork:block/harpoon_launcher",
+        "x": 90
       }
     },
     {
@@ -14,6 +32,7 @@
       },
       "apply": {
         "model": "vs_clockwork:block/harpoon_launcher",
+        "x": 90,
         "y": 180
       }
     },
@@ -23,6 +42,7 @@
       },
       "apply": {
         "model": "vs_clockwork:block/harpoon_launcher",
+        "x": 90,
         "y": 90
       }
     },
@@ -32,25 +52,8 @@
       },
       "apply": {
         "model": "vs_clockwork:block/harpoon_launcher",
+        "x": 90,
         "y": 270
-      }
-    },
-    {
-      "when": {
-        "facing": "up"
-      },
-      "apply": {
-        "model": "vs_clockwork:block/harpoon_launcher",
-        "x": 270
-      }
-    },
-    {
-      "when": {
-        "facing": "down"
-      },
-      "apply": {
-        "model": "vs_clockwork:block/harpoon_launcher",
-        "x": 90
       }
     }
   ]

@@ -886,6 +886,7 @@ object ClockworkBlocks {
         HarpoonBlock(p)
     }.initialProperties { SharedProperties.softMetal() }
         .transform(axeOrPickaxe()).properties { it.noOcclusion() }
+        .addLayer { Supplier { RenderType.cutout() } }
         .item().tab(ClockworkMod.BASE_CREATIVE_TABINFO).build().register()
 
     @JvmField
