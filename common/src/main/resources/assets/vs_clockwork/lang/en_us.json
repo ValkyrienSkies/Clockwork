@@ -444,6 +444,7 @@
   "vs_clockwork.subtitle.hinge_assemble": "Hinge assembles",
   "vs_clockwork.subtitle.hinge_disassemble": "Hinge separates",
   "vs_clockwork.subtitle.hinge_stress": "Hinge strains",
+  "vs_clockwork.subtitle.joint_overload": "Mechanical connection strains",
 
   "block.vs_clockwork.rope_winch": "Rope Winch",
   "block.vs_clockwork.rope_winch.maximum": "Maximum Rope Extension",

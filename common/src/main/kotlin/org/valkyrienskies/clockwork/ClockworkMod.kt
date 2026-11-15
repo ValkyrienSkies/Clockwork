@@ -33,6 +33,7 @@ import org.valkyrienskies.clockwork.client.render.airpocket.AirpocketRenderer
 import org.valkyrienskies.clockwork.content.contraptions.flap.dual_link.DualLinkHandler
 import org.valkyrienskies.clockwork.content.contraptions.phys.gimbal.quad_link.QuadLinkHandler
 import org.valkyrienskies.clockwork.content.contraptions.phys.hinge.HingeLinks
+import org.valkyrienskies.clockwork.util.universal_joint.BlockAnchorLinks
 import org.valkyrienskies.clockwork.content.contraptions.phys.linear.PhysicalPistonBlock
 import org.valkyrienskies.clockwork.content.curiosities.grippad.GripPadController
 import org.valkyrienskies.clockwork.content.curiosities.lubricant.LubricantData
@@ -189,6 +190,7 @@ object ClockworkMod {
             WheelContacts.tick(it)
             VdexBlueprintLibrary.tick(it)
             HingeLinks.get(it).tick(it)
+            BlockAnchorLinks.get(it).tick(it)
             LubricantData.get(it).tick(it)
             org.valkyrienskies.clockwork.content.curiosities.tools.wanderwand.WanderwandServer.tick(it)
             for (ship in it.shipObjectWorld.loadedShips) {

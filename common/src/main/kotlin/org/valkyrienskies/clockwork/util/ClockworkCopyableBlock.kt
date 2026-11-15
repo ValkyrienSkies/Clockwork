@@ -73,6 +73,10 @@ object ClockworkBlockReferences {
 
     fun paste(tag: CompoundTag, ids: Map<Long, Long>, centers: Map<Long, Pair<Vector3dc, Vector3dc>>,
               joints: Map<Int, Int>) {
+        if (tag.hasUUID("BlockAnchorLink")) {
+            for (key in listOf("BlockAnchorLink", "ConnectedPosX", "ConnectedPosY", "ConnectedPosZ", "ConnectionOffset",
+                "IsMain", "DistanceJointId", "SphericalJointId")) tag.remove(key)
+        }
         val references = tag.getCompound("ClockworkReferences")
         for ((key, oldPos) in positions(tag)) {
             val shipKey = when (key) { "ShaftOrigin" -> "ShaftShip"; "RailOrigin" -> "RailShip"; else -> null }

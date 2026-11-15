@@ -12,6 +12,7 @@ import net.minecraft.world.level.levelgen.structure.templatesystem.StructureTemp
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.valkyrienskies.clockwork.content.kinetics.universal_shaft.UniversalShaftBlockEntity;
+import org.valkyrienskies.clockwork.util.universal_joint.GasLinkBlockEntity;
 
 @Mixin(StructureTemplate.class)
 public class MixinStructureTemplate {
@@ -36,6 +37,7 @@ public class MixinStructureTemplate {
         CompoundTag resultTag = tag;
 
         if (instance instanceof UniversalShaftBlockEntity) {
+            if (!tag.contains("ClockworkSourcePos")) resultTag.remove("ShaftLink");
             if (tag.contains("otherPosXr")) {
                 BlockPos offset = new BlockPos(tag.getInt("otherPosXr"),tag.getInt("otherPosYr"),tag.getInt("otherPosZr"));
                 //BlockPos connectedPos = worldPosition.offset(offset)
@@ -47,6 +49,20 @@ public class MixinStructureTemplate {
 
         }
 
+        if (instance instanceof GasLinkBlockEntity && !tag.contains("ClockworkReferences")) {
+            resultTag.remove("BlockAnchorLink");
+            if (tag.contains("ConnectionOffset")) {
+                BlockPos offset = StructureTemplate.transform(BlockPos.of(tag.getLong("ConnectionOffset")),
+                        settings.getMirror(), settings.getRotation(), BlockPos.ZERO);
+                BlockPos target = instance.getBlockPos().offset(offset);
+                resultTag.putLong("ConnectionOffset", offset.asLong());
+                resultTag.putInt("ConnectedPosX", target.getX());
+                resultTag.putInt("ConnectedPosY", target.getY());
+                resultTag.putInt("ConnectedPosZ", target.getZ());
+            }
+            resultTag.remove("DistanceJointId");
+            resultTag.remove("SphericalJointId");
+        }
         original.call(instance, resultTag);
     }
 }

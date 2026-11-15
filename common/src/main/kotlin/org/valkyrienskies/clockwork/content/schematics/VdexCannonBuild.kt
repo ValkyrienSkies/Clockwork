@@ -25,6 +25,7 @@ import org.joml.Vector3d
 import org.joml.Vector3i
 import org.valkyrienskies.clockwork.ClockworkMod
 import org.valkyrienskies.clockwork.content.contraptions.phys.hinge.HingeLinks
+import org.valkyrienskies.clockwork.util.universal_joint.BlockAnchorLinks
 import org.valkyrienskies.clockwork.content.curiosities.lubricant.LubricantData
 import org.valkyrienskies.clockwork.content.curiosities.tools.gravitron.GravitronFrozenShip
 import org.valkyrienskies.clockwork.content.curiosities.tools.wanderwand.WandLinkSchematics
@@ -314,6 +315,11 @@ class VdexCannonBuild(val saved: CompoundTag) {
                 val restored = hinge.copy(id = stableId("hinge", index))
                 val data = HingeLinks.get(level)
                 require(data.links.containsKey(restored.id) || data.restore(level, restored)) { "Could not restore schematic hinge" }
+            }
+            WandLinkSchematics.decodeShafts(payload, dest).forEachIndexed { index, shaft ->
+                val restored = shaft.copy(id = stableId("shaft", index))
+                val data = BlockAnchorLinks.get(level)
+                require(data.links.containsKey(restored.id) || data.restore(level, restored)) { "Could not restore schematic block connection" }
             }
             val attachments = payload.getList("attachments", 10).copy() as ListTag
             attachments.filterIsInstance<CompoundTag>().forEach { it.remove("Balloons"); it.remove("Frozen") }

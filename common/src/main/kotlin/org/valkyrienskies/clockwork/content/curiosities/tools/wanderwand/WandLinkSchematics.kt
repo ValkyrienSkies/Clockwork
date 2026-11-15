@@ -11,6 +11,7 @@ import org.valkyrienskies.clockwork.util.ClockworkShipSchematics
 import org.valkyrienskies.clockwork.util.ClockworkContraptionSchematics
 import org.valkyrienskies.clockwork.ClockworkMod
 import org.valkyrienskies.clockwork.content.contraptions.phys.hinge.HingeLinks
+import org.valkyrienskies.clockwork.util.universal_joint.BlockAnchorLinks
 import org.valkyrienskies.core.api.ships.ServerShip
 import org.valkyrienskies.mod.common.ValkyrienSkiesMod
 import org.valkyrienskies.mod.common.schematic.VdexData
@@ -29,7 +30,8 @@ object WandLinkSchematics {
         val ids = metadata.ships.mapTo(HashSet()) { it.previousId }
         val links = data.links.values.filter { it.a.shipId in ids && it.b.shipId in ids }
         val hinges = HingeLinks.get(level).links.values.filter { it.a.shipId in ids && it.b.shipId in ids }
-        val owned = data.links.values.flatMap { listOfNotNull(it.jointId, it.alignmentId) }.toSet() + hinges.mapNotNull { it.jointId }
+        val shafts = BlockAnchorLinks.get(level).links.values.filter { it.a.shipId in ids && it.b.shipId in ids }
+        val owned = data.links.values.flatMap { listOfNotNull(it.jointId, it.alignmentId) }.toSet() + hinges.mapNotNull { it.jointId } + shafts.flatMap { listOfNotNull(it.jointId, it.alignmentId) + it.legacyIds }
         val filtered = metadata.copy(constraints = metadata.constraints.filter { it.previousId !in owned })
         val origins = metadata.ships.mapNotNull { entry ->
             level.shipObjectWorld.allShips.getById(entry.previousId)?.shipAABB?.let {
@@ -39,11 +41,12 @@ object WandLinkSchematics {
         val lubricant = LubricantData.get(level).captureSchematic(level, origins)
         val attachments = ClockworkShipSchematics.capture(level, origins)
         val capturedBlocks = ClockworkContraptionSchematics.capture(level, metadata, origins, blocks)
-        if (links.isEmpty() && hinges.isEmpty() && attachments.isEmpty() && lubricant.getList("Blocks", 10).isEmpty()) return VdexData(filtered, mods, capturedBlocks)
+        if (links.isEmpty() && hinges.isEmpty() && shafts.isEmpty() && attachments.isEmpty() && lubricant.getList("Blocks", 10).isEmpty()) return VdexData(filtered, mods, capturedBlocks)
         val payload = encode(links, origins)
         payload.put("lubricant", lubricant)
         payload.put("attachments", attachments)
         payload.put("hinges", ListTag().also { list -> hinges.forEach { list.add(it.save()) } })
+        payload.put("universalShafts", ListTag().also { list -> shafts.forEach { list.add(it.save()) } })
         val required = if (mods.any { it.id == ClockworkMod.MOD_ID }) mods else mods + VdexModEntry(
             ClockworkMod.MOD_ID, ValkyrienSkiesMod.platformUtils.getModVersion(ClockworkMod.MOD_ID), true)
         return VdexData(filtered, required, capturedBlocks + (ENTRY to payload))
@@ -95,7 +98,8 @@ object WandLinkSchematics {
         }.toMap()
         val links = decode(payload, destinations)
         val hinges = decodeHinges(payload, destinations)
-        if (links.isEmpty() && hinges.isEmpty() && !payload.contains("lubricant")) return
+        val shafts = decodeShafts(payload, destinations)
+        if (links.isEmpty() && hinges.isEmpty() && shafts.isEmpty() && !payload.contains("lubricant")) return
         val deadline = level.gameTime + 200
         ValkyrienSkiesMod.api.tickEndEvent.on { _, listener ->
             if (level.server.isStopped || level.gameTime > deadline) {
@@ -110,6 +114,7 @@ object WandLinkSchematics {
             val data = WandLinks.get(level)
             links.forEach { data.restore(level, it) }
             hinges.forEach { HingeLinks.get(level).restore(level, it) }
+            shafts.forEach { BlockAnchorLinks.get(level).restore(level, it) }
             WanderwandServer.syncLinks(level)
         }
     }
@@ -125,6 +130,23 @@ object WandLinkSchematics {
         }
         val saved = CompoundTag().also { it.put("links", payload.getList("hinges", Tag.TAG_COMPOUND.toInt())) }
         return HingeLinks.load(saved).links.values.mapNotNull { old ->
+            val a = move(old.a) ?: return@mapNotNull null
+            val b = move(old.b) ?: return@mapNotNull null
+            old.copy(id = UUID.randomUUID(), a = a, b = b)
+        }
+    }
+
+    internal fun decodeShafts(payload: CompoundTag, destinations: Map<Long, Pair<Long, BlockPos>>): List<BlockAnchorLinks.Link> {
+        if (payload.getInt("version") != 1) return emptyList()
+        val origins = payload.getList("origins", 10).filterIsInstance<CompoundTag>()
+            .associate { it.getLong("ship") to BlockPos.of(it.getLong("pos")) }
+        fun move(anchor: WandAnchor): WandAnchor? {
+            val (id, corner) = destinations[anchor.shipId] ?: return null
+            val origin = origins[anchor.shipId] ?: return null
+            return anchor.copy(pos = corner.offset(anchor.pos.subtract(origin)), shipId = id)
+        }
+        val saved = CompoundTag().also { it.put("links", payload.getList("universalShafts", 10)) }
+        return BlockAnchorLinks.load(saved).links.values.mapNotNull { old ->
             val a = move(old.a) ?: return@mapNotNull null
             val b = move(old.b) ?: return@mapNotNull null
             old.copy(id = UUID.randomUUID(), a = a, b = b)

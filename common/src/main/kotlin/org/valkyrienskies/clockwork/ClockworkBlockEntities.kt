@@ -89,6 +89,7 @@ import org.valkyrienskies.clockwork.content.logistics.gas.generation.steam_gener
 import org.valkyrienskies.clockwork.content.logistics.gas.heater.GasHeaterBlockEntity
 import org.valkyrienskies.clockwork.content.logistics.gas.thermal.HeatExchangerBlockEntity
 import org.valkyrienskies.clockwork.content.logistics.gas.thermal.RadiatorBlockEntity
+import org.valkyrienskies.clockwork.content.logistics.gas.hoseport.HosePortRenderer
 import org.valkyrienskies.clockwork.content.logistics.gas.hoseport.HosePortBlockEntity
 import org.valkyrienskies.clockwork.content.logistics.gas.pockets.nozzle.GasNozzleBlockEntity
 import org.valkyrienskies.clockwork.content.logistics.gas.pockets.nozzle.GasNozzleRenderer
@@ -1025,13 +1026,7 @@ object ClockworkBlockEntities {
                 pos, state
             )
         }
-//        .renderer {
-//            NonNullFunction { context: BlockEntityRendererProvider.Context? ->
-//                ExtendonRenderer(
-//                    context!!
-//                )
-//            }
-//        }
+        .renderer { NonNullFunction { context -> HosePortRenderer(context) } }
         .validBlocks(ClockworkBlocks.HOSE_PORT)
         .register()
 

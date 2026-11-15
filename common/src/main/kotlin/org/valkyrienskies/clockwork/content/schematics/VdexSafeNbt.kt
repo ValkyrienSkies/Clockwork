@@ -69,11 +69,11 @@ internal object VdexSafeNbt {
                 "AttachedBlock", "CopyRotX", "CopyRotY", "CopyRotZ", "CopyRotW")
             is SpinoffBearingBlockEntity -> keep("partnerX", "partnerY", "partnerZ", "jointId", "partnerShipId", "isLeader")
             is UniversalShaftBlockEntity -> keep("otherPosXr", "otherPosYr", "otherPosZr", "otherPosXa", "otherPosYa", "otherPosZa",
-                "main", "otherShipId", "ClockworkSourcePos", "ClockworkSourceShip")
+                "main", "otherShipId", "ClockworkSourcePos", "ClockworkSourceShip", "ShaftLink")
             is PhysicalPistonBlockEntity -> keep("ShaftOrigin", "ShaftShip", "Head", "Tail")
             is PhysicalGantryBlockEntity -> keep("RailOrigin", "RailDirection", "RailShip")
             is ExtendonBlockEntity, is HosePortBlockEntity -> keep("ConnectedPosX", "ConnectedPosY", "ConnectedPosZ", "IsMain",
-                "DistanceJointId", "SphericalJointId")
+                "DistanceJointId", "SphericalJointId", "BlockAnchorLink", "ConnectionOffset")
             is PropellerBearingBlockEntity -> keep("Running", "Active", "Angle", "RotationDirection", "TargetOmega")
             is FlapBearingBlockEntity -> keep("BearingAngle", "TargetAngle", "IsRunning", "IsLocked")
             is BladeControllerBlockEntity -> keep("BladeAngle")

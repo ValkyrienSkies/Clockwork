@@ -13,6 +13,9 @@ import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider
 import net.minecraft.client.renderer.texture.OverlayTexture
 import net.minecraft.core.BlockPos
 import net.minecraft.resources.ResourceLocation
+import net.minecraft.client.resources.sounds.AbstractTickableSoundInstance
+import net.minecraft.sounds.SoundSource
+import net.minecraft.util.RandomSource
 import net.minecraft.world.level.LightLayer
 import net.minecraft.world.level.block.state.properties.BlockStateProperties
 import net.minecraft.world.phys.Vec3
@@ -20,11 +23,15 @@ import org.joml.Matrix3f
 import org.joml.Matrix4f
 import org.joml.Vector3d
 import org.valkyrienskies.clockwork.ClockworkMod
+import org.valkyrienskies.clockwork.ClockworkSounds
+import org.valkyrienskies.clockwork.util.universal_joint.BlockAnchorEndpoint
+import org.valkyrienskies.clockwork.client.render.goggles.AeronautGoggleOverlayRenderer
 import org.valkyrienskies.clockwork.util.minus
 import org.valkyrienskies.clockwork.util.plus
 import org.valkyrienskies.core.api.ships.ClientShip
 import org.valkyrienskies.mod.common.getShipManagingPos
 import org.valkyrienskies.mod.common.isBlockInShipyard
+import org.valkyrienskies.mod.common.toWorldCoordinates
 import org.valkyrienskies.mod.common.util.toJOMLD
 import org.valkyrienskies.mod.common.util.toMinecraft
 import kotlin.math.atan2
@@ -38,10 +45,11 @@ class UniversalShaftRenderer(context: BlockEntityRendererProvider.Context?) : Ki
         be: UniversalShaftBlockEntity,
         partialTicks: Float,
         ms: PoseStack,
-        buffer: MultiBufferSource,
+        buffers: MultiBufferSource,
         light: Int,
         overlay: Int
     ) {
+        val buffer = AeronautGoggleOverlayRenderer.stressBuffers(buffers, be.previousStress + (be.displayStress - be.previousStress) * partialTicks)
         super.renderSafe(be, partialTicks, ms, buffer, light, overlay)
 
         //if (Backend.canUseInstancing(be!!.level)) return
@@ -240,4 +248,27 @@ class UniversalShaftRenderer(context: BlockEntityRendererProvider.Context?) : Ki
 //    override fun getRenderedBlockState(be: UniversalShaftBlockEntity): BlockState {
 //        return shaft(getRotationAxisOf(be))
 //    }
+}
+
+internal class UniversalShaftStressSound(private val endpoint: BlockAnchorEndpoint) : AbstractTickableSoundInstance(
+    ClockworkSounds.JOINT_OVERLOAD.mainEvent, SoundSource.BLOCKS, RandomSource.create()) {
+    init { looping = true; delay = 0; update() }
+
+    override fun tick() {
+        val be = endpoint.blockEntity
+        if (be.isRemoved || !endpoint.main || endpoint.stress <= .15f || endpoint.connectedJoint == null || be.level?.getBlockEntity(be.blockPos) !== be) {
+            stop()
+            return
+        }
+        update()
+    }
+
+    private fun update() {
+        val be = endpoint.blockEntity
+        val world = be.level ?: return
+        val point = world.toWorldCoordinates(be.blockPos).lerp(world.toWorldCoordinates(endpoint.connectedPos ?: be.blockPos), .5)
+        x = point.x; y = point.y; z = point.z
+        volume = .25f + endpoint.stress * .5f
+        pitch = .85f + endpoint.stress * .15f
+    }
 }

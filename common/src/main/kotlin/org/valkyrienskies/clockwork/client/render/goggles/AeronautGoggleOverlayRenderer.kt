@@ -1,5 +1,7 @@
 package org.valkyrienskies.clockwork.client.render.goggles
 
+import com.mojang.blaze3d.vertex.VertexConsumer
+import net.minecraft.client.renderer.MultiBufferSource
 import com.mojang.blaze3d.vertex.PoseStack
 import net.minecraft.client.Camera
 import net.minecraft.client.Minecraft
@@ -57,6 +59,26 @@ object AeronautGoggleOverlayRenderer {
             AeronautGogglesState.getGogglesAreDown(player)
     }
 
+    fun stressBuffers(source: MultiBufferSource, stress: Float): MultiBufferSource {
+        val tint = stressColor(stress)
+        if (tint == 0xFFFFFF) return source
+        return MultiBufferSource { type -> StressConsumer(source.getBuffer(type), tint) }
+    }
+
+    private class StressConsumer(private val target: VertexConsumer, private val tint: Int) : VertexConsumer {
+        override fun vertex(x: Double, y: Double, z: Double): VertexConsumer = apply { target.vertex(x, y, z) }
+        override fun color(r: Int, g: Int, b: Int, a: Int): VertexConsumer = apply {
+            target.color(r * (tint shr 16 and 255) / 255, g * (tint shr 8 and 255) / 255, b * (tint and 255) / 255, a)
+        }
+        override fun uv(u: Float, v: Float): VertexConsumer = apply { target.uv(u, v) }
+        override fun overlayCoords(u: Int, v: Int): VertexConsumer = apply { target.overlayCoords(u, v) }
+        override fun uv2(u: Int, v: Int): VertexConsumer = apply { target.uv2(u, v) }
+        override fun normal(x: Float, y: Float, z: Float): VertexConsumer = apply { target.normal(x, y, z) }
+        override fun endVertex() = target.endVertex()
+        override fun defaultColor(r: Int, g: Int, b: Int, a: Int) = target.defaultColor(
+            r * (tint shr 16 and 255) / 255, g * (tint shr 8 and 255) / 255, b * (tint and 255) / 255, a)
+        override fun unsetDefaultColor() = target.unsetDefaultColor()
+    }
     fun stressColor(stress: Float): Int {
         if (!stress.isFinite() || stress <= 0f || !enabled() || ShaderPackCompat.shadowPass()) return 0xFFFFFF
         val intensity = sqrt(stress.coerceIn(0f, 1f))

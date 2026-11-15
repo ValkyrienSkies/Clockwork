@@ -427,6 +427,10 @@
     ],
     "subtitle": "vs_clockwork.subtitle.hose_release"
   },
+  "joint_overload": {
+    "subtitle": "vs_clockwork.subtitle.joint_overload",
+    "sounds": [{ "name": "vs_clockwork:joint_overload", "attenuation_distance": 16 }]
+  },
   "joint_break": {
     "sounds": [
       {

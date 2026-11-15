@@ -218,6 +218,8 @@ object ClockworkSounds {
         .category(SoundSource.BLOCKS)
         .attenuationDistance(16)
         .build()
+    val JOINT_OVERLOAD = create("joint_overload").subtitle("Mechanical connection strains")
+        .category(SoundSource.BLOCKS).attenuationDistance(16).build()
     val CLAMPOTRON_HOLD = create("clampotron_hold_loop").subtitle("Clampotron holding")
         .category(SoundSource.BLOCKS).attenuationDistance(24).build()
     val CLAMPOTRON_OVERLOAD = create("clampotron_overload").subtitle("Clampotron strains")
