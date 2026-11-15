@@ -3,6 +3,7 @@ package org.valkyrienskies.clockwork
 import org.valkyrienskies.clockwork.content.physicalities.wheel.WheelItem
 import org.valkyrienskies.clockwork.content.physicalities.wheel.WheelSize
 import org.valkyrienskies.clockwork.content.physicalities.wheel.TireType
+import org.valkyrienskies.clockwork.content.physicalities.wheel.WheelItemRenderer
 
 import org.valkyrienskies.clockwork.content.schematics.VdexBlueprintItem
 import org.valkyrienskies.clockwork.content.schematics.EmptyBlueprintItem
@@ -68,6 +69,8 @@ object ClockworkItems {
 
     private fun wheel(size: WheelSize, type: TireType) = REGISTRATE.item<WheelItem>(type.itemId(size)) { WheelItem(it!!, size, type) }
         .properties { it.stacksTo(16) }.tab(ClockworkMod.PHYSICAL_CREATIVE_TABINFO)
+        .let { if (type in listOf(TireType.RUBBER, TireType.HONEY)) it else
+            it.transform(ClockworkRegistrate.customRenderedItem { Supplier { WheelItemRenderer() } }) }
         .model(AssetLookup.existingItemModel()).register()
 
     @JvmField

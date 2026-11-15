@@ -4,6 +4,12 @@ import com.mojang.blaze3d.vertex.PoseStack
 import com.mojang.blaze3d.vertex.VertexConsumer
 import com.simibubi.create.content.kinetics.base.KineticBlockEntityRenderer
 import com.simibubi.create.AllPartialModels
+import com.simibubi.create.foundation.item.render.CustomRenderedItemModel
+import com.simibubi.create.foundation.item.render.CustomRenderedItemModelRenderer
+import com.simibubi.create.foundation.item.render.PartialItemModelRenderer
+import net.minecraft.client.Minecraft
+import net.minecraft.world.item.ItemDisplayContext
+import net.minecraft.world.item.ItemStack
 import net.minecraft.world.level.block.state.BlockState
 import net.createmod.catnip.render.CachedBuffers
 import net.createmod.catnip.render.SuperByteBuffer
@@ -58,10 +64,12 @@ class WheelHubRenderer(context: BlockEntityRendererProvider.Context) : KineticBl
             val sprite = coating?.let { WheelEffects.coatingSprite(it.state) }
             val contacts = body?.let { WheelEffects.compression(it, partialTicks) }.orEmpty()
             when (size.type.appearance.mesh) {
-                TireType.Mesh.LAYERED -> LayeredTireRenderer.render(level as ClientLevel, body, size, contacts, ms, buffers, light, overlay, partialTicks)
+                TireType.Mesh.LAYERED -> LayeredTireRenderer.render(level as ClientLevel, body, size, contacts, ms, buffers, light, overlay, partialTicks,
+                    if (size.type == TireType.WOOD) Minecraft.getInstance().blockRenderer.blockModelShaper.getBlockModel(be.wood.defaultBlockState()).particleIcon else null)
                 TireType.Mesh.TREAD -> TireMesh.render(size, contacts, ms,
                     buffers.getBuffer(RenderType.entitySolid(size.type.appearance.treadTexture)), light, overlay)
             }
+            LayeredTireRenderer.cleats(size, ms, buffers, light, overlay, contacts)
             if (coating != null) TireMesh.render(size, contacts, ms,
                 buffers.getBuffer(Sheets.translucentCullBlockSheet()), light, overlay, coating, sprite)
             ms.pushPose()
@@ -76,6 +84,33 @@ class WheelHubRenderer(context: BlockEntityRendererProvider.Context) : KineticBl
                 .overlay<SuperByteBuffer>(overlay).renderInto(ms, buffers.getBuffer(RenderType.solid()))
             ms.popPose()
         } finally { ms.popPose() }
+    }
+}
+
+class WheelItemRenderer : CustomRenderedItemModelRenderer() {
+    override fun render(stack: ItemStack, model: CustomRenderedItemModel, renderer: PartialItemModelRenderer,
+                        transformType: ItemDisplayContext, ms: PoseStack, buffers: MultiBufferSource, light: Int, overlay: Int) {
+        val item = stack.item as? WheelItem ?: return
+        val tire = item.size.tire(type = item.tireType)
+        ms.pushPose()
+        val scale = (.5 / tire.radius).toFloat()
+        ms.scale(scale, scale, scale)
+        ms.mulPose(Quaternionf().rotationY((PI / 2).toFloat()))
+        when (tire.type.appearance.mesh) {
+            TireType.Mesh.LAYERED -> LayeredTireRenderer.render(Minecraft.getInstance().level, null, tire, emptyList(), ms,
+                buffers, light, overlay, 0f, if (tire.type == TireType.WOOD)
+                    Minecraft.getInstance().blockRenderer.blockModelShaper.getBlockModel(WheelItem.wood(stack.tag).defaultBlockState()).particleIcon else null)
+            TireType.Mesh.TREAD -> TireMesh.render(tire, emptyList(), ms,
+                buffers.getBuffer(RenderType.entitySolid(tire.type.appearance.treadTexture)), light, overlay)
+        }
+        LayeredTireRenderer.cleats(tire, ms, buffers, light, overlay)
+        ms.mulPose(Quaternionf().rotationY((-PI / 2).toFloat()))
+        renderer.renderSolid(when (item.size) {
+            WheelSize.SMALL -> ClockworkPartials.WHEEL_RIM
+            WheelSize.MEDIUM -> ClockworkPartials.MEDIUM_WHEEL_RIM
+            WheelSize.LARGE -> ClockworkPartials.LARGE_WHEEL_RIM
+        }.get(), light)
+        ms.popPose()
     }
 }
 

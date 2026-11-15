@@ -13,12 +13,14 @@ import com.simibubi.create.foundation.blockEntity.behaviour.ValueBoxTransform
 import com.simibubi.create.foundation.blockEntity.behaviour.scrollValue.ScrollValueBehaviour
 import net.minecraft.core.BlockPos
 import net.minecraft.core.Direction
+import net.minecraft.core.registries.BuiltInRegistries
 import net.minecraft.nbt.CompoundTag
 import net.minecraft.network.chat.Component
 import net.minecraft.server.level.ServerLevel
 import net.minecraft.world.entity.player.Player
 import net.minecraft.world.item.ItemStack
 import net.minecraft.world.level.block.Block
+import net.minecraft.world.level.block.Blocks
 import net.minecraft.world.level.LevelAccessor
 import net.minecraft.world.level.block.entity.BlockEntityType
 import net.minecraft.world.level.block.state.BlockState
@@ -54,6 +56,8 @@ class WheelHubBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: BlockS
         private set
     var tireType = TireType.RUBBER
         private set
+    var wood = Blocks.OAK_PLANKS
+        private set
     var bodyId = -1L
         private set
     var engaged = true
@@ -73,6 +77,7 @@ class WheelHubBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: BlockS
     private var appliedJoint: VSRevoluteJoint? = null
     private var collisionParent: Long? = null
     private val stepAssist = WheelStepAssist()
+    private val interactions = WheelInteractions()
 
     override fun addBehaviours(behaviours: MutableList<BlockEntityBehaviour>) {
         super.addBehaviours(behaviours)
@@ -115,6 +120,8 @@ class WheelHubBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: BlockS
         val pressure = settings?.takeIf { it.contains("WheelPressure") }?.getInt("WheelPressure")?.coerceIn(20, 320) ?: tirePressure.value
         wheel = size
         tireType = type
+        wood = WheelItem.wood(settings)
+        if (!type.driven) engaged = false
         tireWidth.value = width
         tireThickness.value = thickness
         tirePressure.value = pressure
@@ -127,6 +134,11 @@ class WheelHubBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: BlockS
     }
 
     fun toggleDrive(player: Player) {
+        if (wheel == null) return
+        if (!tireType.driven) {
+            player.displayClientMessage(Component.translatable("block.vs_clockwork.wheel_hub.wood_freewheel"), true)
+            return
+        }
         engaged = !engaged
         refreshStress()
         setChanged()
@@ -143,6 +155,7 @@ class WheelHubBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: BlockS
         refreshStress()
         if (player?.isCreative != true) {
             val stack = ItemStack(WheelHubBlock.item(size, tireType))
+            if (tireType == TireType.WOOD) stack.orCreateTag.putString("WheelWood", BuiltInRegistries.BLOCK.getKey(wood).toString())
             if (tireWidth.value != 20 || tireThickness.value != 20 || tirePressure.value != 160) stack.orCreateTag.apply {
                 putInt("WheelWidth", tireWidth.value)
                 putInt("WheelThickness", tireThickness.value)
@@ -202,7 +215,8 @@ class WheelHubBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: BlockS
             body.setWheelShape(shape, vsCore.newShipInertiaData(Vector3d(), size.mass, size.inertia()))
         }
         if (body.isStatic) body.isStatic = false
-        val rpm = if (engaged && !isOverStressed) getSpeed() * facing.axisDirection.step else null
+        val rpm = if (engaged && tireType.driven && !isOverStressed) getSpeed() * facing.axisDirection.step else null
+        interactions.tick(world, body, size, parent?.id)
         val config = ClockworkConfig.SERVER
         WheelContacts.watch(world, bodyId, size.width, config.wheelStepAssist && tireType.stepAssist, tireType)
         val assist = if (config.wheelStepAssist && tireType.stepAssist) WheelStepAssist.Settings(config.wheelStepAssistHeight,
@@ -252,6 +266,9 @@ class WheelHubBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: BlockS
             current.parentId?.let { physics.disableCollisionBetween(it, current.bodyId) }
             collisionParent = current.parentId
         }
+        if (current.tire.type.floating) physics.getBodyById(current.bodyId)?.let {
+            interactions.applyWater(physics, it, current.tire)
+        }
         current.assist?.let { settings ->
             if (physShip != null && !physShip.isStatic)
                 physics.getBodyById(current.bodyId)?.let { stepAssist.apply(physics, it, current.tire, current.rpm, current.torque.toDouble(), settings) }
@@ -291,7 +308,7 @@ class WheelHubBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: BlockS
     }
 
     override fun calculateStressApplied(): Float {
-        lastStressApplied = if (wheel != null && engaged && ::torque.isInitialized) torque.value.toFloat() else 0f
+        lastStressApplied = if (wheel != null && tireType.driven && engaged && ::torque.isInitialized) torque.value.toFloat() else 0f
         return lastStressApplied
     }
 
@@ -303,6 +320,7 @@ class WheelHubBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: BlockS
         super.write(tag, clientPacket)
         wheel?.let { tag.putString("Wheel", it.id) }
         tag.putString("TireType", tireType.id.toString())
+        if (tireType == TireType.WOOD) tag.putString("WheelWood", BuiltInRegistries.BLOCK.getKey(wood).toString())
         tag.putBoolean("WheelDrive", engaged)
         tag.putLong("WheelBody", bodyId)
         tag.putInt("WheelJoint", jointId)
@@ -317,8 +335,9 @@ class WheelHubBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: BlockS
         drive = null
         wheel = WheelSize.byId(tag.getString("Wheel"))
         tireType = TireType.read(tag)
+        wood = WheelItem.wood(tag)
         updateTireRanges()
-        engaged = !tag.contains("WheelDrive") || tag.getBoolean("WheelDrive")
+        engaged = tireType.driven && (!tag.contains("WheelDrive") || tag.getBoolean("WheelDrive"))
         bodyId = if (tag.contains("WheelBody")) tag.getLong("WheelBody") else -1
         jointId = if (tag.contains("WheelJoint")) tag.getInt("WheelJoint") else -1
         owner = if (tag.contains("WheelOwner")) BlockPos.of(tag.getLong("WheelOwner")) else null
@@ -337,6 +356,7 @@ class WheelHubBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: BlockS
         super.writeSafe(tag)
         wheel?.let { tag.putString("Wheel", it.id) }
         tag.putString("TireType", tireType.id.toString())
+        if (tireType == TireType.WOOD) tag.putString("WheelWood", BuiltInRegistries.BLOCK.getKey(wood).toString())
         tag.putBoolean("WheelDrive", engaged)
     }
 

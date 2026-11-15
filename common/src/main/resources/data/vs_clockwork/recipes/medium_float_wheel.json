@@ -1,0 +1,17 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "ingredients": [
+    {
+      "item": "vs_clockwork:medium_wheel"
+    },
+    {
+      "item": "minecraft:sponge"
+    },
+    {
+      "item": "minecraft:oak_boat"
+    }
+  ],
+  "result": {
+    "item": "vs_clockwork:medium_float_wheel"
+  }
+}

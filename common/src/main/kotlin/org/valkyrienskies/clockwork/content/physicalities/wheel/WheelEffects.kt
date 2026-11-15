@@ -189,9 +189,25 @@ object WheelEffects {
         }
         for ((id, wheel) in wheels) {
             val body = world.shipObjectWorld.allBodies.getById(id) as? ClientVsBody ?: continue
+            val type = wheel.state.type
             wheel.coating.amount = (wheel.coating.amount - .0004f).coerceAtLeast(0f)
             val effect = wheel.state.effect?.takeIf { clock - wheel.time <= 4 }
-            val water = if (wheel.coating.amount > 0f || effect != null) waterCoverage(world, body) else 0f
+            val water = if (type.floating || wheel.coating.amount > 0f || effect != null) waterCoverage(world, body) else 0f
+            if (type.floating && water > .01f && clock - wheel.time <= 4) {
+                val shape = body.collisionShape as? WheelBodyShapeData
+                if (shape != null) {
+                    val speed = (body.angularVelocity.length() * shape.radius).toFloat()
+                    val center = body.renderTransform.position
+                    voice(ClockworkSounds.DRIVING_WET.mainEvent!!, Vector3d(center),
+                        water * (speed / 12).coerceIn(0f, .7f), .75f + (speed / 30).coerceAtMost(.6f))
+                    if (speed > .5f && camera.distanceToSqr(center.x(), center.y(), center.z()) < 48 * 48) {
+                        val point = body.renderTransform.toWorld.transformPosition(Vector3d(0.0, -shape.radius, 0.0))
+                        val pos = BlockPos.containing(point.x, point.y, point.z)
+                        if (world.getFluidState(pos).`is`(FluidTags.WATER))
+                            particle(ParticleTypes.BUBBLE, point, Vector3d(body.velocity).mul(.15).add(0.0, .3, 0.0))
+                    }
+                }
+            }
             if (water > 0f) {
                 wheel.coating.amount = (wheel.coating.amount - water * .025f).coerceAtLeast(0f)
                 wheel.coating.trail = (wheel.coating.trail - 1).coerceAtLeast(0)
@@ -231,7 +247,6 @@ object WheelEffects {
             wheel.heat = (wheel.heat + heating - .008f).coerceIn(0f, 1.5f)
             val roll = ((speed - .2) / 10).coerceIn(0.0, 1.0).toFloat()
             val skid = ((effect.sliding - .5f) / 3.5f).coerceIn(0f, 1f)
-            val type = wheel.state.type
             voice(type.rollingSound?.let { BuiltInRegistries.SOUND_EVENT.get(it) } ?: rollingSound(wheel.material), point, sqrt(roll) * .3f,
                 (.75 + speed * .025).coerceIn(.75, 1.3).toFloat())
             voice(type.skidSound?.let { BuiltInRegistries.SOUND_EVENT.get(it) } ?: skidSound(wheel.material), point, skid * .55f, .85f + skid * .3f)
@@ -316,7 +331,8 @@ object WheelEffects {
                 if (impact > .12f && clock - wheel.lastImpact >= 10) {
                     repeat(2 + (impact * 6).toInt()) { debris(true) }
                     if (!impactSound) {
-                        world.playLocalSound(point.x, point.y, point.z, state.soundType.fallSound,
+                        val sound = type.impactSound?.let { BuiltInRegistries.SOUND_EVENT.get(it) } ?: state.soundType.fallSound
+                        world.playLocalSound(point.x, point.y, point.z, sound,
                             SoundSource.BLOCKS, .2f + impact * .5f, .8f + world.random.nextFloat() * .2f, false)
                         impactSound = true
                     }

@@ -8,6 +8,7 @@ import net.minecraft.client.renderer.MultiBufferSource
 import net.minecraft.client.renderer.Sheets
 import net.minecraft.client.renderer.texture.TextureAtlas
 import net.minecraft.client.renderer.texture.TextureAtlasSprite
+import net.minecraft.resources.ResourceLocation
 import org.joml.Vector3d
 import org.valkyrienskies.core.api.bodies.ClientVsBody
 import org.valkyrienskies.mod.common.shipObjectWorld
@@ -34,14 +35,15 @@ internal object LayeredTireRenderer {
         level = null
     }
 
-    fun render(world: ClientLevel, body: ClientVsBody?, tire: WheelTire, contacts: List<TireContact>,
-               stack: PoseStack, buffers: MultiBufferSource, light: Int, overlay: Int, partialTick: Float) {
-        if (level !== world) { trails.clear(); level = world }
-        val time = world.gameTime
+    fun render(world: ClientLevel?, body: ClientVsBody?, tire: WheelTire, contacts: List<TireContact>,
+               stack: PoseStack, buffers: MultiBufferSource, light: Int, overlay: Int, partialTick: Float,
+               material: TextureAtlasSprite? = null) {
+        if (world != null && level !== world) { trails.clear(); level = world }
+        val time = world?.gameTime ?: 0L
         if (time % 40L == 0L) trails.entries.removeIf { time - it.value.tick > 40 }
         val appearance = tire.type.appearance
         val trail = body?.takeIf { appearance.webs }?.let { trails.getOrPut(it.id) { Trail() } }
-        if (body != null && trail != null && trail.tick != time) {
+        if (world != null && body != null && trail != null && trail.tick != time) {
             trail.tick = time
             val contact = WheelEffects.surfaceContact(body.id)
             if (contact != null) {
@@ -75,13 +77,13 @@ internal object LayeredTireRenderer {
             while (trail.strands.size > 24) trail.strands.removeAt(0)
         }
         val atlas = Minecraft.getInstance().getTextureAtlas(TextureAtlas.LOCATION_BLOCKS)
-        val inside = atlas.apply(requireNotNull(appearance.innerTexture))
+        val inside = material ?: atlas.apply(requireNotNull(appearance.innerTexture))
         val shell = appearance.shellTexture?.let { atlas.apply(it) }
         for (outer in if (shell != null) listOf(false, true) else listOf(false)) {
             val buffer = buffers.getBuffer(if (outer) Sheets.translucentCullBlockSheet() else Sheets.solidBlockSheet())
             val sprite = if (outer) requireNotNull(shell) else inside
             ring(tire, contacts, outer || shell == null, stack, buffer, sprite, light, overlay)
-            if (body != null && trail != null) for (strand in trail.strands) {
+            if (world != null && body != null && trail != null) for (strand in trail.strands) {
                 val anchor = Vector3d(strand.anchor)
                 if (strand.surface != -1L) {
                     val surface = world.shipObjectWorld.allBodies.getById(strand.surface) as? ClientVsBody ?: continue
@@ -99,10 +101,58 @@ internal object LayeredTireRenderer {
         }
     }
 
+    fun cleats(tire: WheelTire, stack: PoseStack, buffers: MultiBufferSource, light: Int, overlay: Int,
+               contacts: List<TireContact> = emptyList()) {
+        val kind = tire.type.appearance.cleats
+        if (kind == TireType.Cleats.NONE) return
+        val texture = if (kind == TireType.Cleats.TEETH) "iron_block" else "black_concrete"
+        val sprite = Minecraft.getInstance().getTextureAtlas(TextureAtlas.LOCATION_BLOCKS)
+            .apply(ResourceLocation("minecraft", "block/$texture"))
+        val buffer = buffers.getBuffer(Sheets.solidBlockSheet())
+        val height = cleatHeight(tire)
+        val planes = contacts.map { contact ->
+            val support = (0 until 8).maxOf { i ->
+                val angle = (i + .5) * PI / 4
+                -tire.radius * (cos(angle) * contact.normal.y + sin(angle) * contact.normal.z)
+            }
+            contact.normal to (support - contact.compression.coerceIn(0f,
+                (tire.thickness * tire.type.physics.compression).toFloat()))
+        }
+        for (segment in 0 until 8) {
+            val angle = (segment + .5) * PI / 4
+            val radial = Vector3d(0.0, cos(angle), sin(angle))
+            val tangent = Vector3d(0.0, -sin(angle), cos(angle))
+            val span = if (kind == TireType.Cleats.LUGS) tire.width * .32 else tire.width * .48
+            val halfDepth = if (kind == TireType.Cleats.TEETH) .08 else .045
+            fun vertex(x: Double, r: Double, z: Double): Vector3d {
+                val point = Vector3d(x, 0.0, 0.0).fma(r, radial).fma(z, tangent)
+                val rubber = ((r - tire.rimRadius) / tire.thickness).coerceIn(0.0, 1.0)
+                for ((normal, limit) in planes) {
+                    val depth = -limit - point.dot(normal)
+                    if (depth > 0) point.fma(depth * rubber, normal)
+                }
+                return point
+            }
+            val points = (0..7).map { i -> vertex(if (i and 1 == 0) -span else span,
+                if (i and 2 == 0) tire.radius - height else tire.radius,
+                if (i and 4 == 0) -halfDepth else halfDepth) }
+            for (face in arrayOf(intArrayOf(0, 4, 6, 2), intArrayOf(1, 3, 7, 5), intArrayOf(0, 1, 5, 4),
+                intArrayOf(2, 6, 7, 3), intArrayOf(0, 2, 3, 1), intArrayOf(4, 5, 7, 6)))
+                quad(points[face[0]], points[face[1]], points[face[2]], points[face[3]], stack, buffer, sprite, light, overlay)
+        }
+    }
+
+    private fun cleatHeight(tire: WheelTire) = minOf(tire.thickness * .35, when (tire.type.appearance.cleats) {
+        TireType.Cleats.PADDLES -> .18
+        TireType.Cleats.TEETH -> .12
+        TireType.Cleats.LUGS -> .045
+        else -> 0.0
+    })
+
     private fun ring(tire: WheelTire, contacts: List<TireContact>, outer: Boolean, stack: PoseStack,
                      buffer: VertexConsumer, sprite: TextureAtlasSprite, light: Int, overlay: Int) {
         val inset = if (outer) 0.0 else minOf(.0625, tire.thickness * .2, tire.width * .12)
-        val radius = tire.radius - inset
+        val radius = tire.radius - inset - cleatHeight(tire)
         val width = tire.width - inset * 2
         val profile = listOf(-tire.rimWidth / 2 to tire.rimRadius, -width / 2 to radius * .90,
             -width * .34 to radius, width * .34 to radius, width / 2 to radius * .90,
