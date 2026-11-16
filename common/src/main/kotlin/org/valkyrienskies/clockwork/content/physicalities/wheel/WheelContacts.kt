@@ -14,6 +14,7 @@ import org.valkyrienskies.clockwork.platform.api.network.ClientNetworkContext
 import org.valkyrienskies.clockwork.platform.api.network.S2CCWPacket
 import org.valkyrienskies.core.api.physics.ContactDiagnosticsFrame
 import org.valkyrienskies.core.api.physics.ContactDiagnosticsOptions
+import org.valkyrienskies.core.api.physics.ContactDiagnosticsSubscription
 import org.valkyrienskies.core.api.physics.TirePatchSnapshot
 import org.valkyrienskies.core.api.world.PhysLevel
 import org.valkyrienskies.mod.common.dimensionId
@@ -43,7 +44,7 @@ object WheelContacts {
         val marks = ArrayBlockingQueue<TireMark>(512)
         val trails = HashMap<TrailKey, Trail>()
         val peaks = ConcurrentHashMap<Long, Float>()
-        var enabled = false
+        var subscription: ContactDiagnosticsSubscription? = null
         var unsupported = false
         @Volatile var ground = -1L
         @Volatile var contacts = emptyList<TireState>()
@@ -116,15 +117,21 @@ object WheelContacts {
         if (state.unsupported) return
         val wheels = state.wheels.toMap()
         val enabled = wheels.isNotEmpty()
-        if (enabled != state.enabled) {
-            try { level.configureContactDiagnostics(ContactDiagnosticsOptions(tires = enabled)) }
-            catch (_: UnsupportedOperationException) { state.unsupported = true; return }
-            state.enabled = enabled
+        if (enabled != (state.subscription != null)) {
+            try {
+                if (enabled) state.subscription = level.subscribeContactDiagnostics(ContactDiagnosticsOptions(tires = true))
+                else {
+                    state.subscription?.close()
+                    state.subscription = null
+                    state.frame = null
+                    state.supports = emptyMap()
+                }
+            } catch (_: UnsupportedOperationException) { state.unsupported = true; return }
             state.trails.clear()
             state.contacts = emptyList()
         }
         if (!enabled) return
-        val frame = level.drainContactDiagnostics() ?: return
+        val frame = state.subscription?.read() ?: return
         state.frame = frame
         if (frame.reset || frame.overflow) state.trails.clear()
         state.trails.entries.removeIf { frame.endTime - it.value.time > .15 || it.key.stream in frame.retiredStreams }
