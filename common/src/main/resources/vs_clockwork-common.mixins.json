@@ -54,6 +54,7 @@
   ],
   "client": [
     "client.MixinKeyboardInput",
+    "client.MixinSoundEngine",
     "content.gravitron.MixinMouseHandler",
     "content.lubricant.MixinMinecraft",
     "MixinLevelRenderer",

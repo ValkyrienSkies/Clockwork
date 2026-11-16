@@ -40,6 +40,7 @@ class WheelHubRenderer(context: BlockEntityRendererProvider.Context) : KineticBl
     override fun getRotatedModel(be: WheelHubBlockEntity, state: BlockState) =
         CachedBuffers.partialFacing(AllPartialModels.SHAFT_HALF, state, be.facing.opposite)
     override fun shouldRenderOffScreen(be: WheelHubBlockEntity) = true
+    override fun getViewDistance() = Minecraft.getInstance().options.effectiveRenderDistance * 16
 
     override fun renderSafe(be: WheelHubBlockEntity, partialTicks: Float, ms: PoseStack,
                             buffers: MultiBufferSource, light: Int, overlay: Int) {

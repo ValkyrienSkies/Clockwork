@@ -30,11 +30,11 @@ class GravitronManipulationTest {
     }
 
     @Test fun distanceUsesScrollDirectionAndRespectsBothRangeLimits() {
-        assertEquals(9.0, GravitronManipulation.distance(10.0, 1.0, 20.0))
-        assertEquals(11.0, GravitronManipulation.distance(10.0, -1.0, 20.0))
-        assertEquals(2.0, GravitronManipulation.distance(2.1, 1.0, 20.0))
-        assertEquals(20.0, GravitronManipulation.distance(19.5, -1.0, 20.0))
-        assertEquals(1000.0, GravitronManipulation.distance(999.5, -1.0, 1000.0))
+        assertEquals(11.0, GravitronManipulation.distance(10.0, 1.0, 20.0))
+        assertEquals(9.0, GravitronManipulation.distance(10.0, -1.0, 20.0))
+        assertEquals(2.0, GravitronManipulation.distance(2.1, -1.0, 20.0))
+        assertEquals(20.0, GravitronManipulation.distance(19.5, 1.0, 20.0))
+        assertEquals(1000.0, GravitronManipulation.distance(999.5, 1.0, 1000.0))
         assertEquals(10.0, GravitronManipulation.distance(10.0, Double.NaN, 20.0))
         assertEquals(10.0, GravitronManipulation.distance(10.0, Double.POSITIVE_INFINITY, 20.0))
     }

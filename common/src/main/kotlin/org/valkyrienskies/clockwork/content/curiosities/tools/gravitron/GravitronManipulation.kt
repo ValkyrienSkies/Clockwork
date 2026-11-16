@@ -24,7 +24,7 @@ object GravitronManipulation {
 
     fun distance(current: Double, scroll: Double, maximum: Double): Double {
         if (!current.isFinite() || !scroll.isFinite()) return current
-        return (current - scroll.coerceIn(-8.0, 8.0) * DISTANCE_STEP)
+        return (current + scroll.coerceIn(-8.0, 8.0) * DISTANCE_STEP)
             .coerceIn(MIN_DISTANCE, maximum.coerceAtLeast(MIN_DISTANCE))
     }
 
