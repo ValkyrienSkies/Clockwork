@@ -49,7 +49,7 @@ public class MixinLevelRenderer {
     @Inject(method = "renderLevel", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/OutlineBufferSource;endOutlineBatch()V", shift = At.Shift.BEFORE))
     private void vs_clockwork$renderScanner(PoseStack poseStack, float partialTick, long finishNanoTime, boolean renderBlockOutline, Camera camera, GameRenderer gameRenderer, LightTexture lightTexture, org.joml.Matrix4f projectionMatrix, CallbackInfo ci) {
         ScannerRenderer.Companion.getINSTANCE().doRender(poseStack);
-        WheelEffects.renderSkidmarks(poseStack, camera, partialTick);
+        WheelEffects.renderSkidmarks(poseStack, camera, partialTick, projectionMatrix);
     }
 
     @Inject(method = "renderLevel", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/OutlineBufferSource;endOutlineBatch()V", shift = At.Shift.BEFORE))

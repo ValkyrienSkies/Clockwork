@@ -17,6 +17,7 @@ import net.minecraft.client.Minecraft
 import net.minecraft.client.multiplayer.ClientLevel
 import net.minecraft.client.renderer.LevelRenderer
 import net.minecraft.client.renderer.MultiBufferSource
+import net.minecraft.client.renderer.culling.Frustum
 import net.minecraft.client.renderer.texture.OverlayTexture
 import net.minecraft.client.renderer.texture.TextureAtlas
 import net.minecraft.client.renderer.texture.TextureAtlasSprite
@@ -34,6 +35,7 @@ import org.joml.Matrix4f
 import org.joml.Matrix4d
 import org.joml.Quaternionf
 import org.joml.Vector3d
+import org.joml.primitives.AABBd
 import org.valkyrienskies.clockwork.ClockworkSounds
 import org.valkyrienskies.clockwork.ClockworkRenderTypes
 import org.valkyrienskies.clockwork.util.render.ShaderPackCompat
@@ -42,6 +44,7 @@ import org.valkyrienskies.core.api.bodies.shape.WheelBodyShapeData
 import org.valkyrienskies.core.api.ships.ClientShip
 import org.valkyrienskies.mod.common.getShipsIntersecting
 import org.valkyrienskies.mod.common.shipObjectWorld
+import org.valkyrienskies.mod.common.util.toMinecraft
 import kotlin.math.abs
 import kotlin.math.floor
 import kotlin.math.sqrt
@@ -75,9 +78,71 @@ object WheelEffects {
     }
     private data class MarkKey(val surface: Long, val block: BlockPos, val axis: Int, val sign: Int, val plane: Double, val residue: Boolean = false)
     private class Pixel(val points: List<Vector3d>, var strength: Float, var time: Long, var color: Vector3f)
+    private class Quad(val vertices: FloatArray, val strength: Float, val time: Long, val color: Vector3f)
     private class Mark(val surface: Long, val block: BlockPos, val state: BlockState, val normal: Vector3d, val material: WheelSurface,
                        val texture: BlockState? = null) {
         val pixels = HashMap<Int, Pixel>()
+        val bounds = AABB(block).inflate(.003)
+        private val flipU = material == WheelSurface.DIRT || material == WheelSurface.GRAVEL
+        var geometry: List<Quad>? = null
+        private var cachedSprite: TextureAtlasSprite? = null
+
+        fun geometry(sprite: TextureAtlasSprite?): List<Quad> {
+            geometry?.takeIf { cachedSprite === sprite }?.let { return it }
+            val axis = (0..2).maxBy { abs(normal[it]) }
+            val u = (axis + 1) % 3
+            val v = (axis + 2) % 3
+            val used = BooleanArray(256)
+            val result = ArrayList<Quad>()
+            fun matches(a: Pixel, b: Pixel) = a.strength == b.strength && a.time == b.time && a.color == b.color
+            for (key in 0 until 256) {
+                if (used[key]) continue
+                val pixel = pixels[key] ?: continue
+                val first = pixel.points[0]
+                var endU = pixel.points[2][u]
+                var endV = pixel.points[2][v]
+                var width = 1
+                while (key % 16 + width < 16) {
+                    val next = pixels[key + width] ?: break
+                    if (used[key + width] || !matches(pixel, next) || next.points[0][u] != endU ||
+                        next.points[0][v] != first[v] || next.points[2][v] != endV) break
+                    endU = next.points[2][u]
+                    width++
+                }
+                var height = 1
+                while (key / 16 + height < 16) {
+                    val row = key + height * 16
+                    val rowEnd = pixels[row]?.points?.get(2)?.get(v) ?: break
+                    if ((0 until width).any { offset ->
+                        val next = pixels[row + offset]
+                        val base = pixels[key + offset]!!
+                        next == null || used[row + offset] || !matches(pixel, next) ||
+                            next.points[0][u] != base.points[0][u] || next.points[2][u] != base.points[2][u] ||
+                            next.points[0][v] != endV || next.points[2][v] != rowEnd
+                    }) break
+                    endV = rowEnd
+                    height++
+                }
+                for (y in 0 until height) for (x in 0 until width) used[key + y * 16 + x] = true
+                val vertices = FloatArray(20)
+                for (corner in 0 until 4) {
+                    val point = Vector3d(first).setComponent(u, if (corner == 0 || corner == 3) first[u] else endU)
+                        .setComponent(v, if (corner < 2) first[v] else endV)
+                        .sub(block.x.toDouble(), block.y.toDouble(), block.z.toDouble())
+                    val start = corner * 5
+                    vertices[start] = point.x.toFloat()
+                    vertices[start + 1] = point.y.toFloat()
+                    vertices[start + 2] = point.z.toFloat()
+                    val texU = if (flipU) 16 - point[u] * 16 else point[u] * 16
+                    vertices[start + 3] = sprite?.getU(texU) ?: .5f
+                    vertices[start + 4] = sprite?.getV(point[v] * 16) ?: .5f
+                }
+                result.add(Quad(vertices, pixel.strength, pixel.time, pixel.color))
+            }
+            cachedSprite = sprite
+            geometry = result
+            return result
+        }
     }
     private val wheels = HashMap<Long, Wheel>()
     private val sounds = ArrayList<SurfaceLoop>()
@@ -148,6 +213,7 @@ object WheelEffects {
         marks.entries.removeIf { (_, mark) ->
             val before = mark.pixels.size
             mark.pixels.entries.removeIf { clock - it.value.time >= 2400 }
+            if (before != mark.pixels.size) mark.geometry = null
             pixelCount -= before - mark.pixels.size
             mark.pixels.isEmpty()
         }
@@ -532,11 +598,13 @@ object WheelEffects {
                             Vector3d().setComponent(axis, plane + sign * .002).setComponent(u, a).setComponent(v, b)
                         }
                         face.pixels[pixelKey] = Pixel(points, opacity, clock, color)
+                        face.geometry = null
                         pixelCount++
                     } else if (opacity >= old.strength * fade(clock - old.time)) {
                         old.strength = opacity
                         old.color = color
                         old.time = clock
+                        face.geometry = null
                     }
                 }
                 while (pixelCount > 32768) pixelCount -= marks.remove(marks.keys.first())!!.pixels.size
@@ -561,21 +629,34 @@ object WheelEffects {
     }
 
     @JvmStatic
-    fun renderSkidmarks(stack: PoseStack, camera: Camera, partialTick: Float) {
+    fun renderSkidmarks(stack: PoseStack, camera: Camera, partialTick: Float, projection: Matrix4f) {
         checkLevel()
         val world = level ?: return
         if (marks.isEmpty() || ShaderPackCompat.shadowPass()) return
         val rubberBuffer = buffers.getBuffer(renderType)
         val terrainBuffer = terrainBuffers.getBuffer(ClockworkRenderTypes.TERRAIN_TRACKS)
         val cameraPosition = camera.position
+        val frustum = Frustum(stack.last().pose(), projection).also {
+            it.prepare(cameraPosition.x, cameraPosition.y, cameraPosition.z)
+        }
+        val point = Vector3f()
+        val normal = Vector3f()
+        val center = Vector3d()
+        val bounds = AABBd()
         val iterator = marks.values.iterator()
         while (iterator.hasNext()) {
             val mark = iterator.next()
             val body = if (mark.surface == -1L) null else world.shipObjectWorld.allBodies.getById(mark.surface) as? ClientVsBody
             if (mark.surface != -1L && body == null) { pixelCount -= mark.pixels.size; iterator.remove(); continue }
-            val center = Vector3d(mark.block.x + .5, mark.block.y + .5, mark.block.z + .5)
+            center.set(mark.block.x + .5, mark.block.y + .5, mark.block.z + .5)
             body?.renderTransform?.toWorld?.transformPosition(center)
             if (cameraPosition.distanceToSqr(center.x, center.y, center.z) > 96 * 96) continue
+            val visibleBounds = if (body == null) mark.bounds else {
+                bounds.setMin(mark.bounds.minX, mark.bounds.minY, mark.bounds.minZ)
+                    .setMax(mark.bounds.maxX, mark.bounds.maxY, mark.bounds.maxZ)
+                    .transform(body.renderTransform.toWorld).toMinecraft()
+            }
+            if (!frustum.isVisible(visibleBounds)) continue
             if (!world.hasChunkAt(mark.block)) continue
             if (world.getBlockState(mark.block) != mark.state) { pixelCount -= mark.pixels.size; iterator.remove(); continue }
             stack.pushPose()
@@ -592,19 +673,16 @@ object WheelEffects {
             val buffer = if (rubber) rubberBuffer else terrainBuffer
             val textureState = mark.texture ?: if (mark.material == WheelSurface.GRASS) Blocks.DIRT.defaultBlockState() else mark.state
             val sprite = if (rubber) null else coatingSprite(textureState)
-            val axis = (0..2).maxBy { abs(mark.normal[it]) }
-            val u = (axis + 1) % 3
-            val v = (axis + 2) % 3
-            val origin = doubleArrayOf(mark.block.x.toDouble(), mark.block.y.toDouble(), mark.block.z.toDouble())
-            for (pixel in mark.pixels.values) {
-                val alpha = pixel.strength * fade(clock - pixel.time, partialTick)
-                for (p in pixel.points) {
-                    var texU = (p[u] - origin[u]) * 16
-                    if (mark.material == WheelSurface.DIRT || mark.material == WheelSurface.GRAVEL) texU = 16 - texU
-                    buffer.vertex(pose.pose(), (p.x - mark.block.x).toFloat(), (p.y - mark.block.y).toFloat(), (p.z - mark.block.z).toFloat())
-                        .color(pixel.color.x, pixel.color.y, pixel.color.z, alpha)
-                        .uv(sprite?.getU(texU) ?: .5f, sprite?.getV((p[v] - origin[v]) * 16) ?: .5f).overlayCoords(OverlayTexture.NO_OVERLAY).uv2(light)
-                        .normal(pose.normal(), mark.normal.x.toFloat(), mark.normal.y.toFloat(), mark.normal.z.toFloat()).endVertex()
+            pose.normal().transform(normal.set(mark.normal.x.toFloat(), mark.normal.y.toFloat(), mark.normal.z.toFloat()))
+            for (quad in mark.geometry(sprite)) {
+                val alpha = quad.strength * fade(clock - quad.time, partialTick)
+                val vertices = quad.vertices
+                for (i in 0 until 4) {
+                    val start = i * 5
+                    pose.pose().transformPosition(vertices[start], vertices[start + 1], vertices[start + 2], point)
+                    buffer.vertex(point.x, point.y, point.z, quad.color.x, quad.color.y, quad.color.z, alpha,
+                        vertices[start + 3], vertices[start + 4], OverlayTexture.NO_OVERLAY, light,
+                        normal.x, normal.y, normal.z)
                 }
             }
             stack.popPose()
