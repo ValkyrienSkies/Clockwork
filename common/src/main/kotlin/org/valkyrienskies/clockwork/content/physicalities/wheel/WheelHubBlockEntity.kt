@@ -391,7 +391,6 @@ class WheelHubBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: BlockS
         if (next == current) return null
         val body = world.shipObjectWorld.allBodies.getById(bodyId) ?: return null
         if (body.velocity.lengthSquared() > .04 || body.angularVelocity.lengthSquared() > .25) return "moving"
-        if (!WheelPlacement.hasClearance(world, blockPos, facing, next)) return "obstructed"
         return null
     }
 

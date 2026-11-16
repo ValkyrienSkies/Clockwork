@@ -53,7 +53,8 @@ enum class TireType(
         impactSound = ResourceLocation(ClockworkMod.MOD_ID, "boing"), skidSmoke = false, stepAssist = false),
     GUMMY("gummy", physics = Physics(compression = .9, radialStiffness = 650_000.0, radialDamping = 125_000.0,
         staticFriction = 2.6, dynamicFriction = 2.1, slidingGrip = .85),
-        appearance = Appearance(cleats = Cleats.LUGS));
+        appearance = Appearance(treadTexture = ResourceLocation(ClockworkMod.MOD_ID, "textures/block/wheel/gummy_tire.png"),
+            cleats = Cleats.LUGS));
 
     val id = ResourceLocation(ClockworkMod.MOD_ID, name)
 
