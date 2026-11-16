@@ -41,6 +41,11 @@ import kotlin.math.*
 @OptIn(VsBeta::class)
 class GasThrusterBlockEntity(type: BlockEntityType<*>?, pos: BlockPos, state: BlockState) : KNodeBlockEntity(type, pos, state), BlockEntityPhysicsListener, AeronautForceSource {
 
+    companion object {
+        private const val TICK_SECONDS = 0.05 // 20 game ticks per second
+        private const val DISCHARGE_COEFFICIENT = 0.8
+    }
+    
     @Volatile
     override lateinit var dimension: DimensionId
 
@@ -119,7 +124,7 @@ class GasThrusterBlockEntity(type: BlockEntityType<*>?, pos: BlockPos, state: Bl
     }
 
     fun clearMassFlow() {
-        if (gasMassFlow.isEmpty()) return
+        if (gasMassFlow.isEmpty() && velocity == 0.0 && thrust == 0.0) return
         gasMassFlow.clear()
         velocity = 0.0
         thrust = 0.0
@@ -129,44 +134,84 @@ class GasThrusterBlockEntity(type: BlockEntityType<*>?, pos: BlockPos, state: Bl
     @OptIn(GameTickOnly::class)
     override fun tick() {
         super.tick()
+        val currentLevel = level ?: return clearMassFlow()
+        if (currentLevel.isClientSide) return clientTick()
 
+        val ductNodePos = getDuctNodePosition()
+        val kelvin = ClockworkMod.getKelvin(currentLevel)
+        if (kelvin.getNodeAt(ductNodePos) == null) return clearMassFlow()
 
-        if (level!!.isClientSide) return clientTick()
+        val gasMasses = kelvin.getGasMassAt(ductNodePos).filterValues { it.isFinite() && it > 0.0 }
+        val availableMass = gasMasses.values.sum()
+        if (availableMass <= 0.0 || !availableMass.isFinite()) return clearMassFlow()
 
-        val ductnodepos = getDuctNodePosition()
-        val kelvin = ClockworkMod.getKelvin(level)
-        val node = kelvin.getNodeAt(ductnodepos) ?: return clearMassFlow()
-        val gasMasses = kelvin.getGasMassAt(ductnodepos)
+        val ambientPressure = (currentLevel.shipObjectWorld as? VsiServerShipWorld)
+            ?.aerodynamicUtils
+            ?.getAirPressureForY(blockPos.y.toDouble(), currentLevel.dimensionId)
+            ?: return clearMassFlow()
+        val chamberPressure = kelvin.getPressureAt(ductNodePos)
+        val chamberTemperature = kelvin.getTemperatureAt(ductNodePos)
 
-        if (gasMasses.values.sum() == 0.0) return clearMassFlow()
+        if (!ambientPressure.isFinite() || !chamberPressure.isFinite() || !chamberTemperature.isFinite() ||
+            ambientPressure < 0.0 || chamberPressure <= ambientPressure || chamberTemperature <= 0.0
+        ) return clearMassFlow()
 
-        val airPressure = (level?.shipObjectWorld as? VsiServerShipWorld)?.aerodynamicUtils?.getAirPressureForY(blockPos.y.toDouble(), level!!.dimensionId) ?: return clearMassFlow()
-        val gasPressure = kelvin.getPressureAt(ductnodepos)
-        val temp = kelvin.getTemperatureAt(ductnodepos)
-        val avgSpecificHeat = mixtureCapacity(kelvin.getGasMassAt(ductnodepos))
+        val gamma = GasPhysics.gammaMix(gasMasses)
+        val specificGasConstant = GasPhysics.mixtureR(gasMasses)
+        if (!gamma.isFinite() || !specificGasConstant.isFinite() ||
+            gamma <= 1.0 || specificGasConstant <= 0.0
+        ) return clearMassFlow()
 
+        val nozzleArea = ClockworkConstants.Misc.DUCT_AREA
+        if (!nozzleArea.isFinite() || nozzleArea <= 0.0) return clearMassFlow()
 
-        if (gasPressure < airPressure) return clearMassFlow()
+        val criticalRatio = (2.0 / (gamma + 1.0)).pow(gamma / (gamma - 1.0))
+        val ambientRatio = (ambientPressure / chamberPressure).coerceIn(0.0, 1.0)
+        val choked = ambientRatio <= criticalRatio
+        val exitPressure = if (choked) chamberPressure * criticalRatio else ambientPressure
+        val exitRatio = (exitPressure / chamberPressure).coerceIn(0.0, 1.0)
 
-        velocity = 0.0
-
-        for (edge in node.nodeEdges) {
-            velocity += edge.currentFlowRate
+        val theoreticalMassFlow = if (choked) {
+            GasPhysics.mdotChoked(
+                gasMasses, chamberPressure, chamberTemperature,
+                sqrt(nozzleArea / PI), DISCHARGE_COEFFICIENT
+            )
+        } else {
+            val expansion = (2.0 * gamma / (specificGasConstant * chamberTemperature * (gamma - 1.0))) *
+                (ambientRatio.pow(2.0 / gamma) - ambientRatio.pow((gamma + 1.0) / gamma))
+            DISCHARGE_COEFFICIENT * nozzleArea * chamberPressure * sqrt(expansion.coerceAtLeast(0.0))
         }
+        if (!theoreticalMassFlow.isFinite() || theoreticalMassFlow <= 0.0) return clearMassFlow()
 
-        val maxFlowRate = (ClockworkConstants.Misc.DUCT_AREA * gasPressure / sqrt(temp)) * sqrt(avgSpecificHeat/ AerodynamicUtils.UNIVERSAL_GAS_CONSTANT) * ((avgSpecificHeat+1)/2).pow(-(avgSpecificHeat+1)/(2*(avgSpecificHeat-1)))
-        val flowRate = min(maxFlowRate, velocity)
+        val massThisTick = min(theoreticalMassFlow * TICK_SECONDS, availableMass)
+        if (massThisTick <= 0.0) return clearMassFlow()
 
-        for (gas in gasMasses) {
-            velocity += flowRate/(gas.key.density*ClockworkConstants.Misc.DUCT_AREA)
+        val energyPerMass = (2.0 * gamma / (gamma - 1.0)) * specificGasConstant * chamberTemperature *
+            (1.0 - exitRatio.pow((gamma - 1.0) / gamma))
+        val exhaustVelocity = sqrt(energyPerMass.coerceAtLeast(0.0))
+        if (!exhaustVelocity.isFinite()) return clearMassFlow()
 
-            val gasMassLoss = max(flowRate*0.05, gas.value)
-
-            gasMassFlow[gas.key] = gasMassLoss
-            kelvin.removeGas(ductnodepos, gas.key, gasMassLoss)
+        gasMassFlow.clear()
+        var expelledMass = 0.0
+        for ((gas, available) in gasMasses) {
+            val massToRemove = min(available, massThisTick * (available / availableMass))
+            if (massToRemove <= 0.0) continue
+            if (kelvin.removeGas(ductNodePos, gas, massToRemove)) {
+                gasMassFlow[gas] = massToRemove
+                expelledMass += massToRemove
+            }
         }
+        if (expelledMass <= 0.0) return clearMassFlow()
 
-        thrust = (flowRate * velocity + (gasPressure-airPressure)) * ClockworkConfig.SERVER.gasThrusterForceMul
+        val actualMassFlow = expelledMass / 0.05
+
+        val flowFraction = (actualMassFlow / theoreticalMassFlow).coerceIn(0.0, 1.0)
+        val pressureThrust = (exitPressure - ambientPressure) * nozzleArea * flowFraction
+        val rawThrust = actualMassFlow * exhaustVelocity + pressureThrust
+
+        velocity = exhaustVelocity
+        thrust = (rawThrust * ClockworkConfig.SERVER.gasThrusterForceMul)
+            .takeIf { it.isFinite() && it > 0.0 } ?: 0.0
         sendData()
     }
 
