@@ -556,9 +556,7 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
         if (joint != null) {
             val steering = ThinkableConnections.input(level, blockPos, facing.opposite)
             val angularSpeed = if (steering != null && !aligning) {
-                val goal = steering.value?.coerceIn(-180.0, 180.0)?.toFloat() ?: targetAngle
-                val travel = abs(convertToAngular(getSpeed()))
-                shortestAngleDeltaDegrees(targetAngle, goal).coerceIn(-travel, travel)
+                thinkableAngleStep(targetAngle, steering.value, abs(convertToAngular(getSpeed())))
             } else convertToAngular(getSpeed()) * if (originalFacing == Direction.WEST || originalFacing == Direction.NORTH || originalFacing == Direction.DOWN) 1 else -1
             var diff = 0.0f
             if (steering == null && sequencedAngleLimit >= 0.0f) {
@@ -723,17 +721,6 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
         lockedInterpolationTick = 0
     }
 
-    private fun shortestAngleDeltaDegrees(from: Float, to: Float): Float {
-        var delta = to - from
-        while (delta > 180f) {
-            delta -= 360f
-        }
-        while (delta < -180f) {
-            delta += 360f
-        }
-        return delta
-    }
-
     fun getRealisticAngularSpeed(): Float {
         val dir = originalFacing
         return getSpeed() * 2f * PI.toFloat() / 60f * if (dir == Direction.WEST || dir == Direction.NORTH || dir == Direction.DOWN) 1 else -1
@@ -815,5 +802,21 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
 
     companion object {
         private const val DISASSEMBLE_ANGLE_TOLERANCE_DEGREES = 5
+
+        internal fun thinkableAngleStep(currentAngle: Float, requestedAngle: Double?, travel: Float): Float {
+            val goal = requestedAngle?.rem(360.0)?.toFloat() ?: currentAngle
+            return shortestAngleDeltaDegrees(currentAngle, goal).coerceIn(-travel, travel)
+        }
+
+        private fun shortestAngleDeltaDegrees(from: Float, to: Float): Float {
+            var delta = to - from
+            while (delta > 180f) {
+                delta -= 360f
+            }
+            while (delta < -180f) {
+                delta += 360f
+            }
+            return delta
+        }
     }
 }
