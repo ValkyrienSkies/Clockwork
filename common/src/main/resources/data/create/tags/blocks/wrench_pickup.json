@@ -29,6 +29,7 @@
     "vs_clockwork:gyro",
     "vs_clockwork:gyroscopic_sensor",
     "vs_clockwork:impact_sensor",
+    "vs_clockwork:dizzitron",
     "vs_clockwork:juryrigged_propeller_bearing",
     "vs_clockwork:lodefocus",
     "vs_clockwork:physics_infuser",

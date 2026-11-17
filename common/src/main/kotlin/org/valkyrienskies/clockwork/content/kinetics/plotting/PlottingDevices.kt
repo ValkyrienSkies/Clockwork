@@ -34,6 +34,7 @@ internal object PlottingDevices {
                 object : Thinkable {
                     override fun providesThinkable(side: Direction) = native.providesThinkable(state, side)
                     override fun acceptsThinkable(side: Direction) = native.acceptsThinkable(state, side)
+                    override fun thinkableReadings(side: Direction) = native.thinkableReadings(state, side)
                     override fun thinkablePortName(side: Direction) = native.thinkablePortName(state, side)
                 }
             } ?: return@mapNotNull null

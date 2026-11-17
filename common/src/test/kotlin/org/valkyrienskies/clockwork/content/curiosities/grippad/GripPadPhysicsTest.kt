@@ -1,10 +1,21 @@
 package org.valkyrienskies.clockwork.content.curiosities.grippad
 
+import net.minecraft.core.BlockPos
+import net.minecraft.core.Direction
 import org.joml.Vector3d
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
 
 class GripPadPhysicsTest {
+    @Test fun loadMatchesOnlyThePadFace() {
+        val pad = BlockPos(24, 80, -15)
+        val contact = Vector3d(24.1, 80.48, -14.05)
+        assertNotNull(GripPadPhysics.contactDistanceSquared(contact, pad, Direction.DOWN))
+        assertNull(GripPadPhysics.contactDistanceSquared(contact, pad.south(), Direction.DOWN))
+        assertNull(GripPadPhysics.contactDistanceSquared(Vector3d(contact).add(0.0, 0.3, 0.0), pad, Direction.DOWN))
+        assertNotNull(GripPadPhysics.contactDistanceSquared(Vector3d(24.54, 80.1, -14.05), pad, Direction.WEST))
+    }
+
     @Test fun gripNeverAppliesSuctionOrResistsLifting() {
         for (normal in listOf(Vector3d(0.0, 1.0, 0.0), Vector3d(1.0, 0.0, 0.0), Vector3d(1.0, 1.0, 1.0).normalize())) {
             val force = GripPadPhysics.force(Vector3d(0.2, 0.3, -0.1), Vector3d(4.0, 2.0, -3.0), normal, 5000.0, 0.002, 1, 1.0 / 60)

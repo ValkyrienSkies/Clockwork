@@ -36,4 +36,38 @@ class AeronautHudMathTest {
         assertNull(AeronautHudMath.project(Vector3d(0.0, 0.0, 20.0), projection, 640, 320))
         assertNull(AeronautHudMath.project(Vector3d(Double.NaN, 0.0, 0.0), projection, 640, 320))
     }
+
+    @Test
+    fun `support pulse keeps moving when the contour starts at a different corner`() {
+        val rim = AeronautSupportRim()
+        val outline = listOf(Vector3d(0.0, 0.0, 0.0), Vector3d(8.0, 0.0, 0.0),
+            Vector3d(8.0, 0.0, 2.0), Vector3d(0.0, 0.0, 2.0))
+        val now = 900_000_000L
+        rim.update(outline, 0L) { _, _ -> true }
+        val head = rim.headPosition(now)!!
+        assertEquals(5.0, head.x(), 1e-8)
+        rim.update(outline.drop(1) + outline.first(), now) { _, _ -> true }
+        assertTrue(head.distance(rim.headPosition(now)!!) < 1e-8)
+        val later = rim.headPosition(now * 2)!!
+        assertTrue(later.distance(Vector3d(8.0, 0.0, 2.0)) < 1e-8)
+        rim.update(emptyList(), now * 2) { _, _ -> true }
+        assertNull(rim.headPosition(now * 2))
+    }
+
+    @Test
+    fun `small footprint changes lerp and a blocked sweep uses the latest visible outline`() {
+        val rim = AeronautSupportRim()
+        val first = listOf(Vector3d(0.0, 0.0, 0.0), Vector3d(6.0, 0.0, 0.0),
+            Vector3d(6.0, 0.0, 3.0), Vector3d(0.0, 0.0, 3.0))
+        val next = first.map { Vector3d(it).add(0.6, 0.0, 0.0) }.toMutableList()
+        next.add(1, Vector3d(3.6, 0.0, 0.0))
+        val now = 300_000_000L
+        rim.update(first, 0L) { _, _ -> true }
+        rim.update(next, now) { _, _ -> true }
+        assertEquals(0.0, rim.outlineAt(now).minOf { it.x() }, 1e-8)
+        assertEquals(0.3, rim.outlineAt(now + 100_000_000L).minOf { it.x() }, 1e-8)
+        assertEquals(next, rim.outlineAt(now + 200_000_000L))
+        rim.update(next, now + 120_000_000L) { _, _ -> false }
+        assertEquals(next, rim.outlineAt(now + 120_000_000L))
+    }
 }

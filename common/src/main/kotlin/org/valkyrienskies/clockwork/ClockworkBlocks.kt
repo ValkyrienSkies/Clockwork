@@ -66,6 +66,7 @@ import org.valkyrienskies.clockwork.content.curiosities.harpoon.HarpoonBlock
 import org.valkyrienskies.clockwork.content.curiosities.rope.RopeWinchBlock
 import org.valkyrienskies.clockwork.content.curiosities.sensor.distance.DistanceSensorBlock
 import org.valkyrienskies.clockwork.content.curiosities.sensor.impact.ImpactSensorBlock
+import org.valkyrienskies.clockwork.content.curiosities.sensor.motion.DizzitronBlock
 import org.valkyrienskies.clockwork.content.curiosities.sensor.rotation.GyroscopicSensorBlock
 import org.valkyrienskies.clockwork.content.curiosities.sensor.rotation.LodefocusBlock
 import org.valkyrienskies.clockwork.content.curiosities.solver.SolverBlock
@@ -319,6 +320,18 @@ object ClockworkBlocks {
             .tab(ClockworkMod.BASE_CREATIVE_TABINFO)
             .build()
             .register()
+
+    @JvmField
+    val DIZZITRON: BlockEntry<DizzitronBlock> = REGISTRATE.block("dizzitron", ::DizzitronBlock)
+        .initialProperties { SharedProperties.stone() }
+        .transform(axeOrPickaxe())
+        .properties { it.noOcclusion() }
+        .addLayer { Supplier { RenderType.cutout() } }
+        .tag(AllTags.AllBlockTags.SAFE_NBT.tag)
+        .item()
+        .tab(ClockworkMod.BASE_CREATIVE_TABINFO)
+        .build()
+        .register()
 
     @JvmField
     val GYRO: BlockEntry<GyroBlock> = REGISTRATE.block("gyro") { properties: BlockBehaviour.Properties? ->

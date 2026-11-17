@@ -3,6 +3,9 @@ package org.valkyrienskies.clockwork.content.curiosities.aeronaut
 import net.minecraft.network.FriendlyByteBuf
 import net.minecraft.server.level.ServerPlayer
 import net.minecraft.world.entity.EquipmentSlot
+import net.minecraft.world.phys.AABB
+import net.minecraft.world.phys.Vec3
+import org.joml.Vector3d
 import org.valkyrienskies.clockwork.ClockworkPackets
 import org.valkyrienskies.clockwork.platform.api.network.C2SCWPacket
 import org.valkyrienskies.clockwork.platform.api.network.ServerNetworkContext
@@ -22,16 +25,8 @@ class AeronautShipRequestPacket(private val shipId: Long) : C2SCWPacket {
             val last = requests[player]
             if (last != null && now - last in 0 until AeronautForceReadout.UPDATE_TICKS) return@enqueueWork
             requests[player] = now
-            val ship = level.shipObjectWorld.loadedShips.getById(shipId) ?: return@enqueueWork
-            if (ship.chunkClaimDimension != level.dimensionId) return@enqueueWork
-            val box = ship.worldAABB
-            val p = player.position()
-            val dx = p.x - p.x.coerceIn(box.minX(), box.maxX())
-            val dy = p.y - p.y.coerceIn(box.minY(), box.maxY())
-            val dz = p.z - p.z.coerceIn(box.minZ(), box.maxZ())
-            if (dx * dx + dy * dy + dz * dz > AeronautForceReadout.MAX_RANGE * AeronautForceReadout.MAX_RANGE) return@enqueueWork
-            ClockworkPackets.sendTo(AeronautShipReadoutPacket(ship.id, level.dimension().location(),
-                AeronautShipReadout.sample(level, ship)), player)
+            val snapshot = inspect(player, shipId) ?: return@enqueueWork
+            ClockworkPackets.sendTo(AeronautShipReadoutPacket(shipId, level.dimension().location(), snapshot), player)
         }
         context.setPacketHandled(true)
     }
@@ -40,5 +35,35 @@ class AeronautShipRequestPacket(private val shipId: Long) : C2SCWPacket {
         private val requests = WeakHashMap<ServerPlayer, Long>()
         fun canInspect(player: ServerPlayer): Boolean = player.isAlive && !player.isSpectator &&
             player.getItemBySlot(EquipmentSlot.HEAD).item is AeronautGogglesItem && AeronautGogglesState.getGogglesAreDown(player)
+
+        fun inspect(player: ServerPlayer, shipId: Long): AeronautShipReadout.Snapshot? {
+            if (!canInspect(player)) return null
+            val level = player.serverLevel()
+            val world = level.shipObjectWorld
+            val ship = world.loadedShips.getById(shipId) ?: return null
+            if (ship.chunkClaimDimension != level.dimensionId) return null
+            val bounds = ship.shipAABB ?: return null
+            val modelBox = AABB(bounds.minX().toDouble(), bounds.minY().toDouble(), bounds.minZ().toDouble(),
+                bounds.maxX().toDouble(), bounds.maxY().toDouble(), bounds.maxZ().toDouble())
+            val eye = player.eyePosition
+            val look = player.lookAngle
+            val sight = AeronautShipReadout.TerrainSight(level, eye, AeronautShipReadout.SERVER_RAYS)
+            val toModel = ship.transform.worldToShip
+            val toWorld = ship.transform.shipToWorld
+            fun model(point: Vec3): Vec3 = toModel.transformPosition(Vector3d(point.x, point.y, point.z)).let { Vec3(it.x, it.y, it.z) }
+            fun exposed(point: Vec3) = sight.sees(toWorld.transformPosition(Vector3d(point.x, point.y, point.z)))
+            val localEye = model(eye)
+            val nearest = Vec3(localEye.x.coerceIn(modelBox.minX, modelBox.maxX),
+                localEye.y.coerceIn(modelBox.minY, modelBox.maxY), localEye.z.coerceIn(modelBox.minZ, modelBox.maxZ))
+            if (!exposed(nearest)) {
+                val aimed = modelBox.clip(localEye, model(eye.add(look.scale(AeronautForceReadout.MAX_RANGE)))).orElse(null)
+                if (aimed == null || !exposed(aimed)) return null
+            }
+            return AeronautShipReadout.filterVisible(AeronautShipReadout.sample(level, ship), sight, look, shipId) { body, pos ->
+                if (body == null) pos
+                else world.loadedShips.getById(body)?.takeIf { it.chunkClaimDimension == level.dimensionId }
+                    ?.transform?.shipToWorld?.transformPosition(pos, Vector3d())
+            }
+        }
     }
 }

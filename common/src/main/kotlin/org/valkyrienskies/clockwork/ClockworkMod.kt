@@ -2,6 +2,7 @@ package org.valkyrienskies.clockwork
 
 import org.valkyrienskies.clockwork.content.physicalities.wheel.WheelContacts
 import org.valkyrienskies.clockwork.content.physicalities.wheel.WheelSurface
+import org.valkyrienskies.clockwork.content.curiosities.aeronaut.AeronautContactTelemetry
 import org.valkyrienskies.clockwork.content.curiosities.aeronaut.AeronautShipReadout
 
 import org.valkyrienskies.clockwork.content.curiosities.magnet.Magnetism
@@ -117,7 +118,10 @@ object ClockworkMod {
     @JvmStatic
     fun init() {
         ClockworkPackets.init()
-        LifecycleEvent.SERVER_STOPPED.register { AeronautShipReadout.clear() }
+        LifecycleEvent.SERVER_STOPPED.register {
+            AeronautShipReadout.clear()
+            AeronautContactTelemetry.clear()
+        }
         ClockworkTags.init()
         ClockworkRecipes.init()
         HarpoonArmInteraction.register()
@@ -182,6 +186,7 @@ object ClockworkMod {
         LifecycleEvent.SERVER_STOPPED.register {
             Magnetism.clear()
             WheelContacts.clear()
+            GripPadController.clear()
             HarpoonProjectiles.clear()
         }
 
@@ -227,6 +232,7 @@ object ClockworkMod {
             Magnetism.physicsTick(it.world)
             WheelContacts.physicsTick(it.world)
             GripPadController.tick(it.world, it.delta)
+            AeronautContactTelemetry.tick(it.world)
             SpringBendingController.tick(it.world)
             val temp = mutableListOf<Pair<DimensionId, (PhysLevel, Double, () -> Unit) -> Unit>>()
             while (physTickOnce.isNotEmpty()) {

@@ -1,0 +1,10 @@
+{
+  "variants": {
+    "facing=north": { "model": "vs_clockwork:block/dizzitron" },
+    "facing=east": { "model": "vs_clockwork:block/dizzitron", "y": 90 },
+    "facing=south": { "model": "vs_clockwork:block/dizzitron", "y": 180 },
+    "facing=west": { "model": "vs_clockwork:block/dizzitron", "y": 270 },
+    "facing=up": { "model": "vs_clockwork:block/dizzitron", "x": 270 },
+    "facing=down": { "model": "vs_clockwork:block/dizzitron", "x": 90 }
+  }
+}

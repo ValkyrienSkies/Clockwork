@@ -37,9 +37,11 @@ import org.joml.Vector3f
 import org.valkyrienskies.clockwork.util.BearingAttachmentGeometry
 import org.valkyrienskies.clockwork.ClockworkConfig
 import org.valkyrienskies.clockwork.ClockworkMod.MOD_ID
+import org.valkyrienskies.clockwork.api.thinkable.ThinkableReading
 import org.valkyrienskies.clockwork.content.forces.contraption.BearingDriveSupport
 import org.valkyrienskies.clockwork.content.contraptions.phys.bearing.PhysBearingAssembler
 import org.valkyrienskies.clockwork.content.contraptions.phys.gimbal.quad_link.QuadLinkBehaviour
+import org.valkyrienskies.clockwork.content.kinetics.combobulator.IThinkable
 import org.valkyrienskies.clockwork.util.*
 import org.valkyrienskies.clockwork.util.ClockworkUtils.getVector3d
 import org.valkyrienskies.clockwork.util.GlueAssembler.collectGlued
@@ -68,13 +70,15 @@ import org.valkyrienskies.mod.common.util.toJOMLD
 import org.valkyrienskies.mod.common.world.clipIncludeShips
 import java.util.*
 import kotlin.math.abs
+import kotlin.math.atan2
 import kotlin.math.min
 
 class GimbalBearingBlockEntity(type: net.minecraft.world.level.block.entity.BlockEntityType<*>?, pos: BlockPos?, state: BlockState?) :
     GeneratingKineticBlockEntity(type, pos, state),
     IBearingBlockEntity,
     IDisplayAssemblyExceptions,
-    BlockEntityPhysicsListener
+    BlockEntityPhysicsListener,
+    IThinkable
 {
 
     @Volatile override lateinit var dimension: DimensionId
@@ -164,6 +168,56 @@ class GimbalBearingBlockEntity(type: net.minecraft.world.level.block.entity.Bloc
 
     private val facing: Direction
         get() = blockState.getValue(BlockStateProperties.FACING)
+
+    override fun providesThinkable(side: Direction) = side.axis != facing.axis
+
+    override fun thinkablePortName(side: Direction): Component? =
+        Component.translatable("thinkable.vs_clockwork.port.readings").takeIf { providesThinkable(side) }
+
+    override fun thinkableReadings(side: Direction) = if (providesThinkable(side)) READINGS else emptyList()
+
+    override fun thinkableValue(side: Direction) = thinkableValue(side, "tilt")
+
+    override fun thinkableValue(side: Direction, reading: String): Double? {
+        val world = level as? ServerLevel ?: return null
+        if (!providesThinkable(side) || !isRunning || jointID < 0) return null
+        val active = world.gtpa.getJointById(jointID) ?: return null
+        if (active.shipId0 != connectedShipId) return null
+        val ships = world.shipObjectWorld.loadedShips
+        val payload = ships.getById(connectedShipId) ?: return null
+        val host = active.shipId1?.takeIf { it >= 0 }?.let { ships.getById(it) ?: return null }
+        val hostRotation = host?.transform?.shipToWorldRotation ?: Quaterniond()
+        val axis = getRenderDirection().normal.toJOMLD()
+        val currentAxis = payload.transform.shipToWorldRotation.transform(bearingAxisLocal, Vector3d()).normalize()
+        val currentLocal = hostRotation.transformInverse(currentAxis, Vector3d())
+        return when (reading) {
+            "", "tilt" -> angleBetween(axis, currentLocal)
+            "tilt_1", "tilt_2" -> {
+                val slot = if (reading == "tilt_1") 1 else 2
+                val lateral = GimbalBearingFrequencySlot.getSlotDirection(blockState, slot).normal.toJOMLD()
+                Math.toDegrees(atan2(currentLocal.dot(lateral), currentLocal.dot(axis)))
+            }
+            "tilt_speed" -> {
+                val relative = Vector3d(payload.angularVelocity).sub(host?.angularVelocity ?: Vector3d())
+                Math.toDegrees(relative.cross(currentAxis).length())
+            }
+            "target_tilt", "tilt_error" -> {
+                val mode = getMode()
+                if (mode == GimbalMode.UNLOCKED) return null
+                val reference = if (mode == GimbalMode.GYROSCOPIC) assemblyHostRotation else Quaterniond(hostRotation)
+                val control = redstoneVecLocal
+                val strength = min(control.length(), 1.0)
+                val target = getTargetRotation(reference, control, strength, strength * getControllerTargetLimitRad())
+                    .transform(bearingAxisLocal, Vector3d())
+                if (reading == "tilt_error") angleBetween(currentAxis, target)
+                else angleBetween(axis, hostRotation.transformInverse(target, Vector3d()))
+            }
+            else -> null
+        }?.takeIf(Double::isFinite)
+    }
+
+    private fun angleBetween(a: Vector3dc, b: Vector3dc): Double =
+        Math.toDegrees(atan2(a.cross(b, Vector3d()).length(), a.dot(b)))
 
     fun getMaxAngleDeg(): Int = (maxAngleBehaviour?.value ?: DEFAULT_MAX_ANGLE_DEG).coerceIn(0, MAX_ANGLE_LIMIT_DEG)
 
@@ -1293,6 +1347,9 @@ class GimbalBearingBlockEntity(type: net.minecraft.world.level.block.entity.Bloc
     }
 
     companion object {
+        private val READINGS = listOf("tilt", "tilt_1", "tilt_2", "tilt_speed", "target_tilt", "tilt_error").map {
+            ThinkableReading(it, Component.translatable("thinkable.vs_clockwork.reading.gimbal.$it"))
+        }
         const val DEFAULT_MAX_ANGLE_DEG = 45
         const val MAX_ANGLE_LIMIT_DEG = 60
         private const val MIN_LIMIT_RAD = 1e-3f

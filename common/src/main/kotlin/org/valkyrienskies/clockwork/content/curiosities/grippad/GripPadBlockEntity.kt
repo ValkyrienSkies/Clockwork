@@ -3,9 +3,11 @@ package org.valkyrienskies.clockwork.content.curiosities.grippad
 import com.simibubi.create.foundation.blockEntity.SmartBlockEntity
 import com.simibubi.create.foundation.blockEntity.behaviour.BlockEntityBehaviour
 import net.minecraft.core.BlockPos
+import net.minecraft.core.Direction
 import net.minecraft.core.particles.BlockParticleOption
 import net.minecraft.core.particles.ParticleTypes
 import net.minecraft.nbt.CompoundTag
+import net.minecraft.network.chat.Component
 import net.minecraft.server.level.ServerLevel
 import net.minecraft.sounds.SoundEvents
 import net.minecraft.sounds.SoundSource
@@ -14,10 +16,13 @@ import net.minecraft.world.level.block.DirectionalBlock
 import net.minecraft.world.level.block.entity.BlockEntityType
 import net.minecraft.world.level.block.state.BlockState
 import org.joml.Vector3d
+import org.valkyrienskies.clockwork.api.thinkable.ThinkableReading
+import org.valkyrienskies.clockwork.content.kinetics.combobulator.IThinkable
 import org.valkyrienskies.mod.common.dimensionId
 import org.valkyrienskies.mod.common.getShipManagingPos
+import org.valkyrienskies.mod.common.shipObjectWorld
 
-class GripPadBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: BlockState) : SmartBlockEntity(type, pos, state) {
+class GripPadBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: BlockState) : SmartBlockEntity(type, pos, state), IThinkable {
     var contact = false
         private set
     var gripping = false
@@ -27,7 +32,30 @@ class GripPadBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: BlockSt
     var previousCompression = 0f
         private set
     private var key: GripPadController.Key? = null
+    private var feedback: GripPadController.Feedback? = null
     private var lastLanding = Long.MIN_VALUE
+
+    override fun providesThinkable(side: Direction) = side != blockState.getValue(DirectionalBlock.FACING)
+
+    override fun thinkablePortName(side: Direction): Component? =
+        Component.translatable("thinkable.vs_clockwork.port.readings").takeIf { providesThinkable(side) }
+
+    override fun thinkableReadings(side: Direction): List<ThinkableReading> =
+        if (providesThinkable(side)) READINGS else emptyList()
+
+    override fun thinkableValue(side: Direction) = thinkableValue(side, "touching")
+
+    override fun thinkableValue(side: Direction, reading: String): Double? {
+        if (level !is ServerLevel || !providesThinkable(side)) return null
+        val sample = feedback ?: return null
+        return when (reading) {
+            "", "touching" -> if (sample.contact) 15.0 else 0.0
+            "gripping" -> if (sample.gripping) 15.0 else 0.0
+            "normal_load" -> sample.normalLoad
+            "slip_speed" -> sample.slipSpeed.takeIf(Double::isFinite)
+            else -> null
+        }
+    }
 
     override fun addBehaviours(behaviours: MutableList<BlockEntityBehaviour>) {}
 
@@ -40,8 +68,10 @@ class GripPadBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: BlockSt
         key = currentKey
         val ship = world.getShipManagingPos(blockPos)
         val facing = blockState.getValue(DirectionalBlock.FACING)
-        GripPadController.publish(currentKey, ship?.id, facing, blockState.getValue(GripPadBlock.POWERED))
+        val body = ship?.id ?: world.shipObjectWorld.dimensionToGroundBodyIdImmutable[world.dimensionId]
+        GripPadController.publish(currentKey, ship?.id, body, facing, blockState.getValue(GripPadBlock.POWERED))
         val result = GripPadController.feedback(currentKey)
+        feedback = result
         val touching = result?.contact == true
         val active = result?.gripping == true
         if (contact == touching && gripping == active) return
@@ -62,6 +92,7 @@ class GripPadBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: BlockSt
 
     override fun invalidate() {
         key?.let(GripPadController::remove)
+        feedback = null
         super.invalidate()
     }
 
@@ -73,5 +104,11 @@ class GripPadBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: BlockSt
     override fun read(tag: CompoundTag, clientPacket: Boolean) {
         super.read(tag, clientPacket)
         if (clientPacket) { contact = tag.getBoolean("Contact"); gripping = tag.getBoolean("Gripping") }
+    }
+
+    companion object {
+        private val READINGS = listOf("touching", "gripping", "normal_load", "slip_speed").map {
+            ThinkableReading(it, Component.translatable("thinkable.vs_clockwork.reading.grip_pad.$it"))
+        }
     }
 }

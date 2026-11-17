@@ -11,12 +11,15 @@ import net.minecraft.server.level.ServerLevel
 import net.minecraft.world.level.Level
 import net.minecraft.world.level.block.entity.BlockEntityType
 import net.minecraft.world.level.block.state.BlockState
+import net.minecraft.world.level.block.state.properties.BlockStateProperties
 import org.joml.AxisAngle4d
 import org.joml.Quaterniond
 import org.joml.Vector3d
 import org.valkyrienskies.clockwork.ClockworkMod
 import org.valkyrienskies.clockwork.ClockworkModClient
+import org.valkyrienskies.clockwork.api.thinkable.ThinkableReading
 import org.valkyrienskies.clockwork.content.forces.contraption.BearingDriveSupport
+import org.valkyrienskies.clockwork.content.kinetics.combobulator.IThinkable
 import org.valkyrienskies.clockwork.util.gtpa
 import org.valkyrienskies.clockwork.util.updateJoint
 import org.valkyrienskies.core.api.ships.ServerShip
@@ -27,6 +30,8 @@ import org.valkyrienskies.core.internal.joints.VSD6Joint.D6Motion
 import org.valkyrienskies.core.internal.joints.VSD6Joint.D6Drive
 import org.valkyrienskies.kelvin.api.*
 import org.valkyrienskies.mod.common.getShipManagingPos
+import org.valkyrienskies.mod.common.getLoadedShipManagingPos
+import org.valkyrienskies.mod.common.isBlockInShipyard
 import org.valkyrienskies.mod.common.util.toJOMLD
 import java.util.EnumMap
 import org.valkyrienskies.kelvin.api.DuctNetwork.Companion.idealGasConstant
@@ -42,9 +47,52 @@ import org.valkyrienskies.clockwork.util.universal_joint.BlockAnchorLinks
 import org.valkyrienskies.clockwork.util.universal_joint.GasLinkBlockEntity
 import org.valkyrienskies.clockwork.util.matchesByAnchors
 
-class ExtendonBlockEntity(type: BlockEntityType<*>?, pos: BlockPos, state: BlockState) : GasLinkBlockEntity(type, pos, state) {
+class ExtendonBlockEntity(type: BlockEntityType<*>?, pos: BlockPos, state: BlockState) : GasLinkBlockEntity(type, pos, state), IThinkable {
     override val linkKind = BlockAnchorLinks.Kind.EXTENDON
     override val maxCreationDistance: Double get() = MAX_LENGTH
+
+    override fun providesThinkable(side: Direction) = side.axis != blockState.getValue(BlockStateProperties.FACING).axis
+
+    override fun thinkablePortName(side: Direction): Component? =
+        Component.translatable("thinkable.vs_clockwork.port.readings").takeIf { providesThinkable(side) }
+
+    override fun thinkableReadings(side: Direction) = if (providesThinkable(side)) READINGS else emptyList()
+
+    override fun thinkableValue(side: Direction) = thinkableValue(side, "length")
+
+    override fun thinkableValue(side: Direction, reading: String): Double? {
+        val world = level as? ServerLevel ?: return null
+        if (!providesThinkable(side)) return null
+        val other = connectedEnd(world) ?: return null
+        val point = anchorPoint(world, blockPos) ?: return null
+        val otherPoint = anchorPoint(world, other.blockPos) ?: return null
+        val length = point.distance(otherPoint).takeIf(Double::isFinite) ?: return null
+        return when (reading) {
+            "", "length" -> length
+            "target_length" -> targetLength(ClockworkMod.getKelvin(world), other, world.dimensionId)
+            "length_error" -> targetLength(ClockworkMod.getKelvin(world), other, world.dimensionId) - length
+            "extension_speed" -> if (length < 1e-4) null else {
+                val relative = velocityAt(world.getShipManagingPos(other.blockPos), otherPoint)
+                    .sub(velocityAt(world.getShipManagingPos(blockPos), point))
+                relative.dot(otherPoint.sub(point).div(length))
+            }
+            else -> null
+        }?.takeIf(Double::isFinite)
+    }
+
+    private fun connectedEnd(world: Level): ExtendonBlockEntity? {
+        val id = linkId ?: return null
+        val otherPos = connectedPos?.takeIf(world::hasChunkAt) ?: return null
+        return (world.getBlockEntity(otherPos) as? ExtendonBlockEntity)
+            ?.takeIf { !it.isRemoved && it.linkId == id && it.connectedPos == blockPos }
+    }
+
+    private fun anchorPoint(world: Level, pos: BlockPos): Vector3d? {
+        val center = pos.toJOMLD().add(0.5, 0.5, 0.5)
+        val ship = world.getLoadedShipManagingPos(pos)
+        return if (ship != null) ship.transform.shipToWorld.transformPosition(center)
+            else center.takeIf { world is PonderLevel || !world.isBlockInShipyard(pos) }
+    }
 
     internal fun buildJointBlueprints(other: ExtendonBlockEntity): Pair<VSDistanceJoint, VSD6Joint>? {
         val level = level as? ServerLevel ?: return null
@@ -157,21 +205,31 @@ class ExtendonBlockEntity(type: BlockEntityType<*>?, pos: BlockPos, state: Block
 
     override fun heatableGoggleTooltip(tooltip: MutableList<Component>, isPlayerSneaking: Boolean): Boolean {
         val result = super.heatableGoggleTooltip(tooltip, isPlayerSneaking)
-        val other = connectedBe as? ExtendonBlockEntity ?: return result
-        val kelvin = if (level is PonderLevel) ClockworkMod.getKelvin(level)
+        val world = level ?: return result
+        val other = connectedEnd(world) ?: return result
+        val point = anchorPoint(world, blockPos) ?: return result
+        val otherPoint = anchorPoint(world, other.blockPos) ?: return result
+        val length = point.distance(otherPoint).takeIf(Double::isFinite) ?: return result
+        val kelvin = if (world is PonderLevel || world is ServerLevel) ClockworkMod.getKelvin(world)
             else if (Minecraft.getInstance().isLocalServer && Platform.isFabric()) ClockworkMod.getKelvin()
             else ClockworkModClient.getKelvin()
-        val length = (targetLength(kelvin, other, level!!.dimensionId) * 10).roundToInt() / 10.0
-        tooltip.add(Component.translatable("vs_clockwork.extendon.current_length")
-            .append(Component.literal("${length}m").withStyle(ChatFormatting.YELLOW)))
+        tooltip.add(lengthTooltip("measured_length", length))
+        val target = targetLength(kelvin, other, world.dimensionId)
+        if (target.isFinite()) tooltip.add(lengthTooltip("target_length", target))
         return true
     }
+
+    private fun lengthTooltip(key: String, length: Double): Component = Component.translatable("vs_clockwork.extendon.$key",
+        Component.literal("${(length * 10).roundToInt() / 10.0} m").withStyle(ChatFormatting.YELLOW))
 
     private fun targetLength(kelvin: DuctNetwork<*>, other: ExtendonBlockEntity, dimension: DimensionId): Double =
         (gasToDistance(kelvin, getDuctNodePosition(), dimension) +
             gasToDistance(kelvin, other.getDuctNodePosition(), dimension)).toDouble().coerceIn(MIN_LENGTH, MAX_LENGTH)
 
     companion object {
+        private val READINGS = listOf("length", "target_length", "length_error", "extension_speed").map {
+            ThinkableReading(it, Component.translatable("thinkable.vs_clockwork.reading.extendon.$it"))
+        }
         private const val MIN_LENGTH = 1.5
         private const val MAX_LENGTH = 1000.0
         private const val MAX_SPEED = 4.0

@@ -1,7 +1,10 @@
 package org.valkyrienskies.clockwork.content.curiosities.grippad
 
+import net.minecraft.core.BlockPos
+import net.minecraft.core.Direction
 import org.joml.Vector3d
 import org.joml.Vector3dc
+import kotlin.math.abs
 
 internal object GripPadPhysics {
     const val CONTACT_RANGE = 0.08
@@ -9,6 +12,16 @@ internal object GripPadPhysics {
     const val MAX_SLIP = 0.35
 
     fun tangent(vector: Vector3dc, normal: Vector3dc) = Vector3d(vector).fma(-vector.dot(normal), normal)
+
+    fun contactDistanceSquared(point: Vector3dc, pad: BlockPos, face: Direction): Double? {
+        val x = point.x() - pad.x - 0.5
+        val y = point.y() - pad.y - 0.5
+        val z = point.z() - pad.z - 0.5
+        if (abs(x) > (if (face.axis == Direction.Axis.X) RELEASE_RANGE else 0.500001) ||
+            abs(y) > (if (face.axis == Direction.Axis.Y) RELEASE_RANGE else 0.500001) ||
+            abs(z) > (if (face.axis == Direction.Axis.Z) RELEASE_RANGE else 0.500001)) return null
+        return x * x + y * y + z * z
+    }
 
     fun force(error: Vector3dc, velocity: Vector3dc, normal: Vector3dc, load: Double,
               inverseMass: Double, contacts: Int, delta: Double): Vector3d {

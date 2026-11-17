@@ -6,9 +6,11 @@ import net.minecraft.gametest.framework.AfterBatch
 import net.minecraft.gametest.framework.GameTest
 import net.minecraft.gametest.framework.GameTestHelper
 import net.minecraft.server.level.ServerLevel
+import net.minecraft.util.RandomSource
 import net.minecraft.world.level.ChunkPos
 import net.minecraft.world.level.block.Blocks
 import net.minecraft.world.level.block.state.properties.BlockStateProperties.FACING
+import net.minecraft.world.level.block.state.properties.BlockStateProperties.POWER
 import net.minecraft.world.level.block.state.properties.BlockStateProperties.SLAB_TYPE
 import net.minecraft.world.level.block.state.properties.SlabType
 import net.minecraftforge.gametest.GameTestHolder
@@ -30,6 +32,7 @@ import org.valkyrienskies.mod.common.shipObjectWorld
 import org.valkyrienskies.mod.common.vsCore
 import java.util.Random
 import kotlin.math.abs
+import kotlin.math.sqrt
 
 @GameTestHolder(ClockworkMod.MOD_ID)
 @PrefixGameTestTemplate(false)
@@ -165,6 +168,68 @@ class ThinkableSensorGameTests {
                     "Impact redstone was not quantized")
                 helper.succeed()
             }
+        }
+
+        @JvmStatic @GameTest(template = TEMPLATE, batch = BATCH, timeoutTicks = 100)
+        fun dizzitronReportsLocalMotionWithoutBlockEntity(helper: GameTestHelper) {
+            val level = helper.level
+            val pos = helper.absolutePos(BlockPos(3, 5, 3))
+            val block = ClockworkBlocks.DIZZITRON.get()
+            level.setBlockAndUpdate(pos, block.defaultBlockState().setValue(FACING, Direction.EAST))
+            val ship = assemble(level, pos, 1.25)
+            val sensor = ship.shipAABB!!.let { BlockPos(it.minX(), it.minY(), it.minZ()) }
+            helper.startSequence().thenWaitUntil {
+                helper.assertTrue(level.shipObjectWorld.loadedShips.getById(ship.id) != null, "Dizzitron ship is not loaded")
+            }.thenExecute {
+                helper.assertTrue(level.getBlockEntity(sensor) == null, "Dizzitron gained a block entity")
+                val rotation = Quaterniond().rotationY(0.75).rotateZ(Math.toRadians(25.5)).rotateX(Math.toRadians(-21.25))
+                val velocity = rotation.transform(Vector3d(3.25, 0.875, -1.5))
+                val omega = rotation.transform(Vector3d(Math.toRadians(-8.75), Math.toRadians(-11.5), Math.toRadians(18.25)))
+                val position = Vector3d(ship.transform.positionInWorld)
+                level.shipObjectWorld.teleportShip(ship, vsCore.newShipTeleportData(position, rotation, velocity, omega))
+                val rear = WandAnchor.at(level, sensor, Direction.WEST)
+                val device = ThinkableConnections.device(level, rear)!!
+                val expected = mapOf("speed" to sqrt(3.25 * 3.25 + 0.875 * 0.875 + 1.5 * 1.5),
+                    "forward_velocity" to 3.25, "up_velocity" to 0.875, "right_velocity" to -1.5,
+                    "pitch_rate" to 18.25, "yaw_rate" to 11.5, "roll_rate" to -8.75, "pitch" to 25.5, "roll" to -21.25)
+                helper.assertTrue(device.thinkableReadings(Direction.WEST).map { it.id() }.toSet() == expected.keys,
+                    "Dizzitron did not advertise its named readings")
+                helper.assertTrue(device.thinkableReadings(Direction.EAST).isEmpty() &&
+                    device.thinkableValue(Direction.WEST, "unknown") == null, "Invalid port or reading returned data")
+                val relay = relay(level, sensor.west(), Direction.EAST)
+                for ((reading, value) in expected) {
+                    val actual = ThinkableItem.source(level, rear, reading)
+                    val relayed = relay.thinkableValue(Direction.WEST, reading)
+                    helper.assertTrue(actual != null && abs(actual - value) < 1e-5 && actual == relayed,
+                        "$reading expected $value, got $actual and relay got $relayed")
+                }
+                block.tick(level.getBlockState(sensor), level, sensor, RandomSource.create())
+                helper.assertTrue(level.getBlockState(sensor).getValue(POWER) == 3 &&
+                    level.hasNeighborSignal(sensor.west()) && !level.hasNeighborSignal(sensor.east()),
+                    "Rear redstone output did not equal whole m/s")
+                level.shipObjectWorld.teleportShip(ship, vsCore.newShipTeleportData(position, rotation, Vector3d(26.0, 0.0, 0.0)))
+                block.tick(level.getBlockState(sensor), level, sensor, RandomSource.create())
+                helper.assertTrue(level.getBlockState(sensor).getValue(POWER) == 15, "Redstone output did not cap at 15")
+                level.shipObjectWorld.teleportShip(ship, vsCore.newShipTeleportData(position, rotation, Vector3d()))
+            }.thenWaitUntil {
+                helper.assertTrue(level.getBlockState(sensor).getValue(POWER) == 0 && !level.hasNeighborSignal(sensor.west()),
+                    "Scheduled tick did not clear rear power after stopping")
+            }.thenSucceed()
+        }
+
+        @JvmStatic @GameTest(template = TEMPLATE, batch = BATCH)
+        fun dizzitronHandlesVerticalMountsAndGround(helper: GameTestHelper) {
+            val level = helper.level
+            val pos = helper.absolutePos(BlockPos(3, 3, 3))
+            val state = ClockworkBlocks.DIZZITRON.defaultState
+            for ((facing, pitch) in listOf(Direction.UP to 90.0, Direction.DOWN to -90.0)) {
+                level.setBlockAndUpdate(pos, state.setValue(FACING, facing))
+                val rear = WandAnchor.at(level, pos, facing.opposite)
+                helper.assertTrue(ThinkableItem.source(level, rear, "speed") == 0.0 &&
+                    ThinkableItem.source(level, rear, "pitch") == pitch && ThinkableItem.source(level, rear, "roll") == null,
+                    "Vertical stationary Dizzitron reported incorrect speed or tilt")
+            }
+            helper.succeed()
         }
 
         private fun relay(level: ServerLevel, pos: BlockPos, input: Direction): ThinkableRelayBlockEntity {

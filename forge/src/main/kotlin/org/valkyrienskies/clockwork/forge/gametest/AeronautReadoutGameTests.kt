@@ -4,7 +4,9 @@ import com.mojang.authlib.GameProfile
 import io.netty.buffer.Unpooled
 import io.netty.channel.embedded.EmbeddedChannel
 import net.minecraft.core.BlockPos
+import net.minecraft.core.Direction
 import net.minecraft.gametest.framework.AfterBatch
+import net.minecraft.gametest.framework.BeforeBatch
 import net.minecraft.gametest.framework.GameTest
 import net.minecraft.gametest.framework.GameTestHelper
 import net.minecraft.network.FriendlyByteBuf
@@ -17,8 +19,10 @@ import net.minecraft.network.protocol.handshake.ClientIntentionPacket
 import net.minecraft.server.level.ServerLevel
 import net.minecraft.server.level.ServerPlayer
 import net.minecraft.world.entity.EquipmentSlot
+import net.minecraft.world.level.ChunkPos
 import net.minecraft.world.item.ItemStack
 import net.minecraft.world.level.block.Blocks
+import net.minecraft.world.level.block.state.properties.BlockStateProperties.FACING
 import net.minecraftforge.gametest.GameTestHolder
 import net.minecraftforge.gametest.PrefixGameTestTemplate
 import net.minecraftforge.network.NetworkHooks
@@ -27,11 +31,15 @@ import org.valkyrienskies.clockwork.ClockworkBlocks
 import org.valkyrienskies.clockwork.ClockworkItems
 import org.valkyrienskies.clockwork.ClockworkMod
 import org.valkyrienskies.clockwork.content.curiosities.aeronaut.*
+import org.valkyrienskies.clockwork.content.physicalities.extendon.ExtendonBlockEntity
 import org.valkyrienskies.clockwork.mixinduck.MixinPlayerDuck
 import org.valkyrienskies.core.api.ships.ServerShip
+import org.valkyrienskies.core.impl.config.VSCoreConfig
 import org.valkyrienskies.mod.common.assembly.ShipAssembler
 import org.valkyrienskies.mod.common.shipObjectWorld
+import org.valkyrienskies.mod.common.vsCore
 import java.util.UUID
+import kotlin.math.abs
 
 @GameTestHolder(ClockworkMod.MOD_ID)
 @PrefixGameTestTemplate(false)
@@ -41,6 +49,16 @@ class AeronautReadoutGameTests {
         private val ships = ArrayList<ServerShip>()
         private val observers = ArrayList<ServerPlayer>()
         private val connections = ArrayList<EmbeddedChannel>()
+        private val assemblyObservers = ArrayList<ShipTestObserver>()
+        private val forced = HashSet<ChunkPos>()
+        private var previousSync = false
+
+        @JvmStatic
+        @BeforeBatch(batch = "aeronaut_readout")
+        fun synchronizePhysics(level: ServerLevel) {
+            previousSync = VSCoreConfig.SERVER.pt.synchronizePhysics
+            VSCoreConfig.SERVER.pt.synchronizePhysics = true
+        }
 
         @JvmStatic
         @AfterBatch(batch = "aeronaut_readout")
@@ -51,7 +69,12 @@ class AeronautReadoutGameTests {
             observers.clear()
             connections.forEach { it.finishAndReleaseAll() }
             connections.clear()
+            assemblyObservers.forEach(ShipTestObserver::close)
+            assemblyObservers.clear()
+            forced.forEach { level.setChunkForced(it.x, it.z, false) }
+            forced.clear()
             AeronautShipReadout.clear()
+            VSCoreConfig.SERVER.pt.synchronizePhysics = previousSync
         }
 
         @JvmStatic
@@ -132,7 +155,15 @@ class AeronautReadoutGameTests {
         @GameTest(template = TEMPLATE, batch = "aeronaut_readout")
         fun snapshotSurvivesTheNetworkCodec(helper: GameTestHelper) {
             val center = AeronautForceCenter(Vector3d(30000000.5, 70.0, -100.5), Vector3d(), 200.0)
-            val snapshot = AeronautShipReadout.Snapshot(1500.0, Vector3d(30000001.5, 71.0, -101.5), center, null, null, center)
+            val pad = AeronautAssemblyReadout.Anchor(73L, BlockPos(30000001, 72, -102))
+            val hinge = AeronautAssemblyReadout.Anchor(null, BlockPos(35, 72, -104))
+            val assembly = AeronautAssemblyReadout.Detail(2, listOf(AeronautAssemblyReadout.Foot(pad, 200.25)),
+                listOf(Vector3d(35.5, 70.0, -101.25), Vector3d(36.5, 70.0, -103.25)),
+                listOf(AeronautAssemblyReadout.Joint(hinge, AeronautAssemblyReadout.JointKind.HINGE, -11.5, lower = -60.0, upper = 45.0),
+                    AeronautAssemblyReadout.Joint(pad, AeronautAssemblyReadout.JointKind.GIMBAL, 25.0, 42.0, error = 17.0)),
+                listOf(AeronautAssemblyReadout.ContactFace(73L, Vector3d(30000001.25, 71.0, -101.75), 250.75)))
+            val snapshot = AeronautShipReadout.Snapshot(1500.0, Vector3d(30000001.5, 71.0, -101.5), center, null, null, center,
+                assembly, visibleGuides = 4)
             val buffer = FriendlyByteBuf(Unpooled.buffer())
             try {
                 AeronautShipReadoutPacket(42L, helper.level.dimension().location(), snapshot).write(buffer)
@@ -141,8 +172,136 @@ class AeronautReadoutGameTests {
                 helper.assertTrue(decoded.snapshot.mass == 1500.0 && decoded.snapshot.massCenter == snapshot.massCenter, "Mass data changed in transit")
                 helper.assertTrue(decoded.snapshot.liveThrust == null && decoded.snapshot.potentialLift == null, "Missing centers became phantom markers")
                 helper.assertTrue(decoded.snapshot.potentialThrust == center && decoded.snapshot.liveLift == center, "Zero resultant forces lost their weighted centers")
+                helper.assertTrue(decoded.snapshot.assembly == assembly, "Assembly support or joint data changed in transit")
+                helper.assertTrue(decoded.snapshot.massVisible && decoded.snapshot.visibleGuides == snapshot.visibleGuides,
+                    "Terrain visibility changed in transit")
             } finally { buffer.release() }
             helper.succeed()
+        }
+
+        @JvmStatic
+        @GameTest(template = TEMPLATE, batch = "aeronaut_readout", timeoutTicks = 180)
+        fun airborneAssemblyIncludesConnectedMassAndJointReadings(helper: GameTestHelper) {
+            val level = helper.level
+            val base = helper.absolutePos(BlockPos(3, 3, 3)).atY(220)
+            assemblyObservers.add(ShipTestObserver(level, base))
+            fun makeShip(pos: BlockPos, facing: Direction, ballast: Boolean): Pair<ServerShip, BlockPos> {
+                level.setBlockAndUpdate(pos, ClockworkBlocks.EXTENDON.defaultState.setValue(FACING, facing))
+                if (ballast) level.setBlockAndUpdate(pos.below(), Blocks.NETHERITE_BLOCK.defaultBlockState())
+                val ship = ShipAssembler.assembleToShip(level, if (ballast) setOf(pos, pos.below()) else setOf(pos), 1.0)
+                ship.isStatic = true
+                ships.add(ship)
+                val bounds = ship.shipAABB!!
+                val anchor = BlockPos(bounds.minX(), bounds.maxY() - 1, bounds.minZ())
+                val chunk = ChunkPos(anchor)
+                if (level.setChunkForced(chunk.x, chunk.z, true)) forced.add(chunk)
+                return ship to anchor
+            }
+            val (root, rootPos) = makeShip(base, Direction.UP, true)
+            val (leaf, leafPos) = makeShip(base.above(8), Direction.DOWN, false)
+            lateinit var extendon: ExtendonBlockEntity
+            helper.startSequence().thenWaitUntil {
+                helper.assertTrue(level.shipObjectWorld.loadedShips.getById(root.id) != null &&
+                    level.shipObjectWorld.loadedShips.getById(leaf.id) != null, "Assembly bodies did not load")
+            }.thenExecute {
+                extendon = level.getBlockEntity(rootPos) as ExtendonBlockEntity
+                helper.assertTrue(extendon.tryConnect(level, leafPos), "Could not connect the airborne assembly")
+            }.thenWaitUntil {
+                val loaded = level.shipObjectWorld.loadedShips.getById(root.id)!!
+                val snapshot = AeronautShipReadout.sample(level, loaded)
+                val expectedMass = root.inertiaData.mass + leaf.inertiaData.mass
+                val expectedWorld = Vector3d(root.transform.positionInWorld).mul(root.inertiaData.mass)
+                    .fma(leaf.inertiaData.mass, leaf.transform.positionInWorld).div(expectedMass)
+                val center = root.transform.shipToWorld.transformPosition(snapshot.massCenter, Vector3d())
+                helper.assertTrue(snapshot.assembly.bodyCount == 2 && abs(snapshot.mass - expectedMass) < 0.01 &&
+                    center.distance(expectedWorld) < 0.01, "Airborne assembly missed the mass-weighted center")
+                helper.assertTrue(snapshot.assembly.outline.isEmpty() && snapshot.assembly.feet.isEmpty(), "Airborne assembly gained support")
+                val joint = snapshot.assembly.joints.firstOrNull { it.anchor.pos == rootPos }
+                helper.assertTrue(joint?.kind == AeronautAssemblyReadout.JointKind.EXTENDON && abs(joint.measured - 8.0) < 0.1 &&
+                    joint.target == 1.5, "Extendon target and measured position were not reported together: $joint")
+            }.thenExecute {
+                val inspector = ServerPlayer(level.server, level, GameProfile(UUID.randomUUID(), "visibility-test"))
+                inspector.setPos(base.x + 0.5, base.y + 0.5 - inspector.eyeHeight, base.z - 7.5)
+                inspector.yRot = 0f
+                inspector.xRot = 0f
+                inspector.setItemSlot(EquipmentSlot.HEAD, ClockworkItems.AERONAUT_GOGGLES.asStack())
+                (inspector as MixinPlayerDuck).gogglesDown = true
+                val open = AeronautShipRequestPacket.inspect(inspector, root.id)
+                helper.assertTrue(open?.massVisible == true && open.assembly.joints.map { it.anchor.pos }.toSet() == setOf(rootPos, leafPos),
+                    "An exposed assembly lost its mass or connected joint readouts: $open")
+                val upper = base.north(4).above(4)
+                val lower = base.north().below()
+                val fullWall = (-1..1).flatMap { x -> (-1..6).map { y -> base.north(4).offset(x, y, 0) } }
+                try {
+                    level.setBlockAndUpdate(upper, Blocks.STONE.defaultBlockState())
+                    val partial = AeronautShipRequestPacket.inspect(inspector, root.id)
+                    helper.assertTrue(partial?.massVisible == true && partial.assembly.joints.map { it.anchor.pos } == listOf(rootPos),
+                        "The server sent a joint behind terrain or hid the exposed one: $partial")
+                    level.setBlockAndUpdate(lower, Blocks.STONE.defaultBlockState())
+                    val masked = AeronautShipRequestPacket.inspect(inspector, root.id)
+                    helper.assertTrue(masked?.massVisible == false && masked.mass == 0.0 && masked.massCenter.lengthSquared() == 0.0 &&
+                        masked.assembly.joints.map { it.anchor.pos } == listOf(rootPos), "The server sent a covered center of mass: $masked")
+                    fullWall.forEach { level.setBlockAndUpdate(it, Blocks.STONE.defaultBlockState()) }
+                    helper.assertTrue(AeronautShipRequestPacket.inspect(inspector, root.id) == null,
+                        "A direct request obtained telemetry for a wholly covered ship")
+                } finally {
+                    (fullWall + lower).forEach { level.removeBlock(it, false) }
+                }
+                extendon.disconnect()
+            }.thenWaitUntil {
+                val loaded = level.shipObjectWorld.loadedShips.getById(root.id)!!
+                val snapshot = AeronautShipReadout.sample(level, loaded)
+                helper.assertTrue(snapshot.assembly.bodyCount == 1 && snapshot.mass == root.inertiaData.mass &&
+                    snapshot.assembly.joints.isEmpty(), "Disconnected limb remained in the goggles readout")
+            }.thenSucceed()
+        }
+
+        @JvmStatic
+        @GameTest(template = TEMPLATE, batch = "aeronaut_readout", timeoutTicks = 220)
+        fun ordinaryBlocksReportOneLoadedFace(helper: GameTestHelper) {
+            val level = helper.level
+            val base = helper.absolutePos(BlockPos(3, 3, 3)).atY(205)
+            assemblyObservers.add(ShipTestObserver(level, base))
+            for (x in -1..3) for (z in -1..2) level.setBlockAndUpdate(base.offset(x, 0, z), Blocks.STONE.defaultBlockState())
+            val blocks = (0..2).flatMap { x -> (0..1).map { z -> base.offset(x, 2, z) } }.toSet()
+            blocks.forEach { level.setBlockAndUpdate(it, Blocks.STONE.defaultBlockState()) }
+            val ship = ShipAssembler.assembleToShip(level, blocks, 1.0)
+            ships.add(ship)
+            ship.isStatic = true
+            val bounds = ship.shipAABB!!
+            for (x in (bounds.minX() shr 4)..(bounds.maxX() shr 4)) for (z in (bounds.minZ() shr 4)..(bounds.maxZ() shr 4)) {
+                if (level.setChunkForced(x, z, true)) forced.add(ChunkPos(x, z))
+            }
+            fun detail(): AeronautAssemblyReadout.Detail {
+                val loaded = level.shipObjectWorld.loadedShips.getById(ship.id)
+                helper.assertTrue(loaded != null, "The test ship has not loaded")
+                return AeronautShipReadout.sample(level, loaded!!).assembly
+            }
+            fun planted(result: AeronautAssemblyReadout.Detail) {
+                helper.assertTrue(result.feet.isEmpty() && result.outline.size >= 3 && result.contactFaces.size == 1,
+                    "A plain stone plate did not report one supporting face: $result at ${ship.transform.positionInWorld} by $base")
+                val load = result.contactFaces.single().load
+                helper.assertTrue(load in ship.inertiaData.mass * 4.0..ship.inertiaData.mass * 16.0,
+                    "Expected a standing load close to the ship's weight: $load")
+            }
+            var steadyAt = 0L
+            helper.startSequence().thenWaitUntil { detail() }.thenExecute {
+                ship.isStatic = false
+            }.thenWaitUntil { planted(detail()) }.thenExecute {
+                steadyAt = level.gameTime + 50
+            }.thenWaitUntil {
+                val result = detail()
+                helper.assertTrue(level.gameTime >= steadyAt, "Waiting for the plate to settle while inspected")
+                planted(result)
+            }.thenExecute {
+                ship.isStatic = true
+                val lifted = Vector3d(ship.transform.positionInWorld).add(0.0, 6.0, 0.0)
+                level.shipObjectWorld.teleportShip(ship, vsCore.newShipTeleportData(lifted, ship.transform.shipToWorldRotation,
+                    Vector3d(), Vector3d()))
+            }.thenWaitUntil {
+                val result = detail()
+                helper.assertTrue(result.outline.isEmpty() && result.contactFaces.isEmpty(), "Lifting the plate left a stale support face")
+            }.thenSucceed()
         }
     }
 }

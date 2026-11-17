@@ -19,6 +19,7 @@ import org.valkyrienskies.clockwork.ClockworkBlocks
 import org.valkyrienskies.clockwork.ClockworkMod
 import org.valkyrienskies.clockwork.content.contraptions.phys.bearing.PhysBearingBlockEntity
 import org.valkyrienskies.clockwork.content.contraptions.phys.gimbal.GimbalBearingBlockEntity
+import org.valkyrienskies.clockwork.content.curiosities.aeronaut.AeronautShipReadout
 import org.valkyrienskies.clockwork.platform.api.ContraptionController.LockedMode
 import org.valkyrienskies.clockwork.util.gtpa
 import org.valkyrienskies.core.api.ships.ServerShip
@@ -26,6 +27,7 @@ import org.valkyrienskies.core.impl.config.VSCoreConfig
 import org.valkyrienskies.mod.common.assembly.ShipAssembler
 import org.valkyrienskies.mod.common.shipObjectWorld
 import org.valkyrienskies.mod.common.vsCore
+import kotlin.math.abs
 
 @GameTestHolder(ClockworkMod.MOD_ID)
 @PrefixGameTestTemplate(false)
@@ -129,6 +131,16 @@ class BearingAttachmentGameTests {
                     .distance(Vector3d(0.0, 1.0, 0.0)) < .01, "Bearing kept the attachment twist as its zero angle")
                 helper.assertTrue(level.gtpa.getAllJoints().values.count { it.shipId0 == ship.id || it.shipId1 == ship.id } == 1,
                     "Reload did not retain exactly one bearing joint")
+                if (follow) (level.getBlockEntity(base) as PhysBearingBlockEntity).apply {
+                    load(saveWithoutMetadata().apply { putFloat("targetAngle", 30f) })
+                }
+            }.thenWaitUntil {
+                if (follow) {
+                    val loaded = level.shipObjectWorld.loadedShips.getById(ship.id)
+                    val readout = loaded?.let { AeronautShipReadout.sample(level, it).assembly.joints.singleOrNull() }
+                    helper.assertTrue(readout?.target == -30.0 && abs(readout.measured + 30.0) < 1.0,
+                        "Bearing measured angle and target do not use the same coordinate frame: $readout")
+                }
             }.thenSucceed()
         }
     }

@@ -22,6 +22,7 @@
     "vs_clockwork:distance_sensor",
     "vs_clockwork:gyroscopic_sensor",
     "vs_clockwork:impact_sensor",
+    "vs_clockwork:dizzitron",
     "vs_clockwork:gyro",
     "vs_clockwork:reactionwheel",
     "vs_clockwork:redstone_resistor",

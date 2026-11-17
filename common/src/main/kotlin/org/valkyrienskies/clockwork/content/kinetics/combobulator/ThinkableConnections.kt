@@ -7,6 +7,7 @@ import net.minecraft.world.level.Level
 import org.valkyrienskies.clockwork.ClockworkSounds
 import org.valkyrienskies.clockwork.api.thinkable.Thinkable
 import org.valkyrienskies.clockwork.api.thinkable.ThinkableContext
+import org.valkyrienskies.clockwork.api.thinkable.ThinkableReading
 import org.valkyrienskies.clockwork.compat.thinkable.ThinkableCompat
 import org.valkyrienskies.clockwork.content.curiosities.rope.RopeKnotPhysics
 import org.valkyrienskies.clockwork.content.curiosities.tools.wanderwand.WandAnchor
@@ -75,11 +76,18 @@ object ThinkableConnections {
                     block.receiveThinkable(current, world, position, side, value?.takeIf { it.isFinite() })
             }
 
-            override fun thinkableValue(side: Direction): Double? {
+            override fun thinkableReadings(side: Direction): List<ThinkableReading> {
+                val current = currentState() ?: return emptyList()
+                return if (block.providesThinkable(current, side)) block.thinkableReadings(current, side) else emptyList()
+            }
+
+            override fun thinkableValue(side: Direction) = thinkableValue(side, "")
+
+            override fun thinkableValue(side: Direction, reading: String): Double? {
                 val world = level as? ServerLevel ?: return null
                 val current = currentState() ?: return null
                 if (!block.providesThinkable(current, side)) return null
-                return block.thinkableValue(current, world, position, side)?.takeIf { it.isFinite() }
+                return block.thinkableValue(current, world, position, side, reading)?.takeIf { it.isFinite() }
             }
 
             override fun thinkablePortName(side: Direction) =

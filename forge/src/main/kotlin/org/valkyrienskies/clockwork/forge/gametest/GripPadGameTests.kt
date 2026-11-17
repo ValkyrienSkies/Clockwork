@@ -22,16 +22,20 @@ import net.minecraft.world.level.block.DirectionalBlock
 import net.minecraftforge.gametest.GameTestHolder
 import net.minecraftforge.gametest.PrefixGameTestTemplate
 import net.minecraftforge.network.NetworkHooks
+import org.joml.Quaterniond
 import org.joml.Vector3d
 import org.valkyrienskies.clockwork.ClockworkBlocks
 import org.valkyrienskies.clockwork.ClockworkMod
+import org.valkyrienskies.clockwork.content.curiosities.aeronaut.AeronautShipReadout
 import org.valkyrienskies.clockwork.content.curiosities.grippad.GripPadBlock
 import org.valkyrienskies.clockwork.content.curiosities.grippad.GripPadBlockEntity
+import org.valkyrienskies.clockwork.content.kinetics.combobulator.ThinkableConnections
 import org.valkyrienskies.core.api.ships.ServerShip
 import org.valkyrienskies.core.impl.config.VSCoreConfig
 import org.valkyrienskies.mod.common.assembly.ShipAssembler
 import org.valkyrienskies.mod.common.dimensionId
 import org.valkyrienskies.mod.common.shipObjectWorld
+import org.valkyrienskies.mod.common.vsCore
 import java.util.UUID
 import java.util.concurrent.atomic.AtomicReference
 import kotlin.math.abs
@@ -129,6 +133,8 @@ class GripPadGameTests {
             }
             var start = Vector3d()
             var platformStart = Vector3d()
+            val plantedPosition = Vector3d()
+            val plantedRotation = Quaterniond()
             val acceleration = AtomicReference(Vector3d())
             helper.startSequence().thenIdle(15).thenExecute {
                 helper.assertTrue(pads().size == 4, "Foot lost its pads during assembly")
@@ -139,6 +145,24 @@ class GripPadGameTests {
             }.thenIdle(15).thenExecute {
                 helper.assertTrue(pads().all { it.blockState.getAnalogOutputSignal(level, it.blockPos) == 15 }, "Contact did not produce comparator output")
                 if (mode == "passive") helper.assertTrue(pads().none { it.gripping }, "Unpowered pad engaged active grip")
+                if (mode == "lift") {
+                    val device = ThinkableConnections.device(level, pads().first().blockPos)
+                    helper.assertTrue(device != null && device.thinkableReadings(Direction.UP).map { it.id() } ==
+                        listOf("touching", "gripping", "normal_load", "slip_speed") && !device.providesThinkable(Direction.DOWN),
+                        "Grip Pad readings were not available through the Thinkable device")
+                    val readings = pads().map { it.thinkableValue(Direction.UP, "normal_load") }
+                    helper.assertTrue(readings.all { it != null } && readings.sumOf { it ?: 0.0 } > 0.0,
+                        "Planted foot reported no normal load: $readings")
+                    helper.assertTrue(pads().all { it.thinkableValue(Direction.UP, "touching") == 15.0 &&
+                        it.thinkableValue(Direction.UP, "gripping") == 15.0 &&
+                        (it.thinkableValue(Direction.UP, "slip_speed") ?: Double.POSITIVE_INFINITY) < 0.2 },
+                        "Planted foot reported incorrect contact, grip, or slip")
+                    val assembly = AeronautShipReadout.sample(level, level.shipObjectWorld.loadedShips.getById(foot.id)!!).assembly
+                    helper.assertTrue(assembly.feet.isNotEmpty() && assembly.feet.all { it.anchor.shipId == foot.id && it.load > 0.0 } &&
+                        assembly.outline.size >= 3, "Planted foot was missing its measured support area: $assembly")
+                    plantedPosition.set(foot.transform.positionInWorld)
+                    plantedRotation.set(foot.transform.shipToWorldRotation)
+                }
                 start = Vector3d(foot.transform.positionInWorld)
                 platformStart = Vector3d(platform?.transform?.positionInWorld ?: start)
                 if (platform != null) platform.isStatic = false
@@ -181,7 +205,19 @@ class GripPadGameTests {
                     helper.assertTrue(foot.transform.positionInWorld.y() - start.y > 1.0, "Grip resisted lifting away")
                     helper.assertTrue(pads().none { it.contact || it.gripping }, "Lifted pad retained its contact")
                     helper.assertTrue(pads().all { it.blockState.getAnalogOutputSignal(level, it.blockPos) == 0 }, "Lifted pad retained comparator output")
+                    helper.assertTrue(pads().all { it.thinkableValue(Direction.UP, "normal_load") == 0.0 &&
+                        it.thinkableValue(Direction.UP, "slip_speed") == 0.0 }, "Lifted pad retained its load or slip")
+                    val airborne = AeronautShipReadout.sample(level, level.shipObjectWorld.loadedShips.getById(foot.id)!!)
+                    helper.assertTrue(airborne.mass > 0.0 && airborne.assembly.feet.isEmpty() && airborne.assembly.outline.isEmpty(),
+                        "Goggles retained support or lost the mass center after lifting")
+                    foot.isStatic = true
+                    level.shipObjectWorld.teleportShip(foot, vsCore.newShipTeleportData(
+                        Vector3d(plantedPosition).add(0.0, 0.03, 0.0), plantedRotation, Vector3d(), Vector3d()))
                 }
+            }.thenWaitUntil {
+                if (mode == "lift") helper.assertTrue(pads().any { it.thinkableValue(Direction.UP, "touching") == 15.0 } &&
+                    pads().all { it.thinkableValue(Direction.UP, "normal_load") == 0.0 },
+                    "Foot inside the contact probe's range should report contact with zero load")
             }.thenSucceed()
         }
     }

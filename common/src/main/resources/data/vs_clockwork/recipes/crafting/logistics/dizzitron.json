@@ -1,0 +1,9 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    { "item": "vs_clockwork:gyroscopic_sensor" },
+    { "item": "create:shaft" }
+  ],
+  "result": { "item": "vs_clockwork:dizzitron" }
+}

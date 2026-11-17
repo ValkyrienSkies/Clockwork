@@ -4,6 +4,11 @@ import com.simibubi.create.content.contraptions.AbstractContraptionEntity
 import com.simibubi.create.content.contraptions.Contraption
 import com.simibubi.create.content.kinetics.fan.EncasedFanBlockEntity
 import net.minecraft.core.BlockPos
+import net.minecraft.core.Direction
+import net.minecraft.world.level.BlockGetter
+import net.minecraft.world.level.Level
+import net.minecraft.world.level.chunk.ChunkAccess
+import net.minecraft.world.level.chunk.ChunkStatus
 import net.minecraft.server.level.ServerLevel
 import net.minecraft.world.level.block.entity.BlockEntity
 import net.minecraft.world.level.block.state.properties.BlockStateProperties
@@ -32,7 +37,9 @@ import kotlin.math.abs
 object AeronautShipReadout {
     data class Snapshot(val mass: Double, val massCenter: Vector3dc,
         val potentialThrust: AeronautForceCenter?, val liveThrust: AeronautForceCenter?,
-        val potentialLift: AeronautForceCenter?, val liveLift: AeronautForceCenter?)
+        val potentialLift: AeronautForceCenter?, val liveLift: AeronautForceCenter?,
+        val assembly: AeronautAssemblyReadout.Detail = AeronautAssemblyReadout.Detail(),
+        val massVisible: Boolean = true, val visibleGuides: Int = ALL_GUIDES)
 
     private data class PositionedWing(val position: BlockPos, val wing: Wing)
     private class Cache {
@@ -141,8 +148,9 @@ object AeronautShipReadout {
             }
         }
         cache.sampled = level.gameTime
-        return Snapshot(ship.inertiaData.mass, Vector3d(ship.transform.positionInShip), thrust.center(),
-            AeronautForceTelemetry.thrust(ship.id), potentialLift.center(), liveLift.center()).also { cache.snapshot = it }
+        val assembly = AeronautAssemblyReadout.sample(level, ship)
+        return Snapshot(assembly.mass, assembly.center, thrust.center(),
+            AeronautForceTelemetry.thrust(ship.id), potentialLift.center(), liveLift.center(), assembly.detail).also { cache.snapshot = it }
     }
 
     private fun rebuild(level: ServerLevel, ship: LoadedServerShip, cache: Cache) {
@@ -187,5 +195,186 @@ object AeronautShipReadout {
         val reference = AeronautForceReadout.wingLift(normal, AeronautForceReadout.referenceFlow(normal),
             1.225, wing.wingLiftPower, Math.toRadians(10.0))
         potential.add(position, reference)
+    }
+
+    internal const val PROJECTION = 1
+    internal const val THRUST_ARROW = 2
+    internal const val LIFT_ARROW = 4
+    internal const val ALL_GUIDES = PROJECTION or THRUST_ARROW or LIFT_ARROW
+    internal const val SERVER_RAYS = 64
+    internal const val CLIENT_RAYS = 48
+    private const val MAX_OUTLINE_EDGES = 24
+    private const val MAX_GUIDE_CELLS = 1024
+    private const val END_MARGIN = 0.02
+
+    internal class TerrainSight(private val level: Level, val eye: Vec3, private var remaining: Int) {
+        private data class Query(val point: Vec3, val terminalBlock: BlockPos?)
+        private val results = HashMap<Query, Boolean>()
+        private val chunks = HashMap<Long, ChunkAccess?>()
+        private var guideCellsLeft = MAX_GUIDE_CELLS
+
+        fun sees(position: Vector3dc?, terminalBlock: BlockPos? = null): Boolean {
+            if (position == null || !position.isFinite) return false
+            return sees(Vec3(position.x(), position.y(), position.z()), terminalBlock)
+        }
+
+        fun sees(position: Vec3, terminalBlock: BlockPos? = null): Boolean {
+            val delta = position.subtract(eye)
+            val distance = delta.length()
+            if (!distance.isFinite() || distance > AeronautForceReadout.MAX_RANGE) return false
+            val query = Query(position, terminalBlock)
+            results[query]?.let { return it }
+            if (remaining <= 0) return false
+            remaining--
+            val end = beforeEndpoint(position)
+            val blocked = BlockGetter.traverseBlocks(eye, end, level, { _, pos ->
+                if (pos == terminalBlock || level.isOutsideBuildHeight(pos)) return@traverseBlocks null
+                val state = chunkAt(pos)?.getBlockState(pos) ?: return@traverseBlocks true
+                if (!state.isAir && state.getCollisionShape(level, pos).clip(eye, end, pos) != null) true else null
+            }, { false })
+            return (blocked == false).also { results[query] = it }
+        }
+
+        fun seesSegment(from: Vector3dc, to: Vector3dc): Boolean {
+            if (!sees(from) || !sees(to)) return false
+            if (from.distanceSquared(to) < 1e-8) return true
+            val start = beforeEndpoint(Vec3(from.x(), from.y(), from.z()))
+            val end = beforeEndpoint(Vec3(to.x(), to.y(), to.z()))
+            val triangle = ViewingTriangle(eye, start, end)
+            val visited = HashSet<BlockPos>()
+            val queue = ArrayDeque<BlockPos>()
+            val origin = BlockPos.containing(eye)
+            visited.add(origin)
+            queue.add(origin)
+            while (queue.isNotEmpty()) {
+                if (guideCellsLeft <= 0) return false
+                guideCellsLeft--
+                val pos = queue.removeFirst()
+                if (!level.isOutsideBuildHeight(pos)) {
+                    val state = chunkAt(pos)?.getBlockState(pos) ?: return false
+                    if (!state.isAir) {
+                        var hit = false
+                        state.getCollisionShape(level, pos).forAllBoxes { x0, y0, z0, x1, y1, z1 ->
+                            if (triangle.intersects(pos.x + x0, pos.y + y0, pos.z + z0, pos.x + x1, pos.y + y1, pos.z + z1))
+                                hit = true
+                        }
+                        if (hit) return false
+                    }
+                }
+                for (side in Direction.entries) {
+                    val next = pos.relative(side)
+                    if (visited.add(next) && triangle.intersects(next.x.toDouble(), next.y.toDouble(), next.z.toDouble(),
+                            next.x + 1.0, next.y + 1.0, next.z + 1.0)) queue.add(next)
+                }
+            }
+            return true
+        }
+
+        private fun chunkAt(pos: BlockPos): ChunkAccess? {
+            val x = pos.x shr 4
+            val z = pos.z shr 4
+            return chunks.getOrPut(ChunkPos.asLong(x, z)) { level.chunkSource.getChunk(x, z, ChunkStatus.FULL, false) }
+        }
+
+        private fun beforeEndpoint(point: Vec3): Vec3 = point.add(eye.subtract(point).normalize().scale(minOf(END_MARGIN, eye.distanceTo(point))))
+    }
+
+    internal class ViewingTriangle(private val eye: Vec3, from: Vec3, to: Vec3) {
+        private data class Projection(val axis: Vec3, val minimum: Double, val maximum: Double) {
+            fun overlaps(x: Double, y: Double, z: Double, halfX: Double, halfY: Double, halfZ: Double): Boolean {
+                val radius = abs(axis.x) * halfX + abs(axis.y) * halfY + abs(axis.z) * halfZ
+                val offset = axis.x * x + axis.y * y + axis.z * z
+                return minimum <= offset + radius + 1e-7 && maximum >= offset - radius - 1e-7
+            }
+        }
+
+        private val projections: List<Projection> = run {
+            val a = from.subtract(eye)
+            val b = to.subtract(eye)
+            val boxAxes = listOf(Vec3(1.0, 0.0, 0.0), Vec3(0.0, 1.0, 0.0), Vec3(0.0, 0.0, 1.0))
+            val crossAxes = listOf(a, b, b.subtract(a)).flatMap { edge -> boxAxes.map(edge::cross) }
+            (boxAxes + a.cross(b) + crossAxes).filter { it.lengthSqr() > 1e-16 }.map { raw ->
+                val axis = raw.scale(1.0 / raw.length())
+                val first = a.dot(axis)
+                val second = b.dot(axis)
+                Projection(axis, minOf(0.0, first, second), maxOf(0.0, first, second))
+            }
+        }
+
+        fun intersects(x0: Double, y0: Double, z0: Double, x1: Double, y1: Double, z1: Double): Boolean {
+            val x = (x0 + x1) * 0.5 - eye.x
+            val y = (y0 + y1) * 0.5 - eye.y
+            val z = (z0 + z1) * 0.5 - eye.z
+            val halfX = (x1 - x0) * 0.5
+            val halfY = (y1 - y0) * 0.5
+            val halfZ = (z1 - z0) * 0.5
+            return projections.all { it.overlaps(x, y, z, halfX, halfY, halfZ) }
+        }
+    }
+
+    private data class Reading<T>(val value: T, val position: Vector3dc?, val terminalBlock: BlockPos? = null)
+
+    internal fun filterVisible(snapshot: AeronautShipReadout.Snapshot, sight: TerrainSight, look: Vec3, rootId: Long,
+               worldPoint: (Long?, Vector3dc) -> Vector3dc?): AeronautShipReadout.Snapshot {
+        fun anchor(reading: AeronautAssemblyReadout.Anchor) = worldPoint(reading.shipId,
+            Vector3d(reading.pos.x + 0.5, reading.pos.y + 0.5, reading.pos.z + 0.5))
+        val massCenter = worldPoint(rootId, snapshot.massCenter)
+        val massVisible = snapshot.massVisible && sight.sees(massCenter)
+        fun force(center: AeronautForceCenter?) = center?.takeIf { sight.sees(worldPoint(rootId, it.position)) }
+        val potentialThrust = force(snapshot.potentialThrust)
+        val liveThrust = force(snapshot.liveThrust)
+        val potentialLift = force(snapshot.potentialLift)
+        val liveLift = force(snapshot.liveLift)
+        val assembly = snapshot.assembly
+        val outline = assembly.outline.takeIf { visibleOutline(it, sight) }.orEmpty()
+
+        val readings = buildList<Reading<Any>> {
+            for (joint in assembly.joints) add(Reading(joint, anchor(joint.anchor), joint.anchor.pos.takeIf { joint.anchor.shipId == null }))
+            for (foot in assembly.feet) add(Reading(foot, anchor(foot.anchor), foot.anchor.pos.takeIf { foot.anchor.shipId == null }))
+            for (face in assembly.contactFaces) add(Reading(face, worldPoint(face.shipId, face.center)))
+        }.filter { it.position != null }.sortedByDescending {
+            val point = it.position!!
+            val offset = Vec3(point.x() - sight.eye.x, point.y() - sight.eye.y, point.z() - sight.eye.z)
+            offset.normalize().dot(look)
+        }
+        val feet = ArrayList<AeronautAssemblyReadout.Foot>()
+        val joints = ArrayList<AeronautAssemblyReadout.Joint>()
+        val faces = ArrayList<AeronautAssemblyReadout.ContactFace>()
+        for (reading in readings) {
+            if (!sight.sees(reading.position, reading.terminalBlock)) continue
+            when (val value = reading.value) {
+                is AeronautAssemblyReadout.Foot -> feet.add(value)
+                is AeronautAssemblyReadout.Joint -> joints.add(value)
+                is AeronautAssemblyReadout.ContactFace -> faces.add(value)
+            }
+        }
+
+        var guides = 0
+        if (massVisible && massCenter != null && outline.isNotEmpty() && snapshot.visibleGuides and PROJECTION != 0) {
+            val projection = Vector3d(massCenter.x(), outline.first().y(), massCenter.z())
+            if (sight.seesSegment(massCenter, projection)) guides = guides or PROJECTION
+        }
+        fun arrow(center: AeronautForceCenter?, guide: Int) {
+            if (center == null || center.force.lengthSquared() <= 1e-8 || snapshot.visibleGuides and guide == 0) return
+            val from = worldPoint(rootId, center.position) ?: return
+            val to = worldPoint(rootId, Vector3d(center.position).add(Vector3d(center.force).normalize().mul(2.0))) ?: return
+            if (sight.seesSegment(from, to)) guides = guides or guide
+        }
+        arrow(liveThrust, THRUST_ARROW)
+        arrow(liveLift, LIFT_ARROW)
+        return snapshot.copy(mass = if (massVisible) snapshot.mass else 0.0,
+            massCenter = if (massVisible) snapshot.massCenter else Vector3d(), potentialThrust = potentialThrust,
+            liveThrust = liveThrust, potentialLift = potentialLift, liveLift = liveLift,
+            assembly = assembly.copy(bodyCount = if (massVisible) assembly.bodyCount else 1, feet = feet, outline = outline,
+                joints = joints, contactFaces = faces), massVisible = massVisible, visibleGuides = guides)
+    }
+
+    private fun visibleOutline(outline: List<Vector3dc>, sight: TerrainSight): Boolean = when (outline.size) {
+        0 -> false
+        1 -> sight.sees(outline[0])
+        2 -> sight.seesSegment(outline[0], outline[1])
+        else -> outline.size <= MAX_OUTLINE_EDGES && outline.indices.all { index ->
+            sight.seesSegment(outline[index], outline[(index + 1) % outline.size])
+        }
     }
 }

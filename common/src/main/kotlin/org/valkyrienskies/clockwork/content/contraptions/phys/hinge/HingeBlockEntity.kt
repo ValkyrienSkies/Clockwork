@@ -22,12 +22,17 @@ import net.minecraft.world.level.block.state.BlockState
 import net.minecraft.world.phys.Vec3
 import net.minecraft.world.phys.BlockHitResult
 import net.minecraft.world.entity.player.Player
+import org.joml.Vector3d
+import org.valkyrienskies.clockwork.api.thinkable.ThinkableReading
+import org.valkyrienskies.clockwork.content.kinetics.combobulator.IThinkable
+import org.valkyrienskies.clockwork.util.gtpa
+import org.valkyrienskies.mod.common.shipObjectWorld
 import kotlin.math.ceil
 import kotlin.math.floor
 import kotlin.math.min
 import kotlin.math.max
 
-class HingeBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: BlockState) : SmartBlockEntity(type, pos, state), IHaveGoggleInformation {
+class HingeBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: BlockState) : SmartBlockEntity(type, pos, state), IHaveGoggleInformation, IThinkable {
     lateinit var lower: ScrollValueBehaviour
     lateinit var upper: ScrollValueBehaviour
     var guideBase: BlockPos? = null
@@ -43,6 +48,40 @@ class HingeBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: BlockStat
     var displayStress = 0f
         private set
     private var stressSound: HingeStressSound? = null
+
+    override fun providesThinkable(side: Direction) = side.axis != blockState.getValue(HingeBlock.FACING).axis
+
+    override fun thinkablePortName(side: Direction): Component? =
+        Component.translatable("thinkable.vs_clockwork.port.readings").takeIf { providesThinkable(side) }
+
+    override fun thinkableReadings(side: Direction) = if (providesThinkable(side)) READINGS else emptyList()
+
+    override fun thinkableValue(side: Direction) = thinkableValue(side, "angle")
+
+    override fun thinkableValue(side: Direction, reading: String): Double? {
+        val world = level as? ServerLevel ?: return null
+        if (!providesThinkable(side)) return null
+        val link = HingeLinks.get(world).at(blockPos)?.takeIf { it.connected } ?: return null
+        if (world.gtpa.getJointById(link.jointId ?: return null) == null) return null
+        val a = link.a
+        val b = link.b
+        if (!world.hasChunkAt(a.pos) || !world.hasChunkAt(b.pos) ||
+            world.getBlockState(a.pos).block !is HingeBlock || world.getBlockState(b.pos).block !is HingeBlock) return null
+        val ships = world.shipObjectWorld.loadedShips
+        val shipA = if (a.shipId < 0) null else ships.getById(a.shipId) ?: return null
+        val shipB = if (b.shipId < 0) null else ships.getById(b.shipId) ?: return null
+        val rotationA = HingeLinks.worldRotation(world, a)
+        return when (reading) {
+            "", "angle" -> HingeGeometry.angle(rotationA, HingeLinks.worldRotation(world, b))
+            "angular_speed" -> {
+                val axis = rotationA.transform(Vector3d(1.0, 0.0, 0.0))
+                Math.toDegrees(Vector3d(shipB?.angularVelocity ?: Vector3d()).sub(shipA?.angularVelocity ?: Vector3d()).dot(axis))
+            }
+            "lower_limit" -> link.lower.toDouble()
+            "upper_limit" -> link.upper.toDouble()
+            else -> null
+        }?.takeIf(Double::isFinite)
+    }
 
     fun updateStrain(value: Boolean, load: Float = 0f) {
         val next = (load.coerceIn(0f, 1f) * 100).toInt() / 100f
@@ -165,6 +204,9 @@ class HingeBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: BlockStat
     }
 
     companion object {
+        private val READINGS = listOf("angle", "angular_speed", "lower_limit", "upper_limit").map {
+            ThinkableReading(it, Component.translatable("thinkable.vs_clockwork.reading.hinge.$it"))
+        }
         const val POSITIVE_COLOR = 0x61DCC5
         const val NEGATIVE_COLOR = 0xF39B77
         private fun color(positive: Boolean): Style = Style.EMPTY.withColor(TextColor.fromRgb(if (positive) POSITIVE_COLOR else NEGATIVE_COLOR))

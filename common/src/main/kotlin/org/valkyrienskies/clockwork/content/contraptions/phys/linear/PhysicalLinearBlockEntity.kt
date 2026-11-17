@@ -73,6 +73,9 @@ abstract class PhysicalLinearBlockEntity(type: BlockEntityType<*>, pos: BlockPos
     private var jointId = -1
     private var appliedJoint: VSJoint? = null
 
+    @Synchronized
+    internal fun targetDisplacement(): Double? = slide?.target?.takeIf(Double::isFinite)
+
     protected abstract fun assemble(level: ServerLevel)
     protected abstract fun disassemble(level: ServerLevel)
 
