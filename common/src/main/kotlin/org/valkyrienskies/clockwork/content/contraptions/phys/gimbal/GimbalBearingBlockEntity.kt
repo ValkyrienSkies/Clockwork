@@ -246,13 +246,28 @@ class GimbalBearingBlockEntity(type: net.minecraft.world.level.block.entity.Bloc
     private fun getAttachedBlock(): BlockPos = attachedBlock ?: Vector3d(bearingPosInSub)
         .add(originalDirection?.normal?.toJOMLD() ?: Vector3d()).floor().toMinecraft()
 
+    private fun getAttachedKineticBlock(): KineticBlockEntity? {
+        val level = level ?: return null
+        if (joint == null) return null
+        val pos = getAttachedBlock()
+        if (!level.hasChunkAt(pos)) return null
+        return level.getBlockEntity(pos) as? KineticBlockEntity
+    }
+
+    private fun canPropagateToAttachedBlock(target: KineticBlockEntity, state: BlockState): Boolean {
+        val level = level ?: return false
+        if (joint == null || target.blockPos != getAttachedBlock()) return false
+        val block = state.block as? IRotate ?: return false
+        // The attachment face is in the sub-ship's frame, which may differ from our facing.
+        val face = Direction.getNearest(-bearingAxisLocal.x, -bearingAxisLocal.y, -bearingAxisLocal.z)
+        return block.hasShaftTowards(level, target.blockPos, state, face)
+    }
+
     override fun propagateRotationTo(
         target: KineticBlockEntity, stateFrom: BlockState, stateTo: BlockState, diff: BlockPos,
         connectedViaAxes: Boolean, connectedViaCogs: Boolean
     ): Float {
-        if (joint == null || target.blockPos != getAttachedBlock()) return 0f
-
-        return 1f
+        return if (canPropagateToAttachedBlock(target, stateTo)) 1f else 0f
     }
 
     override fun addPropagationLocations(
@@ -260,12 +275,33 @@ class GimbalBearingBlockEntity(type: net.minecraft.world.level.block.entity.Bloc
         state: BlockState,
         neighbours: MutableList<BlockPos>
     ): List<BlockPos> {
-        if (joint != null) neighbours.add(getAttachedBlock())
+        val target = getAttachedKineticBlock()
+        if (target != null && canPropagateToAttachedBlock(target, target.blockState)) neighbours.add(target.blockPos)
         return neighbours
     }
 
     override fun isCustomConnection(other: KineticBlockEntity?, state: BlockState?, otherState: BlockState?): Boolean {
-        return true
+        return other != null && otherState != null && canPropagateToAttachedBlock(other, otherState)
+    }
+
+    private fun removeInvalidKineticConnection() {
+        val target = getAttachedKineticBlock() ?: return
+        if (canPropagateToAttachedBlock(target, target.blockState)) return
+
+        // Create restores saved sources without checking shaft faces. Clear either direction
+        // of an old invalid link, including its dependent network, once the endpoint is loaded.
+        if (target.source == worldPosition) {
+            target.detachKinetics()
+            target.removeSource()
+            target.attachKinetics()
+            target.sendData()
+        }
+        if (source == target.blockPos) {
+            detachKinetics()
+            removeSource()
+            attachKinetics()
+            sendData()
+        }
     }
     //endregion
 
@@ -522,6 +558,7 @@ class GimbalBearingBlockEntity(type: net.minecraft.world.level.block.entity.Bloc
 
         refreshFrequencySignalsFromNetwork()
         tryRestoreJointAfterLoad()
+        removeInvalidKineticConnection()
         tryAssembleNextTick()
         if (isRunning) sendData()
     }
