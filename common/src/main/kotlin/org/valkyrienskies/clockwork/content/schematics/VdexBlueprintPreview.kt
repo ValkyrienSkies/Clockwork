@@ -23,6 +23,7 @@ import org.joml.Vector3d
 import org.valkyrienskies.clockwork.ClockworkPartials
 import org.valkyrienskies.clockwork.content.physicalities.wheel.LayeredTireRenderer
 import org.valkyrienskies.clockwork.content.physicalities.wheel.TireMesh
+import org.valkyrienskies.clockwork.content.physicalities.wheel.WheelVisuals
 import org.valkyrienskies.clockwork.content.physicalities.wheel.TireType
 import org.valkyrienskies.clockwork.content.physicalities.wheel.WheelItem
 import org.valkyrienskies.clockwork.content.physicalities.wheel.WheelSize
@@ -111,12 +112,11 @@ object VdexBlueprintPreview {
             pose.translate(.5, .5, .5)
             pose.mulPose(Quaternionf(WheelSize.axleRotation(facing.stepX.toDouble(), facing.stepY.toDouble(), facing.stepZ.toDouble())))
             val buffers = MultiBufferSource { atlas }
-            when (tire.type.appearance.mesh) {
-                TireType.Mesh.TREAD -> TireMesh.render(tire, emptyList(), pose, WheelConsumer(false), 0, 0)
-                TireType.Mesh.LAYERED -> LayeredTireRenderer.render(null, null, tire, emptyList(), pose, buffers, 0, 0, 0f,
-                    if (tire.type == TireType.WOOD) Minecraft.getInstance().blockRenderer
-                        .getBlockModel(WheelItem.wood(entry.nbt).defaultBlockState()).particleIcon else null)
-            }
+            val wood = WheelItem.wood(entry.nbt)
+            if (WheelVisuals.treadTexture(tire.type, wood) != null)
+                TireMesh.render(tire, emptyList(), pose, WheelConsumer(false), 0, 0)
+            else LayeredTireRenderer.render(null, null, tire, emptyList(), pose, buffers, 0, 0, 0f,
+                if (tire.type == TireType.WOOD) WheelVisuals.planks(wood) else null)
             LayeredTireRenderer.cleats(tire, pose, buffers, 0, 0)
             pose.mulPose(Quaternionf().rotationY((-PI / 2).toFloat()))
             pose.translate(-.5, -.5, -.5)
@@ -125,7 +125,8 @@ object VdexBlueprintPreview {
                 WheelSize.MEDIUM -> ClockworkPartials.MEDIUM_WHEEL_RIM
                 WheelSize.LARGE -> ClockworkPartials.LARGE_WHEEL_RIM
             }
-            CachedBuffers.partial(rim, entry.state).renderInto(pose, atlas)
+            CachedBuffers.partial(rim, entry.state).renderInto(pose,
+                WheelVisuals.rimBuffer(atlas, tire.type, wood))
         }
 
         private inner class WheelConsumer(private val textured: Boolean) : VertexConsumer {

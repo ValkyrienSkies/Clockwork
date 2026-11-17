@@ -157,12 +157,12 @@ internal object LayeredTireRenderer {
                contacts: List<TireContact> = emptyList()) {
         val kind = tire.type.appearance.cleats
         if (kind == TireType.Cleats.NONE) return
-        val texture = if (kind == TireType.Cleats.TEETH) "iron_block" else "black_concrete"
+        val texture = tire.type.appearance.treadTexture
         val sprite = Minecraft.getInstance().getTextureAtlas(TextureAtlas.LOCATION_BLOCKS)
-            .apply(ResourceLocation("minecraft", "block/$texture"))
+            .apply(ResourceLocation(texture.namespace, texture.path.removePrefix("textures/").removeSuffix(".png")))
         val buffer = buffers.getBuffer(Sheets.solidBlockSheet())
         val height = cleatHeight(tire)
-        val phase = if (tire.type.appearance.mesh == TireType.Mesh.TREAD) .5 else 0.0
+        val phase = if (kind == TireType.Cleats.LUGS) .5 else 0.0
         val planes = contacts.map { contact ->
             val support = (0 until 8).maxOf { i ->
                 val angle = (i + phase) * PI / 4
@@ -186,16 +186,18 @@ internal object LayeredTireRenderer {
                 }
                 return point
             }
+            val root = if (kind == TireType.Cleats.LUGS) tire.radius - height
+                else (tire.radius - height) * cos(PI / 8) - .002
             val points = (0..7).map { i -> vertex(if (i and 1 == 0) -span else span,
-                if (i and 2 == 0) tire.radius - height else tire.radius,
+                if (i and 2 == 0) root else tire.radius,
                 if (i and 4 == 0) -halfDepth else halfDepth) }
             for (face in arrayOf(intArrayOf(0, 4, 6, 2), intArrayOf(1, 3, 7, 5), intArrayOf(0, 1, 5, 4),
                 intArrayOf(2, 6, 7, 3), intArrayOf(0, 2, 3, 1), intArrayOf(4, 5, 7, 6)))
-                quad(points[face[0]], points[face[1]], points[face[2]], points[face[3]], stack, buffer, sprite, light, overlay)
+                quad(points[face[0]], points[face[1]], points[face[2]], points[face[3]], stack, buffer, sprite, light, overlay, 4.0, 8.0, kind == TireType.Cleats.PADDLES)
         }
     }
 
-    private fun cleatHeight(tire: WheelTire) = minOf(tire.thickness * .35, when (tire.type.appearance.cleats) {
+    fun cleatHeight(tire: WheelTire) = minOf(tire.thickness * .35, when (tire.type.appearance.cleats) {
         TireType.Cleats.PADDLES -> .18
         TireType.Cleats.TEETH -> .12
         TireType.Cleats.LUGS -> .045
@@ -259,30 +261,36 @@ internal object LayeredTireRenderer {
     }
 
     private fun quad(a: Vector3d, b: Vector3d, c: Vector3d, d: Vector3d, stack: PoseStack,
-                     buffer: VertexConsumer, sprite: TextureAtlasSprite, light: Int, overlay: Int) {
+                     buffer: VertexConsumer, sprite: TextureAtlasSprite, light: Int, overlay: Int,
+                     uScale: Double = 16.0, vScale: Double = 16.0, paddle: Boolean = false) {
         if (a.distanceSquared(b) < 1e-12 || a.distanceSquared(d) < 1e-12) return
         val normal = Vector3d(b).sub(a).cross(Vector3d(d).sub(a))
         if (normal.lengthSquared() < 1e-12) return
         normal.normalize()
         val uAxis = Vector3d(b).sub(a).normalize()
         val vAxis = normal.cross(uAxis, Vector3d())
+        val swap = paddle && abs(uAxis.x) > .5
         val projected = listOf(a, b, c, d).map { point ->
             val relative = Vector3d(point).sub(a)
-            MappedVertex(point, relative.dot(uAxis), relative.dot(vAxis))
+            MappedVertex(point, relative.dot(if (swap) vAxis else uAxis), relative.dot(if (swap) uAxis else vAxis))
         }
         val minU = projected.minOf { it.u }; val minV = projected.minOf { it.v }
         val vertices = projected.map { it.copy(u = it.u - minU, v = it.v - minV) }
         val width = vertices.maxOf { it.u }; val height = vertices.maxOf { it.v }
+        val tileWidth = if (paddle) 2.0 / 16 else 1.0
+        val tileHeight = if (paddle) 10.0 / 16 else 1.0
+        val uOffset = if (paddle) 3.0 / 4 else 0.0
+        val vOffset = if (paddle) 11.0 / 2 else 0.0
         val pose = stack.last()
         fun emit(vertex: MappedVertex, x: Int, y: Int) {
             val point = vertex.point
             buffer.vertex(pose.pose(), point.x.toFloat(), point.y.toFloat(), point.z.toFloat()).color(1f, 1f, 1f, 1f)
-                .uv(sprite.getU(((vertex.u - x) * 16).coerceIn(0.0, 16.0)),
-                    sprite.getV(((vertex.v - y) * 16).coerceIn(0.0, 16.0)))
+                .uv(sprite.getU(uOffset + ((vertex.u - x * tileWidth) * uScale).coerceIn(0.0, tileWidth * uScale)),
+                    sprite.getV(vOffset + ((vertex.v - y * tileHeight) * vScale).coerceIn(0.0, tileHeight * vScale)))
                 .overlayCoords(overlay).uv2(light)
                 .normal(pose.normal(), normal.x.toFloat(), normal.y.toFloat(), normal.z.toFloat()).endVertex()
         }
-        if (width <= 1 && height <= 1) {
+        if (width <= tileWidth && height <= tileHeight) {
             vertices.forEach { emit(it, 0, 0) }
             return
         }
@@ -303,9 +311,9 @@ internal object LayeredTireRenderer {
             }
             return output
         }
-        for (x in 0 until ceil(width).toInt()) for (y in 0 until ceil(height).toInt()) {
-            val polygon = clip(clip(clip(clip(vertices, 0, x.toDouble(), true), 0, x + 1.0, false),
-                1, y.toDouble(), true), 1, y + 1.0, false)
+        for (x in 0 until ceil(width / tileWidth).toInt()) for (y in 0 until ceil(height / tileHeight).toInt()) {
+            val polygon = clip(clip(clip(clip(vertices, 0, x * tileWidth, true), 0, (x + 1) * tileWidth, false),
+                1, y * tileHeight, true), 1, (y + 1) * tileHeight, false)
             if (polygon.size == 4) polygon.forEach { emit(it, x, y) }
             else for (i in 1 until polygon.lastIndex) {
                 emit(polygon[0], x, y); emit(polygon[i], x, y)

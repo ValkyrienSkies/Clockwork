@@ -11,6 +11,11 @@ import net.minecraft.client.Minecraft
 import net.minecraft.world.item.ItemDisplayContext
 import net.minecraft.world.item.ItemStack
 import net.minecraft.world.level.block.state.BlockState
+import net.minecraft.world.level.block.Block
+import net.minecraft.core.registries.BuiltInRegistries
+import net.minecraft.resources.ResourceLocation
+import net.minecraft.client.renderer.texture.TextureAtlas
+import org.valkyrienskies.clockwork.ClockworkMod
 import net.createmod.catnip.render.CachedBuffers
 import net.createmod.catnip.render.SuperByteBuffer
 import net.minecraft.client.renderer.MultiBufferSource
@@ -64,12 +69,11 @@ class WheelHubRenderer(context: BlockEntityRendererProvider.Context) : KineticBl
             val coating = WheelEffects.coating(be.bodyId)
             val sprite = coating?.let { WheelEffects.coatingSprite(it.state) }
             val contacts = body?.let { WheelEffects.compression(it, partialTicks) }.orEmpty()
-            when (size.type.appearance.mesh) {
-                TireType.Mesh.LAYERED -> LayeredTireRenderer.render(level as ClientLevel, body, size, contacts, ms, buffers, light, overlay, partialTicks,
-                    if (size.type == TireType.WOOD) Minecraft.getInstance().blockRenderer.blockModelShaper.getBlockModel(be.wood.defaultBlockState()).particleIcon else null)
-                TireType.Mesh.TREAD -> TireMesh.render(size, contacts, ms,
-                    buffers.getBuffer(RenderType.entitySolid(size.type.appearance.treadTexture)), light, overlay)
-            }
+            val texture = WheelVisuals.treadTexture(size.type, be.wood)
+            if (texture != null) TireMesh.render(size, contacts, ms,
+                buffers.getBuffer(RenderType.entitySolid(texture)), light, overlay)
+            else LayeredTireRenderer.render(level as ClientLevel, body, size, contacts, ms, buffers, light, overlay, partialTicks,
+                if (size.type == TireType.WOOD) WheelVisuals.planks(be.wood) else null)
             LayeredTireRenderer.cleats(size, ms, buffers, light, overlay, contacts)
             if (coating != null) TireMesh.render(size, contacts, ms,
                 buffers.getBuffer(Sheets.translucentCullBlockSheet()), light, overlay, coating, sprite)
@@ -82,7 +86,8 @@ class WheelHubRenderer(context: BlockEntityRendererProvider.Context) : KineticBl
             }
             ms.translate(-.5, -.5, -.5)
             CachedBuffers.partial(rim, be.blockState).light<SuperByteBuffer>(light)
-                .overlay<SuperByteBuffer>(overlay).renderInto(ms, buffers.getBuffer(RenderType.solid()))
+                .overlay<SuperByteBuffer>(overlay).renderInto(ms,
+                    WheelVisuals.rimBuffer(buffers.getBuffer(RenderType.solid()), size.type, be.wood))
             ms.popPose()
         } finally { ms.popPose() }
     }
@@ -95,21 +100,63 @@ class WheelItemRenderer : CustomRenderedItemModelRenderer() {
         val tire = item.size.tire(type = item.tireType)
         ms.pushPose()
         ms.mulPose(Quaternionf().rotationY((PI / 2).toFloat()))
-        when (tire.type.appearance.mesh) {
-            TireType.Mesh.LAYERED -> LayeredTireRenderer.render(Minecraft.getInstance().level, null, tire, emptyList(), ms,
-                buffers, light, overlay, 0f, if (tire.type == TireType.WOOD)
-                    Minecraft.getInstance().blockRenderer.blockModelShaper.getBlockModel(WheelItem.wood(stack.tag).defaultBlockState()).particleIcon else null)
-            TireType.Mesh.TREAD -> TireMesh.render(tire, emptyList(), ms,
-                buffers.getBuffer(RenderType.entitySolid(tire.type.appearance.treadTexture)), light, overlay)
-        }
+        val wood = WheelItem.wood(stack.tag)
+        val texture = WheelVisuals.treadTexture(tire.type, wood)
+        if (texture != null) TireMesh.render(tire, emptyList(), ms,
+            buffers.getBuffer(RenderType.entitySolid(texture)), light, overlay)
+        else LayeredTireRenderer.render(Minecraft.getInstance().level, null, tire, emptyList(), ms,
+            buffers, light, overlay, 0f, if (tire.type == TireType.WOOD) WheelVisuals.planks(wood) else null)
         LayeredTireRenderer.cleats(tire, ms, buffers, light, overlay)
         ms.mulPose(Quaternionf().rotationY((-PI / 2).toFloat()))
-        renderer.renderSolid(when (item.size) {
+        val rim = when (item.size) {
             WheelSize.SMALL -> ClockworkPartials.WHEEL_RIM
             WheelSize.MEDIUM -> ClockworkPartials.MEDIUM_WHEEL_RIM
             WheelSize.LARGE -> ClockworkPartials.LARGE_WHEEL_RIM
-        }.get(), light)
+        }.get()
+        if (tire.type == TireType.WOOD) {
+            ms.translate(-.5, -.5, -.5)
+            Minecraft.getInstance().blockRenderer.modelRenderer.renderModel(ms.last(),
+                WheelVisuals.rimBuffer(buffers.getBuffer(Sheets.solidBlockSheet()), tire.type, wood),
+                null, rim, 1f, 1f, 1f, light, overlay)
+        } else renderer.renderSolid(rim, light)
         ms.popPose()
+    }
+}
+
+internal object WheelVisuals {
+    private val woods = setOf("oak", "spruce", "birch", "jungle", "acacia", "dark_oak", "mangrove", "cherry", "bamboo", "crimson", "warped")
+
+    fun treadTexture(type: TireType, wood: Block): ResourceLocation? {
+        if (type.appearance.mesh != TireType.Mesh.TREAD) return null
+        if (type != TireType.WOOD) return type.appearance.treadTexture
+        val id = BuiltInRegistries.BLOCK.getKey(wood)
+        val name = id.path.removeSuffix("_planks")
+        return if (id.namespace == "minecraft" && name in woods)
+            ClockworkMod.asResource("textures/block/wheel/wooden/$name.png") else null
+    }
+
+    fun planks(wood: Block): TextureAtlasSprite =
+        Minecraft.getInstance().blockRenderer.blockModelShaper.getBlockModel(wood.defaultBlockState()).particleIcon
+
+    fun rimBuffer(buffer: VertexConsumer, type: TireType, wood: Block): VertexConsumer {
+        if (type != TireType.WOOD) return buffer
+        val original = Minecraft.getInstance().getTextureAtlas(TextureAtlas.LOCATION_BLOCKS)
+            .apply(ClockworkMod.asResource("block/wheel/wheel"))
+        val target = planks(wood)
+        return object : VertexConsumer {
+            override fun vertex(x: Double, y: Double, z: Double) = apply { buffer.vertex(x, y, z) }
+            override fun color(r: Int, g: Int, b: Int, a: Int) = apply { buffer.color(r, g, b, a) }
+            override fun uv(u: Float, v: Float) = apply {
+                buffer.uv(target.getU(((u - original.u0) / (original.u1 - original.u0) * 16).toDouble()),
+                    target.getV(((v - original.v0) / (original.v1 - original.v0) * 16).toDouble()))
+            }
+            override fun overlayCoords(u: Int, v: Int) = apply { buffer.overlayCoords(u, v) }
+            override fun uv2(u: Int, v: Int) = apply { buffer.uv2(u, v) }
+            override fun normal(x: Float, y: Float, z: Float) = apply { buffer.normal(x, y, z) }
+            override fun endVertex() = buffer.endVertex()
+            override fun defaultColor(r: Int, g: Int, b: Int, a: Int) = buffer.defaultColor(r, g, b, a)
+            override fun unsetDefaultColor() = buffer.unsetDefaultColor()
+        }
     }
 }
 
@@ -212,8 +259,10 @@ internal object TireMesh {
     fun render(size: WheelTire, contacts: List<TireContact>, ms: PoseStack, buffer: VertexConsumer, light: Int, overlay: Int,
                coating: WheelEffects.Coating? = null, sprite: TextureAtlasSprite? = null) {
         val pose = ms.last()
-        val geometry = Geometry(size.radius, size.width, size.rimRadius, size.rimWidth, coating != null)
-        val vertices = meshes.getOrPut(geometry) { build(size.radius, size.width, size.rimRadius, size.rimWidth, coating != null) }
+        val radius = size.radius - if (size.type.appearance.cleats in listOf(TireType.Cleats.PADDLES, TireType.Cleats.TEETH))
+            LayeredTireRenderer.cleatHeight(size) else 0.0
+        val geometry = Geometry(radius, size.width, size.rimRadius, size.rimWidth, coating != null)
+        val vertices = meshes.getOrPut(geometry) { build(radius, size.width, size.rimRadius, size.rimWidth, coating != null) }
         val buildup = coating?.let { sqrt(it.amount.coerceIn(0f, 1f)) } ?: 0f
         val planes = contacts.map { contact ->
             val normal = contact.normal
@@ -233,13 +282,23 @@ internal object TireMesh {
                 }
             }
             val v0 = vertices[offset]
+            val paddleBand = if (size.type.appearance.cleats == TireType.Cleats.PADDLES) {
+                val start = v0.v * 32
+                val end = vertices[offset + 2].v * 32
+                when {
+                    start >= 10 && end <= 12 -> 10f / 32
+                    start >= 12 && end <= 20 -> 12f / 32
+                    start >= 20 && end <= 22 -> 20f / 32
+                    else -> 0f
+                }
+            } else 0f
             normal.set(points[1]).sub(points[0]).cross(edge.set(points[3]).sub(points[0]))
             if (normal.lengthSquared() > 1e-12) normal.normalize() else normal.set(v0.nx.toDouble(), v0.ny.toDouble(), v0.nz.toDouble())
             if (coating == null) for (i in 0..3) {
                 val v = vertices[offset + i]
                 val p = points[i]
                 buffer.vertex(pose.pose(), p.x.toFloat(), p.y.toFloat(), p.z.toFloat()).color(v.shade, v.shade, v.shade, 1f)
-                    .uv(v.u, v.v).overlayCoords(overlay).uv2(light)
+                    .uv(v.u, v.v - paddleBand).overlayCoords(overlay).uv2(light)
                     .normal(pose.normal(), normal.x.toFloat(), normal.y.toFloat(), normal.z.toFloat()).endVertex()
             }
             if (coating != null && sprite != null) {
