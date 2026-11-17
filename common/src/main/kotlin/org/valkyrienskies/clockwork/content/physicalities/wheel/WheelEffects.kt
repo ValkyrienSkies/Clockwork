@@ -15,6 +15,7 @@ import org.joml.Vector3f
 import net.minecraft.client.Camera
 import net.minecraft.client.Minecraft
 import net.minecraft.client.multiplayer.ClientLevel
+import net.minecraft.client.particle.Particle
 import net.minecraft.client.renderer.LevelRenderer
 import net.minecraft.client.renderer.MultiBufferSource
 import net.minecraft.client.renderer.culling.Frustum
@@ -237,6 +238,7 @@ object WheelEffects {
         val camera = mc.gameRenderer.mainCamera.position
         val voices = ArrayList<Voice>()
         var budget = 64
+        var sandCloudBudget = 8
         var impactSound = false
         fun voice(sound: SoundEvent, point: Vector3d, gain: Float, pitch: Float) {
             if (gain < .005f) return
@@ -247,11 +249,12 @@ object WheelEffects {
                 if (gain > group.gain) { group.gain = gain; group.pitch = pitch }
             }
         }
-        fun particle(options: ParticleOptions, point: Vector3d, velocity: Vector3d) {
-            if (budget <= 0) return
+        fun particle(options: ParticleOptions, point: Vector3d, velocity: Vector3d): Particle? {
+            if (budget <= 0) return null
             budget--
-            mc.particleEngine.createParticle(options, point.x, point.y, point.z, 0.0, 0.0, 0.0)
-                ?.setParticleSpeed(velocity.x / 20, velocity.y / 20, velocity.z / 20)
+            return mc.particleEngine.createParticle(options, point.x, point.y, point.z, 0.0, 0.0, 0.0)?.also {
+                it.setParticleSpeed(velocity.x / 20, velocity.y / 20, velocity.z / 20)
+            }
         }
         for ((id, wheel) in wheels) {
             val body = world.shipObjectWorld.allBodies.getById(id) as? ClientVsBody ?: continue
@@ -377,6 +380,23 @@ object WheelEffects {
                     else -> DustParticleOptions(tint, if (impact) 1f else .7f)
                 }
                 particle(options, origin, kick)
+                val sandDrift = ((skid - .2f) / .8f).coerceIn(0f, 1f)
+                if (!impact && effect.material == WheelSurface.SAND && water == 0f && sandCloudBudget > 0 &&
+                    random.nextFloat() < sandDrift) {
+                    val drift = Vector3d(effect.surfaceVelocity)
+                        .fma(minOf(.5, 5.0 / maxOf(1.0, scrub.length())), scrub)
+                        .fma(-minOf(.2, 3.0 / maxOf(1.0, speed)), velocity)
+                        .fma(1.2 + sandDrift + random.nextDouble(), normal)
+                        .add(Vector3d(spread).mul(2.0))
+                    val cloudPoint = Vector3d(origin).fma(.2, normal).fma(-.025, velocity)
+                    particle(ParticleTypes.CLOUD, cloudPoint, drift)?.apply {
+                        val shade = .85f + random.nextFloat() * .15f
+                        setColor(tint.x * shade, tint.y * shade, tint.z * shade)
+                        scale((2.5f + sandDrift * 2f) * (.8f + random.nextFloat() * .4f))
+                        setLifetime(30 + (sandDrift * 20).toInt() + random.nextInt(10))
+                    }
+                    sandCloudBudget--
+                }
             }
             if (effect.material.loose) {
                 val density = when (effect.material) { WheelSurface.GRASS -> .25; WheelSurface.GRAVEL -> .6; else -> 1.0 }
