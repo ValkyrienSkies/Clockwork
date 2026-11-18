@@ -154,13 +154,13 @@ object ClockworkConfig {
         @ConfigEntry()
         var allowWrenchingActivatedPhysBearing = false
 
-        @ConfigEntry(min = 0.0, description = "Gameplay strength of sail and item-blade propellers. Scales aerodynamic force and torque together without changing the RPM, pitch, stall or altitude curves.")
+        @ConfigEntry(min = 0.0, description = "Gameplay strength of sail and item-blade propellers. Boost above ordinary aerodynamic strength fades below 16 RPM and vanishes at rest.")
         var forceMulPerSailInPropeller = 240.0
 
-        @ConfigEntry(min = 0.0, description = "Additional gameplay strength for all propellers, multiplied by forceMulPerSailInPropeller. Scales aerodynamic force and torque together without changing Create stress cost. 1 restores the unboosted strength; applies to sail and blade-controller propellers alike.")
+        @ConfigEntry(min = 0.0, description = "Additional gameplay strength for all propellers, multiplied by forceMulPerSailInPropeller. A value of 1 leaves that multiplier as set. This does not affect Create stress cost.")
         var sailPropellerForceMultiplier = 4.0
 
-        @ConfigEntry(description = "Whether a powered propeller applies its shaft reaction torque to the ship. Disable to remove axial reaction from rotor spin and airflow while keeping thrust, hub-offset and non-axial moments, and damping of ship rotation. Stopped rotors retain their full aerodynamic response.")
+        @ConfigEntry(description = "Whether powered propellers apply shaft reaction torque and boost aerodynamic loads from airflow across the rotor disk. When disabled, crossflow acts at ordinary aerodynamic strength.")
         var propellerSpinTorqueEnabled = false
 
         @ConfigEntry(min = 0.0, description = "Optional per-rotor force limit in N. 0 disables this limit (default); a fixed cap makes larger or faster rotors stop gaining thrust. Force and torque are reduced together when either limit is reached.")

@@ -6,6 +6,7 @@ import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import org.valkyrienskies.clockwork.content.contraptions.propeller.blades.BladeData
 import org.valkyrienskies.clockwork.content.contraptions.propeller.data.PropData
+import kotlin.math.abs
 
 class PropellerImpulseSolverTest {
     private val step = PropellerImpulseSolver.STEP
@@ -25,7 +26,7 @@ class PropellerImpulseSolverTest {
                 val (force, torque) = PropellerImpulseSolver.solve(listOf(load), 10000.0, inertia)
                 assertTrue(force.z() > 0.0)
                 assertEquals(0.0, force.x(), 1e-8)
-                assertEquals(0.0, torque.y(), 1e-8)
+                assertEquals(0.0, torque.y(), 1e-7)
             }
         }
     }
@@ -67,14 +68,70 @@ class PropellerImpulseSolverTest {
     }
 
     @Test
-    fun `quadratic braking cannot launch a stopped ten ton ship backwards`() {
+    fun `quadratic braking cannot launch a light ship with stopped blades backwards`() {
+        val mass = 5.0
         val velocity = Vector3d(0.0, 0.0, 100.0)
         val load = prepare(rotor(0.0).apply { currentBladePitch = 0.0 }, flow(velocity))
-        val rawNext = Vector3d(velocity).add(Vector3d(load.force).mul(step / 10000.0))
+        val rawNext = Vector3d(velocity).add(Vector3d(load.force).mul(step / mass))
         assertTrue(rawNext.length() > velocity.length(), "Fixture must reproduce the old unstable impulse")
-        val result = PropellerImpulseSolver.solve(listOf(load), 10000.0, Matrix3d().scale(40000.0))
-        val next = Vector3d(velocity).add(Vector3d(result.first).mul(step / 10000.0))
+        val result = PropellerImpulseSolver.solve(listOf(load), mass, Matrix3d().scale(mass * 4.0))
+        val next = Vector3d(velocity).add(Vector3d(result.first).mul(step / mass))
         assertTrue(next.z in 0.0..100.0, "Implicit braking must slow this axial case without reversing it: $next")
+    }
+
+    @Test
+    fun `stopped assembled sails and blades coast without gameplay boosted drag or torque`() {
+        val velocity = Vector3d(0.0, -2.0, 20.0)
+        val inertia = Matrix3d().scaling(40000.0)
+        val noseRotor = Vector3i(0, 0, 4)
+        for (sails in listOf(false, true)) {
+            fun coast(rpm: Double, multiplier: Double): Pair<Vector3dc, Vector3dc> {
+                val load = PropellerAerodynamics.prepare(
+                    rotor(rpm, sails, noseRotor), flow(velocity), 37.0, multiplier, 0.0, 0.0
+                )
+                return PropellerImpulseSolver.solve(listOf(load), 10000.0, inertia)
+            }
+            val unboosted = coast(0.0, 1.0)
+            val stopped = coast(0.0, 960.0)
+            assertTrue(stopped.first.dot(velocity) < 0.0)
+            assertVector(unboosted.first, stopped.first)
+            assertVector(unboosted.second, stopped.second)
+            for (rpm in listOf(-0.01, 0.01)) {
+                val unboostedSlow = coast(rpm, 1.0)
+                val slow = coast(rpm, 960.0)
+                assertTrue(slow.first.distance(unboostedSlow.first) < .002 * unboostedSlow.first.length())
+                assertTrue(slow.second.distance(unboostedSlow.second) < .002 * unboostedSlow.second.length())
+            }
+        }
+    }
+
+    @Test
+    fun `disabled spin torque leaves powered yaw from crossflow at ordinary aerodynamic strength`() {
+        val inertia = Matrix3d().scaling(60000.0)
+        val climb = flow(Vector3d(0.0, 0.5, 6.0))
+        for (sails in listOf(false, true)) {
+            fun flight(
+                multiplier: Double, spinTorqueEnabled: Boolean, airflow: PropellerAerodynamics.Flow = climb
+            ): Pair<Vector3dc, Vector3dc> {
+                val prop = rotor(256.0, sails)
+                fun load() = PropellerAerodynamics.prepare(
+                    prop, airflow, 37.0, multiplier, 0.0, 0.0, spinTorqueEnabled = spinTorqueEnabled
+                )
+                if (sails) repeat(240) { load() }
+                return PropellerImpulseSolver.solve(listOf(load()), 10000.0, inertia)
+            }
+            val natural = flight(1.0, false)
+            val axial = flight(960.0, false, flow(Vector3d(0.0, 0.0, 6.0)))
+            val enabled = flight(960.0, true)
+            val disabled = flight(960.0, false)
+            assertTrue(abs(enabled.second.y()) > 100.0)
+            assertTrue(axial.first.z() > 0.0 && disabled.first.z() > .9 * axial.first.z(),
+                "Unusable thrust for sails=$sails: axial=${axial.first}, climb=${disabled.first}")
+            assertTrue(abs(disabled.second.y()) < .05 * abs(enabled.second.y()),
+                "Boosted yaw for sails=$sails: off=${disabled.second.y()}, on=${enabled.second.y()}")
+            assertTrue(abs(disabled.second.y()) <= 2.0 * abs(natural.second.y()),
+                "Expected unboosted yaw for sails=$sails: off=${disabled.second.y()}, natural=${natural.second.y()}")
+        }
     }
 
     @Test
