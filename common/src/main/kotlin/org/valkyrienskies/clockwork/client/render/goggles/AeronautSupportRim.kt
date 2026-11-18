@@ -1,20 +1,15 @@
 package org.valkyrienskies.clockwork.client.render.goggles
 
-import com.mojang.blaze3d.vertex.VertexConsumer
-import net.minecraft.client.gui.GuiGraphics
 import net.minecraft.client.multiplayer.ClientLevel
-import net.minecraft.client.renderer.RenderType
 import net.minecraft.core.BlockPos
 import net.minecraft.world.level.ChunkPos
 import net.minecraft.world.level.chunk.ChunkAccess
 import net.minecraft.world.level.chunk.ChunkStatus
 import net.minecraft.world.phys.AABB
 import net.minecraft.world.phys.Vec3
-import org.joml.Matrix4f
 import org.joml.Vector3d
 import org.joml.Vector3dc
 import kotlin.math.floor
-import kotlin.math.hypot
 import kotlin.math.roundToInt
 
 internal class AeronautSupportRim {
@@ -130,72 +125,49 @@ internal class AeronautSupportRim {
 
     private fun currentPhase(now: Long) = wrap(phase + (now - phaseAt).toDouble() / ORBIT_NANOS)
 
-    fun render(graphics: GuiGraphics, now: Long, project: (Vector3dc) -> AeronautHudMath.Point?) {
+    fun render(guides: AeronautGuides, now: Long) {
         val rim = contourAt(now) ?: return
-        val points = rim.points.map(project)
+        val points = rim.points
         val fade = ((now - appearedAt).toDouble() / FADE_NANOS).coerceIn(0.0, 1.0).toFloat()
         val head = phaseOn(rim, now)
-        val type = RenderType.gui()
-        val buffer = graphics.bufferSource()
-        val vertices = buffer.getBuffer(type)
-        val pose = graphics.pose().last().pose()
 
         for (i in points.indices) {
             if (i == 1 && points.size == 2) break
-            val from = points[i] ?: continue
-            val to = points[(i + 1) % points.size] ?: continue
-            stroke(vertices, pose, from, to, 3f, 3f, opacity(0x2A398675, fade), opacity(0x2A398675, fade))
-            stroke(vertices, pose, from, to, 0.9f, 0.9f, opacity(0xB06BC6A4.toInt(), fade), opacity(0xB06BC6A4.toInt(), fade))
+            val from = guides.point(points[i]) ?: continue
+            val to = guides.point(points[(i + 1) % points.size]) ?: continue
+            guides.stroke(from, to, 3f, 3f, opacity(0x2A398675, fade), opacity(0x2A398675, fade))
+            guides.stroke(from, to, 0.9f, 0.9f, opacity(0xB06BC6A4.toInt(), fade), opacity(0xB06BC6A4.toInt(), fade))
         }
         for (i in points.indices) {
-            val from = points[i] ?: continue
-            val to = points[(i + 1) % points.size] ?: continue
+            val from = points[i]
+            val to = points[(i + 1) % points.size]
             val start = rim.lengths[i] / rim.length
             val end = rim.lengths[i + 1] / rim.length
             if (end - start <= 1e-9) continue
             for (side in 0..1) {
                 val pulse = wrap(head + side * 0.5)
-                drawPulse(vertices, pose, from, to, start, end, pulse, fade)
-                if (pulse < TRAIL) drawPulse(vertices, pose, from, to, start, end, pulse + 1.0, fade)
+                drawPulse(guides, from, to, start, end, pulse, fade)
+                if (pulse < TRAIL) drawPulse(guides, from, to, start, end, pulse + 1.0, fade)
             }
         }
-        buffer.endBatch(type)
     }
 
-    private fun drawPulse(vertices: VertexConsumer, pose: Matrix4f, from: AeronautHudMath.Point, to: AeronautHudMath.Point,
+    private fun drawPulse(guides: AeronautGuides, from: Vector3dc, to: Vector3dc,
                           start: Double, end: Double, head: Double, fade: Float) {
         val tail = head - TRAIL
         for (i in 0 until profile.lastIndex) {
             val first = maxOf(start, tail + TRAIL * profile[i])
             val last = minOf(end, tail + TRAIL * profile[i + 1])
             if (last <= first) continue
-            val a = mix(from, to, ((first - start) / (end - start)).toFloat())
-            val b = mix(from, to, ((last - start) / (end - start)).toFloat())
+            val a = guides.point(Vector3d(from).lerp(to, (first - start) / (end - start))) ?: continue
+            val b = guides.point(Vector3d(from).lerp(to, (last - start) / (end - start))) ?: continue
             val aEnergy = energy(i, ((first - tail) / TRAIL).toFloat()) * fade
             val bEnergy = energy(i, ((last - tail) / TRAIL).toFloat()) * fade
-            stroke(vertices, pose, a, b, 3f + aEnergy * 2.8f, 3f + bEnergy * 2.8f,
+            guides.stroke(a, b, 3f + aEnergy * 2.8f, 3f + bEnergy * 2.8f,
                 opacity(0x705CEAC6, aEnergy), opacity(0x705CEAC6, bEnergy))
-            stroke(vertices, pose, a, b, 1f + aEnergy * 1.4f, 1f + bEnergy * 1.4f,
+            guides.stroke(a, b, 1f + aEnergy * 1.4f, 1f + bEnergy * 1.4f,
                 pulseColor(aEnergy), pulseColor(bEnergy))
         }
-    }
-
-    private fun stroke(vertices: VertexConsumer, pose: Matrix4f, from: AeronautHudMath.Point, to: AeronautHudMath.Point,
-                       headWidth: Float, tailWidth: Float, fromColor: Int, toColor: Int) {
-        val dx = to.x - from.x
-        val dy = to.y - from.y
-        val length = hypot(dx, dy)
-        if (length < 0.01f) return
-        val nx = -dy * 0.5f / length
-        val ny = dx * 0.5f / length
-        fun vertex(point: AeronautHudMath.Point, width: Float, color: Int) {
-            vertices.vertex(pose, point.x + nx * width, point.y + ny * width, 0f)
-                .color(color shr 16 and 255, color shr 8 and 255, color and 255, color ushr 24).endVertex()
-        }
-        vertex(from, headWidth, fromColor)
-        vertex(to, tailWidth, toColor)
-        vertex(to, -tailWidth, toColor)
-        vertex(from, -headWidth, fromColor)
     }
 
     companion object {
@@ -241,9 +213,6 @@ internal class AeronautSupportRim {
         }
 
         fun wrap(value: Double) = value - floor(value)
-
-        fun mix(a: AeronautHudMath.Point, b: AeronautHudMath.Point, t: Float) =
-            AeronautHudMath.Point(a.x + (b.x - a.x) * t, a.y + (b.y - a.y) * t)
 
         fun energy(index: Int, t: Float): Float {
             val f = ((t - profile[index]) / (profile[index + 1] - profile[index])).coerceIn(0f, 1f)

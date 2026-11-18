@@ -39,7 +39,7 @@ public class MixinLevelRenderer {
     @Inject(method = "renderLevel", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/LevelRenderer;renderDebug(Lcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/MultiBufferSource;Lnet/minecraft/client/Camera;)V"))
     private void clockwork$renderToolEffects(PoseStack poseStack, float partialTick, long finishNanoTime, boolean renderBlockOutline, Camera camera, GameRenderer gameRenderer, LightTexture lightTexture, Matrix4f projectionMatrix, CallbackInfo ci) {
         ToolWorldEffects.render(poseStack, camera, partialTick);
-        AeronautGoggleOverlayRenderer.capture(poseStack, projectionMatrix, camera);
+        AeronautGoggleOverlayRenderer.renderWorld(poseStack, projectionMatrix, camera);
     }
 
     /**

@@ -1,13 +1,11 @@
 package org.valkyrienskies.clockwork.content.curiosities.tools.gravitron
 
-import net.minecraft.core.BlockPos
 import net.minecraft.server.level.ServerLevel
 import net.minecraft.server.level.ServerPlayer
 import net.minecraft.network.chat.Component
 import net.minecraft.world.level.ClipContext
 import net.minecraft.world.phys.HitResult
 import net.minecraft.world.phys.Vec3
-import org.joml.Vector3d
 import org.joml.Vector3dc
 import org.valkyrienskies.clockwork.ClockworkPackets
 import org.valkyrienskies.clockwork.ClockworkSounds
@@ -20,6 +18,7 @@ import org.valkyrienskies.mod.common.dimensionId
 import org.valkyrienskies.mod.common.getLoadedShipManagingPos
 import org.valkyrienskies.mod.common.shipObjectWorld
 import org.valkyrienskies.mod.common.util.toJOMLD
+import org.valkyrienskies.mod.common.util.toMinecraft
 import org.valkyrienskies.mod.common.world.clipIncludeShips
 
 /** Saved with the ship. Only Gravitron freezes acquire this visual; other static ships are untouched. */
@@ -32,12 +31,11 @@ class GravitronFrozenShip {
     private fun broadcast(level: ServerLevel, ship: ServerShip, frozen: Boolean) {
         val packet = GravitronFreezePacket(ship.id, Vec3(x, y, z), frozen,
             (level.gameTime - frozenAt).coerceIn(0L, 40L).toFloat())
-        if (frozen) {
-            val point = ship.shipToWorld.transformPosition(Vector3d(x, y, z))
-            ClockworkPackets.sendToNear(level, BlockPos.containing(point.x, point.y, point.z), 192, packet)
-        } else {
-            // A client may still know this ship after moving away from its original freeze position.
-            level.players().forEach { ClockworkPackets.sendTo(packet, it) }
+        val bounds = ship.worldAABB.toMinecraft()
+        for (player in level.players()) {
+            if (!frozen || bounds.distanceToSqr(player.position()) <= 192.0 * 192.0) {
+                ClockworkPackets.sendTo(packet, player)
+            }
         }
     }
 

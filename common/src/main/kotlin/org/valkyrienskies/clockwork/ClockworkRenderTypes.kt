@@ -1,6 +1,9 @@
 package org.valkyrienskies.clockwork
 
 import com.mojang.blaze3d.vertex.DefaultVertexFormat
+import com.mojang.blaze3d.systems.RenderSystem
+import org.lwjgl.opengl.GL11.GL_ALWAYS
+import org.lwjgl.opengl.GL11.GL_LEQUAL
 import com.mojang.blaze3d.vertex.VertexFormat
 import net.minecraft.Util
 import net.minecraft.client.renderer.GameRenderer
@@ -46,6 +49,17 @@ class ClockworkRenderTypes(
         private val BEAM_TEX = ResourceLocation(ClockworkMod.MOD_ID, "textures/effects/beam.png")
 
         val SKID_MARKS = tireMarks(TEX)
+        val AERONAUT_GUIDES: RenderType = create("aeronaut_guides", DefaultVertexFormat.POSITION_COLOR,
+            VertexFormat.Mode.QUADS, 4096, false, false, CompositeState.builder()
+                .setShaderState(POSITION_COLOR_SHADER)
+                .setTransparencyState(TRANSLUCENT_TRANSPARENCY)
+                .setCullState(NO_CULL)
+                .setDepthTestState(object : DepthTestStateShard("goggle_readout", GL_ALWAYS) {
+                    override fun setupRenderState() = RenderSystem.depthFunc(GL_ALWAYS)
+                    override fun clearRenderState() = RenderSystem.depthFunc(GL_LEQUAL)
+                })
+                .setWriteMaskState(COLOR_WRITE)
+                .createCompositeState(false))
         val TERRAIN_TRACKS = tireMarks(TextureAtlas.LOCATION_BLOCKS)
 
         private fun tireMarks(texture: ResourceLocation): RenderType = create(

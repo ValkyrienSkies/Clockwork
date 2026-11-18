@@ -5,6 +5,7 @@ import com.mojang.blaze3d.vertex.VertexConsumer
 import net.minecraft.client.Minecraft
 import net.minecraft.client.multiplayer.ClientLevel
 import net.minecraft.client.renderer.MultiBufferSource
+import net.minecraft.resources.ResourceLocation
 import net.minecraft.world.entity.LivingEntity
 import net.minecraft.world.entity.HumanoidArm
 import net.minecraft.world.entity.player.Player
@@ -21,12 +22,19 @@ import org.valkyrienskies.clockwork.util.render.SurfaceEffectPass
 import org.valkyrienskies.clockwork.mixin.content.gravitron.GameRendererAccessor
 import org.valkyrienskies.clockwork.util.render.RenderUtil.addRibbonSegment
 import org.valkyrienskies.core.api.ships.ClientShip
+import org.valkyrienskies.core.api.event.RegisteredListener
+import org.valkyrienskies.mod.api.render.ShipMaterial
+import org.valkyrienskies.mod.api.render.ShipMaterialSelection
+import org.valkyrienskies.mod.api.render.ShipRenderView
+import org.valkyrienskies.mod.api.vsApi
 import org.valkyrienskies.mod.common.shipObjectWorld
 import java.util.UUID
 import kotlin.math.PI
 import kotlin.math.abs
 import kotlin.math.cos
+import kotlin.math.floor
 import kotlin.math.sin
+import kotlin.math.sqrt
 import kotlin.math.tan
 
 /** Client-only presentation. Ship anchors stay in ship space until each render frame. */
@@ -37,6 +45,7 @@ object GravitronEffects {
         var anchor = Vec3.ZERO
         var supercharged = false
         var lastSync = 0L
+        var nextWave = 0L
         var slot = -1
         var item: net.minecraft.world.item.Item? = null
         // Three articulated prongs and the central body emitter.
@@ -46,9 +55,11 @@ object GravitronEffects {
         var viewTipsTime = -1L
     }
 
-    private data class ShipPulse(val shipId: Long, val anchor: Vec3, val action: GravitronAction, val birth: Long)
+    private class ShipPulse(val shipId: Long, val anchor: Vec3, val action: GravitronAction, val birth: Long) {
+        var selector: RegisteredListener? = null
+    }
     private data class SurfacePass(val ship: ClientShip, val anchor: Vec3, val action: GravitronAction,
-                                   val age: Float, val frozenAge: Float = 40f)
+                                   val front: Float)
     private data class FrozenField(val anchor: Vec3, val animation: GravitronFreezeAnimation, var lastSync: Long)
     private data class RenderOwner(val player: Player?)
     private val owners = ArrayDeque<RenderOwner>()
@@ -56,6 +67,70 @@ object GravitronEffects {
     private val pulses = mutableListOf<ShipPulse>()
     private val frozenFields = mutableMapOf<Long, FrozenField>()
     private var world: ClientLevel? = null
+    private lateinit var frozenMaterial: ShipMaterial
+    private lateinit var pulseMaterial: ShipMaterial
+
+    fun registerMaterials() {
+        frozenMaterial = vsApi.registerShipMaterial(ResourceLocation("vs_clockwork", "gravitron_freeze"))
+        pulseMaterial = vsApi.registerShipMaterial(ResourceLocation("vs_clockwork", "gravitron_pulse"))
+        vsApi.registerShipMaterialSelector { ship, view ->
+            val field = frozenFields[ship.id]
+            if (field == null || !useMaterials(view)) null else {
+                val front = freezeFront(ship, field, view.level.gameTime, view.partialTick)
+                val parameter = if (!field.animation.thawing && field.animation.freezeAge(view.level.gameTime, view.partialTick) >= 40f)
+                    -1f - (view.level.gameTime % 24000 + view.partialTick) else front
+                selection(ship, field.anchor, frozenMaterial, parameter)
+            }
+        }
+    }
+
+    private fun useMaterials(view: ShipRenderView) = view.level === world &&
+        !ClockworkConfig.CLIENT.gravitronLegacyShipContours && !ShaderPackCompat.enabled()
+
+    private fun selection(ship: ClientShip, anchor: Vec3, material: ShipMaterial, parameter: Float) =
+        ShipMaterialSelection(material, x = (anchor.x - (ship.chunkClaim.xStart shl 4)).toFloat(),
+            y = anchor.y.toFloat(), z = (anchor.z - (ship.chunkClaim.zStart shl 4)).toFloat(), w = parameter)
+
+    private fun hullReach(ship: ClientShip, anchor: Vec3): Float {
+        val box = ship.shipAABB ?: return 16f
+        val x = maxOf(abs(box.minX() - anchor.x), abs(box.maxX() + 1.0 - anchor.x))
+        val y = maxOf(abs(box.minY() - anchor.y), abs(box.maxY() + 1.0 - anchor.y))
+        val z = maxOf(abs(box.minZ() - anchor.z), abs(box.maxZ() + 1.0 - anchor.z))
+        return sqrt(x * x + y * y + z * z).toFloat()
+    }
+
+    private fun freezeFront(ship: ClientShip, field: FrozenField, now: Long, pt: Float): Float {
+        val reach = maxOf(24f, hullReach(ship, field.anchor) + 2f)
+        val animation = field.animation
+        return reach * (animation.freezeAge(now, pt) / 40f) * (1f - animation.thawAge(now, pt) / 28f).coerceIn(0f, 1f)
+    }
+
+    private fun pulseFront(ship: ClientShip, pulse: ShipPulse, age: Float): Float {
+        val reach = hullReach(ship, pulse.anchor) + 3f
+        return when (pulse.action) {
+            GravitronAction.LAUNCH -> (age - 3f) * maxOf(.8f, reach / 28f)
+            GravitronAction.RELEASE -> age * maxOf(.28f, reach / 22f)
+            else -> age * maxOf(.22f, reach / 72f)
+        }
+    }
+
+    private fun addPulse(shipId: Long, anchor: Vec3, action: GravitronAction, now: Long) {
+        if (pulses.size >= 64) pulses.removeAt(0).selector?.unregister()
+        val pulse = ShipPulse(shipId, anchor, action, now)
+        pulses.add(pulse)
+        val style = when (action) {
+            GravitronAction.HOLD -> 0
+            GravitronAction.LAUNCH -> 1
+            GravitronAction.RELEASE -> 2
+            else -> return
+        }
+        pulse.selector = vsApi.registerShipMaterialSelector { ship, view ->
+            if (ship.id != shipId || !useMaterials(view)) null else {
+                val radius = pulseFront(ship, pulse, view.level.gameTime - now + view.partialTick)
+                if (radius < 0f) null else selection(ship, anchor, pulseMaterial, floor(radius * 64f) * 4f + style)
+            }
+        }
+    }
 
     @JvmStatic
     fun isGravitron(stack: ItemStack): Boolean = stack.item is GravitronItem || stack.item is CreativeGravitronItem
@@ -70,6 +145,7 @@ object GravitronEffects {
         val level = Minecraft.getInstance().level
         if (world !== level) {
             states.clear()
+            pulses.forEach { it.selector?.unregister() }
             pulses.clear()
             frozenFields.clear()
             owners.clear()
@@ -105,8 +181,16 @@ object GravitronEffects {
             if (state.animation.holding && now - state.lastSync > 30) {
                 state.animation.accept(GravitronAction.RELEASE, now)
             }
+            if (state.animation.holding && state.shipId >= 0 && now >= state.nextWave) {
+                addPulse(state.shipId, state.anchor, GravitronAction.HOLD, now)
+                state.nextWave = now + 27
+            }
         }
-        pulses.removeAll { now - it.birth > pulseLife(it.action) }
+        pulses.removeAll {
+            val expired = now - it.birth > pulseLife(it.action)
+            if (expired) it.selector?.unregister()
+            expired
+        }
         frozenFields.entries.removeIf { (id, field) ->
             field.animation.finished(now) || (now - field.lastSync > 40 && level.shipObjectWorld.loadedShips.getById(id) == null)
         }
@@ -136,21 +220,17 @@ object GravitronEffects {
         state.supercharged = packet.supercharged
         if (packet.action == GravitronAction.DRAW && state.animation.action == GravitronAction.DRAW &&
             state.animation.age(now, 0f) < 10f) return
+        val wasHolding = state.animation.holding && state.shipId == packet.shipId
         state.animation.accept(packet.action, now, if (packet.supercharged) 0f else packet.load)
         // Idle heartbeats must not erase a launch/freeze effect that is still playing.
         if (packet.action != GravitronAction.IDLE) {
             state.shipId = packet.shipId
             state.anchor = packet.anchor
         }
-        if (packet.action == GravitronAction.GRAB || packet.action == GravitronAction.HOLD) {
-            // Grabbing also unfreezes the ship on the server.
-            pulses.removeAll { it.shipId == packet.shipId }
-        }
+        if (state.animation.holding && !wasHolding) state.nextWave = now
         if (packet.shipId >= 0 && packet.action in listOf(GravitronAction.LAUNCH, GravitronAction.FREEZE,
                 GravitronAction.UNFREEZE, GravitronAction.RELEASE)) {
-            pulses.removeAll { it.shipId == packet.shipId }
-            if (pulses.size >= 64) pulses.removeAt(0)
-            pulses.add(ShipPulse(packet.shipId, packet.anchor, packet.action, now))
+            addPulse(packet.shipId, packet.anchor, packet.action, now)
         }
     }
 
@@ -228,6 +308,7 @@ object GravitronEffects {
         val time = (now % 24000).toFloat() + partialTick
         val surfaces = mutableListOf<SurfacePass>()
         val legacy = ClockworkConfig.CLIENT.gravitronLegacyShipContours
+        val fallback = !legacy && ShaderPackCompat.enabled()
         GravitronSurfaceEffects.beginFrame()
         val type = ClockworkRenderTypes.energyType()
         val vc = ClockworkRenderTypes.energyBuffer(buffers)
@@ -259,13 +340,11 @@ object GravitronEffects {
             if (holding) {
                 if (legacy) {
                     shipField(vc, pose, ship, camera, time, rgb, 0.16f + animation.load.coerceAtMost(1f) * 0.08f, 1f)
-                } else {
-                    surfaces.add(SurfacePass(ship, state.anchor, GravitronAction.HOLD, age))
                 }
                 ring(vc, pose, end, end.subtract(start).normalize(), 0.2 + 0.04 * sin(time * 0.2), rgb, fade * 0.65f, time)
             }
         }
-        for (pulse in pulses) {
+        if (legacy || fallback) for (pulse in pulses) {
             val ship = level.shipObjectWorld.loadedShips.getById(pulse.shipId) ?: continue
             if (ship.renderTransform.positionInWorld.distanceSquared(Vector3d(camera.x, camera.y, camera.z)) > 192.0 * 192.0) continue
             val age = now - pulse.birth + partialTick
@@ -273,12 +352,12 @@ object GravitronEffects {
                 // Freeze/thaw coverage belongs to the ship's persistent field, not the weapon's one-shot.
                 if (pulse.action == GravitronAction.FREEZE || pulse.action == GravitronAction.UNFREEZE) continue
                 // The launch packet reaches the surface after the short central burst travels out.
-                surfaces.add(SurfacePass(ship, pulse.anchor, pulse.action,
-                    if (pulse.action == GravitronAction.LAUNCH) (age - 3f).coerceAtLeast(0f) else age))
+                val front = pulseFront(ship, pulse, age)
+                if (front >= 0f) surfaces.add(SurfacePass(ship, pulse.anchor, pulse.action, front))
                 continue
             }
             // Preserve the original contour timing as well as its geometry for comparison.
-            if (pulse.action == GravitronAction.RELEASE) continue
+            if (pulse.action == GravitronAction.RELEASE || pulse.action == GravitronAction.HOLD) continue
             val legacyLife = if (pulse.action == GravitronAction.FREEZE) 80f else 28f
             val progress = (age / legacyLife).coerceIn(0f, 1f)
             val scale = when (pulse.action) {
@@ -288,20 +367,16 @@ object GravitronEffects {
             }
             shipField(vc, pose, ship, camera, time, GravitronVisuals.WANDERLITE, (1f - progress) * 0.7f, scale)
         }
-        if (!legacy) for ((id, field) in frozenFields) {
+        if (fallback) for ((id, field) in frozenFields) {
             val ship = level.shipObjectWorld.loadedShips.getById(id) ?: continue
             if (shipPoint(ship, field.anchor).distanceToSqr(camera) > 192.0 * 192.0) continue
-            val animation = field.animation
-            val age = animation.freezeAge(now, partialTick)
-            surfaces.add(SurfacePass(ship, field.anchor,
-                if (animation.thawing) GravitronAction.UNFREEZE else GravitronAction.FREEZE,
-                if (animation.thawing) animation.thawAge(now, partialTick) else age, age))
+            surfaces.add(0, SurfacePass(ship, field.anchor, GravitronAction.FREEZE, freezeFront(ship, field, now, partialTick)))
         }
         buffers.endBatch(type)
         // These share BufferSource's fallback builder: finish all ribbons before changing formats.
         for (surface in surfaces.sortedBy { shipPoint(it.ship, it.anchor).distanceToSqr(camera) }) {
             GravitronSurfaceEffects.render(level, surface.ship, surface.anchor, surface.action,
-                surface.age, ms, buffers, camera, surface.frozenAge)
+                0f, ms, buffers, camera, front = surface.front)
         }
         SurfaceEffectPass.endBatch(buffers)
     }
@@ -423,7 +498,8 @@ object GravitronEffects {
 
     private fun pulseLife(action: GravitronAction): Float = when (action) {
         GravitronAction.FREEZE -> 120f
-        GravitronAction.RELEASE -> 14f
+        GravitronAction.HOLD -> 72f
+        GravitronAction.RELEASE -> 22f
         GravitronAction.LAUNCH -> 31f
         else -> 28f
     }

@@ -53,6 +53,13 @@ object GravitronVisuals {
     private fun freezeFill(distance: Float, age: Float): Float =
         GravitronAnimation.smooth((age * 0.6f - distance) / 1.4f) * 0.88f
 
+    fun frontStrength(action: GravitronAction, distance: Float, radius: Float): Float = when (action) {
+        GravitronAction.FREEZE -> GravitronAnimation.smooth((radius - distance) / 1.4f) * .88f
+        GravitronAction.LAUNCH -> band(distance, radius, 1.5f)
+        GravitronAction.RELEASE -> band(distance, radius, .7f) * .24f
+        else -> band(distance, radius, 1.1f)
+    }
+
     private fun band(distance: Float, radius: Float, width: Float): Float =
         1f - GravitronAnimation.smooth(abs(distance - radius) / width)
 }

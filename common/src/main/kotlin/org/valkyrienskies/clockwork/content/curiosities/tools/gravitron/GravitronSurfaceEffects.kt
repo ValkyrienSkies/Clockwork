@@ -95,7 +95,7 @@ object GravitronSurfaceEffects {
     }
 
     fun render(level: ClientLevel, ship: ClientShip, anchor: Vec3, action: GravitronAction, age: Float,
-               ms: PoseStack, buffers: MultiBufferSource, camera: Vec3, frozenAge: Float = 40f) {
+               ms: PoseStack, buffers: MultiBufferSource, camera: Vec3, front: Float? = null) {
         val key = Key(ship.id, BlockPos.containing(anchor))
         // Persistent fields can outnumber the cache. Keep the nearest set stable instead of
         // evicting every unfinished mesh again each frame when many ships are frozen nearby.
@@ -144,7 +144,8 @@ object GravitronSurfaceEffects {
                     val y = Float.fromBits(data[i * stride + 1]) + oy - ay
                     val z = Float.fromBits(data[i * stride + 2]) + oz - az
                     distances[i] = sqrt(x * x + y * y + z * z).toFloat()
-                    strengths[i] = GravitronVisuals.surfaceStrength(action, distances[i], age, frozenAge)
+                    strengths[i] = if (front == null) GravitronVisuals.surfaceStrength(action, distances[i], age)
+                        else GravitronVisuals.frontStrength(action, distances[i], front)
                 }
                 if (strengths.all { it < 0.005f }) continue
                 val tint = if (freeze && quad.isTinted) mc.blockColors.getColor(surface.state, level, surface.pos, quad.tintIndex)
