@@ -198,10 +198,7 @@ internal object PropellerAerodynamics {
                 .add(flow.angularVelocityWorld.cross(leverWorld, Vector3d())).add(spinVelocityAt(offset))
         }
 
-        val densities = DoubleArray(elements.size) { index ->
-            val pointWorld = flow.modelToWorld.transformPosition(Vector3d(hub).add(elements[index].offset))
-            flow.densityAtHeight(pointWorld.y)
-        }
+        val density = flow.densityAtHeight(flow.modelToWorld.transformPosition(hub, Vector3d()).y)
 
         // Store collective in the normal rotation setting's handedness. Mirroring only
         // the physical pitch keeps startup and live setting changes consistent too.
@@ -210,7 +207,7 @@ internal object PropellerAerodynamics {
             val rotationSign = if (omega < 0.0) -1.0 else 1.0
             var inflow = 0.0
             var totalWeight = 0.0
-            for ((index, element) in elements.withIndex()) {
+            for (element in elements) {
                 val velocity = velocityAt(element.offset)
                 val spanWorld = flow.modelToWorld.transformDirection(element.span, Vector3d())
                 val tangentWorld = flow.modelToWorld.transformDirection(element.tangent, Vector3d())
@@ -222,7 +219,7 @@ internal object PropellerAerodynamics {
                 val axialSpeed = velocity.dot(normalWorld) * rotationSign * sailPitchSign
                 // Axial lift sensitivity: dynamic pressure times the lift's axial projection.
                 // Equal weighting lets slow inner sails over-pitch the stronger outer sails.
-                val weight = densities[index] * area * tangentSpeed * hypot(tangentSpeed, axialSpeed)
+                val weight = density * area * tangentSpeed * hypot(tangentSpeed, axialSpeed)
                 if (weight.isFinite() && weight > 0.0) {
                     inflow += weight * atan2(axialSpeed, tangentSpeed)
                     totalWeight += weight
@@ -241,7 +238,7 @@ internal object PropellerAerodynamics {
 
         val sections = ArrayList<Section>(elements.size)
         var axialDamping = 0.0
-        for ((index, element) in elements.withIndex()) {
+        for (element in elements) {
             val pitch = if (prop.brass) sailPitchSign * prop.currentBladePitch else element.pitch
             val spanWorld = flow.modelToWorld.transformDirection(Vector3d(element.span).mul(element.spanLength))
             val chordWorld = flow.modelToWorld.transformDirection(
@@ -249,7 +246,7 @@ internal object PropellerAerodynamics {
             )
             val pointModel = Vector3d(hub).add(element.offset)
             val velocity = velocityAt(element.offset)
-            val response = sectionResponse(velocity, spanWorld, chordWorld, densities[index])
+            val response = sectionResponse(velocity, spanWorld, chordWorld, density)
                 .scale(forceMultiplier)
             val elementForce = response.transform(velocity, Vector3d())
             val leverWorld = flow.modelToWorld.transformDirection(pointModel.sub(flow.centerOfMassModel))

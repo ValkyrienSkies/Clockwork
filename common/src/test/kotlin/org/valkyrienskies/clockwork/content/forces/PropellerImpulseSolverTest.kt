@@ -1,6 +1,7 @@
 package org.valkyrienskies.clockwork.content.forces
 
 import org.joml.*
+import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import org.valkyrienskies.clockwork.content.contraptions.propeller.blades.BladeData
@@ -9,6 +10,40 @@ import org.valkyrienskies.clockwork.content.contraptions.propeller.data.PropData
 class PropellerImpulseSolverTest {
     private val step = PropellerImpulseSolver.STEP
     private val com = Vector3d(.5, .5, 1.5)
+
+    @Test
+    fun `vertical density gradient cannot yaw a centered rotor in axial flow`() {
+        val inertia = Matrix3d().scaling(60000.0)
+        val noseRotor = Vector3i(0, 0, 4)
+        val gradient = { height: Double -> 1.225 - (height - 0.5) * 0.02 }
+        for (sails in listOf(false, true)) for (speed in listOf(0.0, 3.0)) {
+            val flow = flow(Vector3d(0.0, 0.0, speed)).copy(densityAtHeight = gradient)
+            for (angle in listOf(0.0, 37.0, 90.0)) {
+                val load = PropellerAerodynamics.prepare(
+                    rotor(256.0, sails, noseRotor), flow, angle, 960.0, 0.0, 0.0, spinTorqueEnabled = false
+                )
+                val (force, torque) = PropellerImpulseSolver.solve(listOf(load), 10000.0, inertia)
+                assertTrue(force.z() > 0.0)
+                assertEquals(0.0, force.x(), 1e-8)
+                assertEquals(0.0, torque.y(), 1e-8)
+            }
+        }
+    }
+
+    @Test
+    fun `reported rotor forces sum to the applied impulse without changing physics`() {
+        val flow = flow(Vector3d(4.0, -2.0, 12.0), Vector3d(.2, -.3, .1))
+        val loads = listOf(prepare(rotor(128.0), flow), prepare(rotor(64.0, position = Vector3i(3, 0, 0)), flow))
+        val inertia = Matrix3d().scale(40000.0)
+        for (limit in listOf(0.0, 200.0)) {
+            val expected = PropellerImpulseSolver.solve(loads, 10000.0, inertia, limit, limit)
+            val reported = Vector3d()
+            val actual = PropellerImpulseSolver.solve(loads, 10000.0, inertia, limit, limit) { _, force -> reported.add(force) }
+            assertVector(expected.first, actual.first)
+            assertVector(expected.second, actual.second)
+            assertVector(actual.first, reported)
+        }
+    }
 
     @Test
     fun `stopped rotors cannot add kinetic energy over a full physics tick`() {
