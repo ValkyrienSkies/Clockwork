@@ -32,17 +32,19 @@ internal object PropellerImpulseSolver {
         val sectionTorque = Vector3d()
         val responseForce = Vector3d()
         val responseTorque = Vector3d()
-        val crossflow = Vector3d()
-        val scratch = Vector3d()
         fun responseTo(rotor: PropellerAerodynamics.PreparedRotor, velocity: Vector3dc, omega: Vector3dc) {
             responseForce.zero()
             responseTorque.zero()
-            rotor.shaftDamping?.crossflow(velocity, omega, crossflow) ?: crossflow.zero()
             for (section in rotor.sections) {
                 omega.cross(section.lever, pointVelocity).add(velocity)
-                section.forceAt(pointVelocity, crossflow, sectionForce, scratch)
+                section.response.transform(pointVelocity, sectionForce)
                 responseForce.add(sectionForce)
                 responseTorque.add(section.lever.cross(sectionForce, sectionTorque))
+            }
+            rotor.axialResponse?.let {
+                val axialSpeed = rotor.axis.dot(omega.cross(it.hubLever, pointVelocity).add(velocity))
+                responseForce.fma(axialSpeed, it.force)
+                responseTorque.fma(axialSpeed, it.torque)
             }
             // Apply the same per-hub shaft policy to the response as to the initial load.
             // Otherwise implicit translation can reintroduce roll even from a zero-torque load.

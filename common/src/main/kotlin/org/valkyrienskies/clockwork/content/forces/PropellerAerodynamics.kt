@@ -96,22 +96,16 @@ internal object PropellerAerodynamics {
         val tangent: Vector3d,
         val spanLength: Double,
         val chordLength: Double,
-        val pitch: Double
+        val pitch: Double,
+        val offAxis: Boolean = true
     )
 
-    data class Section(val lever: Vector3dc, val response: Matrix3d, val axialBoostResponse: Matrix3d? = null) {
-        fun forceAt(velocity: Vector3dc, crossflow: Vector3dc, force: Vector3d, scratch: Vector3d): Vector3d {
-            response.transform(velocity, force)
-            axialBoostResponse?.let { force.sub(it.transform(crossflow, scratch)) }
-            return force
-        }
-    }
+    data class Section(val lever: Vector3dc, val response: Matrix3d)
+
+    data class AxialResponse(val hubLever: Vector3dc, val force: Vector3dc, val torque: Vector3dc)
 
     /** Replace a powered rotor's axial hub moment with damping of the ship's own spin. */
     data class ShaftDamping(val axis: Vector3dc, val hubLever: Vector3dc, val coefficient: Double) {
-        fun crossflow(velocity: Vector3dc, angularVelocity: Vector3dc, dest: Vector3d): Vector3d =
-            hubCrossflow(axis, hubLever, velocity, angularVelocity, dest)
-
         fun apply(force: Vector3dc, torque: Vector3dc, angularVelocity: Vector3dc, dest: Vector3d): Vector3d {
             val hubMoment = hubLever.cross(force, Vector3d())
             val shaftMoment = axis.dot(torque) - axis.dot(hubMoment)
@@ -122,7 +116,7 @@ internal object PropellerAerodynamics {
     data class PreparedRotor(
         val force: Vector3dc = Vector3d(), val torque: Vector3dc = Vector3d(),
         val sections: List<Section> = emptyList(), val axis: Vector3dc = Vector3d(),
-        val shaftDamping: ShaftDamping? = null
+        val shaftDamping: ShaftDamping? = null, val axialResponse: AxialResponse? = null
     )
 
     fun compute(
@@ -163,24 +157,24 @@ internal object PropellerAerodynamics {
         val omega = bearingSpeedToRadiansPerSecond(prop.bearingSpeed) * facingSign
         val suppressShaftReaction = !spinTorqueEnabled && omega != 0.0
         val boostSpeedRatio = min(abs(omega) / fullBoostAngularSpeed, 1.0)
-        val boost = max(forceMultiplier - 1.0, 0.0) * boostSpeedRatio * boostSpeedRatio
-        val axialBoost = if (suppressShaftReaction) boost else 0.0
-        val fullFlowMultiplier = min(forceMultiplier, 1.0) + (boost - axialBoost)
+        val ordinaryMultiplier = min(forceMultiplier, 1.0)
+        val boost = (forceMultiplier - ordinaryMultiplier) * boostSpeedRatio * boostSpeedRatio
+        val useAxialBoost = suppressShaftReaction && boost > 0.0
         val hub = Vector3d(position).add(0.5, 0.5, 0.5).add(baseAxis)
             .add(PropellerTransform.hubDisplacement(baseAxis, tilt))
         val hubLever = flow.modelToWorld.transformDirection(Vector3d(hub).sub(flow.centerOfMassModel))
         val ambientVelocity = Vector3d(flow.velocityWorld).sub(flow.windWorld)
-        val crossflow = Vector3d()
-        if (axialBoost > 0.0) hubCrossflow(axisWorld, hubLever, ambientVelocity, flow.angularVelocityWorld, crossflow)
-        val hasCrossflow = crossflow.lengthSquared() > 0.0
+        val hubVelocity = flow.angularVelocityWorld.cross(hubLever, Vector3d()).add(ambientVelocity)
+        val axialInflow = Vector3d(axisWorld).mul(hubVelocity.dot(axisWorld))
         val elements = ArrayList<Element>()
 
         if (prop.brass) {
             for (pos in prop.sailPositions.orEmpty()) {
                 val offset = orientation.transform(Vector3d(pos))
                 val span = Vector3d(offset).sub(Vector3d(axis).mul(offset.dot(axis)))
-                if (span.lengthSquared() < EPSILON) span.set(perpendicular(axis)) else span.normalize()
-                elements.add(Element(offset, span, axis.cross(span, Vector3d()), 1.0, 1.0, 0.0))
+                val offAxis = span.lengthSquared() >= EPSILON
+                if (offAxis) span.normalize() else span.set(perpendicular(axis))
+                elements.add(Element(offset, span, axis.cross(span, Vector3d()), 1.0, 1.0, 0.0, offAxis))
             }
         } else {
             val count = prop.blades.size
@@ -222,11 +216,12 @@ internal object PropellerAerodynamics {
         // Store collective in the normal rotation setting's handedness. Mirroring only
         // the physical pitch keeps startup and live setting changes consistent too.
         val sailPitchSign = if (prop.inverted) -1.0 else 1.0
-        if (prop.brass && elements.isNotEmpty()) {
+        if (prop.brass && boostSpeedRatio > EPSILON && elements.isNotEmpty()) {
             val rotationSign = if (omega < 0.0) -1.0 else 1.0
             var inflow = 0.0
             var totalWeight = 0.0
             for (element in elements) {
+                if (!element.offAxis) continue
                 val velocity = velocityAt(element.offset)
                 val spanWorld = flow.modelToWorld.transformDirection(element.span, Vector3d())
                 val tangentWorld = flow.modelToWorld.transformDirection(element.tangent, Vector3d())
@@ -256,31 +251,48 @@ internal object PropellerAerodynamics {
         }
 
         val sections = ArrayList<Section>(elements.size)
-        val scratch = Vector3d()
+        val boostedSections = if (boost > 0.0 && !useAxialBoost) ArrayList<Section>(elements.size) else null
+        val boostedForce = Vector3d()
+        val boostedTorque = Vector3d()
+        val forcePerAxialSpeed = Vector3d()
+        val torquePerAxialSpeed = Vector3d()
+        var nominalLift = if (prop.brass) sailPitchSign else 0.0
+        val sailPitch = if (boostSpeedRatio > EPSILON) sailPitchSign * prop.currentBladePitch * boostSpeedRatio else 0.0
         var axialDamping = 0.0
         for (element in elements) {
-            val pitch = if (prop.brass) sailPitchSign * prop.currentBladePitch else element.pitch
+            val pitch = if (prop.brass && element.offAxis) sailPitch else element.pitch
             val spanWorld = flow.modelToWorld.transformDirection(Vector3d(element.span).mul(element.spanLength))
             val chordWorld = flow.modelToWorld.transformDirection(
                 Vector3d(element.tangent).mul(cos(pitch)).add(Vector3d(axis).mul(sin(pitch))).mul(element.chordLength)
             )
-            val pointModel = Vector3d(hub).add(element.offset)
-            val velocity = velocityAt(element.offset)
-            val response = sectionResponse(velocity, spanWorld, chordWorld, density)
-            val boostResponse = if (axialBoost > 0.0) {
-                val axialResponse = if (hasCrossflow) {
-                    sectionResponse(scratch.set(velocity).sub(crossflow), spanWorld, chordWorld, density)
-                } else Matrix3d(response)
-                axialResponse.scale(axialBoost)
-            } else null
-            response.scale(fullFlowMultiplier)
-            if (boostResponse != null) response.add(boostResponse)
-            val leverWorld = flow.modelToWorld.transformDirection(pointModel.sub(flow.centerOfMassModel))
-            val section = Section(leverWorld, response, boostResponse)
-            val elementForce = section.forceAt(velocity, crossflow, Vector3d(), scratch)
+            val leverWorld = flow.modelToWorld.transformDirection(Vector3d(hub).add(element.offset).sub(flow.centerOfMassModel))
+            val shaftVelocity = spinVelocityAt(element.offset)
+            val velocity = flow.angularVelocityWorld.cross(leverWorld, Vector3d()).add(ambientVelocity).add(shaftVelocity)
+            val response = sectionResponse(velocity, spanWorld, chordWorld, density).scale(ordinaryMultiplier)
+            val elementForce = response.transform(velocity, Vector3d())
+            val elementTorque = leverWorld.cross(elementForce, Vector3d())
+            val section = Section(leverWorld, response)
             sections.add(section)
             force.add(elementForce)
-            torque.add(leverWorld.cross(elementForce, Vector3d()))
+            torque.add(elementTorque)
+            if (!prop.brass && boost > 0.0) {
+                nominalLift += coefficients(element.pitch).lift * shaftVelocity.lengthSquared() *
+                    element.spanLength * element.chordLength
+            }
+            if (useAxialBoost && element.offAxis) {
+                val drivenVelocity = shaftVelocity.add(axialInflow)
+                val drivenResponse = sectionResponse(drivenVelocity, spanWorld, chordWorld, density)
+                val drivenForce = drivenResponse.transform(drivenVelocity, Vector3d())
+                val axialDerivative = drivenResponse.transform(axisWorld, Vector3d())
+                boostedForce.add(drivenForce)
+                boostedTorque.add(leverWorld.cross(drivenForce, Vector3d()))
+                forcePerAxialSpeed.add(axialDerivative)
+                torquePerAxialSpeed.add(leverWorld.cross(axialDerivative, Vector3d()))
+            } else if (boostedSections != null && element.offAxis) {
+                boostedSections.add(section)
+                boostedForce.add(elementForce)
+                boostedTorque.add(elementTorque)
+            }
             if (suppressShaftReaction) {
                 // The tangential response to unit ship spin retains dissipative drag but no
                 // inflow-driven shaft reaction. Lift contributes no work along this velocity.
@@ -290,25 +302,28 @@ internal object PropellerAerodynamics {
             }
         }
 
+        val thrustDirection = if (abs(nominalLift) > EPSILON) sign(omega) * sign(nominalLift) else 0.0
+        val thrust = axisWorld.dot(boostedForce) * thrustDirection
+        val axialResponse = if (boost > 0.0 && thrust > 0.0) {
+            force.fma(boost, boostedForce)
+            torque.fma(boost, boostedTorque)
+            if (useAxialBoost) {
+                AxialResponse(hubLever, forcePerAxialSpeed.mul(boost), torquePerAxialSpeed.mul(boost))
+            } else {
+                boostedSections?.forEach { it.response.scale(1.0 + boost) }
+                null
+            }
+        } else null
         val shaftDamping = if (suppressShaftReaction) ShaftDamping(axisWorld, hubLever, min(0.0, axialDamping)) else null
         shaftDamping?.apply(force, torque, flow.angularVelocityWorld, torque)
         if (!force.isFinite || !torque.isFinite) return PreparedRotor()
         var fraction = 1.0
         if (maxForce > 0.0 && force.length() > maxForce) fraction = min(fraction, maxForce / force.length())
         if (maxTorque > 0.0 && torque.length() > maxTorque) fraction = min(fraction, maxTorque / torque.length())
-        if (fraction < 1.0) sections.forEach {
-            it.response.scale(fraction)
-            it.axialBoostResponse?.scale(fraction)
-        }
+        if (fraction < 1.0) sections.forEach { it.response.scale(fraction) }
         return PreparedRotor(force.mul(fraction), torque.mul(fraction), sections, axisWorld,
-            shaftDamping?.let { it.copy(coefficient = it.coefficient * fraction) })
-    }
-
-    private fun hubCrossflow(
-        axis: Vector3dc, hubLever: Vector3dc, velocity: Vector3dc, angularVelocity: Vector3dc, dest: Vector3d
-    ): Vector3d {
-        angularVelocity.cross(hubLever, dest).add(velocity)
-        return dest.fma(-dest.dot(axis), axis)
+            shaftDamping?.let { it.copy(coefficient = it.coefficient * fraction) },
+            axialResponse?.let { AxialResponse(it.hubLever, Vector3d(it.force).mul(fraction), Vector3d(it.torque).mul(fraction)) })
     }
 
     private fun perpendicular(axis: Vector3dc): Vector3d {
