@@ -32,12 +32,15 @@ internal object PropellerImpulseSolver {
         val sectionTorque = Vector3d()
         val responseForce = Vector3d()
         val responseTorque = Vector3d()
+        val crossflow = Vector3d()
+        val scratch = Vector3d()
         fun responseTo(rotor: PropellerAerodynamics.PreparedRotor, velocity: Vector3dc, omega: Vector3dc) {
             responseForce.zero()
             responseTorque.zero()
+            rotor.shaftDamping?.crossflow(velocity, omega, crossflow) ?: crossflow.zero()
             for (section in rotor.sections) {
                 omega.cross(section.lever, pointVelocity).add(velocity)
-                section.response.transform(pointVelocity, sectionForce)
+                section.forceAt(pointVelocity, crossflow, sectionForce, scratch)
                 responseForce.add(sectionForce)
                 responseTorque.add(section.lever.cross(sectionForce, sectionTorque))
             }
@@ -102,12 +105,8 @@ internal object PropellerImpulseSolver {
             if (maxTorque > 0.0 && torque.length() > maxTorque) fraction = min(fraction, maxTorque / torque.length())
         }
         if (reportForce != null) rotors.forEachIndexed { index, rotor ->
-            val applied = Vector3d(rotor.force)
-            for (section in rotor.sections) {
-                deltaOmega.cross(section.lever, pointVelocity).add(deltaVelocity)
-                applied.add(section.response.transform(pointVelocity, sectionForce))
-            }
-            reportForce(index, applied.mul(fraction))
+            responseTo(rotor, deltaVelocity, deltaOmega)
+            reportForce(index, Vector3d(rotor.force).add(responseForce).mul(fraction))
         }
         val force = deltaVelocity.mul(mass * fraction / STEP)
         val torque = inertiaWorld.transform(deltaOmega, Vector3d()).mul(fraction / STEP)
