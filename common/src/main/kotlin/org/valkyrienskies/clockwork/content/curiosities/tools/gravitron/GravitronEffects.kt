@@ -9,6 +9,7 @@ import net.minecraft.resources.ResourceLocation
 import net.minecraft.world.entity.LivingEntity
 import net.minecraft.world.entity.HumanoidArm
 import net.minecraft.world.entity.player.Player
+import net.minecraft.world.item.Item
 import net.minecraft.world.item.ItemDisplayContext
 import net.minecraft.world.item.ItemStack
 import net.minecraft.world.phys.Vec3
@@ -47,7 +48,7 @@ object GravitronEffects {
         var lastSync = 0L
         var nextWave = 0L
         var slot = -1
-        var item: net.minecraft.world.item.Item? = null
+        var item: Item? = null
         // Three articulated prongs and the central body emitter.
         val worldTips = arrayOfNulls<Vec3>(4)
         val viewTips = arrayOfNulls<Vec3>(4)

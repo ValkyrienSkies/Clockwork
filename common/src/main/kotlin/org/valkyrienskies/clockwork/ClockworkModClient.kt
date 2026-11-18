@@ -24,7 +24,9 @@ import net.minecraft.client.Minecraft
 import net.minecraft.server.packs.PackType
 import org.valkyrienskies.clockwork.content.curiosities.tools.gravitron.GravitronControlsClient
 import org.valkyrienskies.clockwork.content.curiosities.tools.gravitron.GravitronEffects
+import org.valkyrienskies.clockwork.content.curiosities.tools.wanderwand.WandRopeRidingClient
 import org.valkyrienskies.clockwork.content.curiosities.tools.wanderwand.WanderwandEffectRenderer
+import org.valkyrienskies.clockwork.content.curiosities.tools.wanderwand.WanderwandHandEffects
 import java.util.*
 import dev.architectury.event.events.common.TickEvent
 import dev.architectury.registry.client.keymappings.KeyMappingRegistry
@@ -129,9 +131,9 @@ object ClockworkModClient {
             MagneticFieldView.tick()
             PolaritronSound.tickSounds()
             WheelEffects.tick()
-            org.valkyrienskies.clockwork.content.curiosities.tools.wanderwand.WandRopeRidingClient.tick()
+            WandRopeRidingClient.tick()
             GravitronEffects.tick()
-            org.valkyrienskies.clockwork.content.curiosities.tools.wanderwand.WanderwandHandEffects.tick()
+            WanderwandHandEffects.tick()
             DualLinkRenderer.tick()
             QuadLinkRenderer.tick()
             ClockworkSoundScapes.tick()

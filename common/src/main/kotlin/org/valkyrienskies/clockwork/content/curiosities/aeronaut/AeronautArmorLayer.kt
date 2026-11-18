@@ -87,7 +87,7 @@ open class AeronautArmorLayer<T : LivingEntity, M : EntityModel<T>?>(renderer: R
 
 
 
-            val quaternion = org.joml.Quaternionf()
+            val quaternion = Quaternionf()
             quaternion.setAngleAxis(Math.toRadians(180.0).toFloat(), 0f, 0f, 1f)
             ms.mulPose(quaternion)
             //ms.translate(model.head.x, model.head.y, model.head.z)
@@ -113,7 +113,7 @@ open class AeronautArmorLayer<T : LivingEntity, M : EntityModel<T>?>(renderer: R
             val originLeft = fromModelSpace(2.725, 10.0, 8.0)
             //ms.translate(-originLeft.x(), -originLeft.y(), -originLeft.z())
             ms.translate(0.0, 10.0/16.0, 0.0)
-            ms.mulPose(org.joml.Quaternionf().setAngleAxis(interpolatedFlapAngle.toFloat(), 0f, 0f, 1f))
+            ms.mulPose(Quaternionf().setAngleAxis(interpolatedFlapAngle.toFloat(), 0f, 0f, 1f))
             //ms.translate(originLeft.x(), originLeft.y(), originLeft.z())
             ms.translate(0.0, -10.0/16.0, 0.0)
 
@@ -127,7 +127,7 @@ open class AeronautArmorLayer<T : LivingEntity, M : EntityModel<T>?>(renderer: R
             val originRight = fromModelSpace(13.275, 10.0, 8.0)
             //ms.translate(-originRight.x(), -originRight.y(), -originRight.z())
             ms.translate(16/16.0, 10.0/16.0, 0.0)
-            ms.mulPose(org.joml.Quaternionf().setAngleAxis(interpolatedFlapAngle.toFloat(), 0f, 0f, -1f))
+            ms.mulPose(Quaternionf().setAngleAxis(interpolatedFlapAngle.toFloat(), 0f, 0f, -1f))
             //ms.translate(originRight.x(), originRight.y(), originRight.z())
             ms.translate(-16/16.0, -10.0/16.0, 0.0)
 

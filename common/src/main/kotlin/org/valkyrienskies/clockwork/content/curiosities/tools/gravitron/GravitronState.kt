@@ -1,6 +1,7 @@
 package org.valkyrienskies.clockwork.content.curiosities.tools.gravitron
 
 import net.minecraft.world.entity.player.Player
+import net.minecraft.world.item.Item
 import org.joml.Quaterniondc
 import org.joml.Vector2dc
 import org.joml.Vector3dc
@@ -9,7 +10,7 @@ import org.valkyrienskies.core.api.ships.properties.ShipId
 import kotlin.math.min
 
 class GravitronState {
-    var equippedItem: net.minecraft.world.item.Item? = null
+    var equippedItem: Item? = null
     var equippedSlot: Int = -1
     var heldBlockPos: Vector3dc? = null
     var playerGrabbedRotation: Vector2dc? = null // Pitch , Yaw
