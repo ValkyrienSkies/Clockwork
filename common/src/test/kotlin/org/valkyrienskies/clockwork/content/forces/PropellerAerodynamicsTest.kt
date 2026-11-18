@@ -155,16 +155,16 @@ class PropellerAerodynamicsTest {
     }
 
     @Test
-    fun `density is sampled at the actual section heights`() {
-        val heights = mutableListOf<Double>()
-        val prop = rotor(length = 2.0, count = 1)
-        solve(prop, flow().copy(densityAtHeight = { heights.add(it); density }))
-        assertEquals(16, heights.size)
-        assertTrue(heights.min() > -2.0 && heights.min() < -1.9)
-        assertTrue(heights.max() > -0.1 && heights.max() < 0.0)
-        val upward = rotor(axis = Vector3d(0.0, 1.0, 0.0))
-        val result = solve(upward, flow().copy(densityAtHeight = { if (it > 0.9) density else 0.0 }))
-        assertTrue(result.first.y() > 0.0, "Density at the hub one block above the COM must be used")
+    fun `hub density controls thrust for sails and item blades`() {
+        val atmosphere = flow().copy(densityAtHeight = { if (it < 1.0) density else 0.0 })
+        for (sails in listOf(false, true)) {
+            val prop = rotor(sails = sails, length = 2.0)
+            val atSeaLevel = solve(prop, atmosphere)
+            val inVacuum = solve(prop, atmosphere.copy(modelToWorld = Matrix4d().translate(-0.5, 2.0, -0.5)))
+            assertTrue(atSeaLevel.first.z() > 0.0)
+            assertVector(Vector3d(), inVacuum.first)
+            assertVector(Vector3d(), inVacuum.second)
+        }
     }
 
     @Test
