@@ -135,6 +135,90 @@ class PropellerImpulseSolverTest {
     }
 
     @Test
+    fun `propeller boost does not turn cruise braking into reverse thrust`() {
+        val east = Vector3d(1.0, 0.0, 0.0)
+        val coasting = flow(Vector3d(20.0, -1.0, 0.0))
+        val inertia = Matrix3d().scaling(100000.0)
+        for (sails in listOf(false, true)) for (spinTorque in listOf(false, true)) {
+            fun load(multiplier: Double, rpm: Double): Pair<Vector3dc, Vector3dc> {
+                val prop = if (sails) rotor(rpm) else PropData(
+                    Vector3i(), east, 0.0, rpm * .3, null, false, true, false,
+                    List(8) { BladeData(false, -30.0, 2.0) }
+                )
+                val airflow = if (sails) flow(Vector3d(0.0, -1.0, 20.0)) else coasting
+                val rotor = PropellerAerodynamics.prepare(
+                    prop, airflow, 37.0, multiplier, 0.0, 0.0, spinTorqueEnabled = spinTorque
+                )
+                return PropellerImpulseSolver.solve(listOf(rotor), 40000.0, inertia)
+            }
+            val unboosted = load(1.0, 99.0)
+            val boosted = load(960.0, 99.0)
+            val axis = if (sails) Vector3d(0.0, 0.0, 1.0) else east
+            assertTrue(unboosted.first.dot(axis) < 0.0)
+            assertVector(unboosted.first, boosted.first)
+            assertVector(unboosted.second, boosted.second)
+            assertTrue(load(960.0, -99.0).first.dot(axis) < 10.0 * load(1.0, -99.0).first.dot(axis))
+        }
+    }
+
+    @Test
+    fun `powered thrust boost does not amplify side loads from a ship already yawing`() {
+        val noseRotor = Vector3i(0, 0, 4)
+        for (sails in listOf(false, true)) for (yaw in listOf(-.2, .2)) {
+            val airflow = flow(Vector3d(0.0, 0.0, 2.0), Vector3d(0.0, yaw, 0.0))
+            fun load(multiplier: Double) = PropellerAerodynamics.prepare(
+                rotor(128.0, sails, noseRotor), airflow, 37.0, multiplier, 0.0, 0.0, spinTorqueEnabled = false
+            )
+            val normal = load(1.0)
+            val boosted = load(960.0)
+            assertTrue(boosted.force.z() > 10.0 * normal.force.z())
+            assertEquals(normal.torque.y(), boosted.torque.y(), 1e-7)
+            assertEquals(normal.force.y(), boosted.force.y(), 1e-7)
+        }
+    }
+
+    @Test
+    fun `stopped sails do not retain or follow collective pitch in airflow`() {
+        val airflow = flow(Vector3d(0.0, -1.0, 20.0))
+        val reference = rotor(0.0).apply { currentBladePitch = 0.0 }
+        val expected = prepare(reference, airflow)
+        for (speed in listOf(0.0, Double.MIN_VALUE)) {
+            val rotor = rotor(0.0).apply {
+                bearingSpeed = speed
+                currentBladePitch = Math.toRadians(70.0)
+            }
+            val actual = prepare(rotor, airflow)
+            assertVector(expected.force, actual.force)
+            assertVector(expected.torque, actual.torque)
+        }
+    }
+
+    @Test
+    fun `a sail on the shaft adds only passive load to a powered sail rotor`() {
+        val arms = (1..2).flatMap { radius ->
+            listOf(Vector3i(0, radius, 0), Vector3i(0, -radius, 0), Vector3i(0, 0, radius), Vector3i(0, 0, -radius))
+        }
+        val airflow = flow(Vector3d(20.0, 0.0, 0.0))
+        for (spinTorque in listOf(false, true)) {
+            fun load(sails: List<Vector3ic>, multiplier: Double): PropellerAerodynamics.PreparedRotor {
+                val prop = PropData(Vector3i(4, 0, 0), Vector3d(1.0, 0.0, 0.0), 0.0, 29.7,
+                    sails, false, true, true, emptyList())
+                fun prepare() = PropellerAerodynamics.prepare(
+                    prop, airflow, 37.0, multiplier, 0.0, 0.0, spinTorqueEnabled = spinTorque
+                )
+                repeat(240) { prepare() }
+                return prepare()
+            }
+            val baseline = load(arms, 960.0)
+            val centered = load(arms + Vector3i(), 960.0)
+            val hub = load(listOf(Vector3i()), 1.0)
+            assertTrue(baseline.force.x() > 10000.0)
+            assertVector(hub.force, Vector3d(centered.force).sub(baseline.force))
+            assertVector(hub.torque, Vector3d(centered.torque).sub(baseline.torque))
+        }
+    }
+
+    @Test
     fun `powered sails remain bounded after sudden translation and spin at 60 Hz`() {
         for (mass in listOf(100.0, 5000.0, 10000.0, 50000.0)) for (rpm in listOf(-256.0, 64.0, 128.0, 256.0)) {
             val prop = rotor(rpm)

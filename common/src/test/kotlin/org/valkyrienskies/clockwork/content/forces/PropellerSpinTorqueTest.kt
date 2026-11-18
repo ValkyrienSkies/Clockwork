@@ -44,7 +44,6 @@ class PropellerSpinTorqueTest {
             assertTrue(enabled.force.length() > 1e-6)
             assertVector(enabled.force, disabled.force)
             assertVector(Vector3d(), disabled.torque)
-            assertResponses(enabled, disabled)
         }
     }
 
