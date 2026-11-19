@@ -12,6 +12,8 @@ Presently, Clockwork is in an Open Beta state. Things will change, and some thin
 
 Thank you for all of your support and your patience for all of these years. I hope you enjoy the ride! There's always more to come, and more adventure to find- this isn't the end... it's just the beginning.
 
+You can help [translate Clockwork](https://www.valkyrienskies.org/translate/clockwork) into your language.
+
 # For Developers
 
 Clockwork builds are hosted on VS2's maven (https://maven.valkyrienskies.org)
