@@ -23,6 +23,13 @@ import java.util.function.Supplier
 
 object ClockworkSounds {
     val ALL: MutableMap<ResourceLocation, SoundEntry> = HashMap()
+    val GATEMAKYR_CHARGE = create("gatemakyr_charge_1").addVariant("gatemakyr_charge_2").subtitle("Gatemakyr charges").category(SoundSource.PLAYERS).build()
+    val GATEMAKYR_FIRE = create("gatemakyr_fire_1").addVariant("gatemakyr_fire_2").subtitle("Gatemakyr fires").category(SoundSource.PLAYERS).build()
+    val GATEMAKYR_CANCEL = create("gatemakyr_cancel").subtitle("Gatemakyr charge dissipates").category(SoundSource.PLAYERS).build()
+    val GATEMAKYR_PROJECTILE = create("gatemakyr_projectile_loop").subtitle("Rift energy travels").category(SoundSource.PLAYERS).build()
+    val PORTAL_OPEN = create("portal_open_1").addVariant("portal_open_2").subtitle("Rift tears open").category(SoundSource.PLAYERS).build()
+    val PORTAL_CLOSE = create("portal_close").subtitle("Rift collapses").category(SoundSource.PLAYERS).build()
+    val PORTAL_LOOP = create("portal_loop").subtitle("Rift hums").category(SoundSource.PLAYERS).build()
     val WHEEL_UNSCREW = create("wheel_unscrew_1").addVariant("wheel_unscrew_2")
         .subtitle("Wheel unscrewed").category(SoundSource.BLOCKS).build()
     val DRIVING_WOOD = create("driving_wood").subtitle("Tires roll on wood").category(SoundSource.BLOCKS).build()

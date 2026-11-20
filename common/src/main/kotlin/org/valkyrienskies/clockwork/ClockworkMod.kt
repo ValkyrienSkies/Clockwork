@@ -1,5 +1,6 @@
 package org.valkyrienskies.clockwork
 
+import org.valkyrienskies.clockwork.content.curiosities.tools.gatemakyr.GatemakyrServer
 import org.valkyrienskies.clockwork.content.physicalities.wheel.WheelContacts
 import org.valkyrienskies.clockwork.content.physicalities.wheel.WheelSurface
 import org.valkyrienskies.clockwork.content.curiosities.aeronaut.AeronautContactTelemetry
@@ -48,6 +49,7 @@ import org.valkyrienskies.clockwork.content.events.CollisionSoundEffectHandler
 import org.valkyrienskies.clockwork.content.schematics.VdexBlueprintLibrary
 import org.valkyrienskies.clockwork.content.schematics.VdexConstruction
 import org.valkyrienskies.clockwork.content.curiosities.tools.gravitron.GravitronFrozenShip
+import org.valkyrienskies.clockwork.content.curiosities.tools.wanderwand.WanderwandServer
 import org.valkyrienskies.clockwork.content.forces.*
 import org.valkyrienskies.clockwork.content.forces.GravitronController
 import org.valkyrienskies.clockwork.content.forces.contraption.BearingController
@@ -188,16 +190,18 @@ object ClockworkMod {
             WheelContacts.clear()
             GripPadController.clear()
             HarpoonProjectiles.clear()
+            GatemakyrServer.clear()
         }
 
         TickEvent.SERVER_LEVEL_POST.register {
+            GatemakyrServer.tick(it)
             Magnetism.tick(it)
             WheelContacts.tick(it)
             VdexBlueprintLibrary.tick(it)
             HingeLinks.get(it).tick(it)
             BlockAnchorLinks.get(it).tick(it)
             LubricantData.get(it).tick(it)
-            org.valkyrienskies.clockwork.content.curiosities.tools.wanderwand.WanderwandServer.tick(it)
+            WanderwandServer.tick(it)
             for (ship in it.shipObjectWorld.loadedShips) {
                 ship.getAttachment(WanderShipControl::class.java)?.reconcileBlocks(it, ship)
                 VdexConstruction.tick(it, ship)

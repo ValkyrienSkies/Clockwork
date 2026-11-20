@@ -1,5 +1,7 @@
 package org.valkyrienskies.clockwork.util.render
 
+import org.valkyrienskies.clockwork.content.curiosities.tools.gatemakyr.GatemakyrEffects
+import org.valkyrienskies.clockwork.content.curiosities.tools.gatemakyr.GatemakyrView
 import org.valkyrienskies.clockwork.content.curiosities.magnet.MagneticFieldView
 import org.valkyrienskies.clockwork.content.curiosities.clampotron.ClampotronClient
 import org.valkyrienskies.clockwork.content.schematics.VdexBuildEffects
@@ -23,11 +25,17 @@ object ToolWorldEffects {
     fun render(poseStack: PoseStack, camera: Camera, partialTick: Float) {
         val mc = Minecraft.getInstance()
         if (mc.level == null || ShaderPackCompat.shadowPass()) return
+        if (GatemakyrView.target != null) {
+            GatemakyrEffects.renderPreview(poseStack, buffers, camera.position, partialTick)
+            buffers.endBatch()
+            return
+        }
 
         if (!ShaderPackCompat.enabled()) mc.mainRenderTarget.bindWrite(false)
         poseStack.pushPose()
         try {
             ClockworkModClient.WANDERWAND_EFFECT_RENDERER.render(poseStack, buffers, camera.position, partialTick)
+            GatemakyrEffects.render(poseStack, buffers, camera.position, partialTick)
             GravitronEffects.render(poseStack, buffers, partialTick)
             ClampotronClient.render(poseStack, buffers, camera.position, partialTick)
             InfuserEffects.render(poseStack, buffers, camera.position, partialTick)

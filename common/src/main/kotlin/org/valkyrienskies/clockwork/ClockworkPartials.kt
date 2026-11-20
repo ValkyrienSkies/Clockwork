@@ -59,6 +59,10 @@ object ClockworkPartials {
     val HARPOON_CHUTE = block("harpoon_launcher/chute")
     val HARPOON = block("harpoon_launcher/harpoon")
 
+    val GATEMAKYR_PRONG_BASE = item("gatemakyr/prongbase")
+    val GATEMAKYR_PRONG_ARM = item("gatemakyr/prongarm")
+    val GATEMAKYR_PRONG_TIP = item("gatemakyr/prongtip")
+
     // region Gravitron
     val GRAV_DIAL_HAND = item("gravitron/dialhand")
     val GRAV_PRONG_LEFT_ONE = item("gravitron/prongleftone")

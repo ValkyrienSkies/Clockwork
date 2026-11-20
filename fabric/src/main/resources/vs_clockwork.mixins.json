@@ -4,6 +4,8 @@
   "compatibilityLevel": "JAVA_17",
   "mixins": [
     "MixinFireBlock",
+    "MixinGateMiningReach",
+    "MixinGateUseReach",
     "schematics.MixinVdexCannonInventory",
     "schematics.MixinVdexCannonMaterials"
   ],

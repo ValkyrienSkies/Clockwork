@@ -44,6 +44,14 @@ public class PlatformUtilsImpl {
         return player.getEntityReach();
     }
 
+    public static double getEntityReach(Player player) {
+        return player.getEntityReach();
+    }
+
+    public static double getBlockReach(Player player) {
+        return player.getBlockReach();
+    }
+
     public static Attribute getReachAttribute() {
         return ForgeMod.BLOCK_REACH.get();
     }

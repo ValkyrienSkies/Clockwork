@@ -1,5 +1,7 @@
 package org.valkyrienskies.clockwork
 
+import org.valkyrienskies.clockwork.content.curiosities.tools.gatemakyr.GatemakyrItem
+import org.valkyrienskies.clockwork.content.curiosities.tools.gatemakyr.GatemakyrItemRenderer
 import org.valkyrienskies.clockwork.content.physicalities.wheel.WheelItem
 import org.valkyrienskies.clockwork.content.physicalities.wheel.WheelSize
 import org.valkyrienskies.clockwork.content.physicalities.wheel.TireType
@@ -135,6 +137,15 @@ object ClockworkItems {
             .tab(ClockworkMod.BASE_CREATIVE_TABINFO)
             .model(AssetLookup.existingItemModel())
             .tag(ItemTags.MUSIC_DISCS)
+            .register()
+
+    @JvmField
+    val GATEMAKYR: ItemEntry<GatemakyrItem> =
+        REGISTRATE.item<GatemakyrItem>("gatemakyr") { properties -> GatemakyrItem(properties!!) }
+            .properties { it.stacksTo(1).rarity(Rarity.RARE) }
+            .tab(ClockworkMod.BASE_CREATIVE_TABINFO)
+            .transform(ClockworkRegistrate.customRenderedItem { Supplier { GatemakyrItemRenderer() } })
+            .model(AssetLookup.itemModelWithPartials())
             .register()
 
     @JvmField

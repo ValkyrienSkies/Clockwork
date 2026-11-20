@@ -17,6 +17,11 @@ import net.minecraft.world.phys.Vec3
 import org.joml.Quaterniond
 import org.joml.Vector2d
 import org.joml.Vector3d
+import org.valkyrienskies.clockwork.content.curiosities.tools.gatemakyr.GatemakyrPassage
+import org.valkyrienskies.clockwork.content.curiosities.tools.gatemakyr.GatemakyrPlayerGate
+import org.valkyrienskies.clockwork.content.curiosities.tools.gatemakyr.GatemakyrServer
+import org.valkyrienskies.clockwork.content.curiosities.tools.gravitron.GravitronGatePath
+import org.valkyrienskies.mod.common.util.toMinecraft
 import org.joml.Vector3dc
 import org.valkyrienskies.clockwork.ClockworkConfig
 import org.valkyrienskies.clockwork.ClockworkItems
@@ -39,6 +44,7 @@ import org.valkyrienskies.mod.common.getShipManagingPos
 import org.valkyrienskies.mod.common.isBlockInShipyard
 import org.valkyrienskies.mod.common.shipObjectWorld
 import org.valkyrienskies.mod.common.util.toJOML
+import net.minecraft.server.level.ServerPlayer
 
 class GrabTool : GravitronToolBase() {
 
@@ -83,6 +89,9 @@ class GrabTool : GravitronToolBase() {
             val id = state.shipID ?: return false
             level.shipObjectWorld.loadedShips.getById(id)?.let { getOrCreate(it).setData(null, it) }
             if (notify) GravitronAnimationPacket.send(player, GravitronAction.RELEASE, id, state.shipGrabbedPos)
+            state.holdRoute = emptyList()
+            state.holdDepth = 0
+            state.localHoldAnchor = null
             state.shipID = null
             state.shipGrabbedPos = null
             state.heldBlockPos = null
@@ -114,10 +123,42 @@ class GrabTool : GravitronToolBase() {
                     val location = Vector3d(s.shipGrabbedPos)
                     val position = Vector3d(s.heldBlockPos)
 
+                    val gates = GatemakyrServer.physicalGates(level)
+                    val target = position.toMinecraft()
+                    val anchor = ship.shipToWorld.transformPosition(location, Vector3d()).toMinecraft()
+                    val previous = s.localHoldAnchor ?: anchor
+                    val old = s.holdRoute
+                    val live = old.map { prior -> gates.firstOrNull(prior::matches) }
+                    val depth = GravitronGatePath.depth(live.mapIndexed { i, gate -> gate ?: old[i] }, s.holdDepth, previous, anchor)
+                    if (live.take(depth).any { it == null }) {
+                        if (entity is Player) dropShip(entity)
+                        return
+                    }
+                    val crossed = live.take(depth).filterNotNull()
+                    val desired = GravitronGatePath.forward(crossed, target)
+                    val legs = GravitronGatePath.legs(crossed, entity.eyePosition, anchor)
+                    val last = legs.lastOrNull()
+                    val origin = last?.let { it.gate.passage.point(it.contact) } ?: entity.eyePosition
+                    val next = if (depth >= 8) null else GravitronGatePath.aimed(gates.filterNot {
+                        last != null && it.packet.owner == last.gate.partner.owner && it.packet.side == last.gate.partner.side
+                    }, origin, desired, ship.id)
+                    val route = if (next != null) crossed + next else crossed
+                    val changed = depth != s.holdDepth || old.size != route.size || old.indices.any { !old[it].matches(route[it]) }
+                    s.holdRoute = route
+                    s.holdDepth = depth
+                    s.localHoldAnchor = GravitronGatePath.backward(crossed, anchor)
+                    if (changed && entity is Player)
+                        GravitronAnimationPacket.send(entity, GravitronAction.HOLD, ship.id, s.shipGrabbedPos, loadOf(ship, entity))
+                    val desiredRotation = crossed.fold(rotation) { q, gate -> gate.passage.rotation().mul(q) }
+                    val alternate = next?.passage ?: last?.gate?.passage?.let { GatemakyrPassage(it.exit, it.entrance) }
+                    val portalTarget = alternate?.let {
+                        GravitronForceInducerData.PortalTarget(it.point(desired).toJOML(), it.rotation().mul(desiredRotation),
+                            anchor.toJOML(), it.point(anchor).toJOML())
+                    }
                     val gravitronForceInducer = getOrCreate(ship)
                     val load = (entity as? Player)?.let { GravitronLoad.load(level, ship, it.mainHandItem) }
-                    val newData = GravitronForceInducerData(position, rotation, location, load?.mass ?: ship.inertiaData.mass,
-                        load?.rigidMass ?: ship.inertiaData.mass, (entity as? Player)?.let { GravitronLoad.enabled(it.mainHandItem) } == true)
+                    val newData = GravitronForceInducerData(desired.toJOML(), desiredRotation, location, load?.mass ?: ship.inertiaData.mass,
+                        load?.rigidMass ?: ship.inertiaData.mass, (entity as? Player)?.let { GravitronLoad.enabled(it.mainHandItem) } == true, portalTarget)
                     gravitronForceInducer.setData(newData, ship)
                 }
             }
@@ -274,7 +315,8 @@ class GrabTool : GravitronToolBase() {
                 }
             }
 
-            grabShip(player, ship, grabPosInShip)
+            val range = if (isCreative) 1000.0 else ClockworkConfig.SERVER.survivalGravitronMaxRange
+            grabShip(player, ship, grabPosInShip, GravitronGatePath.picked(player, clickedPos, ship.id, range))
             level.playSound(
                 null,
                 player.blockPosition(),
@@ -290,20 +332,52 @@ class GrabTool : GravitronToolBase() {
         /**
          * Grab a ship, makes ship not static and stores some data into GravitronState
          */
-        private fun grabShip(player: Player, ship: ServerShip, grabPosInShip: Vector3dc) {
+        private fun grabShip(player: Player, ship: ServerShip, grabPosInShip: Vector3dc, route: List<GatemakyrPlayerGate> = emptyList()) {
             val s = getState(player)
             val heldPosInWorld = Vector3d()
             ship.transform.shipToWorld.transformPosition(Vector3d(grabPosInShip), heldPosInWorld)
 
+            val localAnchor = GravitronGatePath.backward(route, heldPosInWorld.toMinecraft())
+            s.holdRoute = route
+            s.holdDepth = route.size
+            s.localHoldAnchor = localAnchor
             s.shipID = ship.id
             s.heldBlockPos = heldPosInWorld
             s.playerGrabbedRotation = Vector2d(player.xRot.toDouble(), player.yRot.toDouble())
             s.shipGrabbedPos = Vector3d(grabPosInShip)
-            s.shipGrabbedRot = ship.transform.shipToWorldRotation
-            s.shipGrabbedDistance = player.eyePosition.toJOML().distance(heldPosInWorld)
+            s.shipGrabbedRot = route.asReversed().fold(Quaterniond(ship.transform.shipToWorldRotation)) { q, hop -> hop.passage.rotation().conjugate().mul(q) }
+            s.shipGrabbedDistance = player.eyePosition.distanceTo(localAnchor)
             ship.isStatic = false
             (player.level() as? ServerLevel)?.let { GravitronFrozenShip.thaw(it, ship) }
             GravitronAnimationPacket.send(player, GravitronAction.GRAB, ship.id, grabPosInShip, loadOf(ship, player))
+        }
+
+        internal fun crossGate(player: Player, gate: GatemakyrPlayerGate, pitch: Float, yaw: Float) {
+            val state = getState(player)
+            val passage = gate.passage
+            val reference = state.playerGrabbedRotation ?: return
+            val grabbed = state.shipGrabbedRot ?: return
+            val original = playerRotToQuaternion(reference.x(), reference.y())
+            val current = playerRotToQuaternion(player.xRot.toDouble(), player.yRot.toDouble())
+            state.shipGrabbedRot = passage.rotation().mul(current).mul(original.conjugate()).mul(grabbed).normalize()
+            state.playerGrabbedRotation = Vector2d(pitch.toDouble(), yaw.toDouble())
+            state.localHoldAnchor = state.localHoldAnchor?.let(passage::point)
+            if (state.holdRoute.firstOrNull()?.matches(gate) == true && state.holdDepth > 0) {
+                state.holdRoute = state.holdRoute.drop(1)
+                state.holdDepth--
+            } else {
+                if (state.holdDepth >= 8) {
+                    dropShip(player)
+                    return
+                }
+                val reverse = GatemakyrPlayerGate(gate.partner, gate.packet, GatemakyrPassage(passage.exit, passage.entrance))
+                state.holdRoute = (listOf(reverse) + state.holdRoute.take(state.holdDepth)).take(8)
+                state.holdDepth++
+            }
+            if (player is ServerPlayer) {
+                val ship = state.shipID?.let { player.serverLevel().shipObjectWorld.loadedShips.getById(it) } ?: return
+                GravitronAnimationPacket.send(player, GravitronAction.HOLD, ship.id, state.shipGrabbedPos, loadOf(ship, player))
+            }
         }
 
         fun loadOf(ship: ServerShip, player: Player? = null): Float {

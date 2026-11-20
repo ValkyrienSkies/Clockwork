@@ -2,16 +2,21 @@ package org.valkyrienskies.clockwork.content.curiosities.tools.gravitron
 
 import net.minecraft.world.entity.player.Player
 import net.minecraft.world.item.Item
+import org.valkyrienskies.clockwork.content.curiosities.tools.gatemakyr.GatemakyrPlayerGate
 import org.joml.Quaterniondc
 import org.joml.Vector2dc
 import org.joml.Vector3dc
 import org.valkyrienskies.clockwork.mixinduck.MixinPlayerDuck
 import org.valkyrienskies.core.api.ships.properties.ShipId
 import kotlin.math.min
+import net.minecraft.world.phys.Vec3
 
 class GravitronState {
     var equippedItem: Item? = null
     var equippedSlot: Int = -1
+    internal var holdRoute = emptyList<GatemakyrPlayerGate>()
+    internal var holdDepth = 0
+    internal var localHoldAnchor: Vec3? = null
     var heldBlockPos: Vector3dc? = null
     var playerGrabbedRotation: Vector2dc? = null // Pitch , Yaw
     var shipGrabbedPos: Vector3dc? = null

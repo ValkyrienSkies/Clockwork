@@ -1,5 +1,7 @@
 package org.valkyrienskies.clockwork.mixin.client;
 
+import org.valkyrienskies.clockwork.content.curiosities.tools.gatemakyr.GatemakyrItem;
+import org.valkyrienskies.clockwork.content.curiosities.tools.gatemakyr.GatemakyrClient;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.ItemInHandRenderer;
 import net.minecraft.world.item.ItemStack;
@@ -41,6 +43,7 @@ public class MixinItemInHandRenderer {
     private void clockwork$gravitronRenderOwner(LivingEntity entity, ItemStack stack, ItemDisplayContext context,
                                                boolean leftHand, PoseStack matrices, MultiBufferSource buffers,
                                                int light, Operation<Void> original) {
+        GatemakyrClient.beginItem(entity, stack, context);
         GravitronEffects.beginItem(entity, stack, context);
         WanderwandHandEffects.beginItem(entity, stack, context);
         InteractionHand ridingHand = entity instanceof Player player ? WandRopeRidingClient.ridingHand(player) : null;
@@ -54,6 +57,7 @@ public class MixinItemInHandRenderer {
             original.call(entity, stack, context, leftHand, matrices, buffers, light);
         } finally {
             if (raisedWrench) matrices.popPose();
+            GatemakyrClient.endItem();
             GravitronEffects.endItem();
             WanderwandHandEffects.endItem();
         }
@@ -63,7 +67,7 @@ public class MixinItemInHandRenderer {
     private void clockwork$gravitonCancelNbtUpdateAnim(CallbackInfo ci) {
         ItemStack newMainStack = minecraft.player.getMainHandItem();
         if (mainHandItem.getItem() == newMainStack.getItem()) {
-            if (GravitronEffects.isGravitron(newMainStack) || newMainStack.getItem() instanceof WanderwandItem) {
+            if (GravitronEffects.isGravitron(newMainStack) || newMainStack.getItem() instanceof GatemakyrItem || newMainStack.getItem() instanceof WanderwandItem) {
                 mainHandItem = newMainStack;
             }
         }

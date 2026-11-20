@@ -16,6 +16,10 @@ import net.minecraft.world.phys.Vec3
 import org.joml.Matrix4f
 import org.joml.Vector3d
 import org.joml.Vector3f
+import org.valkyrienskies.clockwork.content.curiosities.tools.gatemakyr.GatemakyrView
+import org.valkyrienskies.clockwork.content.curiosities.tools.gatemakyr.GatemakyrPlayerGate
+import org.valkyrienskies.clockwork.content.curiosities.tools.gatemakyr.GatemakyrClient
+import org.valkyrienskies.clockwork.content.curiosities.tools.gatemakyr.GatemakyrShipPieces
 import org.valkyrienskies.clockwork.ClockworkConfig
 import org.valkyrienskies.clockwork.ClockworkRenderTypes
 import org.valkyrienskies.clockwork.util.render.ShaderPackCompat
@@ -43,6 +47,8 @@ object GravitronEffects {
     class State {
         val animation = GravitronAnimation()
         var shipId = -1L
+        internal var route = emptyList<GravitronGatePath.Reference>()
+        var holdDepth = 0
         var anchor = Vec3.ZERO
         var supercharged = false
         var lastSync = 0L
@@ -52,8 +58,10 @@ object GravitronEffects {
         // Three articulated prongs and the central body emitter.
         val worldTips = arrayOfNulls<Vec3>(4)
         val viewTips = arrayOfNulls<Vec3>(4)
-        var worldTipsTime = -1L
-        var viewTipsTime = -1L
+        var worldTipsFrame = -10L
+        var viewTipsFrame = -10L
+        var beamFrame = -1L
+        var beamTips = emptyList<Vec3>()
     }
 
     private class ShipPulse(val shipId: Long, val anchor: Vec3, val action: GravitronAction, val birth: Long) {
@@ -170,6 +178,8 @@ object GravitronEffects {
             }
             val state = states.getOrPut(player.uuid) { State() }
             if (state.item != stack.item || state.slot != player.inventory.selected) {
+                state.viewTipsFrame = -10L
+                state.worldTipsFrame = -10L
                 state.item = stack.item
                 state.slot = player.inventory.selected
                 state.supercharged = stack.item is CreativeGravitronItem
@@ -227,6 +237,10 @@ object GravitronEffects {
         if (packet.action != GravitronAction.IDLE) {
             state.shipId = packet.shipId
             state.anchor = packet.anchor
+            if (packet.route.isNotEmpty() || !wasHolding || state.animation.holding) {
+                state.route = packet.route
+                state.holdDepth = packet.depth
+            }
         }
         if (state.animation.holding && !wasHolding) state.nextWave = now
         if (packet.shipId >= 0 && packet.action in listOf(GravitronAction.LAUNCH, GravitronAction.FREEZE,
@@ -252,44 +266,57 @@ object GravitronEffects {
     fun renderedPlayer(): Player? = owners.lastOrNull()?.player
     fun state(player: Player?): State? = player?.let { states[it.uuid] }
 
+    private val primaryViewInverse = Matrix4f()
+    private var primaryEye = Vec3.ZERO
+    private var primaryPartialTick = 0f
+
+    internal fun beginWorldFrame(pose: PoseStack, eye: Vec3, partialTick: Float) {
+        primaryViewInverse.set(pose.last().pose()).invert()
+        primaryEye = eye
+        primaryPartialTick = partialTick
+    }
+
     /** Capture the articulated tips after their joint transforms, in the render owner's space. */
     fun captureTip(player: Player, context: ItemDisplayContext, ms: PoseStack, index: Int, tip: Vector3f) {
+        if (GatemakyrView.target != null || ShaderPackCompat.shadowPass()) return
         val state = state(player) ?: return
-        val mc = Minecraft.getInstance()
         val point = ms.last().pose().transformPosition(tip)
         if (context.firstPerson()) {
             state.viewTips[index] = Vec3(point.x.toDouble(), point.y.toDouble(), point.z.toDouble())
-            state.viewTipsTime = mc.level?.gameTime ?: -1
+            state.viewTipsFrame = GatemakyrView.frame
             return
         }
-        state.worldTips[index] = Vec3(point.x.toDouble(), point.y.toDouble(), point.z.toDouble())
-        state.worldTipsTime = mc.level?.gameTime ?: -1
+        primaryViewInverse.transformPosition(point)
+        state.worldTips[index] = primaryEye.add(point.x.toDouble(), point.y.toDouble(), point.z.toDouble())
+            .subtract(player.getPosition(primaryPartialTick))
+        state.worldTipsFrame = GatemakyrView.frame
     }
 
-    private fun tips(player: Player, state: State, pt: Float, inverseView: Matrix4f): List<Vec3> {
+    private fun tips(player: Player, state: State, pt: Float): List<Vec3> {
         val mc = Minecraft.getInstance()
         val now = mc.level!!.gameTime
-        if (player !== mc.player || !mc.options.cameraType.isFirstPerson) {
-            if (state.worldTipsTime == now && state.worldTips.all { it != null }) return state.worldTips.map {
-                val point = inverseView.transformPosition(Vector3f(it!!.x.toFloat(), it.y.toFloat(), it.z.toFloat()))
-                mc.gameRenderer.mainCamera.position.add(point.x.toDouble(), point.y.toDouble(), point.z.toDouble())
+        val camera = GatemakyrView.playerCamera ?: mc.gameRenderer.mainCamera
+        if (player !== mc.cameraEntity || !mc.options.cameraType.isFirstPerson) {
+            if (GatemakyrView.frame - state.worldTipsFrame <= 1 && state.worldTips.all { it != null }) {
+                val origin = player.getPosition(pt)
+                return state.worldTips.map { origin.add(it!!) }
             }
-        } else if (now - state.viewTipsTime <= 1 && state.viewTips.all { it != null }) {
+        } else if (GatemakyrView.frame - state.viewTipsFrame <= 1 && state.viewTips.all { it != null }) {
             // Hands render after the world and use a separate FOV. Reproject the previous hand
             // frame into the current world camera, so sprinting/zoom and camera motion stay aligned.
-            val camera = mc.gameRenderer.mainCamera
             val accessor = mc.gameRenderer as GameRendererAccessor
             val worldFov = accessor.`clockwork$getFov`(camera, pt, true)
             val handFov = accessor.`clockwork$getFov`(camera, pt, false)
             val ratio = tan(worldFov * PI / 360) / tan(handFov * PI / 360)
             return state.viewTips.map {
                 // Undo the complete world view (including view bob/hurt), not just camera rotation.
-                val point = inverseView.transformPosition(Vector3f((it!!.x * ratio).toFloat(), (it.y * ratio).toFloat(), it.z.toFloat()))
+                val point = primaryViewInverse.transformPosition(Vector3f((it!!.x * ratio).toFloat(), (it.y * ratio).toFloat(), it.z.toFloat()))
                 camera.position.add(point.x.toDouble(), point.y.toDouble(), point.z.toDouble())
             }
         }
         val direction = player.getViewVector(pt)
-        val right = Vec3(direction.z, 0.0, -direction.x).normalize()
+        val yaw = Math.toRadians(player.getViewYRot(pt).toDouble())
+        val right = Vec3(-cos(yaw), 0.0, -sin(yaw))
         val sign = if (player.mainArm == HumanoidArm.RIGHT) 1.0 else -1.0
         val pose = state.animation.sample(now, pt)
         val center = player.getEyePosition(pt).add(direction.scale(0.85 - pose.recoil * 0.2))
@@ -299,27 +326,27 @@ object GravitronEffects {
             .add(v.scale(sin(it * PI * 2 / 3) * 0.12)) } + center.subtract(direction.scale(0.3))
     }
 
-    @JvmStatic
-    fun render(ms: PoseStack, buffers: MultiBufferSource.BufferSource, partialTick: Float) {
+    @JvmStatic @JvmOverloads
+    fun render(ms: PoseStack, buffers: MultiBufferSource.BufferSource, partialTick: Float, portalCamera: Vec3? = null, afterGates: Boolean = false) {
         if (ShaderPackCompat.shadowPass()) return
         val level = checkWorld() ?: return
         val mc = Minecraft.getInstance()
-        val camera = mc.gameRenderer.mainCamera.position
+        val camera = portalCamera ?: mc.gameRenderer.mainCamera.position
         val now = level.gameTime
         val time = (now % 24000).toFloat() + partialTick
         val surfaces = mutableListOf<SurfacePass>()
         val legacy = ClockworkConfig.CLIENT.gravitronLegacyShipContours
         val fallback = !legacy && ShaderPackCompat.enabled()
-        GravitronSurfaceEffects.beginFrame()
-        val type = ClockworkRenderTypes.energyType()
-        val vc = ClockworkRenderTypes.energyBuffer(buffers)
+        if (portalCamera == null && !afterGates) GravitronSurfaceEffects.beginFrame()
+        val type = if (afterGates) ClockworkRenderTypes.GRAVITRON_ENERGY else ClockworkRenderTypes.energyType()
+        val vc = if (afterGates) buffers.getBuffer(type) else ClockworkRenderTypes.energyBuffer(buffers)
         val pose = ms.last().pose()
-        val inverseView = Matrix4f(pose).invert()
+        val gates by lazy { GatemakyrPlayerGate.snapshot(level, GatemakyrClient.rifts, true) { it.packet } }
         for (player in level.players()) {
             val state = states[player.uuid] ?: continue
             if (!isGravitron(player.mainHandItem) || player.isInvisible || !player.isAlive) continue
-            if (player === mc.player && mc.options.cameraType.isFirstPerson && mc.options.hideGui) continue
-            if (player.position().distanceToSqr(camera) > 128.0 * 128.0) continue
+            if (player === mc.cameraEntity && mc.options.cameraType.isFirstPerson && mc.options.hideGui) continue
+            if (portalCamera == null && player.position().distanceToSqr(camera) > 128.0 * 128.0) continue
             val animation = state.animation
             val age = animation.age(now, partialTick)
             val holding = animation.holding && now - state.lastSync <= 30
@@ -328,22 +355,56 @@ object GravitronEffects {
                 GravitronAction.UNFREEZE, GravitronAction.OVERLOAD, GravitronAction.RELEASE) && age < action.duration
             if (!holding && !transient) continue
             val ship = level.shipObjectWorld.loadedShips.getById(state.shipId) ?: continue
-            val end = shipPoint(ship, state.anchor).subtract(camera)
-            val starts = tips(player, state, partialTick, inverseView).map { it.subtract(camera) }
-            val start = starts[3]
+            val anchorTransform = GatemakyrShipPieces.transform(level, ship.id, state.anchor, ship.renderTransform.shipToWorld, true)
+                ?: continue
+            val point = anchorTransform.transformPosition(Vector3d(state.anchor.x, state.anchor.y, state.anchor.z))
+            val worldAnchor = Vec3(point.x, point.y, point.z)
+            val end = worldAnchor.subtract(camera)
             val fade = if (holding) GravitronAnimation.smooth(age / 3f) else 1f - age / action.duration
             val rgb = GravitronVisuals.WANDERLITE
+            val eye = player.getEyePosition(partialTick)
+            val legs = if (state.route.isNotEmpty()) {
+                val route = state.route.map { ref -> gates[ref.owner to ref.side]?.takeIf(ref::matches) }
+                if (route.any { it == null }) emptyList() else {
+                    val live = route.filterNotNull()
+                    val depth = GravitronGatePath.depth(live, state.holdDepth, state.route.first().localAnchor, worldAnchor)
+                    GravitronGatePath.legs(live.take(depth), eye, worldAnchor)
+                }
+            } else if (holding) emptyList() else listOfNotNull(GravitronGatePath.toAnchor(gates.values, eye, worldAnchor, ship.id))
+            val path = legs.firstOrNull()
+            val entrance = path?.contact?.subtract(camera) ?: end
+            val exit = legs.lastOrNull()?.let { it.gate.passage.point(it.contact).subtract(camera) }
+            if ((portalCamera != null || afterGates) && !holding) continue
+            if (portalCamera != null && path == null) continue
+            if (state.beamFrame != GatemakyrView.frame) {
+                state.beamTips = tips(player, state, partialTick)
+                state.beamFrame = GatemakyrView.frame
+            }
+            val starts = state.beamTips
+            val deferBeam = holding && GatemakyrClient.rifts.isNotEmpty() && portalCamera == null && !afterGates && ShaderPackCompat.enabled()
+            val start = starts[3].subtract(camera)
             if (action == GravitronAction.LAUNCH) {
-                launchBurst(vc, pose, start, end, age)
-            } else {
-                tether(vc, pose, starts.take(3), end, time, player.id, rgb, fade, action, age)
+                launchBurst(vc, pose, start, entrance, age)
+            } else if (!deferBeam) {
+                var emitters = starts.take(3)
+                for (leg in legs.dropLast(1)) {
+                    tether(vc, pose, emitters, leg.contact, time, player.id, rgb, fade, action, age, camera, null)
+                    emitters = List(3) { leg.gate.passage.point(leg.contact) }
+                }
+                val finalLeg = legs.lastOrNull()
+                tether(vc, pose, emitters, finalLeg?.apparentAnchor ?: worldAnchor, time, player.id, rgb, fade, action, age,
+                    camera, finalLeg)
             }
             if (holding) {
-                if (legacy) {
+                if (legacy && portalCamera == null && !afterGates) {
                     shipField(vc, pose, ship, camera, time, rgb, 0.16f + animation.load.coerceAtMost(1f) * 0.08f, 1f)
                 }
-                ring(vc, pose, end, end.subtract(start).normalize(), 0.2 + 0.04 * sin(time * 0.2), rgb, fade * 0.65f, time)
+                if (!deferBeam) ring(vc, pose, end, end.subtract(exit ?: start).normalize(), 0.2 + 0.04 * sin(time * 0.2), rgb, fade * 0.65f, time)
             }
+        }
+        if (portalCamera != null || afterGates) {
+            buffers.endBatch(type)
+            return
         }
         if (legacy || fallback) for (pulse in pulses) {
             val ship = level.shipObjectWorld.loadedShips.getById(pulse.shipId) ?: continue
@@ -402,11 +463,13 @@ object GravitronEffects {
 
     /** Three thin, bowed force strands; no solid core or death-ray beam geometry. */
     private fun tether(vc: VertexConsumer, pose: Matrix4f, starts: List<Vec3>, end: Vec3, time: Float,
-                       seed: Int, rgb: Int, alpha: Float, action: GravitronAction, age: Float) {
+                       seed: Int, rgb: Int, alpha: Float, action: GravitronAction, age: Float, camera: Vec3, path: GravitronGatePath?) {
         val start = starts.reduce(Vec3::add).scale(1.0 / 3)
         val delta = end.subtract(start)
         if (delta.lengthSqr() < 0.001) return
         val (u, v) = basis(delta.normalize())
+        val frame = path?.gate?.passage?.entrance
+        val side = if (frame != null && end.subtract(frame.position).dot(frame.normal) > 0) -1.0 else 1.0
         val segments = (delta.length() * 3).toInt().coerceIn(16, 48)
         val spread = (delta.length() * 0.035).coerceIn(0.08, 0.48)
         val reverse = action == GravitronAction.UNFREEZE || action == GravitronAction.GRAB || action == GravitronAction.HOLD
@@ -415,14 +478,22 @@ object GravitronEffects {
         val travel = if (reverse) 1f - pulsePosition else pulsePosition
         for (strand in 0..2) {
             val phase = strand * PI * 2 / 3 + seed * 0.71
+            val contact = path?.takeIf { it.bent }?.contact
+            val nearLength = contact?.distanceTo(starts[strand]) ?: 0.0
+            val split = if (contact == null) 0.0 else
+                (nearLength / (nearLength + contact.distanceTo(end)).coerceAtLeast(1e-8)).coerceIn(1e-6, 1.0 - 1e-6)
+            val reach = if (action == GravitronAction.RELEASE)
+                1f - GravitronAnimation.smooth((age - 2f) / 10f) else 1f
             fun point(t: Double): Vec3 {
-                val envelope = sin(t * PI)
+                val along = t * reach
+                val leg = if (contact == null) t else if (along <= split) along / split else (along - split) / (1.0 - split)
+                val envelope = sin(leg * PI)
                 val angle = phase + t * 5.5 - time * 0.12
                 val radius = spread * envelope
                 val flutter = sin(t * 23 + time * 0.45 + phase) * 0.025 * envelope
-                val reach = if (action == GravitronAction.RELEASE)
-                    1f - GravitronAnimation.smooth((age - 2f) / 10f) else 1f
-                return starts[strand].lerp(end, t * reach).add(u.scale((cos(angle) * radius + flutter) * reach))
+                val center = if (contact == null) starts[strand].lerp(end, along)
+                    else if (along <= split) starts[strand].lerp(contact, leg) else contact.lerp(end, leg)
+                return center.add(u.scale((cos(angle) * radius + flutter) * reach))
                     .add(v.scale(sin(angle) * radius * reach))
             }
             var previous = point(0.0)
@@ -431,8 +502,29 @@ object GravitronEffects {
                 val next = point(t.toDouble())
                 val packet = (1f - abs(t - travel) / 0.14f).coerceIn(0f, 1f)
                 val flicker = 0.65f + 0.2f * sin(time * 0.7f + i * 0.9f + strand)
-                ribbon(vc, pose, previous, next, 0.008f + packet * 0.014f, rgb, alpha * (flicker + packet * 0.25f))
-                if (packet > 0) ribbon(vc, pose, previous, next, 0.034f, rgb, alpha * packet * 0.12f)
+                fun segment(a: Vec3, b: Vec3, remote: Boolean) {
+                    val from = (if (remote) path!!.gate.passage.point(a) else a).subtract(camera)
+                    val to = (if (remote) path!!.gate.passage.point(b) else b).subtract(camera)
+                    val core = (from.length().toFloat() * 0.002f).coerceIn(0.008f, 0.04f)
+                    ribbon(vc, pose, from, to, core + packet * 0.014f, rgb, alpha * (flicker + packet * 0.25f))
+                    if (packet > 0) ribbon(vc, pose, from, to, 0.034f, rgb, alpha * packet * 0.12f)
+                }
+                if (frame == null) segment(previous, next, false)
+                else if (contact != null) {
+                    if ((i - 1.0) * reach / segments < split && t * reach >= split) {
+                        segment(previous, contact, false)
+                        segment(contact, next, true)
+                    } else segment(previous, next, t * reach > split)
+                } else {
+                    val a = previous.subtract(frame.position).dot(frame.normal) * side
+                    val b = next.subtract(frame.position).dot(frame.normal) * side
+                    if ((a < 0) == (b < 0)) segment(previous, next, a < 0)
+                    else {
+                        val cut = previous.lerp(next, a / (a - b))
+                        segment(previous, cut, a < 0)
+                        segment(cut, next, b < 0)
+                    }
+                }
                 previous = next
             }
         }

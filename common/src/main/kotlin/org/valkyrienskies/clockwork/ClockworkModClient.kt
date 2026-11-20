@@ -1,5 +1,6 @@
 package org.valkyrienskies.clockwork
 
+import org.valkyrienskies.clockwork.content.curiosities.tools.gatemakyr.GatemakyrClient
 import org.valkyrienskies.clockwork.content.physicalities.wheel.WheelEffects
 import org.valkyrienskies.clockwork.content.physicalities.steering.SteeringWheelClient
 
@@ -124,6 +125,7 @@ object ClockworkModClient {
 
         ClientTickEvent.CLIENT_POST.register(ClientTickEvent.Client {
             GravitronControlsClient.tick()
+            GatemakyrClient.tick()
             SteeringWheelClient.tick()
             LubricantClient.tick()
             VdexBlueprintClient.tick()
@@ -152,6 +154,7 @@ object ClockworkModClient {
 
         KeyMappingRegistry.register(AERONAUT_GOGGLE_KEYBIND)
         GravitronControlsClient.register()
+        GatemakyrClient.register()
         KeyMappingRegistry.register(DEBUG_LIGHTNING_KEYBIND)
         ClientTickEvent.CLIENT_POST.register {
             while (AERONAUT_GOGGLE_KEYBIND.consumeClick()) {

@@ -1,5 +1,6 @@
 package org.valkyrienskies.clockwork.forge;
 
+import org.valkyrienskies.clockwork.content.curiosities.tools.gatemakyr.GatemakyrClient;
 import org.valkyrienskies.clockwork.content.schematics.VdexPlacementClient;
 
 import com.mojang.blaze3d.systems.RenderSystem;
@@ -84,6 +85,7 @@ public class ClockworkClientEvents {
         int key = event.getKey();
         boolean pressed = !(event.getAction() == 0);
 
+        GatemakyrClient.onKeyInput(key, event.getScanCode(), pressed);
         ClockworkModForgeClient.GRAVITRON_HANDLER.onKeyInput(key, pressed);
         ClockworkModForgeClient.WANDERWAND_HANDLER.onKeyInput(key, pressed);
     }
@@ -95,7 +97,7 @@ public class ClockworkClientEvents {
         }
 
         double delta = event.getScrollDelta();
-        boolean cancelled = VdexPlacementClient.mouseScrolled(delta) || ClockworkModForgeClient.GRAVITRON_HANDLER.mouseScrolled(delta) || ClockworkModForgeClient.WANDERWAND_HANDLER.mouseScrolled(delta);
+        boolean cancelled = GatemakyrClient.scroll(delta) || VdexPlacementClient.mouseScrolled(delta) || ClockworkModForgeClient.GRAVITRON_HANDLER.mouseScrolled(delta) || ClockworkModForgeClient.WANDERWAND_HANDLER.mouseScrolled(delta);
         event.setCanceled(cancelled);
     }
 
@@ -106,6 +108,8 @@ public class ClockworkClientEvents {
 
         int button = event.getButton();
         boolean pressed = !(event.getAction() == 0);
+
+        if (GatemakyrClient.onMouseInput(button, pressed)) { event.setCanceled(true); return; }
 
         if (VdexPlacementClient.onMouseInput(button, pressed)) { event.setCanceled(true); return; }
 

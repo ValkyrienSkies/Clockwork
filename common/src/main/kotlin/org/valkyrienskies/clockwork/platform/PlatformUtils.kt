@@ -43,7 +43,19 @@ object PlatformUtils {
 
     @ExpectPlatform
     @JvmStatic
+    fun getEntityReach(player: Player): Double {
+        throw AssertionError()
+    }
+
+    @ExpectPlatform
+    @JvmStatic
     fun getReachDistance(player: Player): Double {
+        throw AssertionError()
+    }
+
+    @ExpectPlatform
+    @JvmStatic
+    fun getBlockReach(player: Player): Double {
         throw AssertionError()
     }
 

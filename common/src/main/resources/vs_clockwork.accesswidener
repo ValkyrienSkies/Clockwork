@@ -13,3 +13,6 @@ accessible method net/minecraft/client/renderer/RenderType create (Ljava/lang/St
 accessible class net/minecraft/client/renderer/RenderType$CompositeState
 accessible class net/minecraft/client/renderer/RenderType$CompositeRenderType
 accessible class net/minecraft/client/renderer/RenderType$OutlineProperty
+accessible class net/minecraft/client/renderer/LevelRenderer$RenderChunkInfo
+accessible method net/minecraft/client/renderer/LevelRenderer$RenderChunkInfo <init> (Lnet/minecraft/client/renderer/chunk/ChunkRenderDispatcher$RenderChunk;Lnet/minecraft/core/Direction;I)V
+accessible method net/minecraft/client/renderer/ViewArea getRenderChunkAt (Lnet/minecraft/core/BlockPos;)Lnet/minecraft/client/renderer/chunk/ChunkRenderDispatcher$RenderChunk;

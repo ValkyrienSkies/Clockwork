@@ -1,4 +1,70 @@
 {
+  "gatemakyr_charge_1": {
+    "sounds": [
+      {
+        "name": "vs_clockwork:gatemakyr_charge_1"
+      },
+      {
+        "name": "vs_clockwork:gatemakyr_charge_2"
+      }
+    ],
+    "subtitle": "vs_clockwork.subtitle.gatemakyr_charge_1"
+  },
+  "gatemakyr_fire_1": {
+    "sounds": [
+      {
+        "name": "vs_clockwork:gatemakyr_fire_1"
+      },
+      {
+        "name": "vs_clockwork:gatemakyr_fire_2"
+      }
+    ],
+    "subtitle": "vs_clockwork.subtitle.gatemakyr_fire_1"
+  },
+  "gatemakyr_cancel": {
+    "sounds": [
+      {
+        "name": "vs_clockwork:gatemakyr_cancel"
+      }
+    ],
+    "subtitle": "vs_clockwork.subtitle.gatemakyr_cancel"
+  },
+  "gatemakyr_projectile_loop": {
+    "sounds": [
+      {
+        "name": "vs_clockwork:gatemakyr_projectile_loop"
+      }
+    ],
+    "subtitle": "vs_clockwork.subtitle.gatemakyr_projectile_loop"
+  },
+  "portal_open_1": {
+    "sounds": [
+      {
+        "name": "vs_clockwork:portal_open_1"
+      },
+      {
+        "name": "vs_clockwork:portal_open_2"
+      }
+    ],
+    "subtitle": "vs_clockwork.subtitle.portal_open_1"
+  },
+  "portal_close": {
+    "sounds": [
+      {
+        "name": "vs_clockwork:portal_close"
+      }
+    ],
+    "subtitle": "vs_clockwork.subtitle.portal_close"
+  },
+  "portal_loop": {
+    "sounds": [
+      {
+        "name": "vs_clockwork:portal_loop",
+        "stream": true
+      }
+    ],
+    "subtitle": "vs_clockwork.subtitle.portal_loop"
+  },
   "wheel_unscrew_1": {
     "sounds": ["vs_clockwork:wheel_unscrew_1", "vs_clockwork:wheel_unscrew_2"],
     "subtitle": "vs_clockwork.subtitle.wheel_unscrew_1"

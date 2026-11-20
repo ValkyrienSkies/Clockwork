@@ -5,6 +5,7 @@ import net.minecraft.core.BlockPos
 import net.minecraft.network.FriendlyByteBuf
 import net.minecraft.server.level.ServerLevel
 import net.minecraft.sounds.SoundSource
+import org.valkyrienskies.mod.common.util.toMinecraft
 import org.joml.Vector3d
 import org.valkyrienskies.clockwork.ClockworkConfig
 import org.valkyrienskies.clockwork.ClockworkItems
@@ -50,7 +51,19 @@ class GravitronLeftClickPacket : C2SCWPacket {
                         else clickedPos!!.toJOMLD().add(0.5, 0.5, 0.5)
                     val worldAnchor = ship.shipToWorld.transformPosition(anchor, Vector3d())
                     val range = if (isRegular) ClockworkConfig.SERVER.survivalGravitronMaxRange else 1000.0
-                    if (worldAnchor.distanceSquared(serverPlayer.eyePosition.toJOML()) > range * range) return@enqueueWork
+                    val point = worldAnchor.toMinecraft()
+                    val route = if (state.shipID == ship.id) {
+                        val depth = GravitronGatePath.depth(state.holdRoute, state.holdDepth, state.localHoldAnchor ?: point, point)
+                        state.holdRoute.take(depth)
+                    } else GravitronGatePath.picked(serverPlayer, clickedPos!!, ship.id, range)
+                    var from = serverPlayer.eyePosition
+                    var distance = 0.0
+                    for (leg in GravitronGatePath.legs(route, from, point)) {
+                        distance += from.distanceTo(leg.contact)
+                        from = leg.gate.passage.point(leg.contact)
+                    }
+                    distance += from.distanceTo(point)
+                    if (distance > range) return@enqueueWork
                     if (isRegular) {
                         val mass = GravitronLoad.mass(level, ship, stack)
                         if (mass > ClockworkConfig.SERVER.maxGravitronMass * 1000.0) {
@@ -60,7 +73,7 @@ class GravitronLeftClickPacket : C2SCWPacket {
                         }
                         serverPlayer.cooldowns.addCooldown(stack.item, 20)
 
-                        val lookDir = serverPlayer.lookAngle.normalize().toJOML()
+                        val lookDir = route.fold(serverPlayer.lookAngle) { dir, gate -> gate.passage.direction(dir) }.normalize().toJOML()
                         val magnitude = ClockworkConfig.SERVER.survivalGravitronYeetForce * mass
                         val launchVec = lookDir.mul(magnitude)
                         ValkyrienSkiesMod.getOrCreateGTPA(level.dimensionId).applyWorldForceToModelPos(ship.id, launchVec, anchor)

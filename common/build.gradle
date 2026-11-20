@@ -1,3 +1,5 @@
+import groovy.json.JsonSlurper
+
 architectury {
     common(rootProject.enabled_platforms.split(","))
 }
@@ -21,7 +23,7 @@ tasks.register("verifyMixinRefmap") {
     dependsOn tasks.named("compileJava")
     inputs.file(commonMixinRefmap)
     doLast {
-        def refmap = new groovy.json.JsonSlurper().parse(commonMixinRefmap.get().asFile)
+        def refmap = new JsonSlurper().parse(commonMixinRefmap.get().asFile)
         def target = refmap.mappings["org/valkyrienskies/clockwork/mixin/client/MixinItemInHandRenderer"]?.get("renderItem")
         if (!(target instanceof String) || !target.contains("(") || target.contains(";renderItem(")) {
             throw new GradleException("Missing production mapping for MixinItemInHandRenderer @WrapMethod(renderItem). " +
@@ -66,6 +68,8 @@ sourceSets {
 }
 
 dependencies {
+    compileOnly('maven.modrinth:iris:1.7.6+1.20.1') { transitive = false }
+    compileOnly('maven.modrinth:sodium:mc1.20.1-0.5.11') { transitive = false }
     modImplementation("net.fabricmc:fabric-loader:${fabric_loader_version}")
     implementation(annotationProcessor("com.github.bawnorton.mixinsquared:mixinsquared-fabric:0.3.7-beta.1"))
 

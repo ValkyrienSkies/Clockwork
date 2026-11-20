@@ -10,7 +10,7 @@ import org.lwjgl.opengl.GL14
 import org.lwjgl.opengl.GL20
 import org.lwjgl.opengl.GL30
 
-internal class VdexPreviewRenderState : AutoCloseable {
+internal class VdexPreviewRenderState(textureUnits: Int = 2) : AutoCloseable {
     private val drawTarget = GL11.glGetInteger(GL30.GL_DRAW_FRAMEBUFFER_BINDING)
     private val readTarget = GL11.glGetInteger(GL30.GL_READ_FRAMEBUFFER_BINDING)
     private val mainTarget = Minecraft.getInstance()?.mainRenderTarget?.takeIf { it.frameBufferId == drawTarget }
@@ -31,12 +31,12 @@ internal class VdexPreviewRenderState : AutoCloseable {
     private val equationRgb = GL11.glGetInteger(GL20.GL_BLEND_EQUATION_RGB)
     private val equationAlpha = GL11.glGetInteger(GL20.GL_BLEND_EQUATION_ALPHA)
     private val activeTexture = GlStateManager._getActiveTexture()
-    private val textures = IntArray(2) { RenderSystem.getShaderTexture(it) }
+    private val textures = IntArray(textureUnits) { RenderSystem.getShaderTexture(it) }
     private val shader = RenderSystem.getShader()
     private val bindings: IntArray
 
     init {
-        bindings = IntArray(2) {
+        bindings = IntArray(textureUnits) {
             RenderSystem.activeTexture(GL13.GL_TEXTURE0 + it)
             GL11.glGetInteger(GL11.GL_TEXTURE_BINDING_2D)
         }

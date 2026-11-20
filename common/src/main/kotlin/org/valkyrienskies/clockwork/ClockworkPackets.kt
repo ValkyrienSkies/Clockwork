@@ -1,5 +1,10 @@
 package org.valkyrienskies.clockwork
 
+import org.valkyrienskies.clockwork.content.curiosities.tools.gatemakyr.GatemakyrEntityTransitPacket
+import org.valkyrienskies.clockwork.content.curiosities.tools.gatemakyr.GatemakyrEffectPacket
+import org.valkyrienskies.clockwork.content.curiosities.tools.gatemakyr.GatemakyrCrossingPacket
+import org.valkyrienskies.clockwork.content.curiosities.tools.gatemakyr.GatemakyrChunkWatchPacket
+import org.valkyrienskies.clockwork.content.curiosities.tools.gatemakyr.GatemakyrInputPacket
 import org.valkyrienskies.clockwork.content.physicalities.wheel.WheelContactPacket
 import org.valkyrienskies.clockwork.content.physicalities.steering.SteeringWheelInputPacket
 
@@ -136,7 +141,12 @@ enum class ClockworkPackets(
     AERONAUT_GOGGLES_TOGGLE_PACKET(AeronautGogglesTogglePacket::class.java, ::AeronautGogglesTogglePacket),
     AERONAUT_SHIP_REQUEST_PACKET(AeronautShipRequestPacket::class.java, ::AeronautShipRequestPacket),
     AERONAUT_SHIP_READOUT_PACKET(AeronautShipReadoutPacket::class.java, ::AeronautShipReadoutPacket),
-    MAGNETIC_FIELD_PACKET(MagneticFieldPacket::class.java, ::MagneticFieldPacket);
+    MAGNETIC_FIELD_PACKET(MagneticFieldPacket::class.java, ::MagneticFieldPacket),
+    GATEMAKYR_INPUT(GatemakyrInputPacket::class.java, ::GatemakyrInputPacket),
+    GATEMAKYR_EFFECT(GatemakyrEffectPacket::class.java, ::GatemakyrEffectPacket),
+    GATEMAKYR_CROSSING(GatemakyrCrossingPacket::class.java, ::GatemakyrCrossingPacket),
+    GATEMAKYR_ENTITY_TRANSIT(GatemakyrEntityTransitPacket::class.java, ::GatemakyrEntityTransitPacket),
+    GATEMAKYR_CHUNKS(GatemakyrChunkWatchPacket::class.java, ::GatemakyrChunkWatchPacket);
 
     init {
         packetChannel.registerPacket(type as Class<CWPacket>, factory as Function<FriendlyByteBuf, CWPacket>)

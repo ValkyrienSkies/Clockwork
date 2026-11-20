@@ -4,10 +4,17 @@ import com.mojang.blaze3d.vertex.DefaultVertexFormat
 import dev.architectury.event.events.client.ClientReloadShadersEvent
 import net.minecraft.client.renderer.ShaderInstance
 import net.minecraft.server.packs.resources.ResourceProvider
+import org.valkyrienskies.clockwork.content.contraptions.phys.infuser.InfuserEffects
+import org.valkyrienskies.clockwork.content.curiosities.tools.gatemakyr.GatemakyrView
+import org.valkyrienskies.clockwork.content.curiosities.tools.gravitron.GravitronSurfaceEffects
 import org.valkyrienskies.clockwork.content.schematics.VdexBlueprintPreview
+import org.valkyrienskies.clockwork.util.render.SurfaceEffectAtlas
 import java.io.IOException
 
 object ClockworkShaders {
+
+    var gateSurface: ShaderInstance? = null
+        private set
 
     private var blueprintGeometry: ShaderInstance? = null
     private var blueprintSketch: ShaderInstance? = null
@@ -76,6 +83,10 @@ object ClockworkShaders {
     fun init() {
         ClientReloadShadersEvent.EVENT.register { resourceProvider: ResourceProvider, shadersSink: ClientReloadShadersEvent.ShadersSink ->
             try {
+                shadersSink.registerShader(ShaderInstance(resourceProvider, "clockwork_gate_surface", DefaultVertexFormat.POSITION_TEX)) {
+                    gateSurface = it
+                    GatemakyrView.clear()
+                }
                 shadersSink.registerShader(ShaderInstance(resourceProvider, "clockwork_blueprint_geometry", DefaultVertexFormat.NEW_ENTITY)) {
                     blueprintGeometry = it
                     VdexBlueprintPreview.clear()
@@ -87,10 +98,10 @@ object ClockworkShaders {
                     ShaderInstance(resourceProvider, "clockwork_gravitron_surface", DefaultVertexFormat.NEW_ENTITY)
                 ) { inst ->
                     gravitronSurface = inst
-                    org.valkyrienskies.clockwork.content.curiosities.tools.gravitron.GravitronSurfaceEffects.clear()
-                    org.valkyrienskies.clockwork.content.contraptions.phys.infuser.InfuserEffects.clear()
+                    GravitronSurfaceEffects.clear()
+                    InfuserEffects.clear()
                     ClockworkModClient.WANDERWAND_EFFECT_RENDERER.reload()
-                    org.valkyrienskies.clockwork.util.render.SurfaceEffectAtlas.clear()
+                    SurfaceEffectAtlas.clear()
                 }
                 shadersSink.registerShader(
                     ShaderInstance(

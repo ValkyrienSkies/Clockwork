@@ -35,12 +35,13 @@ class GravitronController : ShipPhysicsListener {
         val grabWorld = physShip.transform.shipToWorld.transformPosition(dataCopy.grabbedPos, Vector3d())
         val grabOffset = Vector3d(grabWorld).sub(physShip.transform.positionInWorld)
         val velocity = GravitronManipulation.pointVelocity(physShip.velocity, physShip.angularVelocity, grabOffset)
-        val error = dataCopy.idealPos.sub(grabWorld, Vector3d())
+        val portalTarget = dataCopy.targetThroughPortal(grabWorld)
+        val error = (portalTarget?.position ?: dataCopy.idealPos).sub(grabWorld, Vector3d())
         val acceleration = GravitronManipulation.acceleration(error, velocity, step, 120.0)
         val force = acceleration.mul(physShip.mass * gain)
         if (force.isFinite) physShip.applyWorldForceToBodyPos(force)
 
-        val rotationError = dataCopy.idealRot.mul(physShip.transform.shipToWorldRotation.invert(Quaterniond()), Quaterniond())
+        val rotationError = (portalTarget?.rotation ?: dataCopy.idealRot).mul(physShip.transform.shipToWorldRotation.invert(Quaterniond()), Quaterniond())
         if (!rotationError.isFinite || rotationError.lengthSquared() < 1e-12) return
         rotationError.normalize()
         val sign = if (rotationError.w < 0.0) -2.0 else 2.0

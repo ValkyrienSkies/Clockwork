@@ -52,6 +52,14 @@ public class PlatformUtilsImpl {
         return ReachEntityAttributes.getReachDistance(player, player.isCreative() ? 5.0 : 4.5);
     }
 
+    public static double getEntityReach(Player player) {
+        return ReachEntityAttributes.getAttackRange(player, player.isCreative() ? 6.0 : 3.0);
+    }
+
+    public static double getBlockReach(Player player) {
+        return getReachDistance(player);
+    }
+
     public static Attribute getReachAttribute() {
         return ReachEntityAttributes.REACH;
     }
