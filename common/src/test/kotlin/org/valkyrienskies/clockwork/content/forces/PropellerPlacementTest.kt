@@ -51,7 +51,7 @@ class PropellerPlacementTest {
     }
 
     @Test
-    fun `sail airflow density and moment use its rendered position under ship scale and tilt`() {
+    fun `sail airflow and moment use its rendered position with density sampled at the hub`() {
         val modelToWorld = Matrix4d().translation(8.0, 70.0, -3.0).rotateY(0.7).scale(1.3, 0.8, 1.7)
         val com = Vector3d(0.2, -0.4, 0.7)
         val velocity = Vector3d(3.0, -2.0, 1.0)
@@ -60,9 +60,9 @@ class PropellerPlacementTest {
         for (axis in axes) for (angle in listOf(0.0, 90.0, 210.0)) {
             val local = radial(axis).add(Vector3d(axis).mul(2.0))
             val prop = prop(axis, local)
-            var sampledHeight = Double.NaN
+            val sampledHeights = mutableListOf<Double>()
             val flow = PropellerAerodynamics.Flow(modelToWorld, com, velocity, shipOmega, wind) {
-                sampledHeight = it
+                sampledHeights.add(it)
                 1.225
             }
             val result = solve(prop, flow, angle)
@@ -70,8 +70,10 @@ class PropellerPlacementTest {
             // Independent reconstruction of the original renderer's translation/rotation sequence.
             val rendered = renderedTransform(axis, angle)
             val point = rendered.transformPosition(local, Vector3d()).add(axis).add(0.5, 0.5, 0.5)
-            val worldPoint = modelToWorld.transformPosition(point, Vector3d())
-            assertEquals(worldPoint.y, sampledHeight, 1e-10)
+            val hub = rendered.transformPosition(Vector3d()).add(axis).add(0.5, 0.5, 0.5)
+            val worldHub = modelToWorld.transformPosition(hub)
+            assertEquals(1, sampledHeights.size)
+            assertEquals(worldHub.y, sampledHeights.single(), 1e-10)
             val offset = rendered.transformDirection(local, Vector3d())
             val normal = tilt.transform(axis, Vector3d())
             val span = rendered.transformDirection(radial(axis).normalize(), Vector3d())

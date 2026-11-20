@@ -41,6 +41,11 @@ internal object PropellerImpulseSolver {
                 responseForce.add(sectionForce)
                 responseTorque.add(section.lever.cross(sectionForce, sectionTorque))
             }
+            rotor.axialResponse?.let {
+                val axialSpeed = rotor.axis.dot(omega.cross(it.hubLever, pointVelocity).add(velocity))
+                responseForce.fma(axialSpeed, it.force)
+                responseTorque.fma(axialSpeed, it.torque)
+            }
             // Apply the same per-hub shaft policy to the response as to the initial load.
             // Otherwise implicit translation can reintroduce roll even from a zero-torque load.
             rotor.shaftDamping?.apply(responseForce, responseTorque, omega, responseTorque)
@@ -102,12 +107,8 @@ internal object PropellerImpulseSolver {
             if (maxTorque > 0.0 && torque.length() > maxTorque) fraction = min(fraction, maxTorque / torque.length())
         }
         if (reportForce != null) rotors.forEachIndexed { index, rotor ->
-            val applied = Vector3d(rotor.force)
-            for (section in rotor.sections) {
-                deltaOmega.cross(section.lever, pointVelocity).add(deltaVelocity)
-                applied.add(section.response.transform(pointVelocity, sectionForce))
-            }
-            reportForce(index, applied.mul(fraction))
+            responseTo(rotor, deltaVelocity, deltaOmega)
+            reportForce(index, Vector3d(rotor.force).add(responseForce).mul(fraction))
         }
         val force = deltaVelocity.mul(mass * fraction / STEP)
         val torque = inertiaWorld.transform(deltaOmega, Vector3d()).mul(fraction / STEP)

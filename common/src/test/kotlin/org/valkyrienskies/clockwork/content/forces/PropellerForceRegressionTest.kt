@@ -95,8 +95,8 @@ class PropellerForceRegressionTest {
 
     @Test
     fun `propeller boost scales force and moment in moving air without changing blades or collective`() {
-        val physicsShip = ship(velocity = Vector3d(1.0, -2.0, 3.0),
-            wind = Vector3d(-0.5, 1.0, -2.0), omega = Vector3d(0.3, -0.8, 0.2))
+        val physicsShip = ship(velocity = Vector3d(0.04, -0.03, 0.06),
+            wind = Vector3d(-0.01, 0.015, 0.02), omega = Vector3d(0.003, -0.008, 0.002))
         for (sails in listOf(true, false)) for (rpm in listOf(-64.0, 64.0, 128.0)) {
             val baseProp = propeller(sails, rpm, position = Vector3i(3, -2, 1))
             val boostedProp = propeller(sails, rpm, position = Vector3i(3, -2, 1))
@@ -105,7 +105,8 @@ class PropellerForceRegressionTest {
             ClockworkConfig.SERVER.sailPropellerForceMultiplier = 4.0
             val boosted = forces(boostedProp, physicsShip)
             val gain = 4.0
-            assertTrue(base.first.length() > 0.0 && base.second.length() > 0.0)
+            assertTrue(base.first.z() * rpm > 0.0 && base.second.length() > 0.0,
+                "Expected propulsive flow for sails=$sails RPM=$rpm, got $base")
             assertVectorEquals(Vector3d(base.first).mul(gain), boosted.first)
             assertVectorEquals(Vector3d(base.second).mul(gain), boosted.second)
             assertEquals(baseProp.currentBladePitch, boostedProp.currentBladePitch, 0.0)
