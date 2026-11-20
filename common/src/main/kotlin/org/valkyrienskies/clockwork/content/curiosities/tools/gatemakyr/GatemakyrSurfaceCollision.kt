@@ -6,6 +6,9 @@ import net.minecraft.world.entity.Entity
 import net.minecraft.world.entity.player.Player
 import net.minecraft.world.phys.AABB
 import net.minecraft.world.phys.Vec3
+import net.minecraft.world.phys.shapes.BooleanOp
+import net.minecraft.world.phys.shapes.Shapes
+import net.minecraft.world.phys.shapes.VoxelShape
 import org.joml.Vector3d
 import org.joml.Matrix4d
 import org.valkyrienskies.mod.common.entity.ShipMountingEntity
@@ -124,6 +127,20 @@ object GatemakyrSurfaceCollision {
         if (entity !is Player && !gate.admits(group, point.add(group.center.subtract(entity.boundingBox.center)))) return false
         val box = group.move(gate.exitContact(point).subtract(anchor(entity)))
         return exitOffset(entity, box, gate, Opening(gate.destination, side)) != null
+    }
+
+    @JvmStatic
+    fun clipBacking(shape: VoxelShape, x: Int, y: Int, z: Int, openings: List<AABB>): VoxelShape {
+        if (openings.isEmpty() || shape.isEmpty) return shape
+        var clipped = shape
+        for (hole in openings) {
+            val local = hole.move(-x.toDouble(), -y.toDouble(), -z.toDouble())
+            if (local.intersects(clipped.bounds())) {
+                clipped = Shapes.joinUnoptimized(clipped, Shapes.create(local), BooleanOp.ONLY_FIRST)
+                if (clipped.isEmpty) break
+            }
+        }
+        return clipped
     }
 
     @JvmStatic

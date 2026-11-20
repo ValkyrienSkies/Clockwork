@@ -5,6 +5,7 @@
   "mixins": [
     "MixinFireBlock",
     "MixinGateMiningReach",
+    "MixinGateRadiumBlockCollisions",
     "MixinGateUseReach",
     "MixinTweakedLinkedControllerClientHandler",
     "MixinTweakedLinkedControllerItem",
