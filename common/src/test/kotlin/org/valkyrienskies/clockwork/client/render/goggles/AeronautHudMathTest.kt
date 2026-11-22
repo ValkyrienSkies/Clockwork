@@ -26,6 +26,15 @@ class AeronautHudMathTest {
     }
 
     @Test
+    fun `slightly off axis ships are eligible within inspection range`() {
+        val look = Vector3d(0.0, 0.0, -1.0)
+        assertNotNull(AeronautHudMath.nearAimAlignment(Vector3d(8.0, 0.0, -40.0), look, 128.0))
+        assertNull(AeronautHudMath.nearAimAlignment(Vector3d(16.0, 0.0, -40.0), look, 128.0))
+        assertNull(AeronautHudMath.nearAimAlignment(Vector3d(8.0, 0.0, 40.0), look, 128.0))
+        assertNull(AeronautHudMath.nearAimAlignment(Vector3d(8.0, 0.0, -128.0), look, 128.0))
+    }
+
+    @Test
     fun `world markers project to GUI coordinates and reject points behind the camera`() {
         val projection = Matrix4f().perspective(Math.toRadians(70.0).toFloat(), 2f, .05f, 512f)
         val center = AeronautHudMath.project(Vector3d(0.0, 0.0, -20.0), projection, 640, 320)!!

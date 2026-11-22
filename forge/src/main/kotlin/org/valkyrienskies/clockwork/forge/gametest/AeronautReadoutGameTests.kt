@@ -229,6 +229,10 @@ class AeronautReadoutGameTests {
                 val open = AeronautShipRequestPacket.inspect(inspector, root.id)
                 helper.assertTrue(open?.massVisible == true && open.assembly.joints.map { it.anchor.pos }.toSet() == setOf(rootPos, leafPos),
                     "An exposed assembly lost its mass or connected joint readouts: $open")
+                inspector.yRot = 12f
+                helper.assertTrue(AeronautShipRequestPacket.inspect(inspector, root.id)?.massVisible == true,
+                    "An exposed ship lost its readout off axis")
+                inspector.yRot = 0f
                 val upper = base.north(4).above(4)
                 val lower = base.north().below()
                 val fullWall = (-1..1).flatMap { x -> (-1..6).map { y -> base.north(4).offset(x, y, 0) } }
@@ -244,6 +248,9 @@ class AeronautReadoutGameTests {
                     fullWall.forEach { level.setBlockAndUpdate(it, Blocks.STONE.defaultBlockState()) }
                     helper.assertTrue(AeronautShipRequestPacket.inspect(inspector, root.id) == null,
                         "A direct request obtained telemetry for a wholly covered ship")
+                    inspector.yRot = 12f
+                    helper.assertTrue(AeronautShipRequestPacket.inspect(inspector, root.id) == null,
+                        "An off-axis request obtained telemetry for a wholly covered ship")
                 } finally {
                     (fullWall + lower).forEach { level.removeBlock(it, false) }
                 }

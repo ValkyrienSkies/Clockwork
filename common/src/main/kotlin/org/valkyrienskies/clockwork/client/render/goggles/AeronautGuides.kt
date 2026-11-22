@@ -52,24 +52,6 @@ internal class AeronautGuides(
         vertex(a, -nx * widthA, -ny * widthA, colorA)
     }
 
-    fun marker(p: Point, color: Int, hollow: Boolean, hovered: Boolean, small: Boolean) {
-        val r = if (hollow && !small) 7f else if (hovered) 5f else 3f
-        val a = p.offset(-r, -r)
-        val b = p.offset(r, -r)
-        val c = p.offset(r, r)
-        val d = p.offset(-r, r)
-        stroke(a, b, 1f, 1f, color)
-        stroke(b, c, 1f, 1f, color)
-        stroke(c, d, 1f, 1f, color)
-        stroke(d, a, 1f, 1f, color)
-        if (!hollow) {
-            vertex(p, -1.5f, -1.5f, color)
-            vertex(p, 1.5f, -1.5f, color)
-            vertex(p, 1.5f, 1.5f, color)
-            vertex(p, -1.5f, 1.5f, color)
-        }
-    }
-
     fun arrow(a: Point, b: Point, color: Int) {
         val length = hypot(b.x - a.x, b.y - a.y)
         if (length < 4f) return

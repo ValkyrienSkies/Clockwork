@@ -50,14 +50,15 @@ class AeronautShipRequestPacket(private val shipId: Long) : C2SCWPacket {
             val sight = AeronautShipReadout.TerrainSight(level, eye, AeronautShipReadout.SERVER_RAYS)
             val toModel = ship.transform.worldToShip
             val toWorld = ship.transform.shipToWorld
-            fun model(point: Vec3): Vec3 = toModel.transformPosition(Vector3d(point.x, point.y, point.z)).let { Vec3(it.x, it.y, it.z) }
-            fun exposed(point: Vec3) = sight.sees(toWorld.transformPosition(Vector3d(point.x, point.y, point.z)))
-            val localEye = model(eye)
-            val nearest = Vec3(localEye.x.coerceIn(modelBox.minX, modelBox.maxX),
-                localEye.y.coerceIn(modelBox.minY, modelBox.maxY), localEye.z.coerceIn(modelBox.minZ, modelBox.maxZ))
+            fun exposed(point: Vector3d) = sight.sees(toWorld.transformPosition(point, Vector3d()))
+            val localEye = toModel.transformPosition(Vector3d(eye.x, eye.y, eye.z))
+            val nearest = AeronautShipReadout.closestPoint(modelBox, localEye)
             if (!exposed(nearest)) {
-                val aimed = modelBox.clip(localEye, model(eye.add(look.scale(AeronautForceReadout.MAX_RANGE)))).orElse(null)
-                if (aimed == null || !exposed(aimed)) return null
+                val localLook = toModel.transformDirection(Vector3d(look.x, look.y, look.z))
+                val end = Vector3d(localEye).fma(AeronautForceReadout.MAX_RANGE, localLook)
+                val aimed = modelBox.clip(Vec3(localEye.x, localEye.y, localEye.z), Vec3(end.x, end.y, end.z)).orElse(null)
+                if ((aimed == null || !exposed(Vector3d(aimed.x, aimed.y, aimed.z))) &&
+                    !exposed(AeronautShipReadout.nearAimPoint(modelBox, localEye, localLook))) return null
             }
             return AeronautShipReadout.filterVisible(AeronautShipReadout.sample(level, ship), sight, look, shipId) { body, pos ->
                 if (body == null) pos

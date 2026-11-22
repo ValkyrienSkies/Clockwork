@@ -4,11 +4,21 @@ import org.joml.Matrix4fc
 import org.joml.Vector3dc
 import org.joml.Vector4f
 import kotlin.math.abs
+import kotlin.math.cos
 import kotlin.math.max
 import kotlin.math.min
+import kotlin.math.sqrt
 
 object AeronautHudMath {
+    private val minimumAimAlignment = cos(Math.toRadians(15.0))
+
     data class Point(val x: Float, val y: Float)
+
+    internal fun nearAimAlignment(offset: Vector3dc, look: Vector3dc, range: Double): Double? {
+        val distanceSquared = offset.lengthSquared()
+        if (distanceSquared > range * range) return null
+        return (offset.dot(look) / sqrt(distanceSquared)).takeIf { it >= minimumAimAlignment }
+    }
 
     fun project(relative: Vector3dc, matrix: Matrix4fc, width: Int, height: Int): Point? {
         if (!relative.isFinite || width <= 0 || height <= 0) return null

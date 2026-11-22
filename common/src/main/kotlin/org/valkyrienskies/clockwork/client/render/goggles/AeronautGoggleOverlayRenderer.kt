@@ -1,5 +1,6 @@
 package org.valkyrienskies.clockwork.client.render.goggles
 
+import com.mojang.blaze3d.systems.RenderSystem
 import com.mojang.blaze3d.vertex.PoseStack
 import com.mojang.blaze3d.vertex.VertexConsumer
 import com.simibubi.create.content.equipment.goggles.GoggleOverlayRenderer
@@ -16,7 +17,9 @@ import net.minecraft.client.gui.GuiGraphics
 import net.minecraft.client.multiplayer.ClientLevel
 import net.minecraft.client.renderer.MultiBufferSource
 import net.minecraft.network.chat.Component
+import net.minecraft.resources.ResourceLocation
 import net.minecraft.world.entity.EquipmentSlot
+import net.minecraft.world.phys.AABB
 import net.minecraft.world.phys.BlockHitResult
 import net.minecraft.world.phys.HitResult
 import net.minecraft.world.phys.Vec3
@@ -24,6 +27,7 @@ import org.joml.Matrix4f
 import org.joml.Vector3d
 import org.joml.Vector3dc
 import org.valkyrienskies.clockwork.ClockworkItems
+import org.valkyrienskies.clockwork.ClockworkMod
 import org.valkyrienskies.clockwork.ClockworkPackets
 import org.valkyrienskies.clockwork.ClockworkRenderTypes
 import org.valkyrienskies.clockwork.content.curiosities.aeronaut.AeronautAssemblyReadout
@@ -56,12 +60,27 @@ object AeronautGoggleOverlayRenderer {
     private const val SUPPORT = 0xFF6BC6A4.toInt()
     private const val JOINT = 0xFFB9A5FB.toInt()
     private const val OUTSIDE = 0xFFF38C80.toInt()
+    private const val TARGET_RAYS = 16
+
+    private enum class Icon(name: String) {
+        MASS("com"), ASSEMBLY_MASS("cov"), LIFT("col"), THRUST("cot"), JOINT("coj"), CONTACT("cog");
+
+        val idle = ResourceLocation(ClockworkMod.MOD_ID, "textures/gui/aeronaut/${name}_0.png")
+        val highlighted = ResourceLocation(ClockworkMod.MOD_ID, "textures/gui/aeronaut/${name}_1.png")
+    }
+
+    private data class Marker(val point: AeronautGuides.Point, val icon: Icon, val color: Int,
+                              val highlighted: Boolean, val potential: Boolean)
+
+    private data class ShipTarget(val ship: ClientShip, val point: Vector3dc, val nearest: Vector3dc,
+                                  val alignment: Double, val distanceSquared: Double)
+
     private var level: ClientLevel? = null
     private var target: ClientShip? = null
     private val matrix = Matrix4f()
     private val cameraPosition = Vector3d()
     private var capturedAt = 0L
-    private var lastShipHitAt = 0L
+    private var lastTargetSeenAt = 0L
     private var requestAt = Long.MIN_VALUE
     private var receivedAt = 0L
     private var readout: AeronautShipReadoutPacket? = null
@@ -71,19 +90,21 @@ object AeronautGoggleOverlayRenderer {
     private val markerShips = HashSet<Long>()
     private var markerView: ShipRenderView? = null
     private val hoverDistances = IdentityHashMap<Any, Float>()
+    private val markers = ArrayList<Marker>()
 
-    private fun beginView(view: ShipRenderView) {
+    private fun beginView(view: ShipRenderView?) {
         if (markerView !== view) {
             hoverDistances.clear()
+            markers.clear()
             markerView = view
         }
     }
 
-    private fun marker(guides: AeronautGuides, key: Any, position: Vector3dc, color: Int,
-                       hollow: Boolean = false, small: Boolean = false, targeted: Boolean = false): AeronautGuides.Point? {
+    private fun addMarker(guides: AeronautGuides, key: Any?, position: Vector3dc, icon: Icon, color: Int,
+                          hoverRadius: Float = 9f, targeted: Boolean = false, potential: Boolean = false): AeronautGuides.Point? {
         val point = guides.point(position) ?: return null
-        hoverDistances[key] = point.crosshairDistance
-        guides.marker(point, color, hollow, targeted || point.crosshairDistance <= (if (small) 8f else 9f), small)
+        if (key != null) hoverDistances[key] = point.crosshairDistance
+        markers.add(Marker(point, icon, color, targeted || (key != null && point.crosshairDistance <= hoverRadius), potential))
         return point
     }
 
@@ -97,31 +118,34 @@ object AeronautGoggleOverlayRenderer {
         val guides = AeronautGuides(event.buffers.getBuffer(ClockworkRenderTypes.AERONAUT_GUIDES),
             event.poseStack.last().pose(), event.view.projectionMatrix, Vector3d(origin.x.toDouble(), origin.y.toDouble(), origin.z.toDouble()))
         if (ship.id == target?.id) {
-            if (snapshot.massVisible) marker(guides, snapshot.massCenter, snapshot.massCenter, GOLD)
-            fun force(center: AeronautForceCenter?, color: Int, potential: Boolean, guide: Int = 0) {
+            if (snapshot.massVisible) {
+                val icon = if (snapshot.assembly.bodyCount > 1) Icon.ASSEMBLY_MASS else Icon.MASS
+                addMarker(guides, snapshot.massCenter, snapshot.massCenter, icon, GOLD)
+            }
+            fun force(center: AeronautForceCenter?, icon: Icon, color: Int, potential: Boolean, guide: Int = 0) {
                 center ?: return
-                val from = marker(guides, center, center.position, color, potential) ?: return
+                val from = addMarker(guides, center, center.position, icon, color, potential = potential) ?: return
                 if (snapshot.visibleGuides and guide != 0 && center.force.lengthSquared() > 1e-8) {
                     val end = Vector3d(center.position).add(Vector3d(center.force).normalize().mul(2.0))
                     guides.point(end)?.let { guides.arrow(from, it, color) }
                 }
             }
-            force(snapshot.potentialThrust, CYAN, true)
-            force(snapshot.potentialLift, GREEN, true)
-            force(snapshot.liveThrust, CYAN, false, AeronautShipReadout.THRUST_ARROW)
-            force(snapshot.liveLift, GREEN, false, AeronautShipReadout.LIFT_ARROW)
+            force(snapshot.potentialThrust, Icon.THRUST, CYAN, true)
+            force(snapshot.potentialLift, Icon.LIFT, GREEN, true)
+            force(snapshot.liveThrust, Icon.THRUST, CYAN, false, AeronautShipReadout.THRUST_ARROW)
+            force(snapshot.liveLift, Icon.LIFT, GREEN, false, AeronautShipReadout.LIFT_ARROW)
         }
-        drawAnchors(guides, snapshot.assembly, ship.id)
+        addAnchorMarkers(guides, snapshot.assembly, ship.id)
     }
 
-    private fun drawAnchors(guides: AeronautGuides, assembly: AeronautAssemblyReadout.Detail, owner: Long?) {
+    private fun addAnchorMarkers(guides: AeronautGuides, assembly: AeronautAssemblyReadout.Detail, owner: Long?) {
         val hit = (Minecraft.getInstance().hitResult as? BlockHitResult)?.takeIf { it.type == HitResult.Type.BLOCK }?.blockPos
         for (face in assembly.contactFaces) if (face.shipId == owner)
-            marker(guides, face, face.center, SUPPORT, hollow = true, small = true)
+            addMarker(guides, face, face.center, Icon.CONTACT, SUPPORT, hoverRadius = 8f)
         for (foot in assembly.feet) if (foot.anchor.shipId == owner)
-            marker(guides, foot, blockCenter(foot.anchor), SUPPORT)
+            addMarker(guides, foot, blockCenter(foot.anchor), Icon.CONTACT, SUPPORT, hoverRadius = 8f)
         for (joint in assembly.joints) if (joint.anchor.shipId == owner)
-            marker(guides, joint, blockCenter(joint.anchor), JOINT, hollow = true, small = true, targeted = joint.anchor.pos == hit)
+            addMarker(guides, joint, blockCenter(joint.anchor), Icon.JOINT, JOINT, hoverRadius = 8f, targeted = joint.anchor.pos == hit)
     }
 
     private fun blockCenter(anchor: AeronautAssemblyReadout.Anchor) =
@@ -176,15 +200,15 @@ object AeronautGoggleOverlayRenderer {
         cameraPosition.set(camera.position.x, camera.position.y, camera.position.z)
         matrix.set(projection).mul(poseStack.last().pose())
         capturedAt = System.nanoTime()
-        val view = vsApi.currentShipRenderView ?: return
-        beginView(view)
+        beginView(vsApi.currentShipRenderView)
+        if (markerView == null) return
         val snapshot = visibleReadout ?: return
         val buffers = mc.renderBuffers().bufferSource()
         val type = ClockworkRenderTypes.AERONAUT_GUIDES
         val guides = AeronautGuides(buffers.getBuffer(type), poseStack.last().pose(), projection, cameraPosition)
-        drawAnchors(guides, snapshot.assembly, null)
+        addAnchorMarkers(guides, snapshot.assembly, null)
         val outline = snapshot.assembly.outline
-        if (outline.size == 1) guides.point(outline.first())?.let { guides.marker(it, SUPPORT, false, false, false) }
+        if (outline.size == 1) addMarker(guides, null, outline.first(), Icon.CONTACT, SUPPORT)
         else supportRim.render(guides, capturedAt)
         if (outline.isNotEmpty() && snapshot.massVisible && snapshot.visibleGuides and AeronautShipReadout.PROJECTION != 0) {
             val center = target?.renderTransform?.shipToWorld?.transformPosition(snapshot.massCenter, Vector3d())
@@ -203,29 +227,36 @@ object AeronautGoggleOverlayRenderer {
         buffers.endBatch(type)
     }
 
-    private fun findTarget(world: ClientLevel, sight: AeronautShipReadout.TerrainSight, view: Vec3): ClientShip? {
-        val eye = sight.eye
+    private fun findTarget(world: ClientLevel, eye: Vec3, view: Vec3): ClientShip? {
         val position = Vector3d(eye.x, eye.y, eye.z)
-        val look = Vector3d(view.x, view.y, view.z)
-        var nearest = AeronautForceReadout.MAX_RANGE
-        var selected: ClientShip? = null
+        val look = Vector3d(view.x, view.y, view.z).normalize()
+        val range = AeronautForceReadout.MAX_RANGE
+        val candidates = ArrayList<ShipTarget>()
         for (ship in world.shipObjectWorld?.loadedShips ?: return null) {
             val bounds = ship.shipAABB ?: continue
-            val inverse = ship.renderTransform.worldToShip
-            val origin = inverse.transformPosition(position, Vector3d())
-            val direction = inverse.transformDirection(look, Vector3d())
-            val entry = AeronautHudMath.rayEntry(origin, direction,
-                Vector3d(bounds.minX().toDouble(), bounds.minY().toDouble(), bounds.minZ().toDouble()),
-                Vector3d(bounds.maxX().toDouble(), bounds.maxY().toDouble(), bounds.maxZ().toDouble()), nearest) ?: continue
-            if (selected == null || entry < nearest) { nearest = entry; selected = ship }
+            val min = Vector3d(bounds.minX().toDouble(), bounds.minY().toDouble(), bounds.minZ().toDouble())
+            val max = Vector3d(bounds.maxX().toDouble(), bounds.maxY().toDouble(), bounds.maxZ().toDouble())
+            val box = AABB(min.x, min.y, min.z, max.x, max.y, max.z)
+            val transform = ship.renderTransform
+            val origin = transform.worldToShip.transformPosition(position, Vector3d())
+            val direction = transform.worldToShip.transformDirection(look, Vector3d())
+            val entry = AeronautHudMath.rayEntry(origin, direction, min, max, range)
+            val point = if (entry != null) Vector3d(position).fma(entry, look) else
+                transform.shipToWorld.transformPosition(AeronautShipReadout.nearAimPoint(box, origin, direction), Vector3d())
+            val offset = point.sub(position, Vector3d())
+            val alignment = if (entry != null) 1.0 else AeronautHudMath.nearAimAlignment(offset, look, range) ?: continue
+            val nearest = transform.shipToWorld.transformPosition(AeronautShipReadout.closestPoint(box, origin), Vector3d())
+            candidates.add(ShipTarget(ship, point, nearest, alignment, offset.lengthSquared()))
         }
-        return selected?.takeIf { sight.sees(eye.add(view.scale(nearest))) }
+        val sight = AeronautShipReadout.TerrainSight(world, eye, TARGET_RAYS)
+        return candidates.sortedWith(compareByDescending<ShipTarget> { it.alignment }.thenBy { it.distanceSquared })
+            .firstOrNull { sight.sees(it.point) || sight.sees(it.nearest) }?.ship
     }
 
     private fun aimedAtReadout(world: ClientLevel, ship: ClientShip, now: Long, allowGrace: Boolean): Boolean {
         val snapshot = visibleReadout ?: return false
         if (world.shipObjectWorld?.loadedShips?.getById(ship.id) == null) return false
-        if (allowGrace && now - lastShipHitAt < 600_000_000L) return true
+        if (allowGrace && now - lastTargetSeenAt < 600_000_000L) return true
         val window = Minecraft.getInstance().window
         val width = window.guiScaledWidth
         val height = window.guiScaledHeight
@@ -241,6 +272,8 @@ object AeronautGoggleOverlayRenderer {
             if (snapshot.visibleGuides and AeronautShipReadout.PROJECTION != 0 && support != null &&
                 aimedAt(Vector3d(center.x, support.y(), center.z))) return true
         }
+        val forces = listOfNotNull(snapshot.potentialThrust, snapshot.potentialLift, snapshot.liveThrust, snapshot.liveLift)
+        if (forces.any { aimedAt(ship.renderTransform.shipToWorld.transformPosition(it.position, Vector3d())) }) return true
         return assembly.feet.any { anchorPosition(world, it.anchor)?.let(::aimedAt) == true } ||
             assembly.contactFaces.any { modelPosition(world, it.shipId, it.center)?.let(::aimedAt) == true } ||
             assembly.joints.any { anchorPosition(world, it.anchor)?.let(::aimedAt) == true }
@@ -265,14 +298,14 @@ object AeronautGoggleOverlayRenderer {
         val now = System.nanoTime()
         val view = player.lookAngle
         val sight = AeronautShipReadout.TerrainSight(world, player.eyePosition, AeronautShipReadout.CLIENT_RAYS)
-        var selected = findTarget(world, sight, view)
+        var selected = findTarget(world, sight.eye, view)
         val previous = target
         visibleReadout = readout?.takeIf { now - receivedAt < 1_000_000_000L }?.let { packet ->
             AeronautShipReadout.filterVisible(packet.snapshot, sight, view, packet.shipId) { body, point ->
                 modelPosition(world, body, point)
             }
         }
-        if (selected != null) lastShipHitAt = now
+        if (selected != null) lastTargetSeenAt = now
         if (previous != null && selected?.id != previous.id && aimedAtReadout(world, previous, now, selected == null))
             selected = previous
         if (previous?.id != selected?.id) {
@@ -317,7 +350,8 @@ object AeronautGoggleOverlayRenderer {
         markerShips.clear()
         markerView = null
         hoverDistances.clear()
-        requestAt = Long.MIN_VALUE; capturedAt = 0L; lastShipHitAt = 0L
+        markers.clear()
+        requestAt = Long.MIN_VALUE; capturedAt = 0L; lastTargetSeenAt = 0L
     }
 
     @JvmStatic
@@ -330,6 +364,7 @@ object AeronautGoggleOverlayRenderer {
         val ship = target
         val snapshot = visibleReadout
         if (ship != null && snapshot != null && System.nanoTime() - capturedAt <= 250_000_000L) {
+            renderMarkers(graphics)
             fun row(key: String, value: String, color: ChatFormatting = ChatFormatting.GRAY) {
                 CreateLang.builder().add(text(key, value)).style(color).forGoggles(tooltip, 1)
             }
@@ -359,6 +394,30 @@ object AeronautGoggleOverlayRenderer {
         if (magnetic.isNotEmpty()) renderTooltip(graphics, magnetic)
         else if (tooltip.isNotEmpty() && GoggleOverlayRenderer.hoverTicks == 0) renderTooltip(graphics, tooltip)
         joint?.let { renderTooltip(graphics, jointTooltip(it), jointInspection = true) }
+    }
+
+    private fun renderMarkers(graphics: GuiGraphics) {
+        if (markers.isEmpty()) return
+        val centerX = graphics.guiWidth() / 2f
+        val centerY = graphics.guiHeight() / 2f
+        RenderSystem.enableBlend()
+        RenderSystem.defaultBlendFunc()
+        try {
+            for (marker in markers) {
+                val color = marker.color
+                val texture = if (marker.highlighted) marker.icon.highlighted else marker.icon.idle
+                var size = if (marker.highlighted) 16 else 8
+                if (marker.potential) size += 8
+                val x = (centerX + marker.point.x).roundToInt() - size / 2
+                val y = (centerY - marker.point.y).roundToInt() - size / 2
+                graphics.setColor((color shr 16 and 255) / 255f, (color shr 8 and 255) / 255f,
+                    (color and 255) / 255f, if (marker.potential) .65f else 1f)
+                graphics.blit(texture, x, y, size, size, 0f, 0f, 8, 8, 8, 8)
+            }
+        } finally {
+            graphics.setColor(1f, 1f, 1f, 1f)
+            RenderSystem.disableBlend()
+        }
     }
 
     private fun assemblyTooltip(snapshot: AeronautShipReadout.Snapshot, ship: ClientShip,

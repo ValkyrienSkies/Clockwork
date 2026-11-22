@@ -207,6 +207,18 @@ object AeronautShipReadout {
     private const val MAX_GUIDE_CELLS = 1024
     private const val END_MARGIN = 0.02
 
+    internal fun closestPoint(bounds: AABB, point: Vector3dc) = Vector3d(
+        point.x().coerceIn(bounds.minX, bounds.maxX),
+        point.y().coerceIn(bounds.minY, bounds.maxY),
+        point.z().coerceIn(bounds.minZ, bounds.maxZ)
+    )
+
+    internal fun nearAimPoint(bounds: AABB, eye: Vector3dc, look: Vector3dc): Vector3d {
+        val center = bounds.center
+        val depth = Vector3d(center.x, center.y, center.z).sub(eye).dot(look) / look.lengthSquared()
+        return closestPoint(bounds, Vector3d(eye).fma(depth.coerceIn(0.0, AeronautForceReadout.MAX_RANGE), look))
+    }
+
     internal class TerrainSight(private val level: Level, val eye: Vec3, private var remaining: Int) {
         private data class Query(val point: Vec3, val terminalBlock: BlockPos?)
         private val results = HashMap<Query, Boolean>()
