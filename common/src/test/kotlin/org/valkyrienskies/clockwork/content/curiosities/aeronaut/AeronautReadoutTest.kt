@@ -1,10 +1,33 @@
 package org.valkyrienskies.clockwork.content.curiosities.aeronaut
 
+import io.netty.buffer.Unpooled
+import net.minecraft.network.FriendlyByteBuf
+import net.minecraft.resources.ResourceLocation
 import org.joml.Vector3d
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
 
 class AeronautReadoutTest {
+    @Test
+    fun `outline pose survives packet encoding and old packets retain their world outline`() {
+        val assembly = AeronautAssemblyReadout.Detail(
+            outline = listOf(Vector3d(90.0, 64.0, -80.0), Vector3d(91.0, 64.0, -80.0)),
+            outlinePose = AeronautAssemblyReadout.OutlinePose(90.0, -80.0, 0.5)
+        )
+        val snapshot = AeronautShipReadout.Snapshot(100.0, Vector3d(), null, null, null, null, assembly)
+        val buffer = FriendlyByteBuf(Unpooled.buffer())
+        try {
+            AeronautShipReadoutPacket(7L, ResourceLocation("minecraft", "overworld"), snapshot).write(buffer)
+            assertEquals(snapshot, AeronautShipReadoutPacket(buffer).snapshot)
+
+            buffer.readerIndex(0)
+            buffer.writerIndex(buffer.writerIndex() - 3 * Double.SIZE_BYTES)
+            assertEquals(snapshot.copy(assembly = assembly.copy(outlinePose = null)), AeronautShipReadoutPacket(buffer).snapshot)
+        } finally {
+            buffer.release()
+        }
+    }
+
     @Test
     fun `unequal engines weight their actual application points`() {
         val forces = AeronautForceAccumulator()

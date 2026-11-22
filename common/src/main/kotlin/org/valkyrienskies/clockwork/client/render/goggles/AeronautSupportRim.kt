@@ -125,9 +125,8 @@ internal class AeronautSupportRim {
 
     private fun currentPhase(now: Long) = wrap(phase + (now - phaseAt).toDouble() / ORBIT_NANOS)
 
-    fun render(guides: AeronautGuides, now: Long) {
+    fun render(guides: AeronautGuides, now: Long, points: List<Vector3dc>) {
         val rim = contourAt(now) ?: return
-        val points = rim.points
         val fade = ((now - appearedAt).toDouble() / FADE_NANOS).coerceIn(0.0, 1.0).toFloat()
         val head = phaseOn(rim, now)
 

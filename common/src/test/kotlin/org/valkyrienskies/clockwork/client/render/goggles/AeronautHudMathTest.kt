@@ -5,6 +5,7 @@ import org.joml.Matrix4f
 import org.joml.Vector3d
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
+import org.valkyrienskies.clockwork.content.curiosities.aeronaut.AeronautAssemblyReadout.OutlinePose
 
 class AeronautHudMathTest {
     @Test
@@ -78,5 +79,21 @@ class AeronautHudMathTest {
         assertEquals(next, rim.outlineAt(now + 200_000_000L))
         rim.update(next, now + 120_000_000L) { _, _ -> false }
         assertEquals(next, rim.outlineAt(now + 120_000_000L))
+    }
+
+    @Test
+    fun `a sampled support rim follows translation and yaw between samples`() {
+        val rim = AeronautSupportRim()
+        val sampledPose = OutlinePose(90.0, -80.0, Math.PI / 2.0)
+        val contacts = listOf(Vector3d(90.0, 64.0, -80.0), Vector3d(90.0, 64.0, -82.0),
+            Vector3d(91.0, 64.0, -82.0), Vector3d(91.0, 64.0, -80.0))
+        rim.update(contacts.map(sampledPose::toLocal), 0L) { _, _ -> true }
+
+        val renderPose = OutlinePose(96.0, -79.0, Math.PI)
+        val expected = listOf(Vector3d(96.0, 64.0, -79.0), Vector3d(94.0, 64.0, -79.0),
+            Vector3d(94.0, 64.0, -80.0), Vector3d(96.0, 64.0, -80.0))
+        val displayed = rim.outlineAt(50_000_000L).map(renderPose::toWorld)
+        assertEquals(expected.size, displayed.size)
+        assertTrue(displayed.zip(expected).all { (actual, corner) -> actual.distance(corner) < 1e-8 })
     }
 }

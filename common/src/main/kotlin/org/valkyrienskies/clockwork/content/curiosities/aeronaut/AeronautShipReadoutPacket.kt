@@ -52,6 +52,11 @@ class AeronautShipReadoutPacket(val shipId: Long, val dimension: ResourceLocatio
             buffer.writeDouble(load)
         }
         buffer.writeByte(snapshot.visibleGuides or if (snapshot.massVisible) MASS_VISIBLE else 0)
+        assembly.outlinePose?.takeIf { assembly.outline.isNotEmpty() }?.let { pose ->
+            buffer.writeDouble(pose.x)
+            buffer.writeDouble(pose.z)
+            buffer.writeDouble(pose.yaw)
+        }
     }
 
     override fun handle(context: ClientNetworkContext) {
@@ -72,7 +77,12 @@ class AeronautShipReadoutPacket(val shipId: Long, val dimension: ResourceLocatio
             val assembly = readAssembly(buffer)
             val visibility = if (buffer.isReadable) buffer.readUnsignedByte().toInt()
                 else MASS_VISIBLE or AeronautShipReadout.ALL_GUIDES
-            return AeronautShipReadout.Snapshot(mass, center, potentialThrust, liveThrust, potentialLift, liveLift, assembly,
+            val pose = if (assembly.outline.isNotEmpty() && buffer.isReadable(3 * Double.SIZE_BYTES)) {
+                AeronautAssemblyReadout.OutlinePose(buffer.readDouble(), buffer.readDouble(), buffer.readDouble())
+                    .takeIf { it.x.isFinite() && it.z.isFinite() && it.yaw.isFinite() }
+            } else null
+            return AeronautShipReadout.Snapshot(mass, center, potentialThrust, liveThrust, potentialLift, liveLift,
+                assembly.copy(outlinePose = pose),
                 visibility and MASS_VISIBLE != 0, visibility and AeronautShipReadout.ALL_GUIDES)
         }
 

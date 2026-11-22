@@ -31,6 +31,7 @@ import org.valkyrienskies.clockwork.ClockworkMod
 import org.valkyrienskies.clockwork.ClockworkPackets
 import org.valkyrienskies.clockwork.ClockworkRenderTypes
 import org.valkyrienskies.clockwork.content.curiosities.aeronaut.AeronautAssemblyReadout
+import org.valkyrienskies.clockwork.content.curiosities.aeronaut.AeronautAssemblyReadout.OutlinePose
 import org.valkyrienskies.clockwork.content.curiosities.aeronaut.AeronautForceCenter
 import org.valkyrienskies.clockwork.content.curiosities.aeronaut.AeronautForceReadout
 import org.valkyrienskies.clockwork.content.curiosities.aeronaut.AeronautGogglesItem
@@ -86,9 +87,11 @@ object AeronautGoggleOverlayRenderer {
     private var readout: AeronautShipReadoutPacket? = null
     private var visibleReadout: AeronautShipReadout.Snapshot? = null
     private val supportRim = AeronautSupportRim()
+    private var checkedSupportCenter: Vector3dc? = null
     private var overlayListener: RegisteredListener? = null
     private val markerShips = HashSet<Long>()
     private var markerView: ShipRenderView? = null
+    private var projectedInsideSupport: Boolean? = null
     private val hoverDistances = IdentityHashMap<Any, Float>()
     private val markers = ArrayList<Marker>()
 
@@ -96,6 +99,7 @@ object AeronautGoggleOverlayRenderer {
         if (markerView !== view) {
             hoverDistances.clear()
             markers.clear()
+            projectedInsideSupport = null
             markerView = view
         }
     }
@@ -200,31 +204,49 @@ object AeronautGoggleOverlayRenderer {
         cameraPosition.set(camera.position.x, camera.position.y, camera.position.z)
         matrix.set(projection).mul(poseStack.last().pose())
         capturedAt = System.nanoTime()
-        beginView(vsApi.currentShipRenderView)
-        if (markerView == null) return
+        val view = vsApi.currentShipRenderView
+        beginView(view)
+        if (view == null) return
         val snapshot = visibleReadout ?: return
         val buffers = mc.renderBuffers().bufferSource()
         val type = ClockworkRenderTypes.AERONAUT_GUIDES
         val guides = AeronautGuides(buffers.getBuffer(type), poseStack.last().pose(), projection, cameraPosition)
         addAnchorMarkers(guides, snapshot.assembly, null)
-        val outline = snapshot.assembly.outline
-        if (outline.size == 1) addMarker(guides, null, outline.first(), Icon.CONTACT, SUPPORT)
-        else supportRim.render(guides, capturedAt)
-        if (outline.isNotEmpty() && snapshot.massVisible && snapshot.visibleGuides and AeronautShipReadout.PROJECTION != 0) {
-            val center = target?.renderTransform?.shipToWorld?.transformPosition(snapshot.massCenter, Vector3d())
-            if (center != null) {
-                val projected = Vector3d(center.x, outline.first().y(), center.z)
-                val point = guides.point(projected)
-                if (point != null) {
-                    hoverDistances[outline] = point.crosshairDistance
-                    val color = if (outline.size < 3) GOLD else if (AeronautSupportGeometry.contains(outline, projected)) SUPPORT else OUTSIDE
-                    guides.point(center)?.let { guides.stroke(it, point, 1f, 1f, 0x80FFCC71.toInt()) }
-                    guides.stroke(point.offset(-4f, 0f), point.offset(4f, 0f), 1f, 1f, color)
-                    guides.stroke(point.offset(0f, -4f), point.offset(0f, 4f), 1f, 1f, color)
-                }
-            }
-        }
+        renderSupport(guides, snapshot, view.level, camera.position)
         buffers.endBatch(type)
+    }
+
+    private fun renderSupport(guides: AeronautGuides, snapshot: AeronautShipReadout.Snapshot, world: ClientLevel, eye: Vec3) {
+        val assembly = snapshot.assembly
+        if (assembly.outline.isEmpty()) return
+        val transform = target?.renderTransform ?: return
+        val pose = assembly.outlinePose?.let { OutlinePose.of(transform) }
+        val localOutline = if (assembly.outline.size == 1) assembly.localOutline() else supportRim.outlineAt(capturedAt)
+        val outline = pose?.let { localOutline.map(it::toWorld) } ?: localOutline
+        if (outline.isEmpty()) return
+        val moved = outline != assembly.outline
+        val sight = if (moved) AeronautShipReadout.TerrainSight(world, eye, AeronautShipReadout.CLIENT_RAYS) else null
+        if (sight != null && !AeronautShipReadout.visibleOutline(outline, sight)) return
+        if (outline.size == 1) addMarker(guides, null, outline.first(), Icon.CONTACT, SUPPORT)
+        else supportRim.render(guides, capturedAt, outline)
+        if (!snapshot.massVisible || snapshot.visibleGuides and AeronautShipReadout.PROJECTION == 0) return
+        val center = transform.shipToWorld.transformPosition(snapshot.massCenter, Vector3d())
+        val projected = Vector3d(center.x, outline.first().y(), center.z)
+        val point = guides.point(projected) ?: return
+        if (moved || center != checkedSupportCenter) {
+            val projectionSight = sight ?: AeronautShipReadout.TerrainSight(world, eye, AeronautShipReadout.CLIENT_RAYS)
+            if (!projectionSight.seesSegment(center, projected)) return
+        }
+        hoverDistances[assembly.outline] = point.crosshairDistance
+        projectedInsideSupport = if (outline.size >= 3) AeronautSupportGeometry.contains(outline, projected) else null
+        val color = when (projectedInsideSupport) {
+            true -> SUPPORT
+            false -> OUTSIDE
+            null -> GOLD
+        }
+        guides.point(center)?.let { guides.stroke(it, point, 1f, 1f, 0x80FFCC71.toInt()) }
+        guides.stroke(point.offset(-4f, 0f), point.offset(4f, 0f), 1f, 1f, color)
+        guides.stroke(point.offset(0f, -4f), point.offset(0f, 4f), 1f, 1f, color)
     }
 
     private fun findTarget(world: ClientLevel, eye: Vec3, view: Vec3): ClientShip? {
@@ -300,8 +322,15 @@ object AeronautGoggleOverlayRenderer {
         val sight = AeronautShipReadout.TerrainSight(world, player.eyePosition, AeronautShipReadout.CLIENT_RAYS)
         var selected = findTarget(world, sight.eye, view)
         val previous = target
-        visibleReadout = readout?.takeIf { now - receivedAt < 1_000_000_000L }?.let { packet ->
-            AeronautShipReadout.filterVisible(packet.snapshot, sight, view, packet.shipId) { body, point ->
+        val packet = readout?.takeIf { now - receivedAt < 1_000_000_000L }
+        val assembly = packet?.snapshot?.assembly
+        val localOutline = assembly?.localOutline().orEmpty()
+        val pose = if (assembly?.outlinePose != null) previous?.renderTransform?.let(OutlinePose::of) else null
+        visibleReadout = packet?.let {
+            val snapshot = it.snapshot
+            val current = if (pose == null) snapshot else snapshot.copy(
+                assembly = snapshot.assembly.copy(outline = localOutline.map(pose::toWorld), outlinePose = pose))
+            AeronautShipReadout.filterVisible(current, sight, view, it.shipId) { body, point ->
                 modelPosition(world, body, point)
             }
         }
@@ -314,6 +343,9 @@ object AeronautGoggleOverlayRenderer {
             requestAt = Long.MIN_VALUE
         }
         target = selected
+        checkedSupportCenter = visibleReadout?.takeIf { it.visibleGuides and AeronautShipReadout.PROJECTION != 0 }?.let { snapshot ->
+            selected?.let { modelPosition(world, it.id, snapshot.massCenter) }
+        }
         markerShips.clear()
         visibleReadout?.assembly?.let { assembly ->
             selected?.let { markerShips.add(it.id) }
@@ -325,8 +357,10 @@ object AeronautGoggleOverlayRenderer {
             overlayListener?.unregister()
             overlayListener = null
         } else if (overlayListener == null) overlayListener = vsApi.postRenderShipEvent.on(::renderShip)
-        supportRim.update(visibleReadout?.assembly?.outline.orEmpty(), now) { from, to ->
-            AeronautSupportRim.terrainClear(world, sight.eye, from, to)
+        val rimOutline = localOutline.takeUnless { visibleReadout?.assembly?.outline.isNullOrEmpty() }.orEmpty()
+        supportRim.update(rimOutline, now) { from, to ->
+            if (pose == null) AeronautSupportRim.terrainClear(world, sight.eye, from, to)
+            else AeronautSupportRim.terrainClear(world, sight.eye, from.map(pose::toWorld), to.map(pose::toWorld))
         }
         val ship = selected ?: return
         if (requestAt == Long.MIN_VALUE || world.gameTime - requestAt >= AeronautForceReadout.UPDATE_TICKS) {
@@ -345,10 +379,12 @@ object AeronautGoggleOverlayRenderer {
     private fun reset() {
         level = null; target = null; readout = null; visibleReadout = null
         supportRim.clear()
+        checkedSupportCenter = null
         overlayListener?.unregister()
         overlayListener = null
         markerShips.clear()
         markerView = null
+        projectedInsideSupport = null
         hoverDistances.clear()
         markers.clear()
         requestAt = Long.MIN_VALUE; capturedAt = 0L; lastTargetSeenAt = 0L
@@ -368,7 +404,7 @@ object AeronautGoggleOverlayRenderer {
             fun row(key: String, value: String, color: ChatFormatting = ChatFormatting.GRAY) {
                 CreateLang.builder().add(text(key, value)).style(color).forGoggles(tooltip, 1)
             }
-            joint = assemblyTooltip(snapshot, ship, tooltip)
+            joint = assemblyTooltip(snapshot, tooltip)
             if ((hoverDistances[snapshot.massCenter] ?: Float.MAX_VALUE) <= 9f) {
                 val bodies = snapshot.assembly.bodyCount
                 val label = if (bodies > 1) text("assembly_mass_center") else text("mass_center")
@@ -420,16 +456,14 @@ object AeronautGoggleOverlayRenderer {
         }
     }
 
-    private fun assemblyTooltip(snapshot: AeronautShipReadout.Snapshot, ship: ClientShip,
+    private fun assemblyTooltip(snapshot: AeronautShipReadout.Snapshot,
                                 tooltip: MutableList<Component>): AeronautAssemblyReadout.Joint? {
         val mc = Minecraft.getInstance()
         val assembly = snapshot.assembly
         val outline = assembly.outline
         if ((hoverDistances[outline] ?: Float.MAX_VALUE) <= 7f) {
             CreateLang.builder().add(text("mass_projection")).style(ChatFormatting.GOLD).forGoggles(tooltip)
-            if (outline.size >= 3) {
-                val center = ship.renderTransform.shipToWorld.transformPosition(snapshot.massCenter, Vector3d())
-                val inside = AeronautSupportGeometry.contains(outline, center)
+            projectedInsideSupport?.let { inside ->
                 CreateLang.builder().add(text(if (inside) "inside_support" else "outside_support"))
                     .style(if (inside) ChatFormatting.GREEN else ChatFormatting.RED).forGoggles(tooltip, 1)
             }

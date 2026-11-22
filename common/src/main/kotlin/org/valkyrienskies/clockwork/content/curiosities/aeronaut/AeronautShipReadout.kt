@@ -378,10 +378,11 @@ object AeronautShipReadout {
             massCenter = if (massVisible) snapshot.massCenter else Vector3d(), potentialThrust = potentialThrust,
             liveThrust = liveThrust, potentialLift = potentialLift, liveLift = liveLift,
             assembly = assembly.copy(bodyCount = if (massVisible) assembly.bodyCount else 1, feet = feet, outline = outline,
-                joints = joints, contactFaces = faces), massVisible = massVisible, visibleGuides = guides)
+                joints = joints, contactFaces = faces, outlinePose = assembly.outlinePose.takeIf { outline.isNotEmpty() }),
+            massVisible = massVisible, visibleGuides = guides)
     }
 
-    private fun visibleOutline(outline: List<Vector3dc>, sight: TerrainSight): Boolean = when (outline.size) {
+    internal fun visibleOutline(outline: List<Vector3dc>, sight: TerrainSight): Boolean = when (outline.size) {
         0 -> false
         1 -> sight.sees(outline[0])
         2 -> sight.seesSegment(outline[0], outline[1])

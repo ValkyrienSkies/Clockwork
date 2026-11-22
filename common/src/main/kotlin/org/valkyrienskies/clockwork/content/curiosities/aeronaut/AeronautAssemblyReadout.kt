@@ -19,9 +19,12 @@ import org.valkyrienskies.clockwork.content.physicalities.extendon.ExtendonBlock
 import org.valkyrienskies.clockwork.platform.api.ContraptionController.LockedMode
 import org.valkyrienskies.clockwork.util.gtpa
 import org.valkyrienskies.core.api.ships.LoadedServerShip
+import org.valkyrienskies.core.api.ships.properties.ShipTransform
 import org.valkyrienskies.mod.common.dimensionId
 import org.valkyrienskies.mod.common.shipObjectWorld
 import org.valkyrienskies.mod.common.util.toJOMLD
+import kotlin.math.abs
+import kotlin.math.atan2
 
 object AeronautAssemblyReadout {
     internal const val MAX_MARKERS = 96
@@ -33,6 +36,21 @@ object AeronautAssemblyReadout {
     data class Foot(val anchor: Anchor, val load: Double)
     data class ContactFace(val shipId: Long?, val center: Vector3dc, val load: Double)
 
+    data class OutlinePose(val x: Double, val z: Double, val yaw: Double) {
+        internal fun toLocal(point: Vector3dc) = Vector3d(point).sub(x, 0.0, z).rotateY(-yaw)
+        internal fun toWorld(point: Vector3dc) = Vector3d(point).rotateY(yaw).add(x, 0.0, z)
+
+        companion object {
+            internal fun of(transform: ShipTransform): OutlinePose {
+                val matrix = transform.shipToWorld
+                val yaw = if (abs(matrix.m20()) + abs(matrix.m22()) > 1e-8) atan2(matrix.m20(), matrix.m22())
+                    else atan2(-matrix.m02(), matrix.m00())
+                val position = transform.positionInWorld
+                return OutlinePose(position.x(), position.z(), yaw)
+            }
+        }
+    }
+
     enum class JointKind(val blockId: String, val angular: Boolean) {
         EXTENDON("extendon", false), HINGE("hinge", true), GIMBAL("gimbal_bearing", true),
         BEARING("phys_bearing", true), PISTON("phys_piston", false), GANTRY("phys_gantry", false)
@@ -42,7 +60,9 @@ object AeronautAssemblyReadout {
                      val lower: Double? = null, val upper: Double? = null, val error: Double? = null)
     data class Detail(val bodyCount: Int = 1, val feet: List<Foot> = emptyList(),
                       val outline: List<Vector3dc> = emptyList(), val joints: List<Joint> = emptyList(),
-                      val contactFaces: List<ContactFace> = emptyList())
+                      val contactFaces: List<ContactFace> = emptyList(), val outlinePose: OutlinePose? = null) {
+        internal fun localOutline(): List<Vector3dc> = outlinePose?.let { pose -> outline.map(pose::toLocal) } ?: outline
+    }
     internal data class Sample(val mass: Double, val center: Vector3dc, val detail: Detail)
 
     internal fun sample(level: ServerLevel, root: LoadedServerShip): Sample {
@@ -153,8 +173,9 @@ object AeronautAssemblyReadout {
             else Vector3d(root.transform.positionInShip)
         val hull = if (upwardLoad > 0) AeronautSupportGeometry.outline(supportPoints, supportHeight / upwardLoad) else emptyList()
         val outline = if (hull.size <= MAX_OUTLINE_POINTS) hull else List(MAX_OUTLINE_POINTS) { hull[it * hull.size / MAX_OUTLINE_POINTS] }
+        val outlinePose = if (outline.isNotEmpty()) OutlinePose.of(root.transform) else null
         val detail = Detail(bodyCount.coerceAtLeast(1), feet.sortedByDescending { it.load }.take(MAX_MARKERS), outline,
-            joints.take(MAX_MARKERS), contactFaces.sortedByDescending { it.load }.take(MAX_CONTACT_FACES))
+            joints.take(MAX_MARKERS), contactFaces.sortedByDescending { it.load }.take(MAX_CONTACT_FACES), outlinePose)
         return Sample(if (offset != null) mass else root.inertiaData.mass, center, detail)
     }
 
