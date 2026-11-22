@@ -6,6 +6,78 @@ import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 
 class MagneticFieldTest {
+    private val axis = Vector3d(1.0, 0.0, 0.0)
+
+    private fun wallPull(side: Int, distance: Double, offset: Double = 0.0, polarity: Double = 1.0): Vector3d {
+        val probe = MagneticField.currentLoop(Vector3d(0.0, offset, 0.0), Vector3d(axis).mul(polarity), 1.0)
+        val total = Vector3d()
+        val force = Vector3d()
+        val torque = Vector3d()
+        val middle = (side - 1) * .5
+        for (y in 0 until side) for (z in 0 until side) {
+            val source = MagneticField.currentLoop(Vector3d(distance, y - middle, z - middle), axis, 1.0)
+            for (a in probe) for (b in source) {
+                MagneticField.currentInteraction(a, b, 1.0, force, torque)
+                total.add(force)
+            }
+        }
+        return total
+    }
+
+    @Test
+    fun `magnet walls attract across their face and repel when reversed`() {
+        for (side in listOf(2, 5, 9, 17, 25)) for (distance in listOf(1.0, 2.0, 4.0, 8.0)) {
+            val center = wallPull(side, distance)
+            assertTrue(center.x > 0.0, "${side}x$side at $distance blocks pushed away")
+            assertEquals(0.0, center.y, 1e-7)
+            assertEquals(0.0, center.z, 1e-7)
+            val offset = (side - 1) * .45
+            val edge = wallPull(side, distance, offset)
+            assertTrue(edge.x > 0.0)
+            assertTrue(edge.add(wallPull(side, distance, offset, -1.0)).length() < 1e-7)
+        }
+    }
+
+    @Test
+    fun `single magnet keeps its reach with a bounded contact force and smooth cutoff`() {
+        assertTrue(wallPull(1, 1.0).x in 90000.0..125000.0)
+        assertTrue(wallPull(1, 2.0).x in 24000.0..36000.0)
+        assertTrue(wallPull(1, 4.0).x > 3400.0)
+        assertTrue(wallPull(1, 8.0).x > 1000.0)
+        assertTrue(wallPull(1, 12.0).x > 800.0)
+        var previous = Double.POSITIVE_INFINITY
+        for (step in 10..160) {
+            val pull = wallPull(1, step * .1).x
+            assertTrue(pull in 0.0..previous, "Pull increased at step $step")
+            previous = pull
+        }
+        assertEquals(0.0, previous)
+    }
+
+    @Test
+    fun `current loops align a sideways magnet and conserve force and angular momentum`() {
+        val a = MagneticField.currentLoop(Vector3d(), axis, 1.0)
+        val center = Vector3d(2.0, 0.0, 0.0)
+        val b = MagneticField.currentLoop(center, Vector3d(0.0, 1.0, 0.0), 1.0)
+        val force = Vector3d()
+        val torque = Vector3d()
+        val netForce = Vector3d()
+        val netTorque = Vector3d()
+        val alignment = Vector3d()
+        for (first in a) for (second in b) {
+            MagneticField.currentInteraction(first, second, 1.0, force, torque)
+            netForce.add(force)
+            netTorque.add(Vector3d(first.position).cross(force)).add(torque)
+            MagneticField.currentInteraction(second, first, 1.0, force, torque)
+            netForce.add(force)
+            netTorque.add(Vector3d(second.position).cross(force)).add(torque)
+            alignment.add(Vector3d(second.position).sub(center).cross(force)).add(torque)
+        }
+        assertTrue(netForce.length() < 1e-8)
+        assertTrue(netTorque.length() < 1e-7)
+        assertTrue(alignment.z < -1.0)
+    }
+
     private fun magnet(x: Double, sign: Double = 1.0) =
         MagneticField.poles(Vector3d(x, 0.0, 0.0), Vector3d(sign, 0.0, 0.0), 1.0)
 

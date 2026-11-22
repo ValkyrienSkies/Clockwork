@@ -49,8 +49,10 @@ object Magnetism {
     private data class CoreField(val material: Material, val source: MagneticFieldPacket.Source)
     private data class Cell(val x: Int, val y: Int, val z: Int)
     private data class Source(val index: Int, val body: PhysShip?, val center: Vector3d,
-                              val poles: List<MagneticField.Pole>, val coarsePoles: List<MagneticField.Pole>, val load: Load?) {
-        val radius = sqrt(poles.maxOf { it.position.distanceSquared(center) })
+                              val poles: List<MagneticField.Pole>, val coarsePoles: List<MagneticField.Pole>, val load: Load?,
+                              val currents: List<MagneticField.Current> = emptyList()) {
+        val radius = sqrt(maxOf(poles.maxOf { it.position.distanceSquared(center) },
+            currents.maxOfOrNull { it.position.distanceSquared(center) } ?: 0.0))
     }
     private class Load(val body: PhysShip) {
         val force = Vector3d()
@@ -165,14 +167,12 @@ object Magnetism {
             val body = material.ship?.let(level::getShipById)
             if (material.ship != null && body == null) continue
             if (material.iron) { iron.add(material to body); continue }
-            if (material.poles.isEmpty()) continue
-            val poles = if (body == null) material.poles else material.poles.map { pole ->
-                MagneticField.Pole(world(body, pole.position), pole.charge)
-            }
-            val coarse = if (body == null) material.coarsePoles else material.coarsePoles.map { pole ->
-                MagneticField.Pole(world(body, pole.position), pole.charge)
-            }
-            sources.add(Source(sources.size, body, world(body, material.center), poles, coarse, load(body)))
+            val source = material.source ?: continue
+            val poles = source.worldPoles(body?.transform, material.poles)
+            val coarse = source.worldPoles(body?.transform, material.coarsePoles)
+            val center = world(body, material.center)
+            val currents = MagneticField.currentLoop(center, source.normal(), source.strength.toDouble(), body?.transform?.shipToWorld)
+            sources.add(Source(sources.size, body, center, poles, coarse, load(body), currents))
         }
         if (sources.isEmpty()) {
             coreSolvers.remove(level.dimension); coreFields.remove(level.dimension)
@@ -194,10 +194,10 @@ object Magnetism {
             for (i in iron.indices) {
                 val (material, body) = iron[i]
                 val moment = rotation?.transform(moments[i], Vector3d()) ?: Vector3d(moments[i])
-                body?.transform?.worldToShip?.transformDirection(moment)
+                body?.transform?.shipToWorldRotation?.transformInverse(moment)
                 if (moment.lengthSquared() < 1e-16) continue
                 val source = MagneticFieldPacket.Source(material.ship ?: -1, material.position, Direction.UP, 1f, moment)
-                val poles = source.poles().map { MagneticField.Pole(world(body, it.position), it.charge) }
+                val poles = source.worldPoles(body?.transform)
                 sources.add(Source(sources.size, body, centers[i], poles, poles, load(body)))
                 fields.add(CoreField(material, source))
             }
@@ -209,6 +209,7 @@ object Magnetism {
         val cells = sources.groupBy { cell(it.center) }
         val radius = sources.maxOf { it.radius }
         val force = Vector3d()
+        val torque = Vector3d()
         val multipleBodies = sources.any { it.body?.id != sources.first().body?.id }
         if (multipleBodies) for (a in sources) {
             if (a.load == null) continue
@@ -216,6 +217,18 @@ object Magnetism {
                 val reach = MagneticField.RANGE + a.radius + b.radius
                 if (b.load != null && b.index <= a.index || a.body?.id == b.body?.id ||
                     a.center.distanceSquared(b.center) > reach * reach) return@nearby
+                if (a.currents.isNotEmpty() && b.currents.isNotEmpty()) {
+                    for (i in a.currents.indices) for (j in b.currents.indices) {
+                        val first = a.currents[i]
+                        val second = b.currents[j]
+                        MagneticField.currentInteraction(first, second, snapshot.strength, force, torque)
+                        a.load.add(first.position, force)
+                        a.load.torque.add(torque)
+                        b.load?.add(second.position, force, -1.0)
+                        b.load?.torque?.sub(torque)
+                    }
+                    return@nearby
+                }
                 if (a.poles === a.coarsePoles && b.poles === b.coarsePoles) {
                     applyPair(a, b, a.poles, b.poles, snapshot.strength, force)
                     return@nearby

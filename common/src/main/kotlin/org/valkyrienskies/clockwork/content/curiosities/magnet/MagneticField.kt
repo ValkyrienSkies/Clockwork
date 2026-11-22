@@ -1,5 +1,6 @@
 package org.valkyrienskies.clockwork.content.curiosities.magnet
 
+import org.joml.Matrix4dc
 import org.joml.Vector3d
 import org.joml.Vector3dc
 import kotlin.math.sqrt
@@ -18,10 +19,67 @@ internal object MagneticField {
     private const val CORE_SATURATION_SQUARED = 0.4225
 
     data class Pole(val position: Vector3d, val charge: Double)
+    data class Current(val position: Vector3d, val element: Vector3d)
+
+    private fun tangent(normal: Vector3dc): Vector3d {
+        val side = if (abs(normal.x()) < 0.9) Vector3d(1.0, 0.0, 0.0) else Vector3d(0.0, 1.0, 0.0)
+        return Vector3d(normal).cross(side).normalize()
+    }
+
+    fun currentLoop(center: Vector3dc, normal: Vector3dc, strength: Double, transform: Matrix4dc? = null): List<Current> {
+        val u = tangent(normal)
+        val v = Vector3d(normal).cross(u)
+        transform?.transformDirection(u)
+        transform?.transformDirection(v)
+        val depth = transform?.transformDirection(normal, Vector3d())?.length() ?: 1.0
+        val current = .8 * strength * depth
+        return listOf(
+            Current(Vector3d(center).fma(.5, u), Vector3d(v).mul(current)),
+            Current(Vector3d(center).fma(-.5, u), Vector3d(v).mul(-current)),
+            Current(Vector3d(center).fma(.5, v), Vector3d(u).mul(-current)),
+            Current(Vector3d(center).fma(-.5, v), Vector3d(u).mul(current))
+        )
+    }
+
+    private const val LOOP_NEAR_STRENGTH = 3.8
+    private const val LOOP_RANGE_STRENGTH = 3.4
+
+    private fun loopGradient(taper: Double, inverse: Double): Double = 2.0 * taper * taper *
+        (3.0 / (RANGE * RANGE) * (LOOP_NEAR_STRENGTH * inverse + LOOP_RANGE_STRENGTH) +
+            taper * LOOP_NEAR_STRENGTH * inverse * inverse)
+
+    fun currentInteraction(a: Current, b: Current, strength: Double, force: Vector3d, torque: Vector3d) {
+        force.set(a.position).sub(b.position)
+        val s = force.lengthSquared()
+        if (s >= RANGE * RANGE) {
+            force.zero()
+            torque.zero()
+            return
+        }
+        val taper = 1.0 - s / (RANGE * RANGE)
+        val inverse = 1.0 / (s + 2.0)
+        val energy = taper * taper * taper * (LOOP_NEAR_STRENGTH * inverse + LOOP_RANGE_STRENGTH)
+        val scale = FORCE * strength
+        force.mul(-scale * a.element.dot(b.element) * loopGradient(taper, inverse))
+        a.element.cross(b.element, torque).mul(scale * energy)
+    }
+
+    fun addCurrentField(currents: List<Current>, point: Vector3dc, result: Vector3d) {
+        for (i in currents.indices) {
+            val current = currents[i]
+            val x = point.x() - current.position.x
+            val y = point.y() - current.position.y
+            val z = point.z() - current.position.z
+            val s = x * x + y * y + z * z
+            if (s >= RANGE * RANGE) continue
+            val k = loopGradient(1.0 - s / (RANGE * RANGE), 1.0 / (s + 2.0))
+            val e = current.element
+            result.add((e.y * z - e.z * y) * k, (e.z * x - e.x * z) * k, (e.x * y - e.y * x) * k)
+        }
+    }
 
     fun poles(center: Vector3dc, normal: Vector3dc, strength: Double): List<Pole> {
-        val side = if (kotlin.math.abs(normal.x()) < 0.9) Vector3d(1.0, 0.0, 0.0) else Vector3d(0.0, 1.0, 0.0)
-        val tangent = Vector3d(normal).cross(side).normalize()
+        val tangent = tangent(normal)
         val other = Vector3d(normal).cross(tangent)
         return buildList {
             for (end in listOf(-1.0, 1.0)) for (u in listOf(-0.25, 0.25)) for (v in listOf(-0.25, 0.25)) {

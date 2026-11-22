@@ -80,7 +80,7 @@ object MagneticFieldView {
             if (source.ship >= 0 && ship == null) return@mapNotNull null
             val transform = ship?.renderTransform?.shipToWorld?.let(::Matrix4d) ?: Matrix4d()
             val center = Vector3d(source.position.x + 0.5, source.position.y + 0.5, source.position.z + 0.5)
-            val poles = source.poles().map { MagneticField.Pole(transform.transformPosition(it.position), it.charge) }
+            val poles = if (source.moment != null) source.worldPoles(ship?.renderTransform) else emptyList()
             Sample(source, transform.transformPosition(center), transform, Matrix4d(transform).invert(), poles)
         }
         val byId = nextSamples.associateBy { it.id }
@@ -91,7 +91,10 @@ object MagneticFieldView {
         }
         val eligible = seedSources.mapTo(HashSet()) { it.id }
         val poles = nextSamples.flatMap { it.poles }
-        val count = (1_000_000 / (poles.size.coerceAtLeast(1) * STEPS * 2)).coerceIn(4, 48)
+        val currents = nextSamples.filter { it.source.moment == null }.flatMap {
+            MagneticField.currentLoop(it.center, it.source.normal(), it.source.strength.toDouble(), it.transform)
+        }
+        val count = (1_000_000 / ((poles.size + currents.size).coerceAtLeast(1) * STEPS * 2)).coerceIn(4, 48)
         val retained = activeSources.filter { it in eligible && byId[it]?.center?.distanceSquared(eye)?.let { distance -> distance < (VIEW_RANGE + TRACE_RANGE) * (VIEW_RANGE + TRACE_RANGE) } == true }
         val incoming = seedSources.filter { it.id !in retained && it.center.distanceSquared(eye) < VIEW_RANGE * VIEW_RANGE }
             .sortedWith(compareBy<Sample> { it.source.moment != null }.thenBy { it.center.distanceSquared(eye) }).map { it.id }
@@ -111,12 +114,13 @@ object MagneticFieldView {
         samples = nextSamples
         lines = seeds.mapNotNull { seed ->
             val sample = byId[seed.source] ?: return@mapNotNull null
-            val trace = trace(seed, sample, nextSamples, poles) ?: return@mapNotNull null
+            val trace = trace(seed, sample, nextSamples, poles, currents) ?: return@mapNotNull null
             seed to trace
         }.toMap()
     }
 
-    private fun trace(seed: Seed, sample: Sample, samples: List<Sample>, poles: List<MagneticField.Pole>): Trace? {
+    private fun trace(seed: Seed, sample: Sample, samples: List<Sample>, poles: List<MagneticField.Pole>,
+                      currents: List<MagneticField.Current>): Trace? {
         val normal = sample.source.normal()
         val side = if (abs(normal.x) < 0.9) Vector3d(1.0, 0.0, 0.0) else Vector3d(0.0, 1.0, 0.0)
         val tangent = Vector3d(normal).cross(side).normalize()
@@ -153,9 +157,11 @@ object MagneticFieldView {
                 break
             }
             MagneticField.field(poles, position, field)
+            MagneticField.addCurrentField(currents, position, field)
             if (!field.isFinite || field.lengthSquared() < 1e-12) break
             val middle = Vector3d(position).add(field.normalize(STEP_LENGTH / 2))
             MagneticField.field(poles, middle, middleField)
+            MagneticField.addCurrentField(currents, middle, middleField)
             if (!middleField.isFinite || middleField.lengthSquared() < 1e-12) break
             val next = Vector3d(position).add(middleField.normalize(STEP_LENGTH))
             if (step > 12 && next.distanceSquared(start) < 0.04) break

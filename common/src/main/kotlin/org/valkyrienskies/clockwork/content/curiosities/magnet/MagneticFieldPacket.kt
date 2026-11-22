@@ -8,6 +8,7 @@ import net.minecraft.world.entity.player.Player
 import org.joml.Vector3d
 import org.valkyrienskies.clockwork.platform.api.network.ClientNetworkContext
 import org.valkyrienskies.clockwork.platform.api.network.S2CCWPacket
+import org.valkyrienskies.core.api.ships.properties.ShipTransform
 
 class MagneticFieldPacket(val dimension: ResourceLocation, val sources: List<Source>, val crowded: Boolean, val coresEnabled: Boolean) : S2CCWPacket {
     data class Source(val ship: Long, val position: BlockPos, val direction: Direction, val strength: Float,
@@ -19,6 +20,15 @@ class MagneticFieldPacket(val dimension: ResourceLocation, val sources: List<Sou
             val center = Vector3d(position.x + .5, position.y + .5, position.z + .5)
             return if (moment == null) MagneticField.poles(center, normal(), strength.toDouble())
             else MagneticField.corePoles(center, moment)
+        }
+
+        internal fun worldPoles(transform: ShipTransform?, local: List<MagneticField.Pole> = poles()): List<MagneticField.Pole> {
+            if (transform == null) return local
+            val scale = transform.scaling
+            val area = normal().mul(scale.y() * scale.z(), scale.x() * scale.z(), scale.x() * scale.y()).length()
+            return local.map { pole ->
+                MagneticField.Pole(transform.shipToWorld.transformPosition(pole.position, Vector3d()), pole.charge * area)
+            }
         }
     }
     override var player: Player? = null
