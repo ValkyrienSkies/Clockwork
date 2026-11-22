@@ -337,19 +337,19 @@ object ClockworkConfig {
     }
 
     class Harpoon {
-        @ConfigEntry(description = "Harpoon projectile collision radius in blocks", min = 0.01, max = 1.0)
+        @ConfigEntry(description = "Harpoon projectile collision radius in blocks", min = 0.01)
         var harpoonRadius = 0.125
 
-        @ConfigEntry(description = "Maximum harpoon flight distance and rope length in blocks", min = 1.0, max = 128.0)
-        var harpoonMaxRange = 128.0
+        @ConfigEntry(description = "Maximum harpoon flight distance and rope length in blocks", min = 1.0)
+        var harpoonMaxRange = 256.0
 
-        @ConfigEntry(description = "Maximum time a harpoon can remain in flight, in game ticks", min = 1.0, max = 12000.0)
-        var harpoonLifetimeTicks = 200
+        @ConfigEntry(description = "Maximum time a harpoon can remain in flight, in game ticks", min = 1.0)
+        var harpoonLifetimeTicks = 1000
 
-        @ConfigEntry(description = "Harpoon launch speed before the charge bonus, in metres per second", min = 0.0, max = 1000.0)
+        @ConfigEntry(description = "Harpoon launch speed before the charge bonus, in metres per second", min = 0.0)
         var harpoonBaseLaunchSpeed = 10.0
 
-        @ConfigEntry(description = "Additional harpoon launch speed at full charge, in metres per second", min = 0.0, max = 1000.0)
+        @ConfigEntry(description = "Additional harpoon launch speed at full charge, in metres per second", min = 0.0)
         var harpoonChargeLaunchSpeed = 50.0
     }
 
