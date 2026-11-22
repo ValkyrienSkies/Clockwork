@@ -3,6 +3,9 @@ package org.valkyrienskies.clockwork.content.physicalities.wheel
 import org.joml.Matrix3d
 import org.joml.Quaterniond
 import org.joml.Vector3d
+import org.valkyrienskies.clockwork.ClockworkConfig
+import org.valkyrienskies.clockwork.api.wheel.TireContactProfiles
+import org.valkyrienskies.core.api.bodies.shape.RoundedContactProfile
 import org.valkyrienskies.core.api.bodies.shape.TireProperties
 import org.valkyrienskies.core.api.bodies.shape.WheelBodyShapeData
 import kotlin.math.sqrt
@@ -46,13 +49,14 @@ data class WheelTire internal constructor(val size: WheelSize, val widthPercent:
         (size.radius * size.radius - rimRadius * rimRadius)
     val mass = size.mass * (.35 + .65 * rubberRatio * type.physics.massMultiplier)
 
-    fun shape(): WheelBodyShapeData {
+    fun shape(stepAssist: TireType.StepAssist = type.stepAssist(ClockworkConfig.SERVER.wheel)): WheelBodyShapeData {
         val material = type.physics
         val widthRatio = widthPercent / 100.0
         val depthRatio = 100.0 / thicknessPercent
         val pressureRatio = pressureKpa / 800.0
         val radial = widthRatio * depthRatio * (.2 + .8 * pressureRatio)
         val tread = widthRatio * depthRatio * (.7 + .3 * pressureRatio)
+        val rounded = stepAssist == TireType.StepAssist.ROUNDED_CONTACT
         return WheelBodyShapeData(radius, width / 2, tire = TireProperties(
             maximumCompression = thickness * material.compression,
             radialStiffness = material.radialStiffness * size.radius * radial,
@@ -62,6 +66,8 @@ data class WheelTire internal constructor(val size: WheelSize, val widthPercent:
             treadDamping = material.treadDamping * size.radius * sqrt(tread * mass / size.mass),
             slidingGrip = material.slidingGrip, slipTransitionSpeed = material.slipTransitionSpeed,
             adhesiveForce = material.adhesion * width * radius,
+            roundedVoxelContact = rounded,
+            roundedContactProfile = if (rounded) TireContactProfiles.get(type.id) else RoundedContactProfile.DEFAULT,
         ))
     }
 

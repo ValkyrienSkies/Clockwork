@@ -470,13 +470,26 @@ object ClockworkConfig {
     }
 
     class Wheel {
-        @ConfigEntry(description = "Enable raycast-based wheel assistance when climbing terrain steps")
+        @ConfigEntry(description = "Enable wheel step assistance, including rounded ledge contact")
         var wheelStepAssist = true
+
+        @ConfigEntry(description = "Comma-separated tire types that use rounded ledge contact. Options: rubber, honey, frost, float, wood, carver, goo, gummy. Leave empty to disable rounding.")
+        var roundedContactTireTypes = "gummy"
+
+        private var parsedTireTypes = "" to emptySet<String>()
+
+        fun usesRoundedContact(type: String): Boolean {
+            val configured = roundedContactTireTypes
+            if (parsedTireTypes.first != configured) {
+                parsedTireTypes = configured to configured.split(',').map { it.trim().lowercase() }.toSet()
+            }
+            return type in parsedTireTypes.second
+        }
 
         @ConfigEntry(description = "Extra wheel step-assist lift reserve as a fraction of the supported load", min = 0.0, max = 1.0)
         var wheelStepAssistStrength = 0.35
 
-        @ConfigEntry(description = "Maximum assisted step height in blocks, also limited by tire radius", min = 0.0, max = 2.0)
+        @ConfigEntry(description = "Maximum raycast-assisted step height in blocks, also limited by tire radius", min = 0.0, max = 2.0)
         var wheelStepAssistHeight = 1.05
 
         @ConfigEntry(description = "Maximum combined step-assist support and traction force per wheel in newtons", min = 0.0, max = 1000000.0)

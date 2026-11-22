@@ -190,6 +190,9 @@ class WheelHubBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: BlockS
             bodyId = -1
             jointId = -1
         }
+        val config = ClockworkConfig.SERVER.wheel
+        val assistMode = tireType.stepAssist(config)
+        val shape = size.shape(assistMode)
         if (body == null) {
             val position = parent?.transform?.shipToWorld?.transformPosition(center, Vector3d()) ?: Vector3d(center)
             val worldRotation = parent?.transform?.shipToWorldRotation?.mul(rotation, Quaterniond()) ?: Quaterniond(rotation)
@@ -200,7 +203,7 @@ class WheelHubBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: BlockS
                 inertiaData = vsCore.newShipInertiaData(Vector3d(), size.mass, size.inertia()),
                 kinematics = vsCore.newBodyKinematics(velocity, parent?.angularVelocity ?: Vector3d(),
                     position, worldRotation, Vector3d(scale), Vector3d()),
-                collisionShape = size.shape(), staticFrictionCoefficient = size.type.physics.staticFriction,
+                collisionShape = shape, staticFrictionCoefficient = size.type.physics.staticFriction,
                 dynamicFrictionCoefficient = size.type.physics.dynamicFriction, restitutionCoefficient = size.type.physics.restitution,
             ))
             bodyId = body.id
@@ -215,16 +218,15 @@ class WheelHubBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: BlockS
             parentId = parent?.id
             setChanged()
         }
-        val shape = size.shape()
         if (body.collisionShape != shape) {
             body.setWheelShape(shape, vsCore.newShipInertiaData(Vector3d(), size.mass, size.inertia()))
         }
         if (body.isStatic) body.isStatic = false
         val rpm = if (engaged && tireType.driven && !isOverStressed) getSpeed() * facing.axisDirection.step else null
         interactions.tick(world, body, size, parent?.id)
-        val config = ClockworkConfig.SERVER.wheel
-        WheelContacts.watch(world, bodyId, size.width, config.wheelStepAssist && tireType.stepAssist, tireType)
-        val assist = if (config.wheelStepAssist && tireType.stepAssist) WheelStepAssist.Settings(config.wheelStepAssistHeight,
+        val raycastAssist = assistMode == TireType.StepAssist.RAYCAST
+        WheelContacts.watch(world, bodyId, size.width, raycastAssist, tireType)
+        val assist = if (raycastAssist) WheelStepAssist.Settings(config.wheelStepAssistHeight,
             config.wheelStepAssistStrength, config.wheelStepAssistMaxForce) else null
         drive = Drive(bodyId, parent?.id, VSJointPose(center, rotation), rpm, torque.value * 1000f, size, assist)
     }
