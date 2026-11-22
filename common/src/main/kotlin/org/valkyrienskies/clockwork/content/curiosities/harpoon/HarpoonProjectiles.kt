@@ -133,15 +133,18 @@ object HarpoonProjectiles {
             val particle = level.shipObjectWorld.getParticleById(id)
             val origin = shot.source.world(level)
             if (!valid(shot) || particle == null || origin == null ||
-                particle.status.lifecycle in listOf(ParticleLifecycle.FAILED, ParticleLifecycle.REMOVED, ParticleLifecycle.SUSPENDED) ||
-                level.gameTime - shot.born > lifetimeTicks ||
-                particle.position.distance(Vector3d(origin.x, origin.y, origin.z)) > maxRange) {
+                particle.status.lifecycle in listOf(ParticleLifecycle.FAILED, ParticleLifecycle.REMOVED, ParticleLifecycle.SUSPENDED)) {
                 remove(id)
                 continue
             }
-            shot.launcher.updateProjectileSpeed(particle.velocity.length())
             val p = particle.position
             shot.position = Vec3(p.x(), p.y(), p.z())
+            if (level.gameTime - shot.born > lifetimeTicks ||
+                p.distance(Vector3d(origin.x, origin.y, origin.z)) > maxRange) {
+                remove(id, snap = true)
+                continue
+            }
+            shot.launcher.updateProjectileSpeed(particle.velocity.length())
             syncFlight(id, shot)
         }
     }
