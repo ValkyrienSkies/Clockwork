@@ -46,7 +46,7 @@ class GravitronInputPacket(val action: Action, val shipId: Long = -1, val x: Flo
             Action.DISTANCE -> {
                 val distance = state.shipGrabbedDistance ?: return
                 val maximum = if (stack.item is CreativeGravitronItem) GravitronManipulation.CREATIVE_MAX_DISTANCE
-                    else ClockworkConfig.SERVER.survivalGravitronMaxRange
+                    else ClockworkConfig.SERVER.gravitron.survivalGravitronMaxRange
                 state.shipGrabbedDistance = GravitronManipulation.distance(distance, x.toDouble(), maximum)
             }
             else -> Unit

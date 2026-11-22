@@ -54,7 +54,7 @@ object MeteorGenerator {
 
             var state: BlockState
             if (mb > t) {
-                if (mb > t * 1.25 && abs(w) < ClockworkConfig.SERVER.meteorDensity)
+                if (mb > t * 1.25 && abs(w) < ClockworkConfig.SERVER.wanderlite.meteorDensity)
                     state = ClockworkBlocks.WANDERLITE_NYX_ORE.defaultState
                 else if(mb > w && mb <= t * 1.1)
                     state = ClockworkBlocks.CHARGED_NYX.defaultState

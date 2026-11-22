@@ -139,7 +139,7 @@ class ClampotronBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: Bloc
         overloadTicks = ClampotronPower.overloadTicks(overloadTicks, strain)
         if (ClampotronPower.shouldSnap(overloadTicks, positionError)) { release(snapped = true); cooldown = 40; return }
         control.grip = ClampotronController.Grip(blockPos.asLong(), carrier?.id ?: -1, Vector3d(anchor), target, Quaterniond(rotation),
-            ClampotronPower.force(getSpeed().toDouble(), ClockworkConfig.SERVER.clampotronForcePerRpm))
+            ClampotronPower.force(getSpeed().toDouble(), ClockworkConfig.SERVER.clampotron.clampotronForcePerRpm))
         if (world.gameTime % 4L == 0L) sendData()
     }
 
@@ -189,7 +189,7 @@ class ClampotronBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: Bloc
 
     override fun calculateStressApplied(): Float {
         if (level?.isClientSide == true) return lastStressApplied
-        lastStressApplied = ClampotronPower.stress(heldMass, ClockworkConfig.SERVER.clampotronMassPerStress).toFloat()
+        lastStressApplied = ClampotronPower.stress(heldMass, ClockworkConfig.SERVER.clampotron.clampotronMassPerStress).toFloat()
         return lastStressApplied
     }
 

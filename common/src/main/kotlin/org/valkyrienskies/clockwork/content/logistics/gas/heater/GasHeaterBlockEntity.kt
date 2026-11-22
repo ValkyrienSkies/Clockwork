@@ -47,9 +47,9 @@ class GasHeaterBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: Block
         if (state.block !is GasHeaterBlock) return
 
         val heatLevel = when {
-            temp >= ClockworkConfig.SERVER.heaterSeethingTemp -> HeatLevel.SEETHING
-            temp >= ClockworkConfig.SERVER.heaterKindledTemp -> HeatLevel.KINDLED
-            temp >= ClockworkConfig.SERVER.heaterSmoulderingTemp -> HeatLevel.SMOULDERING
+            temp >= ClockworkConfig.SERVER.gasHeater.heaterSeethingTemp -> HeatLevel.SEETHING
+            temp >= ClockworkConfig.SERVER.gasHeater.heaterKindledTemp -> HeatLevel.KINDLED
+            temp >= ClockworkConfig.SERVER.gasHeater.heaterSmoulderingTemp -> HeatLevel.SMOULDERING
             else -> HeatLevel.NONE
         }
 
@@ -78,7 +78,7 @@ class GasHeaterBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: Block
                     ClockworkLang.translate("gui.gas_heater.info.heat_level.next",
                         DuctTextUtil.translateTemperature(
                             ClockworkLang.builder(),
-                            ClockworkConfig.SERVER.heaterSeethingTemp.toDouble(), true
+                            ClockworkConfig.SERVER.gasHeater.heaterSeethingTemp.toDouble(), true
                         )
                     ).style(ChatFormatting.DARK_GRAY).forGoggles(tooltip)
             }
@@ -88,7 +88,7 @@ class GasHeaterBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: Block
                     ClockworkLang.translate("gui.gas_heater.info.heat_level.next",
                         DuctTextUtil.translateTemperature(
                             ClockworkLang.builder(),
-                            ClockworkConfig.SERVER.heaterKindledTemp.toDouble(), true
+                            ClockworkConfig.SERVER.gasHeater.heaterKindledTemp.toDouble(), true
                         )
                     ).style(ChatFormatting.DARK_GRAY).forGoggles(tooltip)
             }
@@ -98,7 +98,7 @@ class GasHeaterBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: Block
                     ClockworkLang.translate("gui.gas_heater.info.heat_level.next",
                         DuctTextUtil.translateTemperature(
                             ClockworkLang.builder(),
-                            ClockworkConfig.SERVER.heaterSmoulderingTemp.toDouble(), true
+                            ClockworkConfig.SERVER.gasHeater.heaterSmoulderingTemp.toDouble(), true
                         )
                     ).style(ChatFormatting.DARK_GRAY).forGoggles(tooltip)
             }

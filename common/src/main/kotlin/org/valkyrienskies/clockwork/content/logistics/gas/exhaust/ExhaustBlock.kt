@@ -98,7 +98,7 @@ class ExhaustBlock(properties: Properties) : DirectionalBlock(properties), IBE<E
     }
 
     override fun createNode(pos: DuctNodePos): DuctNode {
-        return  DuctPipeNode(pos = pos, volume = ClockworkConfig.SERVER.ductVolme, maxPressure = 16375049.0, maxTemperature = 1478.0)
+        return  DuctPipeNode(pos = pos, volume = ClockworkConfig.SERVER.ducts.ductVolme, maxPressure = 16375049.0, maxTemperature = 1478.0)
     }
 
     override fun onRemove(state: BlockState, level: Level, pos: BlockPos, newState: BlockState, movedByPiston: Boolean) {

@@ -50,7 +50,7 @@ class GravitronLeftClickPacket : C2SCWPacket {
                     val anchor = if (state.shipID == ship.id) state.shipGrabbedPos ?: clickedPos!!.toJOMLD()
                         else clickedPos!!.toJOMLD().add(0.5, 0.5, 0.5)
                     val worldAnchor = ship.shipToWorld.transformPosition(anchor, Vector3d())
-                    val range = if (isRegular) ClockworkConfig.SERVER.survivalGravitronMaxRange else 1000.0
+                    val range = if (isRegular) ClockworkConfig.SERVER.gravitron.survivalGravitronMaxRange else 1000.0
                     val point = worldAnchor.toMinecraft()
                     val route = if (state.shipID == ship.id) {
                         val depth = GravitronGatePath.depth(state.holdRoute, state.holdDepth, state.localHoldAnchor ?: point, point)
@@ -66,7 +66,7 @@ class GravitronLeftClickPacket : C2SCWPacket {
                     if (distance > range) return@enqueueWork
                     if (isRegular) {
                         val mass = GravitronLoad.mass(level, ship, stack)
-                        if (mass > ClockworkConfig.SERVER.maxGravitronMass * 1000.0) {
+                        if (mass > ClockworkConfig.SERVER.gravitron.maxGravitronMass * 1000.0) {
                             GrabTool.dropShip(serverPlayer, false)
                             GrabTool.overload(serverPlayer, ship, anchor)
                             return@enqueueWork
@@ -74,7 +74,7 @@ class GravitronLeftClickPacket : C2SCWPacket {
                         serverPlayer.cooldowns.addCooldown(stack.item, 20)
 
                         val lookDir = route.fold(serverPlayer.lookAngle) { dir, gate -> gate.passage.direction(dir) }.normalize().toJOML()
-                        val magnitude = ClockworkConfig.SERVER.survivalGravitronYeetForce * mass
+                        val magnitude = ClockworkConfig.SERVER.gravitron.survivalGravitronYeetForce * mass
                         val launchVec = lookDir.mul(magnitude)
                         ValkyrienSkiesMod.getOrCreateGTPA(level.dimensionId).applyWorldForceToModelPos(ship.id, launchVec, anchor)
                         GrabTool.dropShip(serverPlayer, false)

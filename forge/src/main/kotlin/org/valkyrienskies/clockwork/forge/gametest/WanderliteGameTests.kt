@@ -77,9 +77,9 @@ class WanderliteGameTests {
         @BeforeBatch(batch = BATCH)
         fun configurePhysics(level: ServerLevel) {
             previousPhysicsSync = VSCoreConfig.SERVER.pt.synchronizePhysics
-            previousLiftMultiplier = ClockworkConfig.SERVER.wanderOreForceMultiplier
+            previousLiftMultiplier = ClockworkConfig.SERVER.wanderlite.wanderOreForceMultiplier
             VSCoreConfig.SERVER.pt.synchronizePhysics = true
-            ClockworkConfig.SERVER.wanderOreForceMultiplier = 2.0
+            ClockworkConfig.SERVER.wanderlite.wanderOreForceMultiplier = 2.0
         }
 
         @JvmStatic
@@ -92,7 +92,7 @@ class WanderliteGameTests {
             observers.forEach { it.close() }
             observers.clear()
             VSCoreConfig.SERVER.pt.synchronizePhysics = previousPhysicsSync
-            ClockworkConfig.SERVER.wanderOreForceMultiplier = previousLiftMultiplier
+            ClockworkConfig.SERVER.wanderlite.wanderOreForceMultiplier = previousLiftMultiplier
         }
 
         @JvmStatic

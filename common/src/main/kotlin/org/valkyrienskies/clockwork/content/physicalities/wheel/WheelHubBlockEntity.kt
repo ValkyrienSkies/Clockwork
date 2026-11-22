@@ -222,7 +222,7 @@ class WheelHubBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: BlockS
         if (body.isStatic) body.isStatic = false
         val rpm = if (engaged && tireType.driven && !isOverStressed) getSpeed() * facing.axisDirection.step else null
         interactions.tick(world, body, size, parent?.id)
-        val config = ClockworkConfig.SERVER
+        val config = ClockworkConfig.SERVER.wheel
         WheelContacts.watch(world, bodyId, size.width, config.wheelStepAssist && tireType.stepAssist, tireType)
         val assist = if (config.wheelStepAssist && tireType.stepAssist) WheelStepAssist.Settings(config.wheelStepAssistHeight,
             config.wheelStepAssistStrength, config.wheelStepAssistMaxForce) else null

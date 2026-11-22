@@ -211,7 +211,7 @@ object ClockworkMod {
                 ship.getAttachment(BalloonController::class.java)?.gameTick(it, ship)
             }
 
-            if (ClockworkConfig.CLIENT.debugRender) AirpocketRenderer.tick(it)
+            if (ClockworkConfig.CLIENT.debug.debugRender) AirpocketRenderer.tick(it)
             CollisionSoundEffectHandler.tick(it)
             MeteorStorm.tick(it)
             HarpoonProjectiles.tick(it)

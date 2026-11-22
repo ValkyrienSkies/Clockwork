@@ -56,7 +56,7 @@ class WanderShipControl : ShipPhysicsListener {
 
         center.div(totalMass)
         val gravity = physLevel.aerodynamicUtils.getAtmosphereForDimension(physLevel.dimension).third
-        val lift = totalMass * gravity * ClockworkConfig.SERVER.wanderOreForceMultiplier
+        val lift = totalMass * gravity * ClockworkConfig.SERVER.wanderlite.wanderOreForceMultiplier
         if (lift.isFinite() && lift != 0.0 && center.isFinite) {
             physShip.applyWorldForceToModelPos(Vector3d(0.0, lift, 0.0), center)
         }

@@ -20,7 +20,7 @@ abstract class GravitronToolBase : IGravitronTool {
 
     /**
      * This function will store the block the player looks
-     * at (within [ClockworkConfig.Server.survivalGravitronMaxRange] blocks if [smallRange], otherwise 1000 blocks),
+     * at (within [ClockworkConfig.Gravitron.survivalGravitronMaxRange] blocks if [smallRange], otherwise 1000 blocks),
      * to be accessed by the Gravitrons other functions
      */
     fun updateTargetPos(smallRange: Boolean = true) {
@@ -30,7 +30,7 @@ abstract class GravitronToolBase : IGravitronTool {
         clickedLocation = null
 
         val trace = RaycastHelper.rayTraceRange(
-            player!!.level(), player, if (smallRange) ClockworkConfig.SERVER.survivalGravitronMaxRange else 1000.0
+            player!!.level(), player, if (smallRange) ClockworkConfig.SERVER.gravitron.survivalGravitronMaxRange else 1000.0
         )
         if (trace == null || trace.type != HitResult.Type.BLOCK) {
             return

@@ -210,7 +210,7 @@ class BalloonData {
             resetGas(air, density, temperature)
             return false
         }
-        val config = ClockworkConfig.SERVER
+        val config = ClockworkConfig.SERVER.balloons
         val energy = BalloonThermodynamics.step(masses, currentEnergy, currentVolume, air,
             pressure, temperature, config.permeabilityConstant, config.heatTransferCoefficient,
             config.leakHeatTransferMultiplier, missingExternalPositions)

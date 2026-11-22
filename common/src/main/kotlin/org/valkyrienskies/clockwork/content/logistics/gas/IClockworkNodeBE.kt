@@ -47,7 +47,7 @@ interface IClockworkNodeBE: INodeBlockEntity, IHaveGoggleInformation {
             found = true
             ClockworkLang.builder().apply {
                 val max = blockStats?.getMaximumTemperature()
-                val critical = if (max != null) temp > max * ClockworkConfig.CLIENT.maxTemperatureWarning else false
+                val critical = if (max != null) temp > max * ClockworkConfig.CLIENT.ducts.maxTemperatureWarning else false
                 val indents = if (critical) -2 else 0
 
                 if (critical) text("!! ")
@@ -70,7 +70,7 @@ interface IClockworkNodeBE: INodeBlockEntity, IHaveGoggleInformation {
             found = true
             ClockworkLang.builder().apply {
                 val max = blockStats?.getMaximumPressure()
-                val critical = if (max != null) pressure > max * ClockworkConfig.CLIENT.maxPressureWarning else false
+                val critical = if (max != null) pressure > max * ClockworkConfig.CLIENT.ducts.maxPressureWarning else false
                 val indents = if (critical) -2 else 0
 
                 if (critical) text("!! ")

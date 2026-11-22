@@ -27,7 +27,7 @@ class SugarRocketBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?,
     override fun addPotentialForces(level: ServerLevel, ship: org.valkyrienskies.core.api.ships.LoadedServerShip,
         thrust: org.valkyrienskies.clockwork.content.curiosities.aeronaut.AeronautForceAccumulator) {
         thrust.add(worldPosition.toJOMLD().add(0.5, 0.5, 0.5), blockState.getValue(DirectionalBlock.FACING).normal.toJOMLD()
-            .mul(burnPower * ClockworkConfig.SERVER.sugarRocketBlockThrust * 10.0))
+            .mul(burnPower * ClockworkConfig.SERVER.sugarRocket.sugarRocketBlockThrust * 10.0))
     }
     var burnProgress = 0
     var burnTime = 20
@@ -65,7 +65,7 @@ class SugarRocketBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?,
                 if (restoreThrust) {
                     val ship = (level as ServerLevel).getShipObjectManagingPos(worldPosition)
                     if (ship != null) {
-                        SugarRocketController.getOrCreate(ship).addRocket(worldPosition, burnPower.toDouble() * ClockworkConfig.SERVER.sugarRocketBlockThrust, blockState.getValue(DirectionalBlock.FACING))
+                        SugarRocketController.getOrCreate(ship).addRocket(worldPosition, burnPower.toDouble() * ClockworkConfig.SERVER.sugarRocket.sugarRocketBlockThrust, blockState.getValue(DirectionalBlock.FACING))
                         restoreThrust = false
                     }
                 }
@@ -126,7 +126,7 @@ class SugarRocketBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?,
 
         val ship = serverLevel.getShipObjectManagingPos(worldPosition)
         if (ship != null) {
-            SugarRocketController.getOrCreate(ship).addRocket(worldPosition, burnPower.toDouble() * ClockworkConfig.SERVER.sugarRocketBlockThrust, blockState.getValue(DirectionalBlock.FACING))
+            SugarRocketController.getOrCreate(ship).addRocket(worldPosition, burnPower.toDouble() * ClockworkConfig.SERVER.sugarRocket.sugarRocketBlockThrust, blockState.getValue(DirectionalBlock.FACING))
         }
         sendData()
     }

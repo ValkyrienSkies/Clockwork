@@ -269,6 +269,6 @@ open class FlapBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos, stat
     }
 
     open fun getMaxSize(): Int {
-        return ClockworkConfig.SERVER.flapBearingMaxSize
+        return ClockworkConfig.SERVER.flapBearing.flapBearingMaxSize
     }
 }

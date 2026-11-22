@@ -28,7 +28,7 @@ class FlapBearingPeripheral(private val be: FlapBearingBlockEntity): IPeripheral
             throw LuaException("setAngle can only be used on a smart flap bearing")
         }
 
-        if (!(be.angularSpeed > 0) && !ClockworkConfig.SERVER.cheatFlapBearingPeripheral) {
+        if (!(be.angularSpeed > 0) && !ClockworkConfig.SERVER.flapBearing.cheatFlapBearingPeripheral) {
             throw LuaException("Flap bearing is not connected to power")
         }
 

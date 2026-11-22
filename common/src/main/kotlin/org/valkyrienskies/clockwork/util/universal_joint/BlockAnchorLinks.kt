@@ -309,7 +309,7 @@ class BlockAnchorLinks : SavedData() {
             val distance = a.distanceTo(b)
             val speed = (distance - (link.previousDistance ?: distance)) * 20
             link.previousDistance = distance
-            val limit = if (link.kind == Kind.SHAFT) ClockworkConfig.SERVER.maxUniversalJointDistance else link.length
+            val limit = if (link.kind == Kind.SHAFT) ClockworkConfig.SERVER.universalJoint.maxUniversalJointDistance else link.length
             val stress = stress(distance - limit, speed)
             if (link.age >= RAMP_TICKS) {
                 link.overload = if (stress > 1) link.overload + 1 else 0

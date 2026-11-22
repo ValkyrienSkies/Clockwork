@@ -96,7 +96,7 @@ class BearingController : ShipPhysicsListener {
         if (!BearingDriveSupport.supportsAngularDrives())
             return !BearingDriveSupport.clearDrive(physics, data.jointId)
         val locked = data.locked || data.aligning
-        if (locked && ClockworkConfig.SERVER.angleFollowingMaxTorqueStep > 0.0)
+        if (locked && ClockworkConfig.SERVER.physicsBearing.angleFollowingMaxTorqueStep > 0.0)
             return !BearingDriveSupport.clearDrive(physics, data.jointId)
         val worldAxis = Vector3d(axis)
         mainShip?.transform?.shipToWorldRotation?.transform(worldAxis)
@@ -114,22 +114,22 @@ class BearingController : ShipPhysicsListener {
         var targetVelocity = 0.0
         if (locked) {
             val error = shortestAngleDeltaRadians(if (data.aligning) 0.0 else data.bearingAngle, data.actualAngle)
-            val deadband = Math.toRadians(ClockworkConfig.SERVER.angleFollowingAngleDeadbandDeg)
+            val deadband = Math.toRadians(ClockworkConfig.SERVER.physicsBearing.angleFollowingAngleDeadbandDeg)
             targetAngle = data.actualAngle + sign(error) * max(0.0, abs(error) - deadband)
-            stiffness = inertia * ClockworkConfig.SERVER.angleFollowingAngleErrorMultiplier
-            damping = inertia * ClockworkConfig.SERVER.angleFollowingOmegaErrorMultiplier
-            cap = ClockworkConfig.SERVER.angleFollowingMaxTorque.toDouble()
+            stiffness = inertia * ClockworkConfig.SERVER.physicsBearing.angleFollowingAngleErrorMultiplier
+            damping = inertia * ClockworkConfig.SERVER.physicsBearing.angleFollowingOmegaErrorMultiplier
+            cap = ClockworkConfig.SERVER.physicsBearing.angleFollowingMaxTorque.toDouble()
         } else {
             stiffness = 0.0
             val resistance = if (abs(data.angularSpeed) > 0.001)
-                ClockworkConfig.SERVER.unlockedModeRotationResistanceMultiplier else 0.0
+                ClockworkConfig.SERVER.physicsBearing.unlockedModeRotationResistanceMultiplier else 0.0
             if (resistance <= 0.0 && abs(data.angularSpeed) > 0.001)
                 return !BearingDriveSupport.clearDrive(physics, data.jointId)
-            damping = inertia * ClockworkConfig.SERVER.unlockedModeOmegaErrorMultiplier * resistance
+            damping = inertia * ClockworkConfig.SERVER.physicsBearing.unlockedModeOmegaErrorMultiplier * resistance
             targetVelocity = if (resistance > 0.0) -data.angularSpeed / resistance else 0.0
-            val configured = ClockworkConfig.SERVER.unlockedModeMaxTorque
+            val configured = ClockworkConfig.SERVER.physicsBearing.unlockedModeMaxTorque
             cap = if (configured > 0.0) max(configured,
-                inertia * ClockworkConfig.SERVER.unlockedModeMinAngularAcceleration) else 0.0
+                inertia * ClockworkConfig.SERVER.physicsBearing.unlockedModeMinAngularAcceleration) else 0.0
         }
         val motions = EnumMap<VSD6Joint.D6Axis, VSD6Joint.D6Motion>(VSD6Joint.D6Axis::class.java)
         VSD6Joint.D6Axis.entries.forEach { motions[it] = VSD6Joint.D6Motion.LOCKED }
@@ -250,18 +250,18 @@ class BearingController : ShipPhysicsListener {
         if (bearingAxisAfterRot.angleCos(data.bearingAxis) < 0.9961947 && bearingAxisAfterRot.angleCos(data.bearingAxis) > -0.9961947) {
             return Vector3d()
         }
-        val angularVelError = idealRelativeOmega - actualRelativeOmega * if (abs(data.angularSpeed) > 0.001) ClockworkConfig.SERVER.unlockedModeRotationResistanceMultiplier else 0.0
+        val angularVelError = idealRelativeOmega - actualRelativeOmega * if (abs(data.angularSpeed) > 0.001) ClockworkConfig.SERVER.physicsBearing.unlockedModeRotationResistanceMultiplier else 0.0
         val angularVelErrorAlongBearingAxis: Vector3dc = bearingAxisInGlobal.mul(bearingAxisInGlobal.dot(angularVelError), Vector3d())
         // Only apply torque on the bearing axis
         val torque = angularVelErrorAlongBearingAxis.mul(
-            torqueMassMultiplier * ClockworkConfig.SERVER.unlockedModeOmegaErrorMultiplier,
+            torqueMassMultiplier * ClockworkConfig.SERVER.physicsBearing.unlockedModeOmegaErrorMultiplier,
             Vector3d()
         )
         if (!torque.isFinite()) {
             return Vector3d()
         }
-        val configuredMaxTorque = ClockworkConfig.SERVER.unlockedModeMaxTorque
-        val inertiaScaledMinTorque = torqueMassMultiplier * ClockworkConfig.SERVER.unlockedModeMinAngularAcceleration
+        val configuredMaxTorque = ClockworkConfig.SERVER.physicsBearing.unlockedModeMaxTorque
+        val inertiaScaledMinTorque = torqueMassMultiplier * ClockworkConfig.SERVER.physicsBearing.unlockedModeMinAngularAcceleration
         val effectiveMaxTorque = if (configuredMaxTorque > 0.0) max(configuredMaxTorque, inertiaScaledMinTorque) else 0.0
 
         if (effectiveMaxTorque > 0.0 && torque.lengthSquared() > effectiveMaxTorque * effectiveMaxTorque) {
@@ -303,7 +303,7 @@ class BearingController : ShipPhysicsListener {
         }
 
         val rawAngleErr = shortestAngleDeltaRadians(data.bearingAngle, data.actualAngle)
-        val deadbandRad = Math.toRadians(ClockworkConfig.SERVER.angleFollowingAngleDeadbandDeg)
+        val deadbandRad = Math.toRadians(ClockworkConfig.SERVER.physicsBearing.angleFollowingAngleDeadbandDeg)
         val angleErr = when {
             rawAngleErr > deadbandRad -> rawAngleErr - deadbandRad
             rawAngleErr < -deadbandRad -> rawAngleErr + deadbandRad
@@ -311,19 +311,19 @@ class BearingController : ShipPhysicsListener {
         }
         val omegaErr = -bearingAxisInGlobal.dot(actualRelativeOmega)
         var torque = (
-                angleErr * torqueMassMultiplier * ClockworkConfig.SERVER.angleFollowingAngleErrorMultiplier +
-                        omegaErr * torqueMassMultiplier * ClockworkConfig.SERVER.angleFollowingOmegaErrorMultiplier
+                angleErr * torqueMassMultiplier * ClockworkConfig.SERVER.physicsBearing.angleFollowingAngleErrorMultiplier +
+                        omegaErr * torqueMassMultiplier * ClockworkConfig.SERVER.physicsBearing.angleFollowingOmegaErrorMultiplier
                 )
         if (!java.lang.Double.isFinite(torque)) {
             return Vector3d()
         }
 
-        val maxTorque = ClockworkConfig.SERVER.angleFollowingMaxTorque.toDouble()
+        val maxTorque = ClockworkConfig.SERVER.physicsBearing.angleFollowingMaxTorque.toDouble()
         if (maxTorque > 0.0) {
             torque = torque.coerceIn(-maxTorque, maxTorque)
         }
 
-        val maxTorqueStep = ClockworkConfig.SERVER.angleFollowingMaxTorqueStep
+        val maxTorqueStep = ClockworkConfig.SERVER.physicsBearing.angleFollowingMaxTorqueStep
         if (maxTorqueStep > 0.0) {
             val minTorque = data.lastLockedTorque - maxTorqueStep
             val maxTorqueForStep = data.lastLockedTorque + maxTorqueStep

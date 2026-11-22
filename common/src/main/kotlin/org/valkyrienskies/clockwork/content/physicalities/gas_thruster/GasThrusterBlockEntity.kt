@@ -211,7 +211,7 @@ class GasThrusterBlockEntity(type: BlockEntityType<*>?, pos: BlockPos, state: Bl
         val rawThrust = actualMassFlow * exhaustVelocity + pressureThrust
 
         velocity = exhaustVelocity
-        thrust = (rawThrust * ClockworkConfig.SERVER.gasThrusterForceMul)
+        thrust = (rawThrust * ClockworkConfig.SERVER.gasThruster.gasThrusterForceMul)
             .takeIf { it.isFinite() && it > 0.0 } ?: 0.0
         sendData()
     }

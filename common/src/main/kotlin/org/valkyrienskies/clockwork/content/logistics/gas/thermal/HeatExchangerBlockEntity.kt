@@ -34,7 +34,7 @@ class HeatExchangerBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: B
     private val neighbors = arrayOf(Direction.EAST, Direction.UP, Direction.SOUTH).map { it to pos.relative(it) }
 
     private fun transferHeat(level: ServerLevel) {
-        val coefficient = ClockworkConfig.SERVER.heatExchangerHeatTransferCoefficient
+        val coefficient = ClockworkConfig.SERVER.heatExchanger.heatExchangerHeatTransferCoefficient
         if (coefficient <= 0.0) return
         val kelvin = ClockworkMod.getKelvin(level)
         val nodePos = getDuctNodePosition()

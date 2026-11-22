@@ -98,7 +98,7 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
     /**
      * We use this instead of [facing] because
      * [facing] might change while we're assembled
-     * if [ClockworkConfig.Server.allowWrenchingActivatedPhysBearing]
+     * if [ClockworkConfig.PhysicsBearing.allowWrenchingActivatedPhysBearing]
      * is enabled.
      */
     var originalFacing: Direction = facing

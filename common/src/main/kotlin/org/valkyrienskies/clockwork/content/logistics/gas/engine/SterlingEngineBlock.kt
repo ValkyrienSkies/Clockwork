@@ -81,7 +81,7 @@ class SterlingEngineBlock(properties: Properties) :
     }
 
     override fun getInternalVolume(): Double {
-        return ClockworkConfig.SERVER.ductVolme
+        return ClockworkConfig.SERVER.ducts.ductVolme
     }
 
     override fun getMaximumPressure(): Double {

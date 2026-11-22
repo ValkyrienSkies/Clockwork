@@ -75,7 +75,7 @@ class EncasedFanController(
 
         val dThrust = dLift * Math.cos(inflowAngle) - dDrag * Math.sin(inflowAngle)
 
-        netForce.mul(dThrust * ClockworkConfig.SERVER.encasedFanForceMul)
+        netForce.mul(dThrust * ClockworkConfig.SERVER.encasedFan.encasedFanForceMul)
 
         return netForce
     }

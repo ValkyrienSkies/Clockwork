@@ -61,7 +61,7 @@ class AirCompressorBlock(properties: Properties?) : KineticBlock(properties), IN
         stats[heliumLocation] = ProductionInfo(
             ProductionMethod.RPM,
             ProductionType.CONDITIONAL,
-            Component.translatable("vs_clockwork.production_condition.air_compressor_helium").append(Component.literal("${ClockworkConfig.SERVER.airCompressorHeliumAirDensity} kg/m³"))
+            Component.translatable("vs_clockwork.production_condition.air_compressor_helium").append(Component.literal("${ClockworkConfig.SERVER.airCompressor.airCompressorHeliumAirDensity} kg/m³"))
         )
         return stats
     }

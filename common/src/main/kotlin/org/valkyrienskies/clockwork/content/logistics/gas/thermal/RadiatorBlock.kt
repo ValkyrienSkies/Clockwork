@@ -43,7 +43,7 @@ class RadiatorBlock(properties: Properties) :
     override fun canConnectTo(self: BlockPos, other: BlockPos, direction: Direction, level: BlockGetter) =
         direction.axis == level.getBlockState(self).getValue(AXIS)
 
-    override fun getInternalVolume() = ClockworkConfig.SERVER.ductVolme
+    override fun getInternalVolume() = ClockworkConfig.SERVER.ducts.ductVolme
 
     override fun createNode(pos: DuctNodePos): DuctNode = PipeDuctNode(
         pos, volume = getInternalVolume(), maxPressure = getMaximumPressure(),

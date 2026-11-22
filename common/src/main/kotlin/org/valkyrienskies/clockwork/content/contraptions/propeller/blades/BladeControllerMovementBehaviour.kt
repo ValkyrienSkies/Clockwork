@@ -43,7 +43,7 @@ class BladeControllerMovementBehaviour: MovementBehaviour {
             var currentBladeCount = bladeCount
             val rotation = context.rotation.apply(Vec3.ZERO)
             val deltaRotation = rotation.subtract(previousRotation)
-            if (deltaRotation.length().absoluteValue >= 128.0 && ClockworkConfig.SERVER.bladeControllerUsesDurability && (context.contraption is PropellerContraption && !(context.contraption as PropellerContraption).brass)) {
+            if (deltaRotation.length().absoluteValue >= 128.0 && ClockworkConfig.SERVER.propeller.bladeControllerUsesDurability && (context.contraption is PropellerContraption && !(context.contraption as PropellerContraption).brass)) {
                 durabilityTick--
                 if (durabilityTick <= 0) {
                     durabilityTick = 600

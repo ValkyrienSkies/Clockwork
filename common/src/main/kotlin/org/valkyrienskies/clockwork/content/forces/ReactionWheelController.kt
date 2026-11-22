@@ -31,7 +31,7 @@ class ReactionWheelController(
 
         for (wheelID in appliers.keys) {
             val data = appliers[wheelID]!!
-            val wheelMass = ClockworkConfig.SERVER.reactionWheelEffectiveness * 64.0
+            val wheelMass = ClockworkConfig.SERVER.reactionWheel.reactionWheelEffectiveness * 64.0
             physShip.applyWorldTorque(
                 physShip.transform.shipToWorld.transformDirection(Vector3d(data.direction), Vector3d())
                     .normalize().negate()

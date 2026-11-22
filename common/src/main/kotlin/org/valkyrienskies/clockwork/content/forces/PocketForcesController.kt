@@ -154,7 +154,7 @@ class PocketForcesController: ShipPhysicsListener {
                 val estimatedSurfaceArea = 4.84 * volume.pow(2.0/3.0)
 
                 // Gas leak exiting
-                val gasExitRate = max(0.0, currentPressure - atmoPressure) * estimatedSurfaceArea * ClockworkConfig.SERVER.permeabilityConstant / sqrt(currentTemperature * DuctNetwork.idealGasConstant / molarMass)
+                val gasExitRate = max(0.0, currentPressure - atmoPressure) * estimatedSurfaceArea * ClockworkConfig.SERVER.balloons.permeabilityConstant / sqrt(currentTemperature * DuctNetwork.idealGasConstant / molarMass)
                 val exitGas = gasExitRate * 0.05
                 val exitGasMasses = HashMap<GasType, Double>()
                 gasMasses.forEach {
@@ -166,7 +166,7 @@ class PocketForcesController: ShipPhysicsListener {
                 currentTemperature = currentHeatEnergy / capacity
 
                 // Gas leak heat transfer
-                val heatFlow = ClockworkConfig.SERVER.heatTransferCoefficient * estimatedSurfaceArea * (atmoTemperature - currentTemperature)
+                val heatFlow = ClockworkConfig.SERVER.balloons.heatTransferCoefficient * estimatedSurfaceArea * (atmoTemperature - currentTemperature)
                 var newHeatEnergy = currentHeatEnergy + heatFlow * 0.05
                 val newCapacity = mixtureCapacity(gasMasses)
                 var newTemperature = newHeatEnergy / newCapacity

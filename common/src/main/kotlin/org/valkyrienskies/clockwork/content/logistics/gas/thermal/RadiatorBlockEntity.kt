@@ -33,7 +33,7 @@ class RadiatorBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: BlockS
     }
 
     private fun transferHeat(level: ServerLevel) {
-        val coefficient = ClockworkConfig.SERVER.radiatorHeatTransferCoefficient
+        val coefficient = ClockworkConfig.SERVER.radiator.radiatorHeatTransferCoefficient
         if (coefficient <= 0.0) return
         val kelvin = ClockworkMod.getKelvin(level)
         val nodePos = getDuctNodePosition()

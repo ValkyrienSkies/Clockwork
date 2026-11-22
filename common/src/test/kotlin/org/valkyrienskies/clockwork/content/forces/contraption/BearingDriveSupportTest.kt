@@ -154,11 +154,11 @@ class BearingDriveSupportTest {
         controller.physTick(sub, level)
         val joint = joints[10] as VSD6Joint
         val drive = joint.drives!![VSD6Joint.D6Drive.TWIST]!!
-        assertEquals((2.0 * ClockworkConfig.SERVER.angleFollowingAngleErrorMultiplier).toFloat(), drive.driveStiffness)
-        assertEquals((2.0 * ClockworkConfig.SERVER.angleFollowingOmegaErrorMultiplier).toFloat(), drive.driveDamping)
-        val cap = ClockworkConfig.SERVER.angleFollowingMaxTorque
+        assertEquals((2.0 * ClockworkConfig.SERVER.physicsBearing.angleFollowingAngleErrorMultiplier).toFloat(), drive.driveStiffness)
+        assertEquals((2.0 * ClockworkConfig.SERVER.physicsBearing.angleFollowingOmegaErrorMultiplier).toFloat(), drive.driveDamping)
+        val cap = ClockworkConfig.SERVER.physicsBearing.angleFollowingMaxTorque
         assertEquals(if (cap > 0) cap.toFloat() else Float.POSITIVE_INFINITY, drive.driveForceLimit)
-        val angle = 0.3 - Math.toRadians(ClockworkConfig.SERVER.angleFollowingAngleDeadbandDeg)
+        val angle = 0.3 - Math.toRadians(ClockworkConfig.SERVER.physicsBearing.angleFollowingAngleDeadbandDeg)
         assertEquals(1.0, kotlin.math.abs(joint.drivePosition!!.pose.rot.dot(Quaterniond().rotateX(angle))), 1e-12)
         data.aligning = true
         controller.physTick(sub, level)

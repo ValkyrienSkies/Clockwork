@@ -67,14 +67,14 @@ class AirCompressorBlockEntity(typeIn: BlockEntityType<*>, pos: BlockPos, state:
                 // Should this depend on actual air pressure outside? If we are in vacuum,
                 // no way this compressor thing will still pump 10 ground atmospheres.
                 // Maybe something airCompressorMaxPressureFactor instead?
-                if (kelvin.getPressureAt(getDuctNodePosition()) < ClockworkConfig.SERVER.airCompressorMaxPressure) {
+                if (kelvin.getPressureAt(getDuctNodePosition()) < ClockworkConfig.SERVER.airCompressor.airCompressorMaxPressure) {
                     status = CompressorStatus.ACTIVE
                     // Future: proper API for defining atmospheric composition?
                     val heliumShare = max(
                         0.0,
-                        1 - getAirDensity() / ClockworkConfig.SERVER.airCompressorHeliumAirDensity
+                        1 - getAirDensity() / ClockworkConfig.SERVER.airCompressor.airCompressorHeliumAirDensity
                     )
-                    val deltaVolume = ClockworkConfig.SERVER.airCompressorSpeed * speed
+                    val deltaVolume = ClockworkConfig.SERVER.airCompressor.airCompressorSpeed * speed
                     kelvin.addGasAtTemperature(
                         getDuctNodePosition(),airGas, (1 - heliumShare) * deltaVolume, getAirTemperature()
                     )

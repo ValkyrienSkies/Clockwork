@@ -36,7 +36,7 @@ class CraftingTableBladeRecipe(id: ResourceLocation, category: CraftingBookCateg
 
             numBlades++
         }
-        return numBlades >= 2 && length <= ClockworkConfig.SERVER.maxBladeSize
+        return numBlades >= 2 && length <= ClockworkConfig.SERVER.propeller.maxBladeSize
     }
 
     override fun assemble(

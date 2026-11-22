@@ -63,14 +63,14 @@ class ClockworkForgeGameTests {
             previousSynchronizePhysics = VSCoreConfig.SERVER.pt.synchronizePhysics
             // GameTest ticks run faster than wall time; give each one its corresponding physics steps.
             VSCoreConfig.SERVER.pt.synchronizePhysics = true
-            savedPropellerConfig = doubleArrayOf(ClockworkConfig.SERVER.forceMulPerSailInPropeller,
-                ClockworkConfig.SERVER.propellerMaxForce, ClockworkConfig.SERVER.propellerMaxTorque,
-                ClockworkConfig.SERVER.sailPropellerForceMultiplier)
-            val defaults = ClockworkConfig.Server()
-            ClockworkConfig.SERVER.forceMulPerSailInPropeller = defaults.forceMulPerSailInPropeller
-            ClockworkConfig.SERVER.sailPropellerForceMultiplier = defaults.sailPropellerForceMultiplier
-            ClockworkConfig.SERVER.propellerMaxForce = defaults.propellerMaxForce
-            ClockworkConfig.SERVER.propellerMaxTorque = defaults.propellerMaxTorque
+            savedPropellerConfig = doubleArrayOf(ClockworkConfig.SERVER.propeller.forceMulPerSailInPropeller,
+                ClockworkConfig.SERVER.propeller.propellerMaxForce, ClockworkConfig.SERVER.propeller.propellerMaxTorque,
+                ClockworkConfig.SERVER.propeller.sailPropellerForceMultiplier)
+            val defaults = ClockworkConfig.Propeller()
+            ClockworkConfig.SERVER.propeller.forceMulPerSailInPropeller = defaults.forceMulPerSailInPropeller
+            ClockworkConfig.SERVER.propeller.sailPropellerForceMultiplier = defaults.sailPropellerForceMultiplier
+            ClockworkConfig.SERVER.propeller.propellerMaxForce = defaults.propellerMaxForce
+            ClockworkConfig.SERVER.propeller.propellerMaxTorque = defaults.propellerMaxTorque
         }
 
         @JvmStatic
@@ -87,10 +87,10 @@ class ClockworkForgeGameTests {
             for ((pos, state) in runwayBlocks) level.setBlockAndUpdate(pos, state)
             runwayBlocks.clear()
             VSCoreConfig.SERVER.pt.synchronizePhysics = previousSynchronizePhysics
-            ClockworkConfig.SERVER.forceMulPerSailInPropeller = savedPropellerConfig[0]
-            ClockworkConfig.SERVER.propellerMaxForce = savedPropellerConfig[1]
-            ClockworkConfig.SERVER.propellerMaxTorque = savedPropellerConfig[2]
-            ClockworkConfig.SERVER.sailPropellerForceMultiplier = savedPropellerConfig[3]
+            ClockworkConfig.SERVER.propeller.forceMulPerSailInPropeller = savedPropellerConfig[0]
+            ClockworkConfig.SERVER.propeller.propellerMaxForce = savedPropellerConfig[1]
+            ClockworkConfig.SERVER.propeller.propellerMaxTorque = savedPropellerConfig[2]
+            ClockworkConfig.SERVER.propeller.sailPropellerForceMultiplier = savedPropellerConfig[3]
         }
 
         @JvmStatic

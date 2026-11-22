@@ -24,20 +24,6 @@ object ClockworkConfig {
 
         @ConfigCategory(title = "Gravitron")
         val gravitron = ClientGravitron()
-
-        var debugRender by debug::debugRender
-
-        var renderDuctParticles by ducts::renderDuctParticles
-        var simplifyDisplayUnits by ducts::simplifyDisplayUnits
-        var massDisplayUnit by ducts::massDisplayUnit
-        var volumeDisplayUnit by ducts::volumeDisplayUnit
-        var tempDisplayUnit by ducts::tempDisplayUnit
-        var pressureDisplayUnit by ducts::pressureDisplayUnit
-        var energyDisplayUnit by ducts::energyDisplayUnit
-        var maxTemperatureWarning by ducts::maxTemperatureWarning
-        var maxPressureWarning by ducts::maxPressureWarning
-
-        var gravitronLegacyShipContours by gravitron::gravitronLegacyShipContours
     }
 
     class Server {
@@ -138,91 +124,6 @@ object ClockworkConfig {
             "minecraft:flowing_lava",
             "vs_clockwork:physics_infuser"
         )
-
-        var debugMode by general::debugMode
-
-        var airCompressorSpeed by airCompressor::airCompressorSpeed
-        var airCompressorMaxPressure by airCompressor::airCompressorMaxPressure
-        var airCompressorHeliumAirDensity by airCompressor::airCompressorHeliumAirDensity
-
-        var permeabilityConstant by balloons::permeabilityConstant
-        var heatTransferCoefficient by balloons::heatTransferCoefficient
-        var leakHeatTransferMultiplier by balloons::leakHeatTransferMultiplier
-
-        var clampotronMassPerStress by clampotron::clampotronMassPerStress
-        var clampotronForcePerRpm by clampotron::clampotronForcePerRpm
-
-        var collisionSoundEffects by collisionSounds::collisionSoundEffects
-        var collisionSoundEffectMax by collisionSounds::collisionSoundEffectMax
-
-        var ductVolme by ducts::ductVolme
-
-        var encasedFanForceMul by encasedFan::encasedFanForceMul
-
-        var extendonDistanceJointDamping by extendon::extendonDistanceJointDamping
-
-        var flapBearingMaxSize by flapBearing::flapBearingMaxSize
-        var smartFlapBearingMaxSize by flapBearing::smartFlapBearingMaxSize
-        var cheatFlapBearingPeripheral by flapBearing::cheatFlapBearingPeripheral
-
-        var bulkSmokingTemp by gasExhaust::bulkSmokingTemp
-        var bulkBlastingTemp by gasExhaust::bulkBlastingTemp
-
-        var heaterSmoulderingTemp by gasHeater::heaterSmoulderingTemp
-        var heaterKindledTemp by gasHeater::heaterKindledTemp
-        var heaterSeethingTemp by gasHeater::heaterSeethingTemp
-
-        var gasThrusterForceMul by gasThruster::gasThrusterForceMul
-
-        var maxGravitronMass by gravitron::maxGravitronMass
-        var survivalGravitronYeetForce by gravitron::survivalGravitronYeetForce
-        var survivalGravitronMaxRange by gravitron::survivalGravitronMaxRange
-
-        var harpoonRadius by harpoon::harpoonRadius
-        var harpoonMaxRange by harpoon::harpoonMaxRange
-        var harpoonLifetimeTicks by harpoon::harpoonLifetimeTicks
-        var harpoonBaseLaunchSpeed by harpoon::harpoonBaseLaunchSpeed
-        var harpoonChargeLaunchSpeed by harpoon::harpoonChargeLaunchSpeed
-
-        var heatExchangerHeatTransferCoefficient by heatExchanger::heatExchangerHeatTransferCoefficient
-
-        var magnetForceMultiplier by magnet::magnetForceMultiplier
-        var magneticIronCores by magnet::magneticIronCores
-
-        var unlockedModeRotationResistanceMultiplier by physicsBearing::unlockedModeRotationResistanceMultiplier
-        var unlockedModeOmegaErrorMultiplier by physicsBearing::unlockedModeOmegaErrorMultiplier
-        var unlockedModeMaxTorque by physicsBearing::unlockedModeMaxTorque
-        var unlockedModeMinAngularAcceleration by physicsBearing::unlockedModeMinAngularAcceleration
-        var angleFollowingAngleErrorMultiplier by physicsBearing::angleFollowingAngleErrorMultiplier
-        var angleFollowingOmegaErrorMultiplier by physicsBearing::angleFollowingOmegaErrorMultiplier
-        var angleFollowingMaxTorque by physicsBearing::angleFollowingMaxTorque
-        var angleFollowingMaxTorqueStep by physicsBearing::angleFollowingMaxTorqueStep
-        var angleFollowingAngleDeadbandDeg by physicsBearing::angleFollowingAngleDeadbandDeg
-        var allowWrenchingActivatedPhysBearing by physicsBearing::allowWrenchingActivatedPhysBearing
-
-        var bladeControllerUsesDurability by propeller::bladeControllerUsesDurability
-        var maxBladeSize by propeller::maxBladeSize
-        var forceMulPerSailInPropeller by propeller::forceMulPerSailInPropeller
-        var sailPropellerForceMultiplier by propeller::sailPropellerForceMultiplier
-        var propellerSpinTorqueEnabled by propeller::propellerSpinTorqueEnabled
-        var propellerMaxForce by propeller::propellerMaxForce
-        var propellerMaxTorque by propeller::propellerMaxTorque
-
-        var radiatorHeatTransferCoefficient by radiator::radiatorHeatTransferCoefficient
-
-        var reactionWheelEffectiveness by reactionWheel::reactionWheelEffectiveness
-
-        var sugarRocketBlockThrust by sugarRocket::sugarRocketBlockThrust
-
-        var maxUniversalJointDistance by universalJoint::maxUniversalJointDistance
-
-        var wanderOreForceMultiplier by wanderlite::wanderOreForceMultiplier
-        val meteorDensity by wanderlite::meteorDensity
-
-        var wheelStepAssist by wheel::wheelStepAssist
-        var wheelStepAssistStrength by wheel::wheelStepAssistStrength
-        var wheelStepAssistHeight by wheel::wheelStepAssistHeight
-        var wheelStepAssistMaxForce by wheel::wheelStepAssistMaxForce
     }
 
     class ClientDebug {

@@ -26,7 +26,7 @@ class WanderShipControlTest {
 
         controller.physTick(ship, level)
 
-        val lift = 1500.0 * gravity * ClockworkConfig.SERVER.wanderOreForceMultiplier
+        val lift = 1500.0 * gravity * ClockworkConfig.SERVER.wanderlite.wanderOreForceMultiplier
         verify(exactly = 1) {
             ship.applyWorldForceToModelPos(Vector3d(0.0, lift, 0.0), Vector3d(101.5, 50.5, 200.5))
         }

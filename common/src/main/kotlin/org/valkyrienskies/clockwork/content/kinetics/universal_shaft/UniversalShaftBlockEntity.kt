@@ -42,7 +42,7 @@ class UniversalShaftBlockEntity(typeIn: BlockEntityType<*>?, pos: BlockPos?, sta
     override var main: Boolean = false
 
     override val maxCreationDistance: Double
-        get() = ClockworkConfig.SERVER.maxUniversalJointDistance
+        get() = ClockworkConfig.SERVER.universalJoint.maxUniversalJointDistance
 
     // Custom Propagation
     override fun propagateRotationTo(

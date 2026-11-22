@@ -220,7 +220,7 @@ class GrabTool : GravitronToolBase() {
                 val bl = graviton.`is`(ClockworkItems.GRAVITRON.get().asItem())
                 val heldShip = s.shipID?.let { serverLevel.shipObjectWorld.loadedShips.getById(it) }
                 if (s.shipID != null && (heldShip == null || heldShip.isStatic)) dropShip(player)
-                if (heldShip != null && bl && GravitronLoad.mass(serverLevel, heldShip, graviton) > ClockworkConfig.SERVER.maxGravitronMass * 1000.0) {
+                if (heldShip != null && bl && GravitronLoad.mass(serverLevel, heldShip, graviton) > ClockworkConfig.SERVER.gravitron.maxGravitronMass * 1000.0) {
                     val anchor = s.shipGrabbedPos
                     dropShip(player, false)
                     overload(player, heldShip, anchor)
@@ -293,19 +293,19 @@ class GrabTool : GravitronToolBase() {
 
                 val mass = GravitronLoad.mass(level, ship, player.mainHandItem)
 
-                if (mass > ClockworkConfig.SERVER.maxGravitronMass * 1000 * 0.9) {
+                if (mass > ClockworkConfig.SERVER.gravitron.maxGravitronMass * 1000 * 0.9) {
                     player.displayClientMessage(
-                        Component.literal("Ship's starting to get heavy! ${mass.toInt()} / ${ClockworkConfig.SERVER.maxGravitronMass * 1000}").withStyle(
+                        Component.literal("Ship's starting to get heavy! ${mass.toInt()} / ${ClockworkConfig.SERVER.gravitron.maxGravitronMass * 1000}").withStyle(
                             Style.EMPTY.withColor(
                                 ChatFormatting.GOLD
                             )
                         ), true
                     )
                 }
-                if (mass > ClockworkConfig.SERVER.maxGravitronMass * 1000) {
+                if (mass > ClockworkConfig.SERVER.gravitron.maxGravitronMass * 1000) {
                     overload(player, ship, grabPosInShip)
                     player.displayClientMessage(
-                        Component.literal("Ship too heavy! ${mass.toInt()} / ${ClockworkConfig.SERVER.maxGravitronMass * 1000}").withStyle(
+                        Component.literal("Ship too heavy! ${mass.toInt()} / ${ClockworkConfig.SERVER.gravitron.maxGravitronMass * 1000}").withStyle(
                             Style.EMPTY.withColor(
                                 ChatFormatting.RED
                             )
@@ -315,7 +315,7 @@ class GrabTool : GravitronToolBase() {
                 }
             }
 
-            val range = if (isCreative) 1000.0 else ClockworkConfig.SERVER.survivalGravitronMaxRange
+            val range = if (isCreative) 1000.0 else ClockworkConfig.SERVER.gravitron.survivalGravitronMaxRange
             grabShip(player, ship, grabPosInShip, GravitronGatePath.picked(player, clickedPos, ship.id, range))
             level.playSound(
                 null,
@@ -383,7 +383,7 @@ class GrabTool : GravitronToolBase() {
         fun loadOf(ship: ServerShip, player: Player? = null): Float {
             val level = player?.level() as? ServerLevel
             val mass = if (level != null) GravitronLoad.mass(level, ship, player.mainHandItem) else ship.inertiaData.mass
-            return (mass / (ClockworkConfig.SERVER.maxGravitronMass * 1000.0).coerceAtLeast(1.0)).toFloat()
+            return (mass / (ClockworkConfig.SERVER.gravitron.maxGravitronMass * 1000.0).coerceAtLeast(1.0)).toFloat()
         }
 
         fun overload(player: Player, ship: ServerShip, anchor: Vector3dc?) {

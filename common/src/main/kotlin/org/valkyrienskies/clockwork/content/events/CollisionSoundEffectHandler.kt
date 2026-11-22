@@ -30,7 +30,7 @@ object CollisionSoundEffectHandler {
     val collisionQueue = ConcurrentLinkedQueue<CollisionEvent>()
 
     fun onCollide(event: CollisionEvent) {
-        if (ClockworkConfig.SERVER.collisionSoundEffects) collisionQueue.add(event)
+        if (ClockworkConfig.SERVER.collisionSounds.collisionSoundEffects) collisionQueue.add(event)
     }
 
     private fun getValidState(level: ServerLevel, pos: Vector3dc): BlockState {
@@ -46,7 +46,7 @@ object CollisionSoundEffectHandler {
     fun tick(level: ServerLevel) {
         val groundId = level.shipObjectWorld.dimensionToGroundBodyIdImmutable[level.dimensionId]
 
-        if (collisionQueue.size > ClockworkConfig.SERVER.collisionSoundEffectMax) collisionQueue.clear()
+        if (collisionQueue.size > ClockworkConfig.SERVER.collisionSounds.collisionSoundEffectMax) collisionQueue.clear()
 
         while (!collisionQueue.isEmpty()) {
             //if (collisionQueue.isNotEmpty()) println("Collision Queue size: ${collisionQueue.size}")

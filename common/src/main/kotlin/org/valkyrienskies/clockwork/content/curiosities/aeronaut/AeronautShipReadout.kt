@@ -85,7 +85,7 @@ object AeronautShipReadout {
                 // Static-air form of EncasedFanController's blade calculation, at the design RPM.
                 val lift = 2.0 * PI * Math.toRadians(15.0)
                 val force = 0.5 * 1.225 * (AeronautForceReadout.REFERENCE_RPM * 0.5).let { it * it } *
-                    0.15 * 0.5 * lift * ClockworkConfig.SERVER.encasedFanForceMul
+                    0.15 * 0.5 * lift * ClockworkConfig.SERVER.encasedFan.encasedFanForceMul
                 thrust.add(source.blockPos.toJOMLD().add(0.5, 0.5, 0.5),
                     source.blockState.getValue(BlockStateProperties.FACING).normal.toJOMLD().mul(force))
             }
@@ -142,7 +142,7 @@ object AeronautShipReadout {
                 val center = Vector3d()
                 blocks.forEach { (pos, weight) -> center.add((pos.x() + 0.5) * weight, (pos.y() + 0.5) * weight, (pos.z() + 0.5) * weight) }
                 center.div(mass)
-                val force = Vector3d(up).mul(mass * gravity * ClockworkConfig.SERVER.wanderOreForceMultiplier)
+                val force = Vector3d(up).mul(mass * gravity * ClockworkConfig.SERVER.wanderlite.wanderOreForceMultiplier)
                 potentialLift.add(center, force)
                 liveLift.add(center, force)
             }

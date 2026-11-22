@@ -19,7 +19,7 @@ object DuctTextUtil {
         fromUnit: T,
         toUnit: T? = null
     ): LangBuilder {
-        val doSimplify = allowSimplify && ClockworkConfig.CLIENT.simplifyDisplayUnits
+        val doSimplify = allowSimplify && ClockworkConfig.CLIENT.ducts.simplifyDisplayUnits
         val targetUnit = toUnit ?: fromUnit.base()
         val converted = fromUnit.convertTo(value, targetUnit)
         val (finalValue, finalKey) = targetUnit.display(converted, doSimplify)
@@ -28,27 +28,27 @@ object DuctTextUtil {
 
     @JvmStatic
     fun translateTemperature(builder: LangBuilder, value: Double, allowSimplify: Boolean, unit: TemperatureUnit? = null): LangBuilder {
-        return translate(builder, value, allowSimplify, TemperatureUnit.BASE, unit ?: ClockworkConfig.CLIENT.tempDisplayUnit)
+        return translate(builder, value, allowSimplify, TemperatureUnit.BASE, unit ?: ClockworkConfig.CLIENT.ducts.tempDisplayUnit)
     }
 
     @JvmStatic
     fun translatePressure(builder: LangBuilder, value: Double, allowSimplify: Boolean, unit: PressureUnit? = null): LangBuilder {
-        return translate(builder, value, allowSimplify, PressureUnit.BASE, unit ?: ClockworkConfig.CLIENT.pressureDisplayUnit)
+        return translate(builder, value, allowSimplify, PressureUnit.BASE, unit ?: ClockworkConfig.CLIENT.ducts.pressureDisplayUnit)
     }
 
     @JvmStatic
     fun translateEnergy(builder: LangBuilder, value: Double, allowSimplify: Boolean, unit: EnergyUnit? = null): LangBuilder {
-        return translate(builder, value, allowSimplify, EnergyUnit.BASE, unit ?: ClockworkConfig.CLIENT.energyDisplayUnit)
+        return translate(builder, value, allowSimplify, EnergyUnit.BASE, unit ?: ClockworkConfig.CLIENT.ducts.energyDisplayUnit)
     }
 
     @JvmStatic
     fun translateVolume(builder: LangBuilder, value: Double, allowSimplify: Boolean, unit: VolumeUnit? = null): LangBuilder {
-        return translate(builder, value, allowSimplify, VolumeUnit.BASE, unit ?: ClockworkConfig.CLIENT.volumeDisplayUnit)
+        return translate(builder, value, allowSimplify, VolumeUnit.BASE, unit ?: ClockworkConfig.CLIENT.ducts.volumeDisplayUnit)
     }
 
     @JvmStatic
     fun translateMass(builder: LangBuilder, value: Double, allowSimplify: Boolean, unit: MassUnit? = null): LangBuilder {
-        return translate(builder, value, allowSimplify, MassUnit.BASE, unit ?: ClockworkConfig.CLIENT.massDisplayUnit)
+        return translate(builder, value, allowSimplify, MassUnit.BASE, unit ?: ClockworkConfig.CLIENT.ducts.massDisplayUnit)
     }
 
     @JvmStatic

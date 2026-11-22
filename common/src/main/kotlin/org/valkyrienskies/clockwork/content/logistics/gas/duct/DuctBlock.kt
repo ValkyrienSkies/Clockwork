@@ -471,7 +471,7 @@ class DuctBlock(properties: Properties) : Block(properties), INodeBlock, IDuct, 
 
 
         // Handle gas movement particles
-        if (!ClockworkConfig.CLIENT.renderDuctParticles) return
+        if (!ClockworkConfig.CLIENT.ducts.renderDuctParticles) return
 
         val network = ClockworkModClient.getKelvin()
         val node = network.nodeInfo.get(ductNodePos) ?: return
@@ -493,7 +493,7 @@ class DuctBlock(properties: Properties) : Block(properties), INodeBlock, IDuct, 
     }
 
     override fun getInternalVolume(): Double {
-        return  ClockworkConfig.SERVER.ductVolme
+        return  ClockworkConfig.SERVER.ducts.ductVolme
     }
 
     override fun getAdditionalInfoLines(): List<Component> {

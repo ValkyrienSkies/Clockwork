@@ -34,8 +34,8 @@ public class MixinAirCurrent implements MixinAirCurrentDuck {
 
     @Override
     public FanProcessingType getProcessingTypeFor(double temperature) {
-        if (temperature >= ClockworkConfig.SERVER.getBulkBlastingTemp()) return AllFanProcessingTypes.BLASTING;
-        if (temperature >= ClockworkConfig.SERVER.getBulkSmokingTemp()) return AllFanProcessingTypes.SMOKING;
+        if (temperature >= ClockworkConfig.SERVER.getGasExhaust().getBulkBlastingTemp()) return AllFanProcessingTypes.BLASTING;
+        if (temperature >= ClockworkConfig.SERVER.getGasExhaust().getBulkSmokingTemp()) return AllFanProcessingTypes.SMOKING;
         return null;
     }
 

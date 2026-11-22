@@ -26,10 +26,10 @@ object AeronautPropellerReadout {
             (if (bearing.speed < 0) -1.0 else 1.0) * (if (prop.inverted) -1.0 else 1.0)
         val flow = PropellerAerodynamics.Flow(ship.transform.shipToWorld, ship.transform.positionInShip,
             Vector3d(), Vector3d(), Vector3d()) { 1.225 }
-        val multiplier = ClockworkConfig.SERVER.forceMulPerSailInPropeller *
-            if (prop.brass) ClockworkConfig.SERVER.sailPropellerForceMultiplier else 1.0
+        val multiplier = ClockworkConfig.SERVER.propeller.forceMulPerSailInPropeller *
+            if (prop.brass) ClockworkConfig.SERVER.propeller.sailPropellerForceMultiplier else 1.0
         val force = PropellerAerodynamics.prepare(prop, flow, 0.0, multiplier,
-            ClockworkConfig.SERVER.propellerMaxForce, ClockworkConfig.SERVER.propellerMaxTorque).force
+            ClockworkConfig.SERVER.propeller.propellerMaxForce, ClockworkConfig.SERVER.propeller.propellerMaxTorque).force
         result.add(hub(prop), ship.transform.shipToWorldRotation.transformInverse(force, Vector3d()))
     }
 }

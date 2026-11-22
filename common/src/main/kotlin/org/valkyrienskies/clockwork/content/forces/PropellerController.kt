@@ -47,7 +47,7 @@ class PropellerController(
             val rotation = Matrix3d().rotation(physShip.transform.shipToWorldRotation)
             val inertiaWorld = Matrix3d(rotation).mul(physShip.momentOfInertia).mul(rotation.transpose(Matrix3d()))
             val (force, torque) = PropellerImpulseSolver.solve(rotors, physShip.mass, inertiaWorld,
-                ClockworkConfig.SERVER.propellerMaxForce, ClockworkConfig.SERVER.propellerMaxTorque,
+                ClockworkConfig.SERVER.propeller.propellerMaxForce, ClockworkConfig.SERVER.propeller.propellerMaxTorque,
                 if (readout == null) null else { index, applied ->
                     readout.add(AeronautPropellerReadout.hub(activeProps[index]),
                         physShip.transform.shipToWorldRotation.transformInverse(applied, Vector3d()))
@@ -89,12 +89,12 @@ class PropellerController(
         val estimatedAngle = (prop.bearingAngle + prop.bearingSpeed / 3.0 * ticksSinceLastUpdate) % 360.0
         // `brass` selects sail aerodynamics; item blades on a brass bearing still use the blade model.
         // The gameplay boost applies to both sail and blade-controller rotors.
-        val forceMultiplier = ClockworkConfig.SERVER.forceMulPerSailInPropeller *
-            ClockworkConfig.SERVER.sailPropellerForceMultiplier
+        val forceMultiplier = ClockworkConfig.SERVER.propeller.forceMulPerSailInPropeller *
+            ClockworkConfig.SERVER.propeller.sailPropellerForceMultiplier
         return PropellerAerodynamics.prepare(
             prop, flow, estimatedAngle, forceMultiplier,
-            ClockworkConfig.SERVER.propellerMaxForce, ClockworkConfig.SERVER.propellerMaxTorque,
-            spinTorqueEnabled = ClockworkConfig.SERVER.propellerSpinTorqueEnabled
+            ClockworkConfig.SERVER.propeller.propellerMaxForce, ClockworkConfig.SERVER.propeller.propellerMaxTorque,
+            spinTorqueEnabled = ClockworkConfig.SERVER.propeller.propellerSpinTorqueEnabled
         )
     }
 

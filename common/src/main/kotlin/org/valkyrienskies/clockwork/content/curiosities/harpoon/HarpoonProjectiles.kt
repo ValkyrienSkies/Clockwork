@@ -33,19 +33,19 @@ object HarpoonProjectiles {
     private const val PARTICLE_TAG = 0x434C4B4852504EL // "CLKHRPN", reserved for transient harpoons.
 
     val maxRange: Double
-        get() = ClockworkConfig.SERVER.harpoonMaxRange.takeIf { it.isFinite() }?.coerceIn(1.0, 128.0) ?: 128.0
+        get() = ClockworkConfig.SERVER.harpoon.harpoonMaxRange.takeIf { it.isFinite() }?.coerceIn(1.0, 128.0) ?: 128.0
 
     private val radius: Double
-        get() = ClockworkConfig.SERVER.harpoonRadius.takeIf { it.isFinite() }?.coerceIn(0.01, 1.0) ?: 0.125
+        get() = ClockworkConfig.SERVER.harpoon.harpoonRadius.takeIf { it.isFinite() }?.coerceIn(0.01, 1.0) ?: 0.125
 
     private val lifetimeTicks: Int
-        get() = ClockworkConfig.SERVER.harpoonLifetimeTicks.coerceIn(1, 12000)
+        get() = ClockworkConfig.SERVER.harpoon.harpoonLifetimeTicks.coerceIn(1, 12000)
 
     /** VS velocities are metres/second. Include rotation at the muzzle, not just centre-of-mass motion. */
     fun launchVelocity(direction: Vector3dc, charge: Double, linear: Vector3dc = Vector3d(),
                        angular: Vector3dc = Vector3d(), lever: Vector3dc = Vector3d()): Vector3d {
-        val baseSpeed = ClockworkConfig.SERVER.harpoonBaseLaunchSpeed.takeIf { it.isFinite() }?.coerceIn(0.0, 1000.0) ?: 10.0
-        val chargeSpeed = ClockworkConfig.SERVER.harpoonChargeLaunchSpeed.takeIf { it.isFinite() }?.coerceIn(0.0, 1000.0) ?: 50.0
+        val baseSpeed = ClockworkConfig.SERVER.harpoon.harpoonBaseLaunchSpeed.takeIf { it.isFinite() }?.coerceIn(0.0, 1000.0) ?: 10.0
+        val chargeSpeed = ClockworkConfig.SERVER.harpoon.harpoonChargeLaunchSpeed.takeIf { it.isFinite() }?.coerceIn(0.0, 1000.0) ?: 50.0
         return Vector3d(direction).normalize().mul(baseSpeed + chargeSpeed * charge.coerceIn(0.0, 1.0))
             .add(angular.cross(lever, Vector3d())).add(linear)
     }

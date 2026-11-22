@@ -94,7 +94,7 @@ object GravitronEffects {
     }
 
     private fun useMaterials(view: ShipRenderView) = view.level === world &&
-        !ClockworkConfig.CLIENT.gravitronLegacyShipContours && !ShaderPackCompat.enabled()
+        !ClockworkConfig.CLIENT.gravitron.gravitronLegacyShipContours && !ShaderPackCompat.enabled()
 
     private fun selection(ship: ClientShip, anchor: Vec3, material: ShipMaterial, parameter: Float) =
         ShipMaterialSelection(material, x = (anchor.x - (ship.chunkClaim.xStart shl 4)).toFloat(),
@@ -335,7 +335,7 @@ object GravitronEffects {
         val now = level.gameTime
         val time = (now % 24000).toFloat() + partialTick
         val surfaces = mutableListOf<SurfacePass>()
-        val legacy = ClockworkConfig.CLIENT.gravitronLegacyShipContours
+        val legacy = ClockworkConfig.CLIENT.gravitron.gravitronLegacyShipContours
         val fallback = !legacy && ShaderPackCompat.enabled()
         if (portalCamera == null && !afterGates) GravitronSurfaceEffects.beginFrame()
         val type = if (afterGates) ClockworkRenderTypes.GRAVITRON_ENERGY else ClockworkRenderTypes.energyType()

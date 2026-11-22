@@ -119,8 +119,8 @@ object Magnetism {
             }
             materials.addAll(chunk.materials)
         }
-        val configured = ClockworkConfig.SERVER.magnetForceMultiplier
-        val snapshot = Snapshot(materials, if (configured.isFinite()) configured.coerceIn(0.0, 100.0) else 1.0, ClockworkConfig.SERVER.magneticIronCores)
+        val configured = ClockworkConfig.SERVER.magnet.magnetForceMultiplier
+        val snapshot = Snapshot(materials, if (configured.isFinite()) configured.coerceIn(0.0, 100.0) else 1.0, ClockworkConfig.SERVER.magnet.magneticIronCores)
         snapshots[level.dimensionId] = snapshot
         if (level.gameTime % 5L == 0L) syncFields(level, snapshot)
     }

@@ -83,7 +83,7 @@ class PhysBearingBlock(properties: Properties) : BearingBlock(properties), IBE<P
     override fun onWrenched(state: BlockState?, context: UseOnContext): InteractionResult {
         if (context.level.isClientSide) return super.onWrenched(state, context)
         val be = context.getLevel().getBlockEntity(context.getClickedPos()) as? PhysBearingBlockEntity ?: return InteractionResult.FAIL
-        if (be.jointId != -1 && !ClockworkConfig.SERVER.allowWrenchingActivatedPhysBearing) return InteractionResult.FAIL
+        if (be.jointId != -1 && !ClockworkConfig.SERVER.physicsBearing.allowWrenchingActivatedPhysBearing) return InteractionResult.FAIL
 
         return super.onWrenched(state, context)
     }
