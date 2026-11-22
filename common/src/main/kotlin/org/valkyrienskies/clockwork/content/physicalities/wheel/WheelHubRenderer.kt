@@ -50,7 +50,8 @@ class WheelHubRenderer(context: BlockEntityRendererProvider.Context) : KineticBl
     override fun renderSafe(be: WheelHubBlockEntity, partialTicks: Float, ms: PoseStack,
                             buffers: MultiBufferSource, light: Int, overlay: Int) {
         super.renderSafe(be, partialTicks, ms, buffers, light, overlay)
-        val size = be.tire ?: return
+        val wheel = be.wheel ?: return
+        val tire = be.tire
         val level = be.level ?: return
         val body = level.shipObjectWorld.allBodies.getById(be.bodyId) as? ClientVsBody
         ms.pushPose()
@@ -66,20 +67,22 @@ class WheelHubRenderer(context: BlockEntityRendererProvider.Context) : KineticBl
                 ms.translate(.5, .5, .5)
                 ms.mulPose(Quaternionf(WheelSize.axleRotation(be.facing.stepX.toDouble(), be.facing.stepY.toDouble(), be.facing.stepZ.toDouble())))
             }
-            val coating = WheelEffects.coating(be.bodyId)
-            val sprite = coating?.let { WheelEffects.coatingSprite(it.state) }
-            val contacts = body?.let { WheelEffects.compression(it, partialTicks) }.orEmpty()
-            val texture = WheelVisuals.treadTexture(size.type, be.wood)
-            if (texture != null) TireMesh.render(size, contacts, ms,
-                buffers.getBuffer(RenderType.entitySolid(texture)), light, overlay)
-            else LayeredTireRenderer.render(level as ClientLevel, body, size, contacts, ms, buffers, light, overlay, partialTicks,
-                if (size.type == TireType.WOOD) WheelVisuals.planks(be.wood) else null)
-            LayeredTireRenderer.cleats(size, ms, buffers, light, overlay, contacts)
-            if (coating != null) TireMesh.render(size, contacts, ms,
-                buffers.getBuffer(Sheets.translucentCullBlockSheet()), light, overlay, coating, sprite)
+            if (tire != null) {
+                val coating = WheelEffects.coating(be.bodyId)
+                val sprite = coating?.let { WheelEffects.coatingSprite(it.state) }
+                val contacts = body?.let { WheelEffects.compression(it, partialTicks) }.orEmpty()
+                val texture = WheelVisuals.treadTexture(tire.type, be.wood)
+                if (texture != null) TireMesh.render(tire, contacts, ms,
+                    buffers.getBuffer(RenderType.entitySolid(texture)), light, overlay)
+                else LayeredTireRenderer.render(level as ClientLevel, body, tire, contacts, ms, buffers, light, overlay, partialTicks,
+                    if (tire.type == TireType.WOOD) WheelVisuals.planks(be.wood) else null)
+                LayeredTireRenderer.cleats(tire, ms, buffers, light, overlay, contacts)
+                if (coating != null) TireMesh.render(tire, contacts, ms,
+                    buffers.getBuffer(Sheets.translucentCullBlockSheet()), light, overlay, coating, sprite)
+            }
             ms.pushPose()
             ms.mulPose(Quaternionf().rotationY((-PI / 2).toFloat()))
-            val rim = when (size.size) {
+            val rim = when (wheel) {
                 WheelSize.SMALL -> ClockworkPartials.WHEEL_RIM
                 WheelSize.MEDIUM -> ClockworkPartials.MEDIUM_WHEEL_RIM
                 WheelSize.LARGE -> ClockworkPartials.LARGE_WHEEL_RIM
@@ -87,7 +90,7 @@ class WheelHubRenderer(context: BlockEntityRendererProvider.Context) : KineticBl
             ms.translate(-.5, -.5, -.5)
             CachedBuffers.partial(rim, be.blockState).light<SuperByteBuffer>(light)
                 .overlay<SuperByteBuffer>(overlay).renderInto(ms,
-                    WheelVisuals.rimBuffer(buffers.getBuffer(RenderType.solid()), size.type, be.wood))
+                    WheelVisuals.rimBuffer(buffers.getBuffer(RenderType.solid()), be.tireType, be.wood))
             ms.popPose()
         } finally { ms.popPose() }
     }
@@ -97,7 +100,7 @@ class WheelItemRenderer : CustomRenderedItemModelRenderer() {
     override fun render(stack: ItemStack, model: CustomRenderedItemModel, renderer: PartialItemModelRenderer,
                         transformType: ItemDisplayContext, ms: PoseStack, buffers: MultiBufferSource, light: Int, overlay: Int) {
         val item = stack.item as? WheelItem ?: return
-        val tire = item.size.tire(type = item.tireType)
+        val tire = item.size.tire(type = item.tireType ?: return)
         ms.pushPose()
         ms.mulPose(Quaternionf().rotationY((PI / 2).toFloat()))
         val wood = WheelItem.wood(stack.tag)
@@ -138,7 +141,7 @@ internal object WheelVisuals {
     fun planks(wood: Block): TextureAtlasSprite =
         Minecraft.getInstance().blockRenderer.blockModelShaper.getBlockModel(wood.defaultBlockState()).particleIcon
 
-    fun rimBuffer(buffer: VertexConsumer, type: TireType, wood: Block): VertexConsumer {
+    fun rimBuffer(buffer: VertexConsumer, type: TireType?, wood: Block): VertexConsumer {
         if (type != TireType.WOOD) return buffer
         val original = Minecraft.getInstance().getTextureAtlas(TextureAtlas.LOCATION_BLOCKS)
             .apply(ClockworkMod.asResource("block/wheel/wheel"))

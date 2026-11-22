@@ -5,10 +5,6 @@ import com.simibubi.create.api.schematic.requirement.SpecialBlockEntityItemRequi
 import com.simibubi.create.content.kinetics.base.KineticBlockEntity
 import com.simibubi.create.content.schematics.requirement.ItemRequirement
 import com.simibubi.create.foundation.blockEntity.behaviour.BlockEntityBehaviour
-import com.simibubi.create.foundation.blockEntity.behaviour.BehaviourType
-import com.simibubi.create.foundation.blockEntity.behaviour.ValueSettingsBehaviour.ValueSettings
-import com.simibubi.create.foundation.blockEntity.behaviour.ValueSettingsBoard
-import com.simibubi.create.foundation.blockEntity.behaviour.ValueSettingsFormatter
 import com.simibubi.create.foundation.blockEntity.behaviour.ValueBoxTransform
 import com.simibubi.create.foundation.blockEntity.behaviour.scrollValue.ScrollValueBehaviour
 import net.minecraft.core.BlockPos
@@ -26,13 +22,14 @@ import net.minecraft.world.level.block.entity.BlockEntityType
 import net.minecraft.world.level.block.state.BlockState
 import net.minecraft.world.level.block.state.properties.BlockStateProperties
 import net.minecraft.world.phys.Vec3
-import net.minecraft.world.phys.BlockHitResult
 import org.joml.Quaterniond
 import org.joml.Vector3d
 import org.valkyrienskies.clockwork.ClockworkConfig
+import org.valkyrienskies.clockwork.api.wheel.TireTypes
 import org.valkyrienskies.clockwork.ClockworkSounds
 import org.valkyrienskies.clockwork.util.gtpa
 import org.valkyrienskies.core.api.bodies.ServerVsBody
+import org.valkyrienskies.core.api.bodies.VsBodyDefaults
 import org.valkyrienskies.core.api.bodies.VsBodyCreateData
 import org.valkyrienskies.core.api.bodies.shape.WheelBodyShapeData
 import org.valkyrienskies.core.api.ships.PhysShip
@@ -49,13 +46,12 @@ import org.valkyrienskies.mod.common.getShipManagingPos
 import org.valkyrienskies.mod.common.shipObjectWorld
 import org.valkyrienskies.mod.common.vsCore
 import java.util.WeakHashMap
-import java.util.Locale
 
 class WheelHubBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: BlockState) :
     KineticBlockEntity(type, pos, state), BlockEntityPhysicsListener, SpecialBlockEntityItemRequirement {
     var wheel: WheelSize? = null
         private set
-    var tireType = TireType.RUBBER
+    var tireType: TireType? = null
         private set
     var wood = Blocks.OAK_PLANKS
         private set
@@ -64,10 +60,10 @@ class WheelHubBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: BlockS
     var engaged = true
         private set
     lateinit var torque: ScrollValueBehaviour
-    lateinit var tireWidth: ScrollValueBehaviour
-    lateinit var tireThickness: ScrollValueBehaviour
-    lateinit var tirePressure: ScrollValueBehaviour
-    val tire: WheelTire? get() = wheel?.tire(tireWidth.value * 5, tireThickness.value * 5, tirePressure.value * 5, tireType)
+    private var tireWidth = 20
+    private var tireThickness = 20
+    private var tirePressure = 160
+    val tire: WheelTire? get() = tireType?.let { wheel?.tire(tireWidth * 5, tireThickness * 5, tirePressure * 5, it) }
     val facing: Direction get() = blockState.getValue(BlockStateProperties.FACING)
     @Volatile override lateinit var dimension: DimensionId
     @Volatile private var drive: Drive? = null
@@ -82,32 +78,28 @@ class WheelHubBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: BlockS
 
     override fun addBehaviours(behaviours: MutableList<BlockEntityBehaviour>) {
         super.addBehaviours(behaviours)
-        torque = ScrollValueBehaviour(Component.translatable("block.vs_clockwork.wheel_hub.torque"), this, SettingSlot(0))
+        torque = ScrollValueBehaviour(Component.translatable("block.vs_clockwork.wheel_hub.torque"), this, TorqueSlot())
             .between(1, 256).withFormatter { "${it * 1000} Nm" }.requiresWrench()
             .withCallback { refreshStress() }
         torque.setValue(8)
         behaviours.add(torque)
-        tireWidth = TireSetting(this, 1, "width", "WheelWidth", 10, 40, 20)
-            .withFormatter { length((wheel ?: WheelSize.MEDIUM).width * it / 20.0) }.requiresWrench()
-        tireThickness = TireSetting(this, 2, "thickness", "WheelThickness", 5, WheelSize.MEDIUM.maximumThicknessPercent / 5, 20)
-            .withFormatter { val size = wheel ?: WheelSize.MEDIUM; length((size.radius - size.rimRadius) * it / 20.0) }.requiresWrench()
-        tirePressure = TireSetting(this, 3, "pressure", "WheelPressure", 20, 320, 160)
-            .withFormatter { String.format(Locale.ROOT, "%.2f bar", it / 20.0) }.requiresWrench()
-        behaviours.addAll(listOf(tireWidth, tireThickness, tirePressure))
-        updateTireRanges()
     }
 
-    private fun updateTireRanges() {
-        if (!::tireWidth.isInitialized) return
-        val minimum = (wheel?.minimumWidthPercent ?: 50) / 5
-        tireWidth.between(minimum, 40)
-        tireWidth.value = tireWidth.value.coerceIn(minimum, 40)
-        val maximum = (wheel ?: WheelSize.MEDIUM).maximumThicknessPercent / 5
-        tireThickness.between(5, maximum)
-        tireThickness.value = tireThickness.value.coerceIn(5, maximum)
+    private fun readTireSettings(tag: CompoundTag?, size: WheelSize, width: Int, thickness: Int, pressure: Int) {
+        tireWidth = (tag?.takeIf { it.contains("WheelWidth") }?.getInt("WheelWidth") ?: width)
+            .coerceIn(size.minimumWidthPercent / 5, 40)
+        tireThickness = (tag?.takeIf { it.contains("WheelThickness") }?.getInt("WheelThickness") ?: thickness)
+            .coerceIn(5, size.maximumThicknessPercent / 5)
+        tirePressure = (tag?.takeIf { it.contains("WheelPressure") }?.getInt("WheelPressure") ?: pressure).coerceIn(20, 320)
     }
 
-    fun install(size: WheelSize, player: Player, settings: CompoundTag? = null, type: TireType = TireType.RUBBER,
+    private fun writeTireSettings(tag: CompoundTag) {
+        tag.putInt("WheelWidth", tireWidth)
+        tag.putInt("WheelThickness", tireThickness)
+        tag.putInt("WheelPressure", tirePressure)
+    }
+
+    fun install(size: WheelSize, player: Player, settings: CompoundTag? = null, type: TireType? = null,
                 replace: Boolean = false): Boolean {
         if (wheel != null && !replace) return false
         if (!supportsTires()) {
@@ -115,21 +107,13 @@ class WheelHubBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: BlockS
             return false
         }
         if (level !is ServerLevel) return false
-        val width = (settings?.takeIf { it.contains("WheelWidth") }?.getInt("WheelWidth") ?: tireWidth.value)
-            .coerceIn(size.minimumWidthPercent / 5, 40)
-        val thickness = (settings?.takeIf { it.contains("WheelThickness") }?.getInt("WheelThickness") ?: tireThickness.value)
-            .coerceIn(5, size.maximumThicknessPercent / 5)
-        val pressure = settings?.takeIf { it.contains("WheelPressure") }?.getInt("WheelPressure")?.coerceIn(20, 320) ?: tirePressure.value
         val replacing = wheel != null
         if (replacing) uninstall(player)
         wheel = size
         tireType = type
         wood = WheelItem.wood(settings)
-        if (!type.driven) engaged = false
-        tireWidth.value = width
-        tireThickness.value = thickness
-        tirePressure.value = pressure
-        updateTireRanges()
+        if (type?.driven == false) engaged = false
+        readTireSettings(settings, size, tireWidth, tireThickness, tirePressure)
         refreshStress()
         setChanged()
         sendData()
@@ -139,8 +123,8 @@ class WheelHubBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: BlockS
 
     fun toggleDrive(player: Player) {
         if (wheel == null) return
-        if (!tireType.driven) {
-            player.displayClientMessage(Component.translatable("block.vs_clockwork.wheel_hub.wood_freewheel"), true)
+        if (tireType?.driven == false) {
+            player.displayClientMessage(Component.translatable(if (tireType == TireType.WOOD) "block.vs_clockwork.wheel_hub.wood_freewheel" else "block.vs_clockwork.wheel_hub.passive_tire"), true)
             return
         }
         engaged = !engaged
@@ -151,23 +135,54 @@ class WheelHubBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: BlockS
             if (engaged) "engaged" else "freewheel"), true)
     }
 
+    fun fitTire(type: TireType, player: Player, replace: Boolean): Boolean {
+        if (level !is ServerLevel || wheel == null || type == TireType.WOOD || tireType == TireType.WOOD ||
+            tireType == type || (tireType != null && !replace)) return false
+        if (!supportsTires()) {
+            player.displayClientMessage(Component.translatable("block.vs_clockwork.wheel_hub.unsupported"), true)
+            return false
+        }
+        if (tireType != null) removeTire(player) else if (bodyId >= 0) removeBody()
+        tireType = type
+        if (!type.driven) engaged = false
+        refreshStress()
+        setChanged()
+        sendData()
+        ClockworkSounds.TIRE_ATTACH.playOnServer(level, blockPos)
+        return true
+    }
+
+    private fun returnPart(stack: ItemStack, player: Player?) {
+        if (player?.isCreative != true && (player == null || !player.inventory.add(stack)))
+            Block.popResource(level, blockPos, stack)
+    }
+
+    fun removeTire(player: Player?) {
+        val type = tireType ?: return
+        if (type == TireType.WOOD || level !is ServerLevel) return
+        removeBody()
+        tireType = null
+        returnPart(ItemStack(TireTypes.item(type)), player)
+        refreshStress()
+        setChanged()
+        sendData()
+        ClockworkSounds.TIRE_REMOVE.playOnServer(level, blockPos)
+    }
+
     fun uninstall(player: Player?) {
         val size = wheel ?: return
         if (level !is ServerLevel) return
-        val stack = ItemStack(WheelHubBlock.item(size, tireType))
+        removeTire(player)
+        val stack = ItemStack(WheelHubBlock.item(size, tireType ?: TireType.RUBBER))
         stack.orCreateTag.apply {
-            putInt("WheelWidth", tireWidth.value)
-            putInt("WheelThickness", tireThickness.value)
-            putInt("WheelPressure", tirePressure.value)
+            writeTireSettings(this)
             if (tireType == TireType.WOOD) putString("WheelWood", BuiltInRegistries.BLOCK.getKey(wood).toString())
         }
-        removeBody()
+        if (bodyId >= 0) removeBody()
         wheel = null
-        updateTireRanges()
+        tireType = null
         refreshStress()
-        if (player?.isCreative != true) {
-            if (player == null || !player.inventory.add(stack)) Block.popResource(level, blockPos, stack)
-        }
+        returnPart(stack, player)
         setChanged()
         sendData()
         ClockworkSounds.WHEEL_UNSCREW.playOnServer(level, blockPos)
@@ -175,9 +190,14 @@ class WheelHubBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: BlockS
 
     override fun tick() {
         super.tick()
+        val rim = wheel ?: return
+        if (level?.isClientSide == true) {
+            if (tireType == null && bodyId >= 0) WheelEffects.sampleRim(this, rim)
+            return
+        }
         val world = level as? ServerLevel ?: return
         dimension = world.dimensionId
-        val size = tire ?: return
+        val tire = tire
         if (!supportsTires()) { drive = null; return }
         val parent = world.getShipManagingPos(blockPos)
         val rotation = WheelSize.axleRotation(facing.stepX.toDouble(), facing.stepY.toDouble(), facing.stepZ.toDouble())
@@ -191,8 +211,9 @@ class WheelHubBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: BlockS
             jointId = -1
         }
         val config = ClockworkConfig.SERVER.wheel
-        val assistMode = tireType.stepAssist(config)
-        val shape = size.shape(assistMode)
+        val assistMode = tire?.type?.stepAssist(config) ?: TireType.StepAssist.NONE
+        val shape = tire?.shape(assistMode) ?: WheelBodyShapeData(rim.rimRadius, rim.rimWidth / 2)
+        fun inertia() = vsCore.newShipInertiaData(Vector3d(), tire?.mass ?: rim.rimMass, tire?.inertia() ?: rim.rimInertia())
         if (body == null) {
             val position = parent?.transform?.shipToWorld?.transformPosition(center, Vector3d()) ?: Vector3d(center)
             val worldRotation = parent?.transform?.shipToWorldRotation?.mul(rotation, Quaterniond()) ?: Quaterniond(rotation)
@@ -200,11 +221,13 @@ class WheelHubBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: BlockS
                 .cross(Vector3d(position).sub(it.kinematics.position)).add(it.velocity) } ?: Vector3d()
             body = world.shipObjectWorld.createBody(VsBodyCreateData(
                 dimensionId = dimension,
-                inertiaData = vsCore.newShipInertiaData(Vector3d(), size.mass, size.inertia()),
+                inertiaData = inertia(),
                 kinematics = vsCore.newBodyKinematics(velocity, parent?.angularVelocity ?: Vector3d(),
                     position, worldRotation, Vector3d(scale), Vector3d()),
-                collisionShape = shape, staticFrictionCoefficient = size.type.physics.staticFriction,
-                dynamicFrictionCoefficient = size.type.physics.dynamicFriction, restitutionCoefficient = size.type.physics.restitution,
+                collisionShape = shape,
+                staticFrictionCoefficient = tire?.type?.physics?.staticFriction ?: VsBodyDefaults.DEFAULT_STATIC_FRICTION_COEFFICIENT,
+                dynamicFrictionCoefficient = tire?.type?.physics?.dynamicFriction ?: VsBodyDefaults.DEFAULT_DYNAMIC_FRICTION_COEFFICIENT,
+                restitutionCoefficient = tire?.type?.physics?.restitution ?: VsBodyDefaults.DEFAULT_RESTITUTION_COEFFICIENT,
             ))
             bodyId = body.id
             owner = blockPos
@@ -219,16 +242,18 @@ class WheelHubBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: BlockS
             setChanged()
         }
         if (body.collisionShape != shape) {
-            body.setWheelShape(shape, vsCore.newShipInertiaData(Vector3d(), size.mass, size.inertia()))
+            body.setWheelShape(shape, inertia())
         }
         if (body.isStatic) body.isStatic = false
-        val rpm = if (engaged && tireType.driven && !isOverStressed) getSpeed() * facing.axisDirection.step else null
-        interactions.tick(world, body, size, parent?.id)
+        val rpm = if (engaged && tire?.type?.driven != false && !isOverStressed) getSpeed() * facing.axisDirection.step else null
         val raycastAssist = assistMode == TireType.StepAssist.RAYCAST
-        WheelContacts.watch(world, bodyId, size.width, raycastAssist, tireType)
+        if (tire != null) {
+            interactions.tick(world, body, tire, parent?.id)
+            WheelContacts.watch(world, bodyId, tire.width, raycastAssist, tire.type)
+        }
         val assist = if (raycastAssist) WheelStepAssist.Settings(config.wheelStepAssistHeight,
             config.wheelStepAssistStrength, config.wheelStepAssistMaxForce) else null
-        drive = Drive(bodyId, parent?.id, VSJointPose(center, rotation), rpm, torque.value * 1000f, size, assist)
+        drive = Drive(bodyId, parent?.id, VSJointPose(center, rotation), rpm, torque.value * 1000f, tire, assist)
     }
 
     private fun copiedFromLiveHub(world: ServerLevel): Boolean {
@@ -273,12 +298,13 @@ class WheelHubBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: BlockS
             current.parentId?.let { physics.disableCollisionBetween(it, current.bodyId) }
             collisionParent = current.parentId
         }
-        if (current.tire.type.floating) physics.getBodyById(current.bodyId)?.let {
-            interactions.applyWater(physics, it, current.tire)
+        val tire = current.tire ?: return
+        if (tire.type.floating) physics.getBodyById(current.bodyId)?.let {
+            interactions.applyWater(physics, it, tire)
         }
         current.assist?.let { settings ->
             if (physShip != null && !physShip.isStatic)
-                physics.getBodyById(current.bodyId)?.let { stepAssist.apply(physics, it, current.tire, current.rpm, current.torque.toDouble(), settings) }
+                physics.getBodyById(current.bodyId)?.let { stepAssist.apply(physics, it, tire, current.rpm, current.torque.toDouble(), settings) }
         }
     }
 
@@ -315,7 +341,7 @@ class WheelHubBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: BlockS
     }
 
     override fun calculateStressApplied(): Float {
-        lastStressApplied = if (wheel != null && tireType.driven && engaged && ::torque.isInitialized) torque.value.toFloat() else 0f
+        lastStressApplied = if (wheel != null && tireType?.driven != false && engaged && ::torque.isInitialized) torque.value.toFloat() else 0f
         return lastStressApplied
     }
 
@@ -325,10 +351,7 @@ class WheelHubBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: BlockS
 
     override fun write(tag: CompoundTag, clientPacket: Boolean) {
         super.write(tag, clientPacket)
-        wheel?.let { tag.putString("Wheel", it.id) }
-        tag.putString("TireType", tireType.id.toString())
-        if (tireType == TireType.WOOD) tag.putString("WheelWood", BuiltInRegistries.BLOCK.getKey(wood).toString())
-        tag.putBoolean("WheelDrive", engaged)
+        writeWheel(tag)
         tag.putLong("WheelBody", bodyId)
         tag.putInt("WheelJoint", jointId)
         owner?.let { tag.putLong("WheelOwner", it.asLong()) }
@@ -341,10 +364,10 @@ class WheelHubBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: BlockS
         super.read(tag, clientPacket)
         drive = null
         wheel = WheelSize.byId(tag.getString("Wheel"))
-        tireType = TireType.read(tag)
+        tireType = wheel?.let { TireType.read(tag) }
         wood = WheelItem.wood(tag)
-        updateTireRanges()
-        engaged = tireType.driven && (!tag.contains("WheelDrive") || tag.getBoolean("WheelDrive"))
+        readTireSettings(tag, wheel ?: WheelSize.MEDIUM, 20, 20, 160)
+        engaged = tireType?.driven != false && (!tag.contains("WheelDrive") || tag.getBoolean("WheelDrive"))
         bodyId = if (tag.contains("WheelBody")) tag.getLong("WheelBody") else -1
         jointId = if (tag.contains("WheelJoint")) tag.getInt("WheelJoint") else -1
         owner = if (tag.contains("WheelOwner")) BlockPos.of(tag.getLong("WheelOwner")) else null
@@ -359,16 +382,24 @@ class WheelHubBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: BlockS
         }
     }
 
-    override fun writeSafe(tag: CompoundTag) {
-        super.writeSafe(tag)
+    private fun writeWheel(tag: CompoundTag) {
+        writeTireSettings(tag)
         wheel?.let { tag.putString("Wheel", it.id) }
-        tag.putString("TireType", tireType.id.toString())
-        if (tireType == TireType.WOOD) tag.putString("WheelWood", BuiltInRegistries.BLOCK.getKey(wood).toString())
+        val type = tireType
+        if (type != null) tag.putString("TireType", type.id.toString())
+        else if (wheel != null) tag.putBoolean("BareWheel", true)
+        if (type == TireType.WOOD) tag.putString("WheelWood", BuiltInRegistries.BLOCK.getKey(wood).toString())
         tag.putBoolean("WheelDrive", engaged)
     }
 
+    override fun writeSafe(tag: CompoundTag) {
+        super.writeSafe(tag)
+        writeWheel(tag)
+    }
+
     override fun getRequiredItems(state: BlockState): ItemRequirement = wheel?.let {
-        ItemRequirement(ItemRequirement.ItemUseType.CONSUME, WheelHubBlock.item(it, tireType))
+        WheelHubBlock.parts(it, tireType).map { part -> ItemRequirement(ItemRequirement.ItemUseType.CONSUME, part) }
+            .reduce(ItemRequirement::union)
     } ?: ItemRequirement.NONE
 
     fun prepareMove(world: ServerLevel) {
@@ -377,69 +408,49 @@ class WheelHubBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: BlockS
     }
 
     private data class Drive(val bodyId: Long, val parentId: Long?, val pose: VSJointPose,
-                             val rpm: Float?, val torque: Float, val tire: WheelTire, val assist: WheelStepAssist.Settings?) {
+                             val rpm: Float?, val torque: Float, val tire: WheelTire?, val assist: WheelStepAssist.Settings?) {
         fun joint() = VSRevoluteJoint(parentId, pose, bodyId, VSJointPose(Vector3d(), Quaterniond()),
             compliance = 1e-10,
             driveVelocity = rpm?.let { VSRevoluteJoint.VSRevoluteDriveVelocity((it * Math.PI / 30).toFloat()) },
             driveForceLimit = torque, driveFreeSpin = rpm != 0f)
     }
 
-    private fun configurationError(index: Int, value: Int): String? {
-        val world = level as? ServerLevel ?: return null
-        val current = tire ?: return null
-        if (index == 3) return null
-        val next = current.size.tire(if (index == 1) value * 5 else current.widthPercent,
-            if (index == 2) value * 5 else current.thicknessPercent, current.pressureKpa, current.type)
-        if (next == current) return null
-        val body = world.shipObjectWorld.allBodies.getById(bodyId) ?: return null
-        if (body.velocity.lengthSquared() > .04 || body.angularVelocity.lengthSquared() > .25) return "moving"
-        return null
-    }
-
-    private class TireSetting(private val hub: WheelHubBlockEntity, private val index: Int, name: String,
-                              private val key: String, private val minimum: Int, maximum: Int, private val initial: Int) :
-        ScrollValueBehaviour(Component.translatable("block.vs_clockwork.wheel_hub.$name"), hub, SettingSlot(index)) {
-        init { between(minimum, maximum); value = initial }
-        override fun getType() = TIRE_SETTINGS[index - 1]
-        override fun netId() = index
-        override fun getClipboardKey() = key
-        private val lowerBound get() = if (index == 1) (hub.wheel?.minimumWidthPercent ?: 50) / 5 else minimum
-        override fun write(tag: CompoundTag, clientPacket: Boolean) { tag.putInt(key, value) }
-        override fun read(tag: CompoundTag, clientPacket: Boolean) {
-            val maximum = if (index == 2) WheelSize.entries.maxOf { it.maximumThicknessPercent } / 5 else max
-            value = if (tag.contains(key)) tag.getInt(key).coerceIn(minimum, maximum) else initial
+    fun setTireSetting(setting: AirPumpSetting, value: Int, player: Player? = null): Boolean {
+        val world = level as? ServerLevel ?: return false
+        val current = tire ?: return false
+        val next = when (setting) {
+            AirPumpSetting.PRESSURE -> value.coerceIn(20, 320)
+            AirPumpSetting.WIDTH -> value.coerceIn(current.size.minimumWidthPercent / 5, 40)
+            AirPumpSetting.THICKNESS -> value.coerceIn(5, current.size.maximumThicknessPercent / 5)
         }
-        override fun setValue(value: Int) {
-            if (hub.configurationError(index, value.coerceIn(lowerBound, max)) == null) super.setValue(value.coerceAtLeast(lowerBound))
-            else hub.sendData()
+        if (next == setting.value(current)) {
+            player?.displayClientMessage(setting.readout(current), true)
+            return false
         }
-        override fun setValueSettings(player: Player, settings: ValueSettings, ctrlDown: Boolean) {
-            val error = hub.configurationError(index, settings.value().coerceIn(lowerBound, max))
-            if (error != null) {
-                player.displayClientMessage(Component.translatable("block.vs_clockwork.wheel_hub.$error"), true)
-                hub.sendData()
-                return
+        if (setting != AirPumpSetting.PRESSURE) {
+            val body = world.shipObjectWorld.allBodies.getById(bodyId)
+            if (body != null && (body.velocity.lengthSquared() > .04 || body.angularVelocity.lengthSquared() > .25)) {
+                player?.displayClientMessage(Component.translatable("block.vs_clockwork.wheel_hub.moving"), true)
+                return false
             }
-            super.setValueSettings(player, settings, ctrlDown)
         }
-        override fun createBoard(player: Player, hitResult: BlockHitResult) =
-            ValueSettingsBoard(label, max, if (index == 3) 20 else 5, listOf(Component.translatable("block.vs_clockwork.wheel_hub.setting")),
-                ValueSettingsFormatter { setting ->
-                    val size = hub.wheel ?: WheelSize.MEDIUM
-                    Component.literal(when (index) {
-                        1 -> length(size.width * setting.value() / 20.0)
-                        2 -> length((size.radius - size.rimRadius) * setting.value() / 20.0)
-                        else -> String.format(Locale.ROOT, "%.2f bar", setting.value() / 20.0)
-                    })
-                })
+        when (setting) {
+            AirPumpSetting.PRESSURE -> tirePressure = next
+            AirPumpSetting.WIDTH -> tireWidth = next
+            AirPumpSetting.THICKNESS -> tireThickness = next
+        }
+        setChanged()
+        sendData()
+        player?.displayClientMessage(setting.readout(tire!!), true)
+        return true
     }
 
-    private class SettingSlot(private val index: Int) : ValueBoxTransform.Sided() {
+    private class TorqueSlot : ValueBoxTransform.Sided() {
         override fun getScale() = .125f
         override fun getSouthLocation() = Vec3(.5, .5, .6875)
         override fun getLocalOffset(level: LevelAccessor, pos: BlockPos, state: BlockState): Vec3 {
             val facing = state.getValue(BlockStateProperties.FACING)
-            val along = -.4375 + index * .125
+            val along = -.25
             return Vec3(.5 + facing.stepX * along + side.stepX * .193,
                 .5 + facing.stepY * along + side.stepY * .193,
                 .5 + facing.stepZ * along + side.stepZ * .193)
@@ -449,8 +460,6 @@ class WheelHubBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: BlockS
     }
 
     companion object {
-        private val TIRE_SETTINGS = listOf("wheel_width", "wheel_thickness", "wheel_pressure").map { BehaviourType<ScrollValueBehaviour>(it) }
-        private fun length(value: Double) = String.format(Locale.ROOT, "%.2f m", value)
         private data class BodyReference(val body: Long, val joint: Int, val parent: Long?)
         private val movingBodies = WeakHashMap<ServerLevel, MutableMap<BlockPos, BodyReference>>()
 

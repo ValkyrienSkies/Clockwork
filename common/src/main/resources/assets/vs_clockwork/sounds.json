@@ -65,6 +65,26 @@
     ],
     "subtitle": "vs_clockwork.subtitle.portal_loop"
   },
+  "tire_pump_1": {
+    "sounds": ["vs_clockwork:tire_pump_1", "vs_clockwork:tire_pump_2"],
+    "subtitle": "vs_clockwork.subtitle.tire_pump_1"
+  },
+  "tire_air_release": {
+    "sounds": ["vs_clockwork:tire_air_release"],
+    "subtitle": "vs_clockwork.subtitle.tire_air_release"
+  },
+  "tire_attach": {
+    "sounds": ["vs_clockwork:tire_attach"],
+    "subtitle": "vs_clockwork.subtitle.tire_attach"
+  },
+  "rim_scrape": {
+    "sounds": ["vs_clockwork:rim_scrape"],
+    "subtitle": "vs_clockwork.subtitle.rim_scrape"
+  },
+  "tire_remove": {
+    "sounds": ["vs_clockwork:tire_remove"],
+    "subtitle": "vs_clockwork.subtitle.tire_remove"
+  },
   "wheel_unscrew_1": {
     "sounds": ["vs_clockwork:wheel_unscrew_1", "vs_clockwork:wheel_unscrew_2"],
     "subtitle": "vs_clockwork.subtitle.wheel_unscrew_1"

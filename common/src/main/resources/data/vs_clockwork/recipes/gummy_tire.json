@@ -2,7 +2,7 @@
   "type": "minecraft:crafting_shapeless",
   "ingredients": [
     {
-      "item": "vs_clockwork:large_wheel"
+      "item": "vs_clockwork:tire"
     },
     {
       "item": "minecraft:slime_ball"
@@ -12,6 +12,6 @@
     }
   ],
   "result": {
-    "item": "vs_clockwork:large_gummy_wheel"
+    "item": "vs_clockwork:gummy_tire"
   }
 }

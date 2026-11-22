@@ -2,7 +2,7 @@
   "type": "minecraft:crafting_shapeless",
   "ingredients": [
     {
-      "item": "vs_clockwork:medium_wheel"
+      "item": "vs_clockwork:tire"
     },
     {
       "item": "minecraft:sponge"
@@ -12,6 +12,6 @@
     }
   ],
   "result": {
-    "item": "vs_clockwork:medium_float_wheel"
+    "item": "vs_clockwork:float_tire"
   }
 }

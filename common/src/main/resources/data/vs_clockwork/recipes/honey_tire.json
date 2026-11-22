@@ -2,13 +2,13 @@
   "type": "minecraft:crafting_shapeless",
   "ingredients": [
     {
-      "item": "vs_clockwork:small_wheel"
+      "item": "vs_clockwork:tire"
     },
     {
       "item": "minecraft:honey_block"
     }
   ],
   "result": {
-    "item": "vs_clockwork:small_honey_wheel"
+    "item": "vs_clockwork:honey_tire"
   }
 }

@@ -2,13 +2,13 @@
   "type": "minecraft:crafting_shapeless",
   "ingredients": [
     {
-      "item": "vs_clockwork:large_wheel"
+      "item": "vs_clockwork:tire"
     },
     {
       "item": "minecraft:blue_ice"
     }
   ],
   "result": {
-    "item": "vs_clockwork:large_frost_wheel"
+    "item": "vs_clockwork:frost_tire"
   }
 }

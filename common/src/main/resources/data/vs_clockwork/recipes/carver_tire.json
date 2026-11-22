@@ -2,7 +2,7 @@
   "type": "minecraft:crafting_shapeless",
   "ingredients": [
     {
-      "item": "vs_clockwork:large_wheel"
+      "item": "vs_clockwork:tire"
     },
     {
       "item": "minecraft:iron_ingot"
@@ -12,6 +12,6 @@
     }
   ],
   "result": {
-    "item": "vs_clockwork:large_carver_wheel"
+    "item": "vs_clockwork:carver_tire"
   }
 }

@@ -2,13 +2,13 @@
   "type": "minecraft:crafting_shapeless",
   "ingredients": [
     {
-      "item": "vs_clockwork:medium_wheel"
+      "item": "vs_clockwork:tire"
     },
     {
       "item": "vs_clockwork:goo_block"
     }
   ],
   "result": {
-    "item": "vs_clockwork:medium_goo_wheel"
+    "item": "vs_clockwork:goo_tire"
   }
 }

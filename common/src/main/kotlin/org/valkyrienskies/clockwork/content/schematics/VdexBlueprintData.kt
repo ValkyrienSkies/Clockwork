@@ -33,11 +33,15 @@ import java.util.zip.ZipInputStream
 
 class VdexBlueprintData(val data: VdexData, val ships: List<Ship>) {
     data class Block(val pos: BlockPos, val state: BlockState, val nbt: CompoundTag?) {
-        fun wheel() = if (state.block !is WheelHubBlock || nbt == null) null else
-            WheelSize.byId(nbt.getString("Wheel"))?.tire(
-                if (nbt.contains("WheelWidth")) nbt.getInt("WheelWidth") * 5 else 100,
-                if (nbt.contains("WheelThickness")) nbt.getInt("WheelThickness") * 5 else 100,
-                if (nbt.contains("WheelPressure")) nbt.getInt("WheelPressure") * 5 else 800, TireType.read(nbt))
+        fun wheelSize() = if (state.block is WheelHubBlock && nbt != null) WheelSize.byId(nbt.getString("Wheel")) else null
+
+        fun tire(size: WheelSize) = nbt?.let { data ->
+            val type = TireType.read(data) ?: return@let null
+            size.tire(
+                if (data.contains("WheelWidth")) data.getInt("WheelWidth") * 5 else 100,
+                if (data.contains("WheelThickness")) data.getInt("WheelThickness") * 5 else 100,
+                if (data.contains("WheelPressure")) data.getInt("WheelPressure") * 5 else 800, type)
+        }
     }
     data class Ship(val entry: VdexShipEntry, val size: BlockPos, val blocks: List<Block>, val entities: List<CompoundTag>,
                     val pivot: Vector3d = massCenter(blocks, size)) {
@@ -55,14 +59,16 @@ class VdexBlueprintData(val data: VdexData, val ships: List<Ship>) {
                 for (x in listOf(0, ship.size.x)) for (y in listOf(0, ship.size.y)) for (z in listOf(0, ship.size.z))
                     add(ship.relativePoint(Vector3d(x.toDouble(), y.toDouble(), z.toDouble())))
                 for (block in ship.blocks) {
-                    val wheel = block.wheel() ?: continue
+                    val wheel = block.wheelSize() ?: continue
+                    val tire = block.tire(wheel)
+                    val radius = tire?.radius ?: wheel.rimRadius
                     val axis = block.state.getValue(BlockStateProperties.FACING).axis
-                    val halfWidth = maxOf(wheel.width, wheel.rimWidth) / 2
+                    val halfWidth = maxOf(tire?.width ?: 0.0, wheel.rimWidth) / 2
                     for (x in listOf(-1, 1)) for (y in listOf(-1, 1)) for (z in listOf(-1, 1))
                         add(ship.relativePoint(Vector3d(
-                            block.pos.x + .5 + x * (if (axis == Direction.Axis.X) halfWidth else wheel.radius),
-                            block.pos.y + .5 + y * (if (axis == Direction.Axis.Y) halfWidth else wheel.radius),
-                            block.pos.z + .5 + z * (if (axis == Direction.Axis.Z) halfWidth else wheel.radius))))
+                            block.pos.x + .5 + x * (if (axis == Direction.Axis.X) halfWidth else radius),
+                            block.pos.y + .5 + y * (if (axis == Direction.Axis.Y) halfWidth else radius),
+                            block.pos.z + .5 + z * (if (axis == Direction.Axis.Z) halfWidth else radius))))
                 }
             }
         }

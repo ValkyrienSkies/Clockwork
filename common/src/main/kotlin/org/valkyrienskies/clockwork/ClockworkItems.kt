@@ -2,8 +2,11 @@ package org.valkyrienskies.clockwork
 
 import org.valkyrienskies.clockwork.content.curiosities.tools.gatemakyr.GatemakyrItem
 import org.valkyrienskies.clockwork.content.curiosities.tools.gatemakyr.GatemakyrItemRenderer
+import org.valkyrienskies.clockwork.content.physicalities.wheel.AirPumpItem
+import org.valkyrienskies.clockwork.content.physicalities.wheel.AirPumpRenderer
 import org.valkyrienskies.clockwork.content.physicalities.wheel.WheelItem
 import org.valkyrienskies.clockwork.content.physicalities.wheel.WheelSize
+import org.valkyrienskies.clockwork.content.physicalities.wheel.TireItem
 import org.valkyrienskies.clockwork.content.physicalities.wheel.TireType
 import org.valkyrienskies.clockwork.content.physicalities.wheel.WheelItemRenderer
 
@@ -56,7 +59,10 @@ import org.valkyrienskies.clockwork.util.builder.ClockworkRegistrate
 import java.util.function.Supplier
 
 object ClockworkItems {
-    val WHEELS = TireType.entries.associateWith { type -> WheelSize.entries.associateWith { wheel(it, type) } }
+    private val legacyWheelTypes = listOf(TireType.HONEY, TireType.FROST, TireType.FLOAT, TireType.CARVER, TireType.GOO, TireType.GUMMY)
+    val WHEELS = (listOf(TireType.RUBBER, TireType.WOOD) + legacyWheelTypes).associateWith { type ->
+        WheelSize.entries.associateWith { wheel(it, type) }
+    }
     @JvmField
     val SMALL_WHEEL = WHEELS.getValue(TireType.RUBBER).getValue(WheelSize.SMALL)
     @JvmField
@@ -70,11 +76,27 @@ object ClockworkItems {
     @JvmField
     val LARGE_HONEY_WHEEL = WHEELS.getValue(TireType.HONEY).getValue(WheelSize.LARGE)
 
-    private fun wheel(size: WheelSize, type: TireType) = REGISTRATE.item<WheelItem>(type.itemId(size)) { WheelItem(it!!, size, type) }
-        .properties { it.stacksTo(16) }.tab(ClockworkMod.PHYSICAL_CREATIVE_TABINFO)
-        .let { if (type in listOf(TireType.RUBBER, TireType.HONEY)) it else
-            it.transform(ClockworkRegistrate.customRenderedItem { Supplier { WheelItemRenderer() } }) }
+    @JvmField
+    val AIR_PUMP = REGISTRATE.item<AirPumpItem>("air_pump") { AirPumpItem(it!!) }
+        .properties { it.durability(256) }.tab(ClockworkMod.PHYSICAL_CREATIVE_TABINFO)
+        .transform(ClockworkRegistrate.customRenderedItem { Supplier { AirPumpRenderer() } })
         .model(AssetLookup.existingItemModel()).register()
+
+    val TIRES = TireType.builtIns.filter { it != TireType.WOOD }.associateWith { type ->
+        val id = if (type == TireType.RUBBER) "tire" else "${type.id.path}_tire"
+        REGISTRATE.item<TireItem>(id) { TireItem(it!!, type) }.properties { it.stacksTo(16) }
+            .tab(ClockworkMod.PHYSICAL_CREATIVE_TABINFO).model(AssetLookup.existingItemModel()).register()
+    }
+
+    private fun wheel(size: WheelSize, type: TireType): ItemEntry<WheelItem> {
+        val id = if (type == TireType.RUBBER) size.id else size.id.replace("_wheel", "_${type.id.path}_wheel")
+        val builder = REGISTRATE.item<WheelItem>(id) { WheelItem(it!!, size, type.takeUnless { it == TireType.RUBBER }) }
+            .properties { it.stacksTo(16) }
+        if (type !in legacyWheelTypes) builder.tab(ClockworkMod.PHYSICAL_CREATIVE_TABINFO)
+        if (type != TireType.RUBBER && type != TireType.HONEY)
+            builder.transform(ClockworkRegistrate.customRenderedItem { Supplier { WheelItemRenderer() } })
+        return builder.model(AssetLookup.existingItemModel()).register()
+    }
 
     @JvmField
     val EMPTY_BLUEPRINT = REGISTRATE.item<EmptyBlueprintItem>("empty_blueprint") { EmptyBlueprintItem(it!!) }

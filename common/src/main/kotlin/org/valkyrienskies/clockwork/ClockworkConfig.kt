@@ -473,7 +473,7 @@ object ClockworkConfig {
         @ConfigEntry(description = "Enable wheel step assistance, including rounded ledge contact")
         var wheelStepAssist = true
 
-        @ConfigEntry(description = "Comma-separated tire types that use rounded ledge contact. Options: rubber, honey, frost, float, wood, carver, goo, gummy. Leave empty to disable rounding.")
+        @ConfigEntry(description = "Comma-separated tire types that use rounded ledge contact. Use a tire type ID, e.g. gummy or addon:trail. Leave empty to disable rounding.")
         var roundedContactTireTypes = "gummy"
 
         private var parsedTireTypes = "" to emptySet<String>()
@@ -481,9 +481,10 @@ object ClockworkConfig {
         fun usesRoundedContact(type: String): Boolean {
             val configured = roundedContactTireTypes
             if (parsedTireTypes.first != configured) {
-                parsedTireTypes = configured to configured.split(',').map { it.trim().lowercase() }.toSet()
+                parsedTireTypes = configured to configured.split(',').map { it.trim().lowercase() }.filter { it.isNotEmpty() }
+                    .map { if (':' in it) it else "${ClockworkMod.MOD_ID}:$it" }.toSet()
             }
-            return type in parsedTireTypes.second
+            return (if (':' in type) type else "${ClockworkMod.MOD_ID}:$type") in parsedTireTypes.second
         }
 
         @ConfigEntry(description = "Extra wheel step-assist lift reserve as a fraction of the supported load", min = 0.0, max = 1.0)

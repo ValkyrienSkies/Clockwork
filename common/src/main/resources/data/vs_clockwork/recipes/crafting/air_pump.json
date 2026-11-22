@@ -1,0 +1,10 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": ["P", "C", "I"],
+  "key": {
+    "P": { "tag": "minecraft:planks" },
+    "C": { "item": "create:copper_sheet" },
+    "I": { "item": "create:iron_sheet" }
+  },
+  "result": { "item": "vs_clockwork:air_pump" }
+}

@@ -17,6 +17,8 @@ enum class WheelSize(val id: String, val radius: Double, val width: Double, val 
     MEDIUM("medium_wheel", 0.75, 0.5, 90.0),
     LARGE("large_wheel", 1.25, 0.75, 300.0);
 
+    val rimWidth get() = .375
+    val rimMass get() = mass * .35
     val rimRadius get() = when (this) {
         SMALL -> .25 / cos(PI / 8)
         MEDIUM -> .5 / cos(PI / 8)
@@ -27,6 +29,12 @@ enum class WheelSize(val id: String, val radius: Double, val width: Double, val 
 
     fun tire(widthPercent: Int = 100, thicknessPercent: Int = 100, pressureKpa: Int = 800, type: TireType = TireType.RUBBER) =
         WheelTire(this, widthPercent.coerceIn(minimumWidthPercent, 200), thicknessPercent.coerceIn(25, maximumThicknessPercent), pressureKpa.coerceIn(100, 1600), type)
+
+    fun rimInertia(): Matrix3d {
+        val axial = rimMass * rimRadius * rimRadius / 2
+        val transverse = axial / 2 + rimMass * rimWidth * rimWidth / 12
+        return Matrix3d().scaling(axial, transverse, transverse)
+    }
 
     fun shape() = tire().shape()
     fun inertia() = tire().inertia()
@@ -42,7 +50,7 @@ data class WheelTire internal constructor(val size: WheelSize, val widthPercent:
                                          val thicknessPercent: Int, val pressureKpa: Int, val type: TireType = TireType.RUBBER) {
     val width = size.width * widthPercent / 100.0
     val rimRadius = size.rimRadius
-    val rimWidth = .375
+    val rimWidth = size.rimWidth
     val thickness = (size.radius - rimRadius) * thicknessPercent / 100.0
     val radius = rimRadius + thickness
     private val rubberRatio = width / size.width * (radius * radius - rimRadius * rimRadius) /
@@ -72,7 +80,7 @@ data class WheelTire internal constructor(val size: WheelSize, val widthPercent:
     }
 
     fun inertia(): Matrix3d {
-        val rimMass = size.mass * .35
+        val rimMass = size.rimMass
         val rubberMass = mass - rimMass
         val axial = rimMass * rimRadius * rimRadius / 2 + rubberMass * (radius * radius + rimRadius * rimRadius) / 2
         val transverse = axial / 2 + mass * width * width / 12

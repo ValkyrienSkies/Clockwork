@@ -2,6 +2,8 @@ package org.valkyrienskies.clockwork.forge.gametest
 
 import com.mojang.authlib.GameProfile
 import com.simibubi.create.AllBlocks
+import com.simibubi.create.AllItems
+import com.simibubi.create.content.equipment.armor.BacktankUtil
 import com.simibubi.create.content.kinetics.motor.CreativeMotorBlockEntity
 import io.netty.channel.embedded.EmbeddedChannel
 import net.minecraft.core.BlockPos
@@ -22,6 +24,7 @@ import net.minecraft.network.protocol.game.ClientboundCustomPayloadPacket
 import net.minecraft.server.level.ServerLevel
 import net.minecraft.server.level.ServerPlayer
 import net.minecraft.world.InteractionHand
+import net.minecraft.world.entity.EquipmentSlot
 import net.minecraft.world.item.ItemStack
 import net.minecraft.world.item.context.UseOnContext
 import net.minecraft.world.level.ChunkPos
@@ -43,6 +46,11 @@ import org.valkyrienskies.clockwork.ClockworkPackets
 import org.valkyrienskies.clockwork.content.physicalities.wheel.WheelContactPacket
 import org.valkyrienskies.clockwork.content.physicalities.wheel.WheelHubBlockEntity
 import org.valkyrienskies.clockwork.content.physicalities.wheel.WheelHubBlock
+import org.valkyrienskies.clockwork.ClockworkItems
+import org.valkyrienskies.core.api.bodies.shape.WheelBodyShapeData
+import org.valkyrienskies.clockwork.api.wheel.TireTypes
+import org.valkyrienskies.clockwork.content.physicalities.wheel.TireType
+import org.valkyrienskies.clockwork.content.physicalities.wheel.AirPumpSetting
 import org.valkyrienskies.clockwork.content.physicalities.wheel.WheelSize
 import org.valkyrienskies.clockwork.util.gtpa
 import org.valkyrienskies.core.api.ships.ServerShip
@@ -138,7 +146,7 @@ class WheelGameTests {
                 blocks.add(pos)
                 level.setBlockAndUpdate(pos, ClockworkBlocks.WHEEL_HUB.defaultState.setValue(FACING, direction))
                 val hub = level.getBlockEntity(pos) as WheelHubBlockEntity
-                hub.install(WheelSize.LARGE, player)
+                hub.install(WheelSize.LARGE, player, type = TireType.RUBBER)
                 hub.torque.setValue(1)
                 val motorPos = pos.relative(direction.opposite)
                 blocks.add(motorPos)
@@ -170,11 +178,11 @@ class WheelGameTests {
                     val expected = Vector3d().setComponent(hub.facing.axis.ordinal, 1.0)
                     helper.assertTrue(abs(body.angularVelocity.dot(expected) - hub.speed * Math.PI / 30) < .6,
                         "Incorrect axle speed for ${hub.facing}: rpm=${hub.speed}, omega=${body.angularVelocity}")
-                    hub.tireWidth.setValue(30)
-                    helper.assertTrue(hub.tireWidth.value == 20, "Moving tire allowed a geometry change")
+                    hub.setTireSetting(AirPumpSetting.WIDTH, 30)
+                    helper.assertTrue(hub.tire!!.widthPercent == 100, "Moving tire allowed a geometry change")
                     (level.getBlockEntity(hub.blockPos.relative(hub.facing.opposite)) as CreativeMotorBlockEntity)
                         .generatedSpeed.setValue(32)
-                    hub.tirePressure.setValue(80)
+                    hub.setTireSetting(AirPumpSetting.PRESSURE, 80)
                 }
             }.thenIdle(20).thenExecute {
                 for (hub in hubs) {
@@ -187,8 +195,8 @@ class WheelGameTests {
                 for (hub in hubs) {
                     helper.assertTrue(level.shipObjectWorld.allBodies.getById(hub.bodyId)!!.angularVelocity.length() < .3,
                         "Zero RPM did not brake the tire")
-                    hub.tireWidth.setValue(25)
-                    hub.tireThickness.setValue(25)
+                    hub.setTireSetting(AirPumpSetting.WIDTH, 25)
+                    hub.setTireSetting(AirPumpSetting.THICKNESS, 25)
                 }
             }.thenIdle(6).thenExecute {
                 for ((i, hub) in hubs.withIndex()) {
@@ -267,17 +275,34 @@ class WheelGameTests {
             val floor = (-2..3).flatMap { x -> (-2..2).map { z -> origin.offset(x, -1, z) } }.toSet()
             floor.forEach { force(level, it); blocks.add(it); level.setBlockAndUpdate(it, Blocks.STONE.defaultBlockState()) }
             val stack = ItemStack(WheelHubBlock.item(WheelSize.LARGE), 2)
-            player.setItemInHand(InteractionHand.MAIN_HAND, stack)
-            fun useWheel() = stack.useOn(UseOnContext(player, InteractionHand.MAIN_HAND,
-                BlockHitResult(Vec3.atCenterOf(hubPos), Direction.EAST, hubPos, false)))
+            val tires = ItemStack(TireTypes.item(TireType.RUBBER), 2)
+            fun fit(stack: ItemStack): Boolean {
+                player.setItemInHand(InteractionHand.MAIN_HAND, stack)
+                return stack.useOn(UseOnContext(player, InteractionHand.MAIN_HAND,
+                    BlockHitResult(Vec3.atCenterOf(hubPos), Direction.EAST, hubPos, false))).consumesAction()
+            }
             helper.startSequence().thenIdle(8).thenExecute {
-                helper.assertTrue(useWheel().consumesAction() && stack.count == 1,
+                helper.assertTrue(fit(stack) && hub.tire == null && fit(tires) && stack.count == 1 && tires.count == 1,
                     "Embedded tire installation failed or consumed the wrong number of items")
             }.thenIdle(4).thenExecute {
                 helper.assertTrue(level.shipObjectWorld.allBodies.getById(hub.bodyId) != null,
                     "Embedded tire did not create its native body")
                 helper.assertTrue(hub.bodyId in compressed, "Ground tire compression was not sent in world coordinates")
                 helper.assertTrue(hub.bodyId in groundEffects, "Ground tire contact did not resolve its surface block")
+                val pressure = hub.tire!!.pressureKpa
+                val pump = ItemStack(ClockworkItems.AIR_PUMP.get())
+                helper.assertTrue(fit(pump) && hub.tire!!.pressureKpa == pressure + 25, "Pump did not inflate the tire")
+                helper.assertTrue(pump.damageValue == 1, "Pumping without air should cost one durability")
+                val tank = AllItems.COPPER_BACKTANK.asStack()
+                val full = BacktankUtil.maxAir(tank).toFloat()
+                tank.orCreateTag.putFloat("Air", full)
+                player.setItemSlot(EquipmentSlot.CHEST, tank)
+                player.isShiftKeyDown = true
+                helper.assertTrue(fit(pump) && hub.tire!!.pressureKpa == pressure, "Pump did not release air")
+                helper.assertTrue(pump.damageValue == 1 && BacktankUtil.getAir(tank) < full,
+                    "A charged backtank should pay for the adjustment")
+                player.setItemSlot(EquipmentSlot.CHEST, ItemStack.EMPTY)
+                player.isShiftKeyDown = false
                 val saved = hub.saveWithFullMetadata()
                 hub.load(saved)
             }.thenIdle(4).thenExecute {
@@ -290,13 +315,22 @@ class WheelGameTests {
                 level.shipObjectWorld.teleportShip(ship, vsCore.newShipTeleportData(
                     Vector3d(ship.transform.positionInWorld), Quaterniond().rotationZ(.25), Vector3d(), Vector3d()))
             }.thenIdle(8).thenExecute {
-                helper.assertTrue(useWheel().consumesAction() && stack.isEmpty,
+                helper.assertTrue(fit(stack) && fit(tires) && stack.isEmpty && tires.isEmpty,
                     "Tire installation intersecting another ship failed")
             }.thenIdle(8).thenExecute {
                 helper.assertTrue(level.shipObjectWorld.allBodies.getById(hub.bodyId) != null,
                     "Tire intersecting another ship did not create its native body")
                 helper.assertTrue(hub.bodyId in shipEffects, "Ship tire contact did not resolve its surface block")
-                hub.uninstall(player)
+                player.isShiftKeyDown = true
+                helper.assertTrue(fit(ItemStack(ClockworkItems.SCREWDRIVER.get())) && hub.wheel == WheelSize.LARGE && hub.tire == null,
+                    "The first screwdriver use should return only the tire")
+                hub.load(hub.saveWithFullMetadata())
+            }.thenIdle(4).thenExecute {
+                val shape = level.shipObjectWorld.allBodies.getById(hub.bodyId)?.collisionShape as? WheelBodyShapeData
+                helper.assertTrue(shape != null && shape.tire == null && shape.radius == WheelSize.LARGE.rimRadius,
+                    "Reloading the bare wheel should leave a rigid rim at the correct radius")
+                helper.assertTrue(fit(ItemStack(ClockworkItems.SCREWDRIVER.get())) && hub.wheel == null,
+                    "The second screwdriver use should remove the rim")
             }.thenSucceed()
         }
 
@@ -322,7 +356,7 @@ class WheelGameTests {
                     val p = center.offset(direction.stepX * 2, 0, z)
                     chassis.add(p)
                     level.setBlockAndUpdate(p, ClockworkBlocks.WHEEL_HUB.defaultState.setValue(FACING, direction))
-                    (level.getBlockEntity(p) as WheelHubBlockEntity).install(WheelSize.LARGE, player)
+                    (level.getBlockEntity(p) as WheelHubBlockEntity).install(WheelSize.LARGE, player, type = TireType.RUBBER)
                 }
             }
             for (z in -1..1) {
@@ -359,7 +393,7 @@ class WheelGameTests {
                     "Tires did not support the chassis")
                 helper.assertTrue(supportedWheels.containsAll(wheelIds), "Not all wheels developed a loaded tire contact")
                 firmHeight = ship.transform.positionInWorld.y()
-                hubs.forEach { it.tirePressure.setValue(80) }
+                hubs.forEach { it.setTireSetting(AirPumpSetting.PRESSURE, 80) }
             }.thenIdle(40).thenExecute {
                 helper.assertTrue(ship.transform.positionInWorld.y() < firmHeight - .001,
                     "Lower pressure did not increase loaded tire compression: before=$firmHeight, after=${ship.transform.positionInWorld.y()}")
@@ -432,7 +466,7 @@ class WheelGameTests {
                 hubPositions.add(p)
                 level.setBlockAndUpdate(p, ClockworkBlocks.WHEEL_HUB.defaultState.setValue(FACING, side))
                 val hub = level.getBlockEntity(p) as WheelHubBlockEntity
-                helper.assertTrue(hub.install(WheelSize.LARGE, player), "Could not install test tire")
+                helper.assertTrue(hub.install(WheelSize.LARGE, player, type = TireType.RUBBER), "Could not install test tire")
                 hub.torque.setValue(64)
             }
             lateinit var ship: ServerShip
