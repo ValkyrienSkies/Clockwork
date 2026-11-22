@@ -33,6 +33,8 @@ data class TireState(val body: Long, val contacts: List<TireContact>, val slip: 
 data class TireMark(val surface: Long, val center: Vector3d, val normal: Vector3d, val forward: Vector3d,
                     val width: Float, val length: Float, val strength: Float, val rolling: Float = 0f)
 
+internal const val CONTACT_INTERVAL = 2L
+
 object WheelContacts {
     internal data class Support(val position: Vector3d, val force: Vector3d)
     private data class Wheel(val width: Double, val tick: Long, val assist: Boolean, val type: TireType)
@@ -67,7 +69,7 @@ object WheelContacts {
         val state = dimensions[level.dimensionId] ?: return
         state.wheels.entries.removeIf { level.gameTime - it.value.tick > 10 }
         state.peaks.keys.removeIf { !state.wheels.containsKey(it) }
-        if (level.gameTime % 2L != 0L) return
+        if (level.gameTime % CONTACT_INTERVAL != 0L) return
         val marks = ArrayList<TireMark>()
         state.marks.drainTo(marks, 256)
         val listeners = level.players().map { Vector3d(it.x, it.y, it.z) }
@@ -100,7 +102,7 @@ object WheelContacts {
                 }
             }
             if (nearby.isNotEmpty() || nearbyMarks.isNotEmpty())
-                ClockworkPackets.sendTo(WheelContactPacket(level.dimension().location(), nearby, nearbyMarks), player)
+                ClockworkPackets.sendTo(WheelContactPacket(level.dimension().location(), nearby, nearbyMarks, level.gameTime), player)
         }
     }
 
@@ -230,7 +232,8 @@ object WheelContacts {
     }
 }
 
-class WheelContactPacket(val dimension: ResourceLocation, val wheels: List<TireState>, val marks: List<TireMark>) : S2CCWPacket {
+class WheelContactPacket @JvmOverloads constructor(val dimension: ResourceLocation, val wheels: List<TireState>, val marks: List<TireMark>,
+                         val sampleTick: Long? = null) : S2CCWPacket {
     override var player: Player? = null
     constructor(buffer: FriendlyByteBuf) : this(buffer.readResourceLocation(), List(count(buffer, 128)) {
         TireState(buffer.readLong(), List(count(buffer, 4)) {
@@ -239,7 +242,7 @@ class WheelContactPacket(val dimension: ResourceLocation, val wheels: List<TireS
     }, List(count(buffer, 256)) {
         TireMark(buffer.readLong(), vector(buffer), vector(buffer), vector(buffer), scalar(buffer, 0f, 1024f),
             scalar(buffer, 0f, 1024f), scalar(buffer, 0f, 1f), scalar(buffer, 0f, 1f))
-    })
+    }, if (buffer.isReadable) buffer.readVarLong() else null)
 
     override fun write(buffer: FriendlyByteBuf) {
         buffer.writeResourceLocation(dimension)
@@ -264,6 +267,7 @@ class WheelContactPacket(val dimension: ResourceLocation, val wheels: List<TireS
             buffer.writeLong(mark.surface); vector(buffer, mark.center); vector(buffer, mark.normal); vector(buffer, mark.forward)
             buffer.writeFloat(mark.width); buffer.writeFloat(mark.length); buffer.writeFloat(mark.strength); buffer.writeFloat(mark.rolling)
         }
+        sampleTick?.let { buffer.writeVarLong(it) }
     }
 
     override fun handle(context: ClientNetworkContext) {

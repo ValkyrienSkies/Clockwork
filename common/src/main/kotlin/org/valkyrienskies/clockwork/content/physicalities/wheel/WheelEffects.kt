@@ -75,7 +75,7 @@ object WheelEffects {
         var airborne = 0
         var lastImpact = -100L
         var effectTime = -1L
-        var previous = state.contacts.map { it.copy(compression = 0f) }
+        val contacts = WheelContactTimeline()
     }
     private data class MarkKey(val surface: Long, val block: BlockPos, val axis: Int, val sign: Int, val plane: Double, val residue: Boolean = false)
     private class Pixel(val points: List<Vector3d>, var strength: Float, var time: Long, var color: Vector3f)
@@ -196,9 +196,10 @@ object WheelEffects {
         checkLevel()
         val world = level ?: return
         if (world.dimension().location() != packet.dimension) return
+        val sampleTick = packet.sampleTick ?: world.gameTime
         for (state in packet.wheels) {
             val wheel = wheels.getOrPut(state.body) { Wheel(state, clock) }
-            wheel.previous = interpolated(wheel, Minecraft.getInstance().frameTime)
+            if (!wheel.contacts.add(sampleTick, state.contacts)) continue
             wheel.state = state
             wheel.time = clock
         }
@@ -467,36 +468,21 @@ object WheelEffects {
         else -> ClockworkSounds.TIRE_SQUEAL
     }.mainEvent!!
 
-    private fun interpolated(wheel: Wheel, partialTick: Float): List<TireContact> {
-        val t = ((clock - wheel.time + partialTick) / 2f).coerceIn(0f, 1f)
-        val previous = wheel.previous.toMutableList()
-        val result = wheel.state.contacts.map { next ->
-            val old = previous.firstOrNull { it.surface == next.surface && it.normal.dot(next.normal) > .75 }
-            previous.remove(old)
-            TireContact(next.surface, old?.let { Vector3d(it.normal).lerp(next.normal, t.toDouble()).normalize() } ?: next.normal,
-                (old?.compression ?: 0f) * (1 - t) + next.compression * t)
-        }.toMutableList()
-        previous.forEach { result.add(it.copy(compression = it.compression * (1 - t))) }
-        return result.filter { it.compression > .00001f }.sortedByDescending { it.compression }.take(4)
-    }
-
     fun compression(body: ClientVsBody, partialTick: Float): List<TireContact> {
         checkLevel()
         val wheel = wheels[body.id] ?: return emptyList()
-        val age = clock - wheel.time
-        val fade = (1.0 - (age - 4).coerceAtLeast(0) / 4.0).coerceIn(0.0, 1.0)
-        if (fade == 0.0) return emptyList()
-        return interpolated(wheel, partialTick).mapNotNull { contact ->
+        val world = level ?: return emptyList()
+        val playback = (world.gameTime - CONTACT_INTERVAL).toDouble() + partialTick
+        return wheel.contacts.sample(playback).mapNotNull { contact ->
             val normal = Vector3d(contact.normal)
             if (contact.surface != -1L) {
-                val world = level ?: return@mapNotNull null
                 val transform = (world.shipObjectWorld.allShips.getById(contact.surface) as? ClientShip)?.renderTransform
                     ?: (world.shipObjectWorld.allBodies.getById(contact.surface) as? ClientVsBody)?.renderTransform
                     ?: return@mapNotNull null
                 transform.toWorld.transformDirection(normal)
             }
             body.renderTransform.toModel.transformDirection(normal).normalize()
-            TireContact(contact.surface, normal, (contact.compression * fade / body.renderTransform.scaling.x()).toFloat())
+            TireContact(contact.surface, normal, (contact.compression / body.renderTransform.scaling.x()).toFloat())
         }
     }
 
