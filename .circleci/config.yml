@@ -27,7 +27,7 @@ commands:
             - v2-gradle-home
       - restore_cache:
           keys:
-            - v2-{{ checksum "build.gradle" }}-{{ checksum "gradle.properties" }}
+            - v2-gradle-{{ checksum "build.gradle" }}-{{ checksum "gradle.properties" }}
   save_artifacts:
     parameters:
       artifact_name:

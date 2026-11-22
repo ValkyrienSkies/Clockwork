@@ -33,17 +33,14 @@ include("common")
 include("forge")
 include("fabric")
 
-//include("api")
-//include("impl")
-
-try {
+val kelvinTasksRequested = gradle.startParameter.taskNames.any { it.removePrefix(":").startsWith("kelvin:") }
+if (kelvinTasksRequested || providers.gradleProperty("includeKelvin").orNull.toBoolean()) {
     val kelvin = file("Kelvin")
     if (kelvin.resolve("settings.gradle.kts").isFile || kelvin.resolve("settings.gradle").isFile) {
-        //ts is evil as hell, but we have to do it because of an intellij bug :(
-        includeBuild(kelvin.toPath().toRealPath().toAbsolutePath().toString()) {
+        includeBuild(kelvin.canonicalFile) {
             name = "kelvin"
         }
     }
-} catch (ignore: SecurityException) {}
+}
 
 rootProject.name = "vs-clockwork-mod"

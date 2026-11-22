@@ -6,8 +6,7 @@ plugins {
     id "dev.architectury.loom" version "1.3.355" apply false
     // Kotlin
     id "org.jetbrains.kotlin.jvm" version "2.0.0" apply false
-    id "io.github.juuxel.loom-vineflower" version "1.+" apply false // Quiltflower, a better decompiler
-    id "io.github.p03w.machete" version "1.+" // automatic jar compressing on build
+    id "io.github.p03w.machete" version "1.2.0" // automatic jar compressing on build
 
     id "com.modrinth.minotaur" version "2.4.5" apply false
 }
@@ -25,31 +24,22 @@ if (project.hasProperty("CustomReleaseVersion")) {
     version = mod_version + '+' + (gitRevision.length() >= 10 ? gitRevision.substring(0, 10) : gitRevision)
 }
 
-tasks.register("updateKelvin") {
-    File versionFile = null
-    File gradleProperties = file("gradle.properties")
-
-    try {
-        def kelvinBuild = gradle.includedBuild("kelvin")
-        versionFile = new File(kelvinBuild.projectDir, "common/build/version.txt")
-
-        inputs.file(versionFile)
-        outputs.file(gradleProperties)
-        dependsOn(kelvinBuild.task(":common:writeVersion"))
-
-        [':common', ':fabric', ':forge'].each {
-            dependsOn(kelvinBuild.task("${it}:publishToMavenLocal"))
-        }
-    } catch (UnknownDomainObjectException ignore) {}
-
-    onlyIf {
-        versionFile != null
-    }
+tasks.register("updateKelvin", GradleBuild) {
+    dir = file("Kelvin").canonicalFile
+    buildName = "updateKelvinBuild"
+    tasks = [":common:writeVersion", ":common:publishToMavenLocal",
+             ":fabric:publishToMavenLocal", ":forge:publishToMavenLocal"]
+    startParameter.projectProperties = gradle.startParameter.projectProperties
+    onlyIf { new File(dir, "settings.gradle.kts").isFile() || new File(dir, "settings.gradle").isFile() }
 
     doLast {
-        def kelvinVersion = versionFile.text
-        def newGradleProperties = gradleProperties.text.replaceFirst("(?m)^kelvin_version=.*", "kelvin_version=" + kelvinVersion)
-        gradleProperties.write(newGradleProperties)
+        def kelvinVersion = new File(dir, "common/build/version.txt").text.trim()
+        def gradleProperties = file("gradle.properties")
+        def properties = gradleProperties.text
+        def updated = properties.replaceFirst("(?m)^kelvin_version=.*", "kelvin_version=" + kelvinVersion)
+        if (updated != properties) {
+            gradleProperties.write(updated)
+        }
     }
 }
 
@@ -180,7 +170,7 @@ allprojects {
         }
     }
 
-    tasks.withType(JavaCompile) {
+    tasks.withType(JavaCompile).configureEach {
         options.encoding = "UTF-8"
 
         options.release = 17
