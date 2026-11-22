@@ -15,14 +15,222 @@ object ClockworkConfig {
     @JvmField
     val KELVIN = Kelvin()
 
-
     class Client {
-        @ConfigEntry(description = "Show the original rectangular Gravitron ship contours instead of block surface effects")
-        var gravitronLegacyShipContours = false
+        @ConfigCategory(title = "Debug")
+        val debug = ClientDebug()
 
+        @ConfigCategory(title = "Ducts")
+        val ducts = ClientDucts()
+
+        @ConfigCategory(title = "Gravitron")
+        val gravitron = ClientGravitron()
+
+        var debugRender by debug::debugRender
+
+        var renderDuctParticles by ducts::renderDuctParticles
+        var simplifyDisplayUnits by ducts::simplifyDisplayUnits
+        var massDisplayUnit by ducts::massDisplayUnit
+        var volumeDisplayUnit by ducts::volumeDisplayUnit
+        var tempDisplayUnit by ducts::tempDisplayUnit
+        var pressureDisplayUnit by ducts::pressureDisplayUnit
+        var energyDisplayUnit by ducts::energyDisplayUnit
+        var maxTemperatureWarning by ducts::maxTemperatureWarning
+        var maxPressureWarning by ducts::maxPressureWarning
+
+        var gravitronLegacyShipContours by gravitron::gravitronLegacyShipContours
+    }
+
+    class Server {
+        @ConfigCategory(title = "General")
+        val general = General()
+
+        @ConfigCategory(title = "Air Compressor")
+        val airCompressor = AirCompressor()
+
+        @ConfigCategory(title = "balloons")
+        val balloons = Balloons()
+
+        @ConfigCategory(title = "Clampotron")
+        val clampotron = Clampotron()
+
+        @ConfigCategory(title = "Collision Sounds")
+        val collisionSounds = CollisionSounds()
+
+        @ConfigCategory(title = "Ducts")
+        val ducts = Ducts()
+
+        @ConfigCategory(title = "Encased Fan")
+        val encasedFan = EncasedFan()
+
+        @ConfigCategory(title = "Extendon")
+        val extendon = Extendon()
+
+        @ConfigCategory(title = "Flap Bearing")
+        val flapBearing = FlapBearing()
+
+        @ConfigCategory(title = "Gas Engine")
+        val gasEngine = GasEngine()
+
+        @ConfigCategory(title = "Gas Exhaust")
+        val gasExhaust = GasExhaust()
+
+        @ConfigCategory(title = "Gas Heater")
+        val gasHeater = GasHeater()
+
+        @ConfigCategory(title = "Gas Thruster")
+        val gasThruster = GasThruster()
+
+        @ConfigCategory(title = "Gimbal Bearing")
+        val gimbal = Gimbal()
+
+        @ConfigCategory(title = "Gravitron")
+        val gravitron = Gravitron()
+
+        @ConfigCategory(title = "Harpoon")
+        val harpoon = Harpoon()
+
+        @ConfigCategory(title = "Heat Exchanger")
+        val heatExchanger = HeatExchanger()
+
+        @ConfigCategory(title = "Kelvin")
+        val kelvin = Kelvin()
+
+        @ConfigCategory(title = "Magnet")
+        val magnet = Magnet()
+
+        @ConfigCategory(title = "Physics Bearing")
+        val physicsBearing = PhysicsBearing()
+
+        @ConfigCategory(title = "Propeller")
+        val propeller = Propeller()
+
+        @ConfigCategory(title = "Radiator")
+        val radiator = Radiator()
+
+        @ConfigCategory(title = "Reaction Wheel")
+        val reactionWheel = ReactionWheel()
+
+        @ConfigCategory(title = "Sugar Rocket")
+        val sugarRocket = SugarRocket()
+
+        @ConfigCategory(title = "Universal Joint")
+        val universalJoint = UniversalJoint()
+
+        @ConfigCategory(title = "Wanderlite")
+        val wanderlite = Wanderlite()
+
+        @ConfigCategory(title = "Wheel")
+        val wheel = Wheel()
+
+        // Blacklist of blocks that don't get added for ship building
+        // @ConfigEntry(description = "Blacklist of blocks that don't get assembled")
+        // todo: VS config system does not support collections!
+        var blockBlacklist = setOf(
+            "minecraft:bedrock",
+            "minecraft:end_portal_frame",
+            "minecraft:end_portal",
+            "minecraft:end_gateway",
+            "minecraft:portal",
+            "minecraft:air",
+            "minecraft:water",
+            "minecraft:flowing_water",
+            "minecraft:lava",
+            "minecraft:flowing_lava",
+            "vs_clockwork:physics_infuser"
+        )
+
+        var debugMode by general::debugMode
+
+        var airCompressorSpeed by airCompressor::airCompressorSpeed
+        var airCompressorMaxPressure by airCompressor::airCompressorMaxPressure
+        var airCompressorHeliumAirDensity by airCompressor::airCompressorHeliumAirDensity
+
+        var permeabilityConstant by balloons::permeabilityConstant
+        var heatTransferCoefficient by balloons::heatTransferCoefficient
+        var leakHeatTransferMultiplier by balloons::leakHeatTransferMultiplier
+
+        var clampotronMassPerStress by clampotron::clampotronMassPerStress
+        var clampotronForcePerRpm by clampotron::clampotronForcePerRpm
+
+        var collisionSoundEffects by collisionSounds::collisionSoundEffects
+        var collisionSoundEffectMax by collisionSounds::collisionSoundEffectMax
+
+        var ductVolme by ducts::ductVolme
+
+        var encasedFanForceMul by encasedFan::encasedFanForceMul
+
+        var extendonDistanceJointDamping by extendon::extendonDistanceJointDamping
+
+        var flapBearingMaxSize by flapBearing::flapBearingMaxSize
+        var smartFlapBearingMaxSize by flapBearing::smartFlapBearingMaxSize
+        var cheatFlapBearingPeripheral by flapBearing::cheatFlapBearingPeripheral
+
+        var bulkSmokingTemp by gasExhaust::bulkSmokingTemp
+        var bulkBlastingTemp by gasExhaust::bulkBlastingTemp
+
+        var heaterSmoulderingTemp by gasHeater::heaterSmoulderingTemp
+        var heaterKindledTemp by gasHeater::heaterKindledTemp
+        var heaterSeethingTemp by gasHeater::heaterSeethingTemp
+
+        var gasThrusterForceMul by gasThruster::gasThrusterForceMul
+
+        var maxGravitronMass by gravitron::maxGravitronMass
+        var survivalGravitronYeetForce by gravitron::survivalGravitronYeetForce
+        var survivalGravitronMaxRange by gravitron::survivalGravitronMaxRange
+
+        var harpoonRadius by harpoon::harpoonRadius
+        var harpoonMaxRange by harpoon::harpoonMaxRange
+        var harpoonLifetimeTicks by harpoon::harpoonLifetimeTicks
+        var harpoonBaseLaunchSpeed by harpoon::harpoonBaseLaunchSpeed
+        var harpoonChargeLaunchSpeed by harpoon::harpoonChargeLaunchSpeed
+
+        var heatExchangerHeatTransferCoefficient by heatExchanger::heatExchangerHeatTransferCoefficient
+
+        var magnetForceMultiplier by magnet::magnetForceMultiplier
+        var magneticIronCores by magnet::magneticIronCores
+
+        var unlockedModeRotationResistanceMultiplier by physicsBearing::unlockedModeRotationResistanceMultiplier
+        var unlockedModeOmegaErrorMultiplier by physicsBearing::unlockedModeOmegaErrorMultiplier
+        var unlockedModeMaxTorque by physicsBearing::unlockedModeMaxTorque
+        var unlockedModeMinAngularAcceleration by physicsBearing::unlockedModeMinAngularAcceleration
+        var angleFollowingAngleErrorMultiplier by physicsBearing::angleFollowingAngleErrorMultiplier
+        var angleFollowingOmegaErrorMultiplier by physicsBearing::angleFollowingOmegaErrorMultiplier
+        var angleFollowingMaxTorque by physicsBearing::angleFollowingMaxTorque
+        var angleFollowingMaxTorqueStep by physicsBearing::angleFollowingMaxTorqueStep
+        var angleFollowingAngleDeadbandDeg by physicsBearing::angleFollowingAngleDeadbandDeg
+        var allowWrenchingActivatedPhysBearing by physicsBearing::allowWrenchingActivatedPhysBearing
+
+        var bladeControllerUsesDurability by propeller::bladeControllerUsesDurability
+        var maxBladeSize by propeller::maxBladeSize
+        var forceMulPerSailInPropeller by propeller::forceMulPerSailInPropeller
+        var sailPropellerForceMultiplier by propeller::sailPropellerForceMultiplier
+        var propellerSpinTorqueEnabled by propeller::propellerSpinTorqueEnabled
+        var propellerMaxForce by propeller::propellerMaxForce
+        var propellerMaxTorque by propeller::propellerMaxTorque
+
+        var radiatorHeatTransferCoefficient by radiator::radiatorHeatTransferCoefficient
+
+        var reactionWheelEffectiveness by reactionWheel::reactionWheelEffectiveness
+
+        var sugarRocketBlockThrust by sugarRocket::sugarRocketBlockThrust
+
+        var maxUniversalJointDistance by universalJoint::maxUniversalJointDistance
+
+        var wanderOreForceMultiplier by wanderlite::wanderOreForceMultiplier
+        val meteorDensity by wanderlite::meteorDensity
+
+        var wheelStepAssist by wheel::wheelStepAssist
+        var wheelStepAssistStrength by wheel::wheelStepAssistStrength
+        var wheelStepAssistHeight by wheel::wheelStepAssistHeight
+        var wheelStepAssistMaxForce by wheel::wheelStepAssistMaxForce
+    }
+
+    class ClientDebug {
         @ConfigEntry(description = "Enable debug rendering")
         var debugRender = false
+    }
 
+    class ClientDucts {
         @ConfigEntry(description = "Enable rendering particles for DuctBlock")
         var renderDuctParticles = true
 
@@ -51,97 +259,28 @@ object ClockworkConfig {
         var maxPressureWarning = 0.9
     }
 
-    class Server {
-        @ConfigEntry(description = "Enable raycast-based wheel assistance when climbing terrain steps")
-        var wheelStepAssist = true
+    class ClientGravitron {
+        @ConfigEntry(description = "Show the original rectangular Gravitron ship contours instead of block surface effects")
+        var gravitronLegacyShipContours = false
+    }
 
-        @ConfigEntry(description = "Extra wheel step-assist lift reserve as a fraction of the supported load", min = 0.0, max = 1.0)
-        var wheelStepAssistStrength = 0.35
-
-        @ConfigEntry(description = "Maximum assisted step height in blocks, also limited by tire radius", min = 0.0, max = 2.0)
-        var wheelStepAssistHeight = 1.05
-
-        @ConfigEntry(description = "Maximum combined step-assist support and traction force per wheel in newtons", min = 0.0, max = 1000000.0)
-        var wheelStepAssistMaxForce = 200000.0
-
-        @ConfigEntry(description = "Force multiplier for permanent magnets and electromagnets")
-        var magnetForceMultiplier = 1.0
-
-        @ConfigEntry(description = "Iron redirects magnetic fields and can magnetize nearby iron; disable to use simple attraction")
-        var magneticIronCores = true
-
-
-        @ConfigCategory(title = "Kelvin")
-        val kelvin = Kelvin()
-
-        @ConfigCategory(title = "Gimbal Bearing")
-        val gimbal = Gimbal()
-
-        @ConfigCategory(title = "Gas Engine")
-        val gasEngine = GasEngine()
-
-        @ConfigCategory(title = "balloons")
-        val balloons = Balloons()
-
+    class General {
         @ConfigEntry(description = "Enable verbose debug logging")
         var debugMode = false
+    }
 
-        // Blacklist of blocks that don't get added for ship building
-        // @ConfigEntry(description = "Blacklist of blocks that don't get assembled")
-        // todo: VS config system does not support collections!
-        var blockBlacklist = setOf(
-            "minecraft:bedrock",
-            "minecraft:end_portal_frame",
-            "minecraft:end_portal",
-            "minecraft:end_gateway",
-            "minecraft:portal",
-            "minecraft:air",
-            "minecraft:water",
-            "minecraft:flowing_water",
-            "minecraft:lava",
-            "minecraft:flowing_lava",
-            "vs_clockwork:physics_infuser"
-        )
+    class AirCompressor {
+        @ConfigEntry(description = "The amount of air (in kg) that the air compressor produces per tick at sea level and 1 rpm")
+        var airCompressorSpeed = 0.0001
 
-        @ConfigEntry(description = "Enable collision sound effects")
-        var collisionSoundEffects = false
+        @ConfigEntry(description = "The max amount of pressure that the air compressor will generate air for. In Pa")
+        var airCompressorMaxPressure = 1000000.0
 
-        @ConfigEntry(description = "Duct-like volume. The volume used for ducts, valves, exhausts, etc.")
-        var ductVolme = 0.4
+        @ConfigEntry(description = "Air density at which the air compressor will start generating aether. Setting it to 0 or a negative number will disable helium generation")
+        var airCompressorHeliumAirDensity = 0.3
+    }
 
-        @ConfigEntry(description = "Radiator heat transfer coefficient in W/K per block. Cools toward VS ambient temperature; 0 disables cooling.", min = 0.0)
-        var radiatorHeatTransferCoefficient = 5.0
-
-        @ConfigEntry(description = "Heat Exchanger heat transfer coefficient in W/K per touching parallel pair. Transfers heat without mixing gases; 0 disables heat exchange.", min = 0.0)
-        var heatExchangerHeatTransferCoefficient = 10.0
-
-        @ConfigEntry(description = "Max collision events per tick. Dumps collision event queue if amount is bigger. Default is 100", min = 1.0)
-        var collisionSoundEffectMax = 100
-
-        @ConfigEntry(description = "Max Gravitron mass in 1000 kg")
-        var maxGravitronMass = 256
-
-        @ConfigEntry(description = "Clampotron held mass in kg per additional stress impact (SU per RPM)", min = 1.0)
-        var clampotronMassPerStress = 64000.0
-
-        @ConfigEntry(description = "Clampotron maximum holding force in newtons per RPM", min = 1.0)
-        var clampotronForcePerRpm = 160000.0
-
-        @ConfigEntry(description = "Harpoon projectile collision radius in blocks", min = 0.01, max = 1.0)
-        var harpoonRadius = 0.125
-
-        @ConfigEntry(description = "Maximum harpoon flight distance and rope length in blocks", min = 1.0, max = 128.0)
-        var harpoonMaxRange = 128.0
-
-        @ConfigEntry(description = "Maximum time a harpoon can remain in flight, in game ticks", min = 1.0, max = 12000.0)
-        var harpoonLifetimeTicks = 200
-
-        @ConfigEntry(description = "Harpoon launch speed before the charge bonus, in metres per second", min = 0.0, max = 1000.0)
-        var harpoonBaseLaunchSpeed = 10.0
-
-        @ConfigEntry(description = "Additional harpoon launch speed at full charge, in metres per second", min = 0.0, max = 1000.0)
-        var harpoonChargeLaunchSpeed = 50.0
-
+    class Balloons {
         @ConfigEntry(description = "Sets the gas retention efficiency of the balloon material; lower values simulate airtight rubber/synthetic, while higher values represent porous fabrics. Default 0.001.", min = 0.0, max = 1.0)
         var permeabilityConstant = 0.01
 
@@ -151,185 +290,6 @@ object ClockworkConfig {
         @ConfigEntry(description = "Extra multiplier on how much faster a balloon's temperature equalizes with the outside air while it's actively leaking gas. 0 disables the extra cooling from leaking.", min = 0.0)
         var leakHeatTransferMultiplier = 5.0
 
-        @ConfigEntry(description = "Effectiveness scalar for reaction wheels. Higher value means a single reaction wheel can better control an entire ship, regardless of its mass. Default value is 0.1.", min = 0.001, max = 1.0)
-        var reactionWheelEffectiveness = 1.0
-
-        @ConfigEntry(description = "Whether or not blade controllers consume the durability of the blades inside while rotating at high speeds.")
-        var bladeControllerUsesDurability = false
-
-        @ConfigEntry(description = "The max size that a propeller blade can reach. Sizes higher than this will refuse to craft.")
-        var maxBladeSize = 8.0
-
-        @ConfigEntry(description = "The maximum distance (in blocks) allowed between two Universal Joints while connected.", min = 1.0)
-        var maxUniversalJointDistance = 10.0
-
-        @ConfigEntry(description = "Force multiplier when no rpm is given")
-        var unlockedModeRotationResistanceMultiplier = 1.0
-
-        @ConfigEntry()
-        var unlockedModeOmegaErrorMultiplier = 50.0
-
-        @ConfigEntry(min = 0.0, description = "Maximum torque magnitude applied by unlocked PhysBearing controller. Set 0 to disable clamping.")
-        var unlockedModeMaxTorque = 100000.0
-
-        @ConfigEntry(min = 0.0, description = "Minimum angular acceleration target for unlocked PhysBearing mode. Used to raise torque cap for heavy shiptraptions.")
-        var unlockedModeMinAngularAcceleration = 50.0
-
-        @ConfigEntry(min = 0.0, description = "Proportional gain for follow-angle PhysBearing mode.")
-        var angleFollowingAngleErrorMultiplier = 60.0
-
-        @ConfigEntry(min = 0.0, description = "Derivative gain for follow-angle PhysBearing mode.")
-        var angleFollowingOmegaErrorMultiplier = 16.0
-
-        @ConfigEntry(min = 0.0, description = "Maximum torque magnitude applied by follow-angle PhysBearing controller. Set 0 to disable clamping.")
-        var angleFollowingMaxTorque = 0
-
-        @ConfigEntry(min = 0.0, description = "Maximum change in follow-angle PhysBearing torque per physics tick. Lower values reduce violent impulses.")
-        var angleFollowingMaxTorqueStep = 0
-
-        @ConfigEntry(min = 0.0, description = "Follow-angle deadband in degrees. Within this error band, the angle term is ignored to avoid oscillation.")
-        var angleFollowingAngleDeadbandDeg = 0.75
-
-        @ConfigEntry()
-        var allowWrenchingActivatedPhysBearing = false
-
-        @ConfigEntry(min = 0.0, description = "Gameplay strength of sail and item-blade propellers. Scales aerodynamic force and torque together without changing the RPM, pitch, stall or altitude curves.")
-        var forceMulPerSailInPropeller = 240.0
-
-        @ConfigEntry(min = 0.0, description = "Additional gameplay strength for all propellers, multiplied by forceMulPerSailInPropeller. Scales aerodynamic force and torque together without changing Create stress cost. 1 restores the unboosted strength; applies to sail and blade-controller propellers alike.")
-        var sailPropellerForceMultiplier = 4.0
-
-        @ConfigEntry(description = "Whether a powered propeller applies its shaft reaction torque to the ship. Disable to remove axial reaction from rotor spin and airflow while keeping thrust, hub-offset and non-axial moments, and damping of ship rotation. Stopped rotors retain their full aerodynamic response.")
-        var propellerSpinTorqueEnabled = false
-
-        @ConfigEntry(min = 0.0, description = "Optional per-rotor force limit in N. 0 disables this limit (default); a fixed cap makes larger or faster rotors stop gaining thrust. Force and torque are reduced together when either limit is reached.")
-        var propellerMaxForce = 0.0
-
-        @ConfigEntry(min = 0.0, description = "Optional per-rotor torque limit about the ship COM in N*m, including off-center thrust. 0 disables this limit (default). Force and torque are reduced together when either limit is reached.")
-        var propellerMaxTorque = 0.0
-
-        @ConfigEntry(min = 0.0, description = "Damping used by extendon distance joints. Default matches legacy extendon behavior.")
-        var extendonDistanceJointDamping = 1000.0
-
-        @ConfigEntry(min = 0.0)
-        var encasedFanForceMul = 40.0
-
-        @ConfigEntry(min = 0.0, description = "Wanderlite blocks exert enough force to lift their own weight, times this multiplier.")
-        var wanderOreForceMultiplier = 2.0
-
-        @ConfigEntry(min = 0.0)
-        var gasThrusterForceMul = 200.0
-
-        @ConfigEntry(min = 0.0)
-        var sugarRocketBlockThrust = 10000.0
-
-
-
-        @ConfigEntry(description = "The amount of air (in kg) that the air compressor produces per tick at sea level and 1 rpm")
-        var airCompressorSpeed = 0.0001
-
-        @ConfigEntry(description = "The max amount of pressure that the air compressor will generate air for. In Pa")
-        var airCompressorMaxPressure = 1000000.0
-
-        @ConfigEntry(description = "Air density at which the air compressor will start generating aether. Setting it to 0 or a negative number will disable helium generation")
-        var airCompressorHeliumAirDensity = 0.3
-
-        @ConfigEntry(description = "Temperature for the gas heater to act like a passive heat source (campfires, dormant blaze burners). Default is 500K (baking oven)")
-        var heaterSmoulderingTemp = 500
-
-        @ConfigEntry(description = "Temperature for the gas heater to act like a heated blaze burner. Default is 800K (almost ceramic firing). Default allows a coal burner to reach kindled temps, skipping blaze progression.")
-        var heaterKindledTemp = 800
-
-        @ConfigEntry(description = "Temperature for the gas heater to act like a superheated blaze burner. Default is 1500K (real metallurgy)")
-        var heaterSeethingTemp = 1300
-
-        @ConfigEntry(description = "Temperature for gas exhaust to trigger bulk smoking. Default is 500K (baking oven)")
-        var bulkSmokingTemp = 500
-
-        @ConfigEntry(description = "Temperature for gas exhaust to trigger bulk blasting. Default is 1000K (ceramic firing)")
-        var bulkBlastingTemp = 1000
-
-
-        @ConfigEntry(description = "Multiplier applied to ship mass when yeeting (left-clicking) with t he survival gravitron", min = 0.0, max = 10000.0)
-        var survivalGravitronYeetForce = 1000.0
-
-        @ConfigEntry(description = "Maximum range (in blocks) the survival gravitron will interact with ships", min = 1.0, max = 1000.0)
-        var survivalGravitronMaxRange = 20.0
-
-        @ConfigEntry(description = "The density multiplier of wanderlite ore in meteors", min = 0.0, max = 1.0)
-        val meteorDensity = 0.0125
-
-        @ConfigEntry(description = "Maximum amount of blocks a flap bearing can assemble", min = 0.0, max = Int.MAX_VALUE.toDouble())
-        var flapBearingMaxSize = 16
-
-        @ConfigEntry(description = "Maximum amount of blocks a smart flap bearing can assemble", min = 0.0, max = Int.MAX_VALUE.toDouble())
-        var smartFlapBearingMaxSize = 24
-
-        @ConfigEntry(description = "Whether the (smart) flap bearing peripheral can use setAngle without rotational power")
-        var cheatFlapBearingPeripheral = false
-
-
-    }
-
-    class Gimbal {
-        @ConfigEntry(min = 0.0, description = "Proportional gain for the Gimbal Bearing force controller (Locked / Gyroscopic modes). Interpreted as target acceleration per block of center-of-mass position error.")
-        var gimbalPositionErrorMultiplier = 400.0
-
-        @ConfigEntry(min = 0.0, description = "Derivative gain for the Gimbal Bearing force controller. Damps relative point velocity between the shiptraption and the target pose.")
-        var gimbalVelocityErrorMultiplier = 30.0
-
-        @ConfigEntry(min = 0.0, description = "Maximum force the Gimbal Bearing may apply, scaled per RPM per kilogram. Set 0 to disable clamping.")
-        var gimbalMaxForcePerRpmPerKg = 10.5
-
-        @ConfigEntry(min = 0.0, description = "Direct force the Gimbal Bearing applies in Unlocked mode, scaled by redstone strength per RPM per kilogram.")
-        var gimbalUnlockedForcePerRpmPerKg = 1.5
-    }
-
-    class GasEngine {
-        @ConfigEntry(description = "Gas Engine flow rate increment, in kg/s. Through-flow is rounded down to this step before efficiency is calculated. Set to 0 to disable flow stepping.", min = 0.0)
-        var gasEngineFlowRateIncrement = 0.25
-
-        @ConfigEntry(description = "Gas Engine temperature increment, in K. Temperature efficiency gains one bar per increment above 290K.", min = 1.0)
-        var gasEngineTemperatureIncrement = 60.0
-
-        @ConfigEntry(description = "Maximum heat energy consumed per tick by a loaded Gas Engine at full efficiency.", min = 0.0)
-        var gasEngineMaxHeatLoss = 5000.0
-
-
-        @ConfigEntry(description = "Sterling Engine temperature increment, in K. Temperature efficiency gains one bar per increment above 290K.", min = 1.0)
-        var sterlingEngineTemperatureIncrement = 60.0
-
-        @ConfigEntry(description = "Maximum heat energy consumed per tick by a Sterling Engine at full efficiency.", min = 0.0)
-        var sterlingEngineMaxHeatLoss = 5000.0
-
-        @ConfigEntry(description = "Base stress capacity provided by a Sterling Engine at full efficiency.", min = 0.0)
-        var sterlingEngineStressCapacity = 16384.0
-
-        @ConfigEntry(description = "How quickly Sterling Engine efficiency approaches changes in temperature. 0 is instant, 1 is one tick.", min = 0.0, max = 1.0)
-        var sterlingEngineEfficiencySmoothing = 0.2
-    }
-
-    class Kelvin {
-        @ConfigEntry(description = "The gas physics solver used by Kelvin.")
-        var kelvinSolver: KelvinSolverType = KelvinSolverType.JACOBI_SEIDEL
-
-        @ConfigEntry(description = "Kelvin sub steps (per Tick)")
-        var kelvinSubSteps = 10
-
-        @ConfigEntry(description = "Passive gas conduction multiplier for metal duct connections. Higher values make neighboring ducts equalize temperature faster; 0 disables the gas contribution.", min = 0.0)
-        var ductThermalConductivityMultiplier = 1000.0
-
-        @ConfigEntry(description = "Heat conductance through metal duct walls in W/K per connection, including empty ducts. Independent of gas flow and the gas conduction multiplier; 0 disables wall conduction.", min = 0.0)
-        var ductWallThermalConductance = 10.0
-
-        @ConfigEntry(description = "The lazytick rate for Kelvin node block entity updates")
-        var kelvinNodeBlockEntityLazyTickRate = 10
-
-        @ConfigEntry(description = "Whether the generic kelvin peripheral can move gas/heat through only a peripheral connection")
-        var cheatKelvinPeripheral = false
-    }
-
-    class Balloons {
         @ConfigEntry(description = "Force multiplier for balloons. Realism is 1.0, default is 3000.0. Range: > 0.0", min = 0.0)
         var balloonForceMult: Double = 3000.0
 
@@ -359,5 +319,266 @@ object ClockworkConfig {
 
         @ConfigEntry(description = "Horizontal linear drag. Helps prevent balloons drifting endlessly", min = 0.0)
         var balloonHorizontalDragCoefficient = 80.0
+    }
+
+    class Clampotron {
+        @ConfigEntry(description = "Clampotron held mass in kg per additional stress impact (SU per RPM)", min = 1.0)
+        var clampotronMassPerStress = 64000.0
+
+        @ConfigEntry(description = "Clampotron maximum holding force in newtons per RPM", min = 1.0)
+        var clampotronForcePerRpm = 160000.0
+    }
+
+    class CollisionSounds {
+        @ConfigEntry(description = "Enable collision sound effects")
+        var collisionSoundEffects = false
+
+        @ConfigEntry(description = "Max collision events per tick. Dumps collision event queue if amount is bigger. Default is 100", min = 1.0)
+        var collisionSoundEffectMax = 100
+    }
+
+    class Ducts {
+        @ConfigEntry(description = "Duct-like volume. The volume used for ducts, valves, exhausts, etc.")
+        var ductVolme = 0.4
+    }
+
+    class EncasedFan {
+        @ConfigEntry(min = 0.0)
+        var encasedFanForceMul = 40.0
+    }
+
+    class Extendon {
+        @ConfigEntry(min = 0.0, description = "Damping used by extendon distance joints. Default matches legacy extendon behavior.")
+        var extendonDistanceJointDamping = 1000.0
+    }
+
+    class FlapBearing {
+        @ConfigEntry(description = "Maximum amount of blocks a flap bearing can assemble", min = 0.0, max = Int.MAX_VALUE.toDouble())
+        var flapBearingMaxSize = 16
+
+        @ConfigEntry(description = "Maximum amount of blocks a smart flap bearing can assemble", min = 0.0, max = Int.MAX_VALUE.toDouble())
+        var smartFlapBearingMaxSize = 24
+
+        @ConfigEntry(description = "Whether the (smart) flap bearing peripheral can use setAngle without rotational power")
+        var cheatFlapBearingPeripheral = false
+    }
+
+    class GasEngine {
+        @ConfigEntry(description = "Gas Engine flow rate increment, in kg/s. Through-flow is rounded down to this step before efficiency is calculated. Set to 0 to disable flow stepping.", min = 0.0)
+        var gasEngineFlowRateIncrement = 0.25
+
+        @ConfigEntry(description = "Gas Engine temperature increment, in K. Temperature efficiency gains one bar per increment above 290K.", min = 1.0)
+        var gasEngineTemperatureIncrement = 60.0
+
+        @ConfigEntry(description = "Maximum heat energy consumed per tick by a loaded Gas Engine at full efficiency.", min = 0.0)
+        var gasEngineMaxHeatLoss = 5000.0
+
+        @ConfigEntry(description = "Sterling Engine temperature increment, in K. Temperature efficiency gains one bar per increment above 290K.", min = 1.0)
+        var sterlingEngineTemperatureIncrement = 60.0
+
+        @ConfigEntry(description = "Maximum heat energy consumed per tick by a Sterling Engine at full efficiency.", min = 0.0)
+        var sterlingEngineMaxHeatLoss = 5000.0
+
+        @ConfigEntry(description = "Base stress capacity provided by a Sterling Engine at full efficiency.", min = 0.0)
+        var sterlingEngineStressCapacity = 16384.0
+
+        @ConfigEntry(description = "How quickly Sterling Engine efficiency approaches changes in temperature. 0 is instant, 1 is one tick.", min = 0.0, max = 1.0)
+        var sterlingEngineEfficiencySmoothing = 0.2
+    }
+
+    class GasExhaust {
+        @ConfigEntry(description = "Temperature for gas exhaust to trigger bulk smoking. Default is 500K (baking oven)")
+        var bulkSmokingTemp = 500
+
+        @ConfigEntry(description = "Temperature for gas exhaust to trigger bulk blasting. Default is 1000K (ceramic firing)")
+        var bulkBlastingTemp = 1000
+    }
+
+    class GasHeater {
+        @ConfigEntry(description = "Temperature for the gas heater to act like a passive heat source (campfires, dormant blaze burners). Default is 500K (baking oven)")
+        var heaterSmoulderingTemp = 500
+
+        @ConfigEntry(description = "Temperature for the gas heater to act like a heated blaze burner. Default is 800K (almost ceramic firing). Default allows a coal burner to reach kindled temps, skipping blaze progression.")
+        var heaterKindledTemp = 800
+
+        @ConfigEntry(description = "Temperature for the gas heater to act like a superheated blaze burner. Default is 1500K (real metallurgy)")
+        var heaterSeethingTemp = 1300
+    }
+
+    class GasThruster {
+        @ConfigEntry(min = 0.0)
+        var gasThrusterForceMul = 200.0
+    }
+
+    class Gimbal {
+        @ConfigEntry(min = 0.0, description = "Proportional gain for the Gimbal Bearing force controller (Locked / Gyroscopic modes). Interpreted as target acceleration per block of center-of-mass position error.")
+        var gimbalPositionErrorMultiplier = 400.0
+
+        @ConfigEntry(min = 0.0, description = "Derivative gain for the Gimbal Bearing force controller. Damps relative point velocity between the shiptraption and the target pose.")
+        var gimbalVelocityErrorMultiplier = 30.0
+
+        @ConfigEntry(min = 0.0, description = "Maximum force the Gimbal Bearing may apply, scaled per RPM per kilogram. Set 0 to disable clamping.")
+        var gimbalMaxForcePerRpmPerKg = 10.5
+
+        @ConfigEntry(min = 0.0, description = "Direct force the Gimbal Bearing applies in Unlocked mode, scaled by redstone strength per RPM per kilogram.")
+        var gimbalUnlockedForcePerRpmPerKg = 1.5
+    }
+
+    class Gravitron {
+        @ConfigEntry(description = "Max Gravitron mass in 1000 kg")
+        var maxGravitronMass = 256
+
+        @ConfigEntry(description = "Multiplier applied to ship mass when yeeting (left-clicking) with t he survival gravitron", min = 0.0, max = 10000.0)
+        var survivalGravitronYeetForce = 1000.0
+
+        @ConfigEntry(description = "Maximum range (in blocks) the survival gravitron will interact with ships", min = 1.0, max = 1000.0)
+        var survivalGravitronMaxRange = 20.0
+    }
+
+    class Harpoon {
+        @ConfigEntry(description = "Harpoon projectile collision radius in blocks", min = 0.01, max = 1.0)
+        var harpoonRadius = 0.125
+
+        @ConfigEntry(description = "Maximum harpoon flight distance and rope length in blocks", min = 1.0, max = 128.0)
+        var harpoonMaxRange = 128.0
+
+        @ConfigEntry(description = "Maximum time a harpoon can remain in flight, in game ticks", min = 1.0, max = 12000.0)
+        var harpoonLifetimeTicks = 200
+
+        @ConfigEntry(description = "Harpoon launch speed before the charge bonus, in metres per second", min = 0.0, max = 1000.0)
+        var harpoonBaseLaunchSpeed = 10.0
+
+        @ConfigEntry(description = "Additional harpoon launch speed at full charge, in metres per second", min = 0.0, max = 1000.0)
+        var harpoonChargeLaunchSpeed = 50.0
+    }
+
+    class HeatExchanger {
+        @ConfigEntry(description = "Heat Exchanger heat transfer coefficient in W/K per touching parallel pair. Transfers heat without mixing gases; 0 disables heat exchange.", min = 0.0)
+        var heatExchangerHeatTransferCoefficient = 10.0
+    }
+
+    class Kelvin {
+        @ConfigEntry(description = "The gas physics solver used by Kelvin.")
+        var kelvinSolver: KelvinSolverType = KelvinSolverType.JACOBI_SEIDEL
+
+        @ConfigEntry(description = "Kelvin sub steps (per Tick)")
+        var kelvinSubSteps = 10
+
+        @ConfigEntry(description = "Passive gas conduction multiplier for metal duct connections. Higher values make neighboring ducts equalize temperature faster; 0 disables the gas contribution.", min = 0.0)
+        var ductThermalConductivityMultiplier = 1000.0
+
+        @ConfigEntry(description = "Heat conductance through metal duct walls in W/K per connection, including empty ducts. Independent of gas flow and the gas conduction multiplier; 0 disables wall conduction.", min = 0.0)
+        var ductWallThermalConductance = 10.0
+
+        @ConfigEntry(description = "The lazytick rate for Kelvin node block entity updates")
+        var kelvinNodeBlockEntityLazyTickRate = 10
+
+        @ConfigEntry(description = "Whether the generic kelvin peripheral can move gas/heat through only a peripheral connection")
+        var cheatKelvinPeripheral = false
+    }
+
+    class Magnet {
+        @ConfigEntry(description = "Force multiplier for permanent magnets and electromagnets")
+        var magnetForceMultiplier = 1.0
+
+        @ConfigEntry(description = "Iron redirects magnetic fields and can magnetize nearby iron; disable to use simple attraction")
+        var magneticIronCores = true
+    }
+
+    class PhysicsBearing {
+        @ConfigEntry(description = "Force multiplier when no rpm is given")
+        var unlockedModeRotationResistanceMultiplier = 1.0
+
+        @ConfigEntry()
+        var unlockedModeOmegaErrorMultiplier = 50.0
+
+        @ConfigEntry(min = 0.0, description = "Maximum torque magnitude applied by unlocked PhysBearing controller. Set 0 to disable clamping.")
+        var unlockedModeMaxTorque = 100000.0
+
+        @ConfigEntry(min = 0.0, description = "Minimum angular acceleration target for unlocked PhysBearing mode. Used to raise torque cap for heavy shiptraptions.")
+        var unlockedModeMinAngularAcceleration = 50.0
+
+        @ConfigEntry(min = 0.0, description = "Proportional gain for follow-angle PhysBearing mode.")
+        var angleFollowingAngleErrorMultiplier = 60.0
+
+        @ConfigEntry(min = 0.0, description = "Derivative gain for follow-angle PhysBearing mode.")
+        var angleFollowingOmegaErrorMultiplier = 16.0
+
+        @ConfigEntry(min = 0.0, description = "Maximum torque magnitude applied by follow-angle PhysBearing controller. Set 0 to disable clamping.")
+        var angleFollowingMaxTorque = 0
+
+        @ConfigEntry(min = 0.0, description = "Maximum change in follow-angle PhysBearing torque per physics tick. Lower values reduce violent impulses.")
+        var angleFollowingMaxTorqueStep = 0
+
+        @ConfigEntry(min = 0.0, description = "Follow-angle deadband in degrees. Within this error band, the angle term is ignored to avoid oscillation.")
+        var angleFollowingAngleDeadbandDeg = 0.75
+
+        @ConfigEntry()
+        var allowWrenchingActivatedPhysBearing = false
+    }
+
+    class Propeller {
+        @ConfigEntry(description = "Whether or not blade controllers consume the durability of the blades inside while rotating at high speeds.")
+        var bladeControllerUsesDurability = false
+
+        @ConfigEntry(description = "The max size that a propeller blade can reach. Sizes higher than this will refuse to craft.")
+        var maxBladeSize = 8.0
+
+        @ConfigEntry(min = 0.0, description = "Gameplay strength of sail and item-blade propellers. Scales aerodynamic force and torque together without changing the RPM, pitch, stall or altitude curves.")
+        var forceMulPerSailInPropeller = 240.0
+
+        @ConfigEntry(min = 0.0, description = "Additional gameplay strength for all propellers, multiplied by forceMulPerSailInPropeller. Scales aerodynamic force and torque together without changing Create stress cost. 1 restores the unboosted strength; applies to sail and blade-controller propellers alike.")
+        var sailPropellerForceMultiplier = 4.0
+
+        @ConfigEntry(description = "Whether a powered propeller applies its shaft reaction torque to the ship. Disable to remove axial reaction from rotor spin and airflow while keeping thrust, hub-offset and non-axial moments, and damping of ship rotation. Stopped rotors retain their full aerodynamic response.")
+        var propellerSpinTorqueEnabled = false
+
+        @ConfigEntry(min = 0.0, description = "Optional per-rotor force limit in N. 0 disables this limit (default); a fixed cap makes larger or faster rotors stop gaining thrust. Force and torque are reduced together when either limit is reached.")
+        var propellerMaxForce = 0.0
+
+        @ConfigEntry(min = 0.0, description = "Optional per-rotor torque limit about the ship COM in N*m, including off-center thrust. 0 disables this limit (default). Force and torque are reduced together when either limit is reached.")
+        var propellerMaxTorque = 0.0
+    }
+
+    class Radiator {
+        @ConfigEntry(description = "Radiator heat transfer coefficient in W/K per block. Cools toward VS ambient temperature; 0 disables cooling.", min = 0.0)
+        var radiatorHeatTransferCoefficient = 5.0
+    }
+
+    class ReactionWheel {
+        @ConfigEntry(description = "Effectiveness scalar for reaction wheels. Higher value means a single reaction wheel can better control an entire ship, regardless of its mass. Default value is 0.1.", min = 0.001, max = 1.0)
+        var reactionWheelEffectiveness = 1.0
+    }
+
+    class SugarRocket {
+        @ConfigEntry(min = 0.0)
+        var sugarRocketBlockThrust = 10000.0
+    }
+
+    class UniversalJoint {
+        @ConfigEntry(description = "The maximum distance (in blocks) allowed between two Universal Joints while connected.", min = 1.0)
+        var maxUniversalJointDistance = 10.0
+    }
+
+    class Wanderlite {
+        @ConfigEntry(min = 0.0, description = "Wanderlite blocks exert enough force to lift their own weight, times this multiplier.")
+        var wanderOreForceMultiplier = 2.0
+
+        @ConfigEntry(description = "The density multiplier of wanderlite ore in meteors", min = 0.0, max = 1.0)
+        val meteorDensity = 0.0125
+    }
+
+    class Wheel {
+        @ConfigEntry(description = "Enable raycast-based wheel assistance when climbing terrain steps")
+        var wheelStepAssist = true
+
+        @ConfigEntry(description = "Extra wheel step-assist lift reserve as a fraction of the supported load", min = 0.0, max = 1.0)
+        var wheelStepAssistStrength = 0.35
+
+        @ConfigEntry(description = "Maximum assisted step height in blocks, also limited by tire radius", min = 0.0, max = 2.0)
+        var wheelStepAssistHeight = 1.05
+
+        @ConfigEntry(description = "Maximum combined step-assist support and traction force per wheel in newtons", min = 0.0, max = 1000000.0)
+        var wheelStepAssistMaxForce = 200000.0
     }
 }
