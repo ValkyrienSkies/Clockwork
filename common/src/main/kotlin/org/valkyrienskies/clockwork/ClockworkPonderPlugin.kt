@@ -52,6 +52,17 @@ class ClockworkPonderPlugin : PonderPlugin {
             .add(ClockworkBlocks.DELIVERY_CANNON)
             .add(ClockworkBlocks.DELIVERY_CHUTE)
             .add(ClockworkBlocks.DUCT)
+            .add(ClockworkBlocks.GAS_CRAFTER)
+            .add(ClockworkBlocks.GAS_ENGINE)
+            .add(ClockworkBlocks.STERLING_ENGINE)
+            .add(ClockworkBlocks.AIR_COMPRESSOR)
+            .add(ClockworkBlocks.VALVE_DUCT)
+            .add(ClockworkBlocks.PUMP_DUCT)
+            .add(ClockworkBlocks.STEAM_GENERATOR)
+            .add(ClockworkBlocks.RADIATOR)
+            .add(ClockworkBlocks.HEAT_EXCHANGER)
+            .add(ClockworkItems.GAS_BANKTANK)
+            .add(ClockworkBlocks.GAS_HEATER)
     }
 
     companion object {

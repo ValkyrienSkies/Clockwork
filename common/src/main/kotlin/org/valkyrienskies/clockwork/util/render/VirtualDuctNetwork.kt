@@ -17,6 +17,7 @@ import org.valkyrienskies.clockwork.content.logistics.gas.storage.tank.DuctTankB
 import org.valkyrienskies.kelvin.KelvinMod.KELVINLOGGER
 import org.valkyrienskies.kelvin.api.*
 import org.valkyrienskies.kelvin.api.nodes.ILeakNode
+import org.valkyrienskies.kelvin.api.recipe.GasBaseRecipe
 import org.valkyrienskies.kelvin.impl.DuctNodeInfo
 import org.valkyrienskies.kelvin.impl.client.ClientKelvinInfo
 import org.valkyrienskies.kelvin.impl.recipe.KelvinReactionDataLoader
@@ -44,6 +45,7 @@ class VirtualDuctNetwork(
     override val unloadedNodes: HashSet<DuctNodePos> = HashSet(),
 ) : DuctNetwork<PonderLevel> {
     var solver: KelvinSolver = ClockworkConfig.KELVIN.kelvinSolver.getSolver()
+    internal var sceneReactions: Collection<GasBaseRecipe>? = null
     private val pendingBlocks = linkedSetOf<BlockPos>()
 
     fun queueUpdate(pos: BlockPos) {
@@ -380,7 +382,7 @@ class VirtualDuctNetwork(
         }
 
 
-        val reactions = KelvinReactionDataLoader.gas_reactions
+        val reactions = sceneReactions ?: KelvinReactionDataLoader.gas_reactions.values
         // Process recipes
         for (node in dimensionNodes) {
             val gasMasses = getGasMassAt(node)
@@ -388,7 +390,7 @@ class VirtualDuctNetwork(
 
             val state = getNodeState(node) ?: continue
 
-            for (reaction in reactions.values) {
+            for (reaction in reactions) {
                 var con = false
                 reaction.requirements.forEach {if (!it.key.apply_requirement(level, state, it.value)) { con = true; return@forEach }}
                 if (con) continue

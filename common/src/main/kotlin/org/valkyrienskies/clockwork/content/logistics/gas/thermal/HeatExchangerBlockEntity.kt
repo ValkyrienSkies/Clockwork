@@ -3,7 +3,6 @@ package org.valkyrienskies.clockwork.content.logistics.gas.thermal
 import com.simibubi.create.foundation.blockEntity.behaviour.BlockEntityBehaviour
 import net.minecraft.core.BlockPos
 import net.minecraft.core.Direction
-import net.minecraft.server.level.ServerLevel
 import net.minecraft.world.level.Level
 import net.minecraft.world.level.block.RotatedPillarBlock.AXIS
 import net.minecraft.world.level.block.entity.BlockEntityType
@@ -21,20 +20,23 @@ class HeatExchangerBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: B
     KNodeBlockEntity(type, pos, state), IConnectable {
 
     private val tickPhase = Math.floorMod(pos.hashCode(), TRANSFER_INTERVAL)
+    private var ponderTicks = 0L
 
     override fun addBehaviours(behaviours: MutableList<BlockEntityBehaviour>) {}
 
     override fun tick() {
         super.tick()
-        val serverLevel = level as? ServerLevel ?: return
-        if (dataToLoad != null || (serverLevel.gameTime + tickPhase) % TRANSFER_INTERVAL != 0L) return
-        transferHeat(serverLevel)
+        val level = level ?: return
+        if (!level.simulatesGas || dataToLoad != null) return
+        val time = if (level.isClientSide) ponderTicks++ else level.gameTime
+        if ((time + tickPhase) % TRANSFER_INTERVAL != 0L) return
+        transferHeat(level)
     }
 
     // Visit only positive directions so each neighboring pair is updated once.
     private val neighbors = arrayOf(Direction.EAST, Direction.UP, Direction.SOUTH).map { it to pos.relative(it) }
 
-    private fun transferHeat(level: ServerLevel) {
+    private fun transferHeat(level: Level) {
         val coefficient = ClockworkConfig.SERVER.heatExchanger.heatExchangerHeatTransferCoefficient
         if (coefficient <= 0.0) return
         val kelvin = ClockworkMod.getKelvin(level)

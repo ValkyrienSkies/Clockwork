@@ -18,6 +18,7 @@ import org.valkyrienskies.clockwork.ClockworkConfig
 import org.valkyrienskies.clockwork.ClockworkMod
 import org.valkyrienskies.clockwork.ClockworkModClient
 import org.valkyrienskies.clockwork.content.logistics.gas.IConnectable
+import org.valkyrienskies.clockwork.util.DuctNetworkUtils.simulatesGas
 import org.valkyrienskies.clockwork.util.kelvin.KNodeBlockEntity
 import org.valkyrienskies.clockwork.util.kelvin.KelvinParticleHelper
 import kotlin.math.ceil
@@ -40,13 +41,12 @@ class GasEngineBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: Block
         super.lazyTick()
 
         val level = level ?: return
-        if (level.isClientSide || blockState.block !is GasEngineBlock) return
+        if (!level.simulatesGas || blockState.block !is GasEngineBlock) return
 
         updateEngineEfficiency()
     }
 
     private fun updateEngineEfficiency() {
-        if (level!!.isClientSide) return
         val components = GasEngineLogic.calculateEfficiencyComponents(
             level!!,
             blockPos,
@@ -72,7 +72,7 @@ class GasEngineBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: Block
     }
 
     override fun tick() {
-        if (level!!.isClientSide) return super.tick()
+        if (level?.simulatesGas != true) return super.tick()
         if (attachedEngines > 0 && heatLoss > 0.0) {
             ClockworkMod.getKelvin(level).modHeatEnergy(getDuctNodePosition(), -heatLoss)
         }

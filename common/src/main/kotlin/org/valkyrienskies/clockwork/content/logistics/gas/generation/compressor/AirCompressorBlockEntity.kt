@@ -1,5 +1,6 @@
 package org.valkyrienskies.clockwork.content.logistics.gas.generation.compressor
 
+import net.createmod.ponder.api.level.PonderLevel
 import net.minecraft.ChatFormatting
 import net.minecraft.core.BlockPos
 import net.minecraft.nbt.CompoundTag
@@ -11,6 +12,7 @@ import net.minecraft.world.level.block.state.BlockState
 import org.valkyrienskies.clockwork.ClockworkConfig;
 import org.valkyrienskies.clockwork.ClockworkLang
 import org.valkyrienskies.clockwork.ClockworkMod
+import org.valkyrienskies.clockwork.util.DuctNetworkUtils.simulatesGas
 import org.valkyrienskies.clockwork.util.kelvin.KNodeKineticBlockEntity
 import org.valkyrienskies.clockwork.util.gui.ClockworkTooltipHelper
 import org.valkyrienskies.clockwork.util.gui.DuctTextUtil
@@ -42,11 +44,13 @@ class AirCompressorBlockEntity(typeIn: BlockEntityType<*>, pos: BlockPos, state:
     val obstructed get() = status == CompressorStatus.OBSTRUCTED
 
     fun getAirDensity(): Double {
+        val level = level as? ServerLevel ?: return 1.0
         val position = level.toWorldCoordinates(blockPos)
-        return (level as? ServerLevel)?.shipObjectWorld?.aerodynamicUtils?.getAirDensityForY(position.y, level!!.dimensionId) ?: 1.0
+        return level.shipObjectWorld.aerodynamicUtils.getAirDensityForY(position.y, level.dimensionId)
     }
 
     fun getAirTemperature(): Double {
+        if (level is PonderLevel) return 293.15
         val position = level.toWorldCoordinates(blockPos)
         return (level as? ServerLevel)?.shipObjectWorld?.aerodynamicUtils?.getAirTemperatureForY(position.y, level!!.dimensionId) ?: 0.0
     }
@@ -56,7 +60,7 @@ class AirCompressorBlockEntity(typeIn: BlockEntityType<*>, pos: BlockPos, state:
 
         if (airGas == null || heliumGas == null) return ClockworkMod.LOGGER.error("Could not get GasType `kelvin:air` or `vs_clockwork:aether`. Is Gas Registry broken?")
 
-        if (level!!.isClientSide) return
+        if (level?.simulatesGas != true) return
 
         val kelvin = ClockworkMod.getKelvin(level)
         kelvin.getNodeAt(getDuctNodePosition()) ?: return
