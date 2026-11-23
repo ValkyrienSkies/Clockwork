@@ -37,6 +37,10 @@ class SteeringWheelBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: B
     private var displayedAngle = 0f
     private var input = 0
     private var throttle = 0
+    private var brakeInput = false
+    val handbrakeHeld get() = driver != null && brakeInput
+    var driveThrottle = 0f
+        private set
     private var lastInput = 0L
 
     override fun addBehaviours(behaviours: MutableList<BlockEntityBehaviour>) {
@@ -90,11 +94,12 @@ class SteeringWheelBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: B
         driver = if (driver == player.uuid) null else player.uuid
         input = 0
         throttle = 0
+        brakeInput = false
         lastInput = level!!.gameTime
         sendData()
     }
 
-    fun control(player: Player, direction: Int, throttle: Int) {
+    fun control(player: Player, direction: Int, throttle: Int, braking: Boolean = false) {
         if (driver != player.uuid || !canReach(player)) return
         if (direction == 2) {
             driver = null
@@ -102,6 +107,7 @@ class SteeringWheelBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: B
             this.throttle = 0
             sendData()
         } else {
+            brakeInput = braking
             input = direction.coerceIn(-1, 1)
             val nextThrottle = throttle.coerceIn(-1, 1)
             if (this.throttle != nextThrottle) {
@@ -127,6 +133,11 @@ class SteeringWheelBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: B
             throttle = 0
             sendData()
         }
+        val targetThrottle = if (driver == null) 0f else throttle.toFloat()
+        driveThrottle = if (driveThrottle * targetThrottle < 0f || targetThrottle == 0f)
+            Mth.approach(driveThrottle, 0f, .25f)
+        else Mth.approach(driveThrottle, targetThrottle, .1f)
+
         val limit = range.value.toFloat()
         val target = when {
             input != 0 && driver != null -> input * limit
@@ -159,6 +170,7 @@ class SteeringWheelBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: B
         throttle = if (clientPacket && driver != null) tag.getInt("Throttle").coerceIn(-1, 1) else 0
         if (!clientPacket) {
             input = 0
+            driveThrottle = 0f
             previousAngle = angle
             displayedAngle = angle
         }

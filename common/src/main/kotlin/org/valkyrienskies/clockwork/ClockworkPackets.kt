@@ -6,6 +6,8 @@ import org.valkyrienskies.clockwork.content.curiosities.tools.gatemakyr.Gatemaky
 import org.valkyrienskies.clockwork.content.curiosities.tools.gatemakyr.GatemakyrChunkWatchPacket
 import org.valkyrienskies.clockwork.content.curiosities.tools.gatemakyr.GatemakyrInputPacket
 import org.valkyrienskies.clockwork.content.physicalities.wheel.WheelContactPacket
+import org.valkyrienskies.clockwork.content.physicalities.wheel.ResizeTirePacket
+import org.valkyrienskies.clockwork.content.physicalities.steering.HandbrakeEffectPacket
 import org.valkyrienskies.clockwork.content.physicalities.steering.SteeringWheelInputPacket
 
 import org.valkyrienskies.clockwork.content.schematics.VdexBlueprintActionPacket
@@ -146,7 +148,9 @@ enum class ClockworkPackets(
     GATEMAKYR_EFFECT(GatemakyrEffectPacket::class.java, ::GatemakyrEffectPacket),
     GATEMAKYR_CROSSING(GatemakyrCrossingPacket::class.java, ::GatemakyrCrossingPacket),
     GATEMAKYR_ENTITY_TRANSIT(GatemakyrEntityTransitPacket::class.java, ::GatemakyrEntityTransitPacket),
-    GATEMAKYR_CHUNKS(GatemakyrChunkWatchPacket::class.java, ::GatemakyrChunkWatchPacket);
+    GATEMAKYR_CHUNKS(GatemakyrChunkWatchPacket::class.java, ::GatemakyrChunkWatchPacket),
+    HANDBRAKE_EFFECT(HandbrakeEffectPacket::class.java, ::HandbrakeEffectPacket),
+    RESIZE_TIRE(ResizeTirePacket::class.java, ::ResizeTirePacket);
 
     init {
         packetChannel.registerPacket(type as Class<CWPacket>, factory as Function<FriendlyByteBuf, CWPacket>)

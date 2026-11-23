@@ -3,6 +3,7 @@
   "package": "org.valkyrienskies.clockwork.mixin",
   "compatibilityLevel": "JAVA_17",
   "mixins": [
+    "content.wheel.MixinProjectileTravel",
     "content.gatemakyr.MixinGateBlockCollisions",
     "content.gatemakyr.MixinGateRaycast",
     "content.gatemakyr.MixinGateSoundBroadcast",

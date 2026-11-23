@@ -30,6 +30,11 @@ object ClockworkSounds {
     val PORTAL_OPEN = create("portal_open_1").addVariant("portal_open_2").subtitle("Rift tears open").category(SoundSource.PLAYERS).build()
     val PORTAL_CLOSE = create("portal_close").subtitle("Rift collapses").category(SoundSource.PLAYERS).build()
     val PORTAL_LOOP = create("portal_loop").subtitle("Rift hums").category(SoundSource.PLAYERS).build()
+    val TIRE_PUMP = create("tire_pump_1").addVariant("tire_pump_2").subtitle("Tire inflates").category(SoundSource.BLOCKS).build()
+    val TIRE_AIR_RELEASE = create("tire_air_release").subtitle("Tire releases air").category(SoundSource.BLOCKS).build()
+    val TIRE_ATTACH = create("tire_attach").subtitle("Tire fitted").category(SoundSource.BLOCKS).build()
+    val RIM_SCRAPE = create("rim_scrape").subtitle("Wheel rim scrapes").build()
+    val TIRE_REMOVE = create("tire_remove").subtitle("Tire removed").category(SoundSource.BLOCKS).build()
     val WHEEL_UNSCREW = create("wheel_unscrew_1").addVariant("wheel_unscrew_2")
         .subtitle("Wheel unscrewed").category(SoundSource.BLOCKS).build()
     val DRIVING_WOOD = create("driving_wood").subtitle("Tires roll on wood").category(SoundSource.BLOCKS).build()
@@ -290,6 +295,11 @@ object ClockworkSounds {
         .category(SoundSource.BLOCKS)
         .attenuationDistance(64)
         .build()
+
+    val TIRE_LEAK_LIGHT = create("tire_leak_light").subtitle("Tire leaks air")
+        .playExisting({ BALLOON_LEAKING_LIGHT.mainEvent!! }, 1f, 1f).build()
+    val TIRE_LEAK_HEAVY = create("tire_leak_heavy").subtitle("Tire leaks air rapidly")
+        .playExisting({ BALLOON_LEAKING_HEAVY.mainEvent!! }, 1f, 1f).build()
 
     private val sounds: DeferredRegister<SoundEvent> =
         DeferredRegister.create(BuiltInRegistries.SOUND_EVENT, ClockworkMod.MOD_ID)

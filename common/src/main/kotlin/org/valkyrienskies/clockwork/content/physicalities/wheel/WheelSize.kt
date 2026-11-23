@@ -17,6 +17,8 @@ enum class WheelSize(val id: String, val radius: Double, val width: Double, val 
     MEDIUM("medium_wheel", 0.75, 0.5, 90.0),
     LARGE("large_wheel", 1.25, 0.75, 300.0);
 
+    val rimWidth get() = .375
+    val rimMass get() = mass * .35
     val rimRadius get() = when (this) {
         SMALL -> .25 / cos(PI / 8)
         MEDIUM -> .5 / cos(PI / 8)
@@ -26,7 +28,13 @@ enum class WheelSize(val id: String, val radius: Double, val width: Double, val 
     val maximumThicknessPercent get() = ((2.0 - rimRadius) / (radius - rimRadius) * 20).toInt() * 5
 
     fun tire(widthPercent: Int = 100, thicknessPercent: Int = 100, pressureKpa: Int = 800, type: TireType = TireType.RUBBER) =
-        WheelTire(this, widthPercent.coerceIn(minimumWidthPercent, 200), thicknessPercent.coerceIn(25, maximumThicknessPercent), pressureKpa.coerceIn(100, 1600), type)
+        WheelTire(this, widthPercent.coerceIn(minimumWidthPercent, 200), thicknessPercent.coerceIn(25, maximumThicknessPercent), pressureKpa.coerceIn(0, 1600), type)
+
+    fun rimInertia(): Matrix3d {
+        val axial = rimMass * rimRadius * rimRadius / 2
+        val transverse = axial / 2 + rimMass * rimWidth * rimWidth / 12
+        return Matrix3d().scaling(axial, transverse, transverse)
+    }
 
     fun shape() = tire().shape()
     fun inertia() = tire().inertia()
@@ -39,13 +47,18 @@ enum class WheelSize(val id: String, val radius: Double, val width: Double, val 
 }
 
 data class WheelTire internal constructor(val size: WheelSize, val widthPercent: Int,
-                                         val thicknessPercent: Int, val pressureKpa: Int, val type: TireType = TireType.RUBBER) {
+                                         val thicknessPercent: Int, val pressureKpa: Int, val type: TireType = TireType.RUBBER,
+                                         val wearGrade: Int = 0) {
     val width = size.width * widthPercent / 100.0
     val rimRadius = size.rimRadius
-    val rimWidth = .375
-    val thickness = (size.radius - rimRadius) * thicknessPercent / 100.0
+    val rimWidth = size.rimWidth
+    private val inflatedThickness = (size.radius - rimRadius) * thicknessPercent / 100.0
+    val thickness = inflatedThickness * (.16 + .84 * (pressureKpa / 100.0).coerceAtMost(1.0))
     val radius = rimRadius + thickness
-    private val rubberRatio = width / size.width * (radius * radius - rimRadius * rimRadius) /
+    val carcassThickness = thickness + .8 * (inflatedThickness - thickness)
+    val carcassRadius = rimRadius + carcassThickness
+    private val inflatedRadius = rimRadius + inflatedThickness
+    private val rubberRatio = width / size.width * (inflatedRadius * inflatedRadius - rimRadius * rimRadius) /
         (size.radius * size.radius - rimRadius * rimRadius)
     val mass = size.mass * (.35 + .65 * rubberRatio * type.physics.massMultiplier)
 
@@ -64,7 +77,7 @@ data class WheelTire internal constructor(val size: WheelSize, val widthPercent:
             longitudinalStiffness = material.longitudinalStiffness * size.radius * tread,
             lateralStiffness = material.lateralStiffness * size.radius * tread,
             treadDamping = material.treadDamping * size.radius * sqrt(tread * mass / size.mass),
-            slidingGrip = material.slidingGrip, slipTransitionSpeed = material.slipTransitionSpeed,
+            slidingGrip = material.slidingGrip * (1.0 - .04 * wearGrade), slipTransitionSpeed = material.slipTransitionSpeed,
             adhesiveForce = material.adhesion * width * radius,
             roundedVoxelContact = rounded,
             roundedContactProfile = if (rounded) TireContactProfiles.get(type.id) else RoundedContactProfile.DEFAULT,
@@ -72,7 +85,7 @@ data class WheelTire internal constructor(val size: WheelSize, val widthPercent:
     }
 
     fun inertia(): Matrix3d {
-        val rimMass = size.mass * .35
+        val rimMass = size.rimMass
         val rubberMass = mass - rimMass
         val axial = rimMass * rimRadius * rimRadius / 2 + rubberMass * (radius * radius + rimRadius * rimRadius) / 2
         val transverse = axial / 2 + mass * width * width / 12

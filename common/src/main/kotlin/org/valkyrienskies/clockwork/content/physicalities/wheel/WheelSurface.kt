@@ -5,6 +5,7 @@ import net.minecraft.core.registries.Registries
 import net.minecraft.core.registries.BuiltInRegistries
 import net.minecraft.resources.ResourceLocation
 import net.minecraft.tags.FluidTags
+import net.minecraft.tags.BlockTags
 import net.minecraft.tags.TagKey
 import net.minecraft.world.level.Level
 import net.minecraft.world.level.block.SnowLayerBlock
@@ -58,6 +59,13 @@ enum class WheelSurface(val rubber: Boolean, val loose: Boolean = false) {
                     if (!state.isAir) event.tireSurface(state, physics(state))
                 }
             }
+        }
+
+        fun scrapeSurface(state: BlockState): WheelSurface? = when (of(state)) {
+            METAL -> METAL
+            HARD -> HARD.takeIf { state.`is`(roadTag) || state.`is`(BlockTags.MINEABLE_WITH_PICKAXE) ||
+                state.soundType == SoundType.STONE || state.soundType == SoundType.GLASS }
+            else -> null
         }
 
         fun of(state: BlockState): WheelSurface {

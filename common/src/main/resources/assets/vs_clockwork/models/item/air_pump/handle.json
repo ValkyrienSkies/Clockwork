@@ -1,0 +1,135 @@
+{
+  "textures": {
+    "pump": "vs_clockwork:item/air_pump",
+    "particle": "#pump"
+  },
+  "elements": [
+    {
+      "from": [
+        4.875,
+        16.375,
+        6.875
+      ],
+      "to": [
+        11.125,
+        17.625,
+        9.125
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            8,
+            2,
+            14,
+            3
+          ],
+          "texture": "#pump"
+        },
+        "east": {
+          "uv": [
+            8,
+            2,
+            9,
+            3
+          ],
+          "texture": "#pump"
+        },
+        "south": {
+          "uv": [
+            8,
+            2,
+            14,
+            3
+          ],
+          "texture": "#pump"
+        },
+        "west": {
+          "uv": [
+            13,
+            2,
+            14,
+            3
+          ],
+          "texture": "#pump"
+        },
+        "up": {
+          "uv": [
+            8,
+            0,
+            14,
+            2
+          ],
+          "texture": "#pump"
+        },
+        "down": {
+          "uv": [
+            14,
+            0,
+            8,
+            2
+          ],
+          "texture": "#pump"
+        }
+      }
+    },
+    {
+      "from": [
+        7.5,
+        14,
+        7.5
+      ],
+      "to": [
+        8.5,
+        17,
+        8.5
+      ],
+      "rotation": {
+        "origin": [
+          8,
+          16.25,
+          8
+        ],
+        "axis": "y",
+        "angle": -45
+      },
+      "faces": {
+        "north": {
+          "uv": [
+            2,
+            1,
+            3,
+            4
+          ],
+          "texture": "#pump"
+        },
+        "east": {
+          "uv": [
+            2,
+            1,
+            3,
+            4
+          ],
+          "texture": "#pump"
+        },
+        "south": {
+          "uv": [
+            2,
+            1,
+            3,
+            4
+          ],
+          "texture": "#pump"
+        },
+        "west": {
+          "uv": [
+            2,
+            1,
+            3,
+            4
+          ],
+          "texture": "#pump"
+        }
+      }
+    }
+  ]
+}

@@ -93,6 +93,9 @@ object ClockworkModClient {
         "category.vs_clockwork.clockwork_keys"
     )
 
+    val HANDBRAKE_KEYBIND = KeyMapping("key.vs_clockwork.handbrake", InputConstants.Type.KEYSYM,
+        InputConstants.KEY_B, "category.vs_clockwork.clockwork_keys")
+
     @JvmStatic
     val DEBUG_LIGHTNING_KEYBIND: KeyMapping = KeyMapping(
         "key.vs_clockwork.debug_lightning_toggle",
@@ -151,6 +154,7 @@ object ClockworkModClient {
 //            MeteorRenderer.onShipRender(it)
 //        }
 
+        KeyMappingRegistry.register(HANDBRAKE_KEYBIND)
         KeyMappingRegistry.register(AERONAUT_GOGGLE_KEYBIND)
         GravitronControlsClient.register()
         GatemakyrClient.register()

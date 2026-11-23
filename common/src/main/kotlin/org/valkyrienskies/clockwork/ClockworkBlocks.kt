@@ -1,6 +1,8 @@
 package org.valkyrienskies.clockwork
 
 import org.valkyrienskies.clockwork.content.physicalities.wheel.WheelHubBlock
+import org.valkyrienskies.clockwork.content.physicalities.steering.HandbrakeBlock
+import org.valkyrienskies.clockwork.content.physicalities.steering.DrivingControlItem
 import org.valkyrienskies.clockwork.content.physicalities.steering.SteeringWheelBlock
 
 import org.valkyrienskies.clockwork.content.kinetics.plotting.PlottingTableBlock
@@ -864,11 +866,17 @@ object ClockworkBlocks {
             .register()
 
     @JvmField
+    val HANDBRAKE = REGISTRATE.block("handbrake") { p: BlockBehaviour.Properties -> HandbrakeBlock(p) }
+        .initialProperties { SharedProperties.softMetal() }.transform(axeOrPickaxe())
+        .properties { it.noOcclusion() }
+        .item(::DrivingControlItem).tab(ClockworkMod.PHYSICAL_CREATIVE_TABINFO).build().register()
+
+    @JvmField
     val STEERING_WHEEL = REGISTRATE.block("steering_wheel") { p: BlockBehaviour.Properties -> SteeringWheelBlock(p) }
         .initialProperties { SharedProperties.softMetal() }.transform(axeOrPickaxe())
         .properties { it.noOcclusion() }.addLayer { Supplier { RenderType.cutout() } }
         .tag(AllTags.AllBlockTags.SAFE_NBT.tag)
-        .item().tab(ClockworkMod.PHYSICAL_CREATIVE_TABINFO).build().register()
+        .item(::DrivingControlItem).tab(ClockworkMod.PHYSICAL_CREATIVE_TABINFO).build().register()
 
     @JvmField
     val WHEEL_HUB = REGISTRATE.block("wheel_hub") { p: BlockBehaviour.Properties -> WheelHubBlock(p) }

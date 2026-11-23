@@ -7,6 +7,7 @@ import com.simibubi.create.foundation.block.WrenchableDirectionalBlock
 import net.minecraft.core.BlockPos
 import net.minecraft.core.Direction
 import net.minecraft.network.chat.Component
+import net.minecraft.server.level.ServerLevel
 import net.minecraft.server.level.ServerPlayer
 import net.minecraft.world.InteractionHand
 import net.minecraft.world.InteractionResult
@@ -27,6 +28,7 @@ import net.minecraft.world.phys.shapes.CollisionContext
 import net.minecraft.world.phys.shapes.Shapes
 import net.minecraft.world.phys.shapes.VoxelShape
 import org.joml.Vector3d
+import org.valkyrienskies.clockwork.content.physicalities.steering.DrivingControlLinks
 import org.valkyrienskies.clockwork.ClockworkBlockEntities
 
 class HingeBlock(properties: Properties, val attachment: Boolean = false) : WrenchableDirectionalBlock(properties), IBE<HingeBlockEntity>, TransformableBlock {
@@ -84,6 +86,11 @@ class HingeBlock(properties: Properties, val attachment: Boolean = false) : Wren
 
     override fun getCollisionShape(state: BlockState, level: BlockGetter, pos: BlockPos, context: CollisionContext): VoxelShape =
         if (attachment && state.getValue(ASSEMBLED)) Shapes.empty() else getShape(state, level, pos, context)
+
+    override fun onRemove(state: BlockState, level: Level, pos: BlockPos, next: BlockState, moved: Boolean) {
+        if (level is ServerLevel && state.block != next.block) DrivingControlLinks.get(level).endpointRemoved(pos)
+        super.onRemove(state, level, pos, next, moved)
+    }
 
     override fun getBlockEntityClass() = HingeBlockEntity::class.java
     override fun getBlockEntityType() = ClockworkBlockEntities.HINGE.get()

@@ -34,6 +34,7 @@ import org.valkyrienskies.core.api.ships.ClientShip
 import org.valkyrienskies.mod.common.getShipManagingPos
 import org.valkyrienskies.mod.common.shipObjectWorld
 import kotlin.math.PI
+import kotlin.math.abs
 import kotlin.math.cos
 import kotlin.math.sin
 import kotlin.math.roundToInt
@@ -50,7 +51,8 @@ class WheelHubRenderer(context: BlockEntityRendererProvider.Context) : KineticBl
     override fun renderSafe(be: WheelHubBlockEntity, partialTicks: Float, ms: PoseStack,
                             buffers: MultiBufferSource, light: Int, overlay: Int) {
         super.renderSafe(be, partialTicks, ms, buffers, light, overlay)
-        val size = be.tire ?: return
+        val wheel = be.wheel ?: return
+        val tire = be.tire
         val level = be.level ?: return
         val body = level.shipObjectWorld.allBodies.getById(be.bodyId) as? ClientVsBody
         ms.pushPose()
@@ -66,20 +68,24 @@ class WheelHubRenderer(context: BlockEntityRendererProvider.Context) : KineticBl
                 ms.translate(.5, .5, .5)
                 ms.mulPose(Quaternionf(WheelSize.axleRotation(be.facing.stepX.toDouble(), be.facing.stepY.toDouble(), be.facing.stepZ.toDouble())))
             }
-            val coating = WheelEffects.coating(be.bodyId)
-            val sprite = coating?.let { WheelEffects.coatingSprite(it.state) }
-            val contacts = body?.let { WheelEffects.compression(it, partialTicks) }.orEmpty()
-            val texture = WheelVisuals.treadTexture(size.type, be.wood)
-            if (texture != null) TireMesh.render(size, contacts, ms,
-                buffers.getBuffer(RenderType.entitySolid(texture)), light, overlay)
-            else LayeredTireRenderer.render(level as ClientLevel, body, size, contacts, ms, buffers, light, overlay, partialTicks,
-                if (size.type == TireType.WOOD) WheelVisuals.planks(be.wood) else null)
-            LayeredTireRenderer.cleats(size, ms, buffers, light, overlay, contacts)
-            if (coating != null) TireMesh.render(size, contacts, ms,
-                buffers.getBuffer(Sheets.translucentCullBlockSheet()), light, overlay, coating, sprite)
+            if (tire != null) {
+                val coating = WheelEffects.coating(be.bodyId)
+                val sprite = coating?.let { WheelEffects.coatingSprite(it.state) }
+                val contacts = body?.let { WheelEffects.compression(it, partialTicks) }.orEmpty()
+                val texture = WheelVisuals.treadTexture(tire.type, be.wood)
+                if (texture != null) TireMesh.render(tire, contacts, ms,
+                    buffers.getBuffer(RenderType.entitySolid(texture)), light, overlay)
+                else LayeredTireRenderer.render(level as ClientLevel, body, tire, contacts, ms, buffers, light, overlay, partialTicks,
+                    if (tire.type == TireType.WOOD) WheelVisuals.planks(be.wood) else null)
+                LayeredTireRenderer.cleats(tire, ms, buffers, light, overlay, contacts)
+                if (coating != null) TireMesh.render(tire, contacts, ms,
+                    buffers.getBuffer(Sheets.translucentCullBlockSheet()), light, overlay, coating, sprite)
+                if (be.condition.holes.isNotEmpty())
+                    TirePunctureRenderer(tire, contacts).render(be.condition.holes, ms, buffers, light, overlay)
+            }
             ms.pushPose()
             ms.mulPose(Quaternionf().rotationY((-PI / 2).toFloat()))
-            val rim = when (size.size) {
+            val rim = when (wheel) {
                 WheelSize.SMALL -> ClockworkPartials.WHEEL_RIM
                 WheelSize.MEDIUM -> ClockworkPartials.MEDIUM_WHEEL_RIM
                 WheelSize.LARGE -> ClockworkPartials.LARGE_WHEEL_RIM
@@ -87,7 +93,7 @@ class WheelHubRenderer(context: BlockEntityRendererProvider.Context) : KineticBl
             ms.translate(-.5, -.5, -.5)
             CachedBuffers.partial(rim, be.blockState).light<SuperByteBuffer>(light)
                 .overlay<SuperByteBuffer>(overlay).renderInto(ms,
-                    WheelVisuals.rimBuffer(buffers.getBuffer(RenderType.solid()), size.type, be.wood))
+                    WheelVisuals.rimBuffer(buffers.getBuffer(RenderType.solid()), be.tireType, be.wood))
             ms.popPose()
         } finally { ms.popPose() }
     }
@@ -97,7 +103,7 @@ class WheelItemRenderer : CustomRenderedItemModelRenderer() {
     override fun render(stack: ItemStack, model: CustomRenderedItemModel, renderer: PartialItemModelRenderer,
                         transformType: ItemDisplayContext, ms: PoseStack, buffers: MultiBufferSource, light: Int, overlay: Int) {
         val item = stack.item as? WheelItem ?: return
-        val tire = item.size.tire(type = item.tireType)
+        val tire = item.size.tire(type = item.tireType ?: return).withSavedWear(stack.tag)
         ms.pushPose()
         ms.mulPose(Quaternionf().rotationY((PI / 2).toFloat()))
         val wood = WheelItem.wood(stack.tag)
@@ -124,6 +130,11 @@ class WheelItemRenderer : CustomRenderedItemModelRenderer() {
 }
 
 internal object WheelVisuals {
+    fun wornHalfWidth(grade: Int, segment: Int, part: Int): Double {
+        val phase = (segment + (part + .5) / 4) * PI / 4
+        return (.046 * grade - .07 + .105 * sin(3 * phase + .6) + .055 * cos(5 * phase + 1.1)).coerceIn(0.0, .46)
+    }
+
     private val woods = setOf("oak", "spruce", "birch", "jungle", "acacia", "dark_oak", "mangrove", "cherry", "bamboo", "crimson", "warped")
 
     fun treadTexture(type: TireType, wood: Block): ResourceLocation? {
@@ -138,7 +149,7 @@ internal object WheelVisuals {
     fun planks(wood: Block): TextureAtlasSprite =
         Minecraft.getInstance().blockRenderer.blockModelShaper.getBlockModel(wood.defaultBlockState()).particleIcon
 
-    fun rimBuffer(buffer: VertexConsumer, type: TireType, wood: Block): VertexConsumer {
+    fun rimBuffer(buffer: VertexConsumer, type: TireType?, wood: Block): VertexConsumer {
         if (type != TireType.WOOD) return buffer
         val original = Minecraft.getInstance().getTextureAtlas(TextureAtlas.LOCATION_BLOCKS)
             .apply(ClockworkMod.asResource("block/wheel/wheel"))
@@ -160,6 +171,40 @@ internal object WheelVisuals {
     }
 }
 
+internal class TireDeformation(tire: WheelTire, contacts: List<TireContact>, compressionScale: Double = 1.0,
+                               support: (Vector3d) -> Double) {
+    private val slack = tire.carcassRadius - tire.radius
+    private val flatness = (1.0 - tire.pressureKpa / 100.0).coerceAtLeast(0.0)
+    private val carcassRadius = tire.carcassRadius
+    private val halfWidth = tire.width / 2
+    private val planes = contacts.map { contact ->
+        val normal = contact.normal
+        val meshSupport = support(normal)
+        val limit = if (slack > 0) minOf(meshSupport,
+            tire.radius * sqrt(normal.y * normal.y + normal.z * normal.z) + halfWidth * abs(normal.x)) else meshSupport
+        normal to (limit - contact.compression.coerceIn(0f, (tire.thickness * tire.type.physics.compression * compressionScale).toFloat()))
+    }
+
+    fun apply(point: Vector3d, rubber: Double): Vector3d {
+        if (rubber <= 0.0) return point
+        var fold = 0.0
+        for ((normal, limit) in planes) {
+            if (slack > 0) {
+                val towardContact = -(point.y * normal.y + point.z * normal.z) / carcassRadius
+                fold = maxOf(fold, ((towardContact - .45) / .35).coerceIn(0.0, 1.0))
+            }
+            val depth = -limit - point.dot(normal)
+            if (depth <= 0) continue
+            point.fma(depth * (rubber + flatness * (1.0 - rubber)), normal)
+        }
+        if (slack > 0) {
+            val bulge = minOf(halfWidth * .48, slack * (.12 + .65 * fold))
+            point.x += (point.x / halfWidth).coerceIn(-1.0, 1.0) * minOf(1.0, rubber * 3) * bulge
+        }
+        return point
+    }
+}
+
 internal object TireMesh {
     private const val SEGMENTS = 8
     private val PROFILE_V = floatArrayOf(0f, 6f, 10f, 12f, 20f, 22f, 26f, 32f)
@@ -167,7 +212,7 @@ internal object TireMesh {
                               val nx: Float, val ny: Float, val nz: Float, val shade: Float, val rubber: Float,
                               val deposit: Float)
     private data class Geometry(val radius: Double, val width: Double, val rimRadius: Double, val rimWidth: Double,
-                                val coating: Boolean)
+                                val coating: Boolean, val wearGrade: Int)
     private val meshes = object : LinkedHashMap<Geometry, List<Vertex>>(32, .75f, true) {
         override fun removeEldestEntry(eldest: MutableMap.MutableEntry<Geometry, List<Vertex>>) = size > 128
     }
@@ -199,10 +244,14 @@ internal object TireMesh {
         return result
     }
 
-    private fun build(radius: Double, width: Double, rimRadius: Double, rimWidth: Double, coating: Boolean): List<Vertex> {
+    fun profile(radius: Double, width: Double, rimRadius: Double, rimWidth: Double): List<Pair<Double, Double>> {
         val sidewall = maxOf(.8, (rimRadius + (radius - rimRadius) * .25) / radius)
-        val profile = listOf(-rimWidth / (2 * width) to rimRadius / radius, -.5 to sidewall, -.38 to .97, -.26 to 1.0,
+        return listOf(-rimWidth / (2 * width) to rimRadius / radius, -.5 to sidewall, -.38 to .97, -.26 to 1.0,
             .26 to 1.0, .38 to .97, .5 to sidewall, rimWidth / (2 * width) to rimRadius / radius)
+    }
+
+    private fun build(radius: Double, width: Double, rimRadius: Double, rimWidth: Double, coating: Boolean, wearGrade: Int): List<Vertex> {
+        val profile = profile(radius, width, rimRadius, rimWidth)
         val vertices = ArrayList<Vertex>()
         for (band in 0 until profile.lastIndex) {
             val a = profile[band]
@@ -211,8 +260,10 @@ internal object TireMesh {
             val radial = (b.first - a.first) * width
             val normalLength = sqrt(nx * nx + radial * radial)
             if (normalLength < 1e-8) continue
+            val wearing = wearGrade > 0 && band in 2..4
             val sections = strips(band, normalLength * 16).flatMap { strip ->
-                val count = if (coating) ceil((strip.to - strip.from) * normalLength * 4).toInt().coerceAtLeast(1) else 1
+                val density = if (wearing) 16 else if (coating) 4 else 0
+                val count = ceil((strip.to - strip.from) * normalLength * density).toInt().coerceAtLeast(1)
                 (0 until count).map { i -> Strip(
                     strip.from + (strip.to - strip.from) * i / count,
                     strip.from + (strip.to - strip.from) * (i + 1) / count,
@@ -230,6 +281,7 @@ internal object TireMesh {
                 val shade = if (band == 3 && segment % 2 == 0) 0.8f else 1f
                 val middle = (strip.from + strip.to) * .5
                 val centerX = (a.first + (b.first - a.first) * middle) * width
+                val worn = wearing && abs(centerX / width) < WheelVisuals.wornHalfWidth(wearGrade, segment, part)
                 val centerR = (a.second + (b.second - a.second) * middle) * radius
                 val centerT = (part + .5) / parts
                 val centerY = (cos(angle) * (1 - centerT) + cos(nextAngle) * centerT) * centerR
@@ -247,7 +299,7 @@ internal object TireMesh {
                     val rubber = if (bead) 0.0 else ((sqrt(y * y + z * z) - rimRadius * cos(PI / SEGMENTS)) /
                         ((radius - rimRadius) * cos(PI / SEGMENTS))).coerceIn(0.0, 1.0)
                     vertices.add(Vertex(axial.toFloat(), y.toFloat(), z.toFloat(),
-                        ((segment + t) / SEGMENTS * repeats / 4).toFloat(), (if (corner < 2) strip.v0 else strip.v1).toFloat(),
+                        ((segment + t) / SEGMENTS * repeats / 4).toFloat(), if (worn) 3.5f / 32 else (if (corner < 2) strip.v0 else strip.v1).toFloat(),
                         (nx / normalLength).toFloat(), (radial * cos(faceAngle) / normalLength).toFloat(),
                         (radial * sin(faceAngle) / normalLength).toFloat(), shade, rubber.toFloat(), deposit))
                 }
@@ -259,15 +311,13 @@ internal object TireMesh {
     fun render(size: WheelTire, contacts: List<TireContact>, ms: PoseStack, buffer: VertexConsumer, light: Int, overlay: Int,
                coating: WheelEffects.Coating? = null, sprite: TextureAtlasSprite? = null) {
         val pose = ms.last()
-        val radius = size.radius - if (size.type.appearance.cleats in listOf(TireType.Cleats.PADDLES, TireType.Cleats.TEETH))
+        val radius = size.carcassRadius - if (size.type.appearance.cleats in listOf(TireType.Cleats.PADDLES, TireType.Cleats.TEETH))
             LayeredTireRenderer.cleatHeight(size) else 0.0
-        val geometry = Geometry(radius, size.width, size.rimRadius, size.rimWidth, coating != null)
-        val vertices = meshes.getOrPut(geometry) { build(radius, size.width, size.rimRadius, size.rimWidth, coating != null) }
+        val geometry = Geometry(radius, size.width, size.rimRadius, size.rimWidth, coating != null, if (coating == null) size.wearGrade else 0)
+        val vertices = meshes.getOrPut(geometry) { build(radius, size.width, size.rimRadius, size.rimWidth, coating != null, geometry.wearGrade) }
         val buildup = coating?.let { sqrt(it.amount.coerceIn(0f, 1f)) } ?: 0f
-        val planes = contacts.map { contact ->
-            val normal = contact.normal
-            val support = vertices.maxOf { -(it.x * normal.x + it.y * normal.y + it.z * normal.z) }
-            normal to (support - contact.compression.coerceIn(0f, (size.thickness * size.type.physics.compression * .5).toFloat()))
+        val deformation = TireDeformation(size, contacts, .5) { normal ->
+            vertices.maxOf { -(it.x * normal.x + it.y * normal.y + it.z * normal.z) }
         }
         val points = Array(4) { Vector3d() }
         val normal = Vector3d()
@@ -276,10 +326,7 @@ internal object TireMesh {
             for (i in 0..3) {
                 val v = vertices[offset + i]
                 val p = points[i].set(v.x.toDouble(), v.y.toDouble(), v.z.toDouble())
-                for ((direction, limit) in planes) {
-                    val penetration = -limit - p.dot(direction)
-                    if (penetration > 0) p.fma(penetration * v.rubber, direction)
-                }
+                deformation.apply(p, v.rubber.toDouble())
             }
             val v0 = vertices[offset]
             val paddleBand = if (size.type.appearance.cleats == TireType.Cleats.PADDLES) {

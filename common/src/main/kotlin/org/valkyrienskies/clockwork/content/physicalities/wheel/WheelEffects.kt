@@ -29,6 +29,9 @@ import net.minecraft.core.registries.BuiltInRegistries
 import net.minecraft.core.Direction
 import net.minecraft.sounds.SoundSource
 import net.minecraft.tags.FluidTags
+import net.minecraft.world.level.ClipContext
+import net.minecraft.world.phys.HitResult
+import net.minecraft.world.phys.BlockHitResult
 import net.minecraft.world.phys.AABB
 import net.minecraft.util.RandomSource
 import net.minecraft.world.level.block.state.BlockState
@@ -39,10 +42,14 @@ import org.joml.Vector3d
 import org.joml.primitives.AABBd
 import org.valkyrienskies.clockwork.ClockworkSounds
 import org.valkyrienskies.clockwork.ClockworkRenderTypes
+import org.valkyrienskies.clockwork.content.logistics.gas.pockets.nozzle.LeakParticleData
 import org.valkyrienskies.clockwork.util.render.ShaderPackCompat
 import org.valkyrienskies.core.api.bodies.ClientVsBody
 import org.valkyrienskies.core.api.bodies.shape.WheelBodyShapeData
 import org.valkyrienskies.core.api.ships.ClientShip
+import org.valkyrienskies.mod.common.getShipManagingPos
+import org.valkyrienskies.mod.common.dimensionId
+import org.valkyrienskies.mod.common.world.clipIncludeShips
 import org.valkyrienskies.mod.common.getShipsIntersecting
 import org.valkyrienskies.mod.common.shipObjectWorld
 import org.valkyrienskies.mod.common.util.toMinecraft
@@ -51,6 +58,7 @@ import kotlin.math.floor
 import kotlin.math.sqrt
 import kotlin.math.PI
 import kotlin.math.cos
+import kotlin.math.sign
 import kotlin.math.sin
 
 object WheelEffects {
@@ -145,6 +153,51 @@ object WheelEffects {
             return result
         }
     }
+    private data class RimScrape(val tick: Long, val gain: Float, val pitch: Float)
+    private val rimScrapes = HashMap<Long, RimScrape>()
+    private val leakingHubs = HashMap<Long, WheelHubBlockEntity>()
+    private val fittedHubs = HashMap<Long, WheelHubBlockEntity>()
+
+    fun indexHub(hub: WheelHubBlockEntity) {
+        checkLevel()
+        if (hub.level === level && hub.bodyId >= 0 && hub.tireType != null) fittedHubs[hub.bodyId] = hub
+    }
+
+    fun forgetHub(hub: WheelHubBlockEntity) {
+        fittedHubs.remove(hub.bodyId, hub)
+    }
+
+    fun aimedHub(mc: Minecraft): WheelHubBlockEntity? {
+        val world = mc.level ?: return null
+        val camera = mc.gameRenderer.mainCamera
+        val eye = camera.position
+        val hit = mc.hitResult
+        var nearest = (hit as? BlockHitResult)?.takeIf { it.type == HitResult.Type.BLOCK }
+            ?.let { world.getBlockEntity(it.blockPos) as? WheelHubBlockEntity }
+        if (fittedHubs.isEmpty()) return nearest
+        val reach = mc.gameMode?.pickRange?.toDouble() ?: return nearest
+        val distance = if (hit != null && hit.type != HitResult.Type.MISS) minOf(reach, eye.distanceTo(hit.location)) else reach
+        val start = Vector3d(eye.x, eye.y, eye.z)
+        val end = Vector3d(camera.lookVector).mul(distance).add(start)
+        val bounds = AABBd().union(start).union(end)
+        val padding = 1.5
+        val candidates = AABBd(bounds.minX - padding, bounds.minY - padding, bounds.minZ - padding,
+            bounds.maxX + padding, bounds.maxY + padding, bounds.maxZ + padding)
+        var entry = Double.POSITIVE_INFINITY
+        for (body in world.shipObjectWorld.allBodies.getIntersecting(candidates, world.dimensionId)) {
+            val hub = fittedHubs[body.id] ?: continue
+            val tire = hub.tire ?: continue
+            val local = (body as? ClientVsBody)?.renderTransform?.toModel ?: continue
+            val t = TireProjectileHits.intersection(local.transformPosition(start, Vector3d()),
+                local.transformPosition(end, Vector3d()), tire, tire.carcassRadius)
+            if (t < entry) { entry = t; nearest = hub }
+        }
+        return nearest
+    }
+
+    fun trackLeak(hub: WheelHubBlockEntity) {
+        leakingHubs[hub.bodyId] = hub
+    }
     private val wheels = HashMap<Long, Wheel>()
     private val sounds = ArrayList<SurfaceLoop>()
     private val marks = LinkedHashMap<MarkKey, Mark>()
@@ -186,6 +239,9 @@ object WheelEffects {
         if (current === level) return
         sounds.forEach { Minecraft.getInstance().soundManager.stop(it) }
         sounds.clear(); wheels.clear(); marks.clear()
+        rimScrapes.clear()
+        leakingHubs.clear()
+        fittedHubs.clear()
         LayeredTireRenderer.clear()
         pixelCount = 0
         level = current
@@ -223,6 +279,50 @@ object WheelEffects {
 
     private data class Voice(val sound: SoundEvent, val point: Vector3d, var gain: Float, var pitch: Float)
 
+    fun sampleRim(hub: WheelHubBlockEntity, rim: WheelSize) {
+        val world = level ?: return
+        if (world !== hub.level || (world.gameTime + hub.bodyId) % 4L != 0L) return
+        rimScrapes.remove(hub.bodyId)
+        val body = world.shipObjectWorld.allBodies.getById(hub.bodyId) as? ClientVsBody ?: return
+        val center = body.renderTransform.position
+        val camera = Minecraft.getInstance().gameRenderer.mainCamera.position
+        if (camera.distanceToSqr(center.x(), center.y(), center.z()) > 20 * 20) return
+        val scale = abs(body.renderTransform.scaling.x())
+        val radius = rim.rimRadius * scale
+        val start = center.toMinecraft()
+        val hit = world.clipIncludeShips(ClipContext(start, start.subtract(0.0, radius * 1.5 + rim.rimWidth * scale, 0.0),
+            ClipContext.Block.COLLIDER, ClipContext.Fluid.NONE, null), skipShip = world.getShipManagingPos(hub.blockPos)?.id)
+        if (hit.type != HitResult.Type.BLOCK || hit.isInside) return
+        val surface = WheelSurface.scrapeSurface(world.getBlockState(hit.blockPos)) ?: return
+
+        val support = world.getShipManagingPos(hit.blockPos) as? ClientShip
+        val face = hit.direction
+        val normal = Vector3d(face.stepX.toDouble(), face.stepY.toDouble(), face.stepZ.toDouble())
+        support?.renderTransform?.shipToWorldRotation?.transform(normal)
+        val axle = body.renderTransform.rotation.transform(Vector3d(1.0, 0.0, 0.0))
+        val axial = normal.dot(axle)
+        val arm = Vector3d(normal).fma(-axial, axle)
+        if (arm.lengthSquared() > 1e-8) arm.normalize(-radius)
+        arm.fma(-sign(axial) * rim.rimWidth * scale * .5, axle)
+        val point = Vector3d(center).add(arm)
+        if (abs(Vector3d(point).sub(hit.location.x, hit.location.y, hit.location.z).dot(normal)) > .045 * scale) return
+
+        val velocity = Vector3d(body.velocity)
+        val spin = Vector3d(body.angularVelocity)
+        if (support != null) {
+            velocity.sub(support.velocity).sub(Vector3d(support.angularVelocity).cross(Vector3d(center).sub(support.renderTransform.positionInWorld)))
+            spin.sub(support.angularVelocity)
+        }
+        val slip = spin.cross(arm).add(velocity)
+        slip.fma(-slip.dot(normal), normal)
+        velocity.fma(-velocity.dot(normal), normal)
+        val strength = ((velocity.length() - .35).coerceIn(0.0, 8.0) * .025 +
+            (slip.length() - .25).coerceIn(0.0, 6.0) * .065).toFloat()
+        if (strength < .025f) return
+        val pitch = (if (surface == WheelSurface.METAL) 1f else .8f) + .18f * strength
+        rimScrapes[body.id] = RimScrape(clock, strength, pitch)
+    }
+
     fun coating(body: Long): Coating? = wheels[body]?.coating?.takeIf { it.amount > .01f }
 
     fun surfaceContact(body: Long): TireSurfaceContact? = wheels[body]?.takeIf { clock - it.time <= 3 }?.state?.effect
@@ -249,6 +349,42 @@ object WheelEffects {
                 group.point.lerp(point, .25)
                 if (gain > group.gain) { group.gain = gain; group.pitch = pitch }
             }
+        }
+        leakingHubs.entries.removeIf { (id, hub) ->
+            val holes = hub.condition.leaks
+            val tire = hub.tire ?: return@removeIf true
+            val pressure = tire.pressureKpa
+            if (hub.isRemoved || hub.level !== world || hub.bodyId != id || holes == 0 || pressure == 0) return@removeIf true
+            val body = world.shipObjectWorld.allBodies.getById(id) as? ClientVsBody ?: return@removeIf true
+            val center = body.renderTransform.position
+            if (camera.distanceToSqr(center.x(), center.y(), center.z()) < 24 * 24) {
+                val event = if (holes >= 3) ClockworkSounds.TIRE_LEAK_HEAVY else ClockworkSounds.TIRE_LEAK_LIGHT
+                voice(event.mainEvent!!, Vector3d(center), (.10f + .035f * holes) * (pressure / 150f).coerceIn(.2f, 1f), 1f)
+                val strength = (pressure / 800f).coerceIn(0f, 1f)
+                val interval = ((7 - 4 * strength).toInt() / holes).coerceAtLeast(1)
+                val phase = clock + id
+                if (budget > 0 && phase % interval == 0L) {
+                    val hole = hub.condition.holes[((phase / interval) % holes).toInt()]
+                    val surface = TirePunctureRenderer(tire, compression(body, 1f)).surface(hole)
+                    if (surface != null) {
+                        val transform = body.renderTransform.toWorld
+                        val point = transform.transformPosition(surface.point)
+                        val velocity = transform.transformDirection(surface.normal).normalize().mul(.07 + .17 * strength)
+                            .fma(.05, body.velocity)
+                        val speed = velocity.length().coerceAtLeast(.001)
+                        val air = LeakParticleData(velocity.div(speed).get(Vector3f()), speed.toFloat())
+                        world.addParticle(air, point.x, point.y, point.z, 0.0, 0.0, 0.0)
+                        budget--
+                    }
+                }
+            }
+            false
+        }
+        rimScrapes.entries.removeIf { (id, scrape) ->
+            val body = world.shipObjectWorld.allBodies.getById(id) as? ClientVsBody
+            if (body == null || clock - scrape.tick > 5) return@removeIf true
+            voice(ClockworkSounds.RIM_SCRAPE.mainEvent!!, Vector3d(body.renderTransform.position), scrape.gain, scrape.pitch)
+            false
         }
         fun particle(options: ParticleOptions, point: Vector3d, velocity: Vector3d): Particle? {
             if (budget <= 0) return null

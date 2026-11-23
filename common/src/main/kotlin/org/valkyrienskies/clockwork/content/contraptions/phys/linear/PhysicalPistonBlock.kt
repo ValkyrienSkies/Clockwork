@@ -22,6 +22,8 @@ import net.minecraft.world.phys.shapes.BooleanOp
 import net.minecraft.world.phys.shapes.CollisionContext
 import net.minecraft.world.phys.shapes.Shapes
 import net.minecraft.world.phys.shapes.VoxelShape
+import org.valkyrienskies.clockwork.content.physicalities.steering.DrivingControlLinks
+import net.minecraft.server.level.ServerLevel
 import org.valkyrienskies.clockwork.ClockworkBlockEntities
 import org.valkyrienskies.clockwork.ClockworkBlocks
 import org.valkyrienskies.clockwork.util.ClockworkCopyableBlock
@@ -64,6 +66,11 @@ class PhysicalPistonBlock(properties: Properties) : DirectionalAxisKineticBlock(
 
     override fun onWrenched(state: BlockState, context: UseOnContext): InteractionResult =
         if (state.getValue(STATE) == PistonState.RETRACTED) super.onWrenched(state, context) else InteractionResult.PASS
+
+    override fun onRemove(state: BlockState, level: Level, pos: BlockPos, next: BlockState, moved: Boolean) {
+        if (level is ServerLevel && state.block != next.block) DrivingControlLinks.get(level).endpointRemoved(pos)
+        super.onRemove(state, level, pos, next, moved)
+    }
 
     override fun getBlockEntityClass() = PhysicalPistonBlockEntity::class.java
 

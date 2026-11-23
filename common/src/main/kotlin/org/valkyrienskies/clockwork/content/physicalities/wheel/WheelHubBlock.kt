@@ -17,9 +17,13 @@ import net.minecraft.world.level.block.RenderShape
 import net.minecraft.world.level.block.entity.BlockEntity
 import net.minecraft.world.level.block.state.BlockState
 import net.minecraft.world.phys.BlockHitResult
+import net.minecraft.world.phys.shapes.VoxelShape
+import net.minecraft.world.phys.shapes.Shapes
 import net.minecraft.world.phys.shapes.CollisionContext
 import org.joml.Vector3dc
+import org.valkyrienskies.clockwork.content.physicalities.steering.DrivingControlLinks
 import org.valkyrienskies.clockwork.ClockworkBlockEntities
+import org.valkyrienskies.clockwork.api.wheel.TireTypes
 import org.valkyrienskies.clockwork.ClockworkItems
 import org.valkyrienskies.clockwork.content.curiosities.tools.screwdriver.IScrewdrivable
 import org.valkyrienskies.core.api.ships.ServerShip
@@ -30,13 +34,24 @@ class WheelHubBlock(properties: Properties) : BearingBlock(properties), IBE<Whee
     override fun getBlockEntityClass() = WheelHubBlockEntity::class.java
     override fun getBlockEntityType() = ClockworkBlockEntities.WHEEL_HUB.get()
     override fun getRenderShape(state: BlockState) = RenderShape.ENTITYBLOCK_ANIMATED
-    override fun getShape(state: BlockState, level: BlockGetter, pos: BlockPos, context: CollisionContext) =
+    override fun getShape(state: BlockState, level: BlockGetter, pos: BlockPos, context: CollisionContext): VoxelShape {
+        val facing = state.getValue(FACING)
+        val size = (level.getBlockEntity(pos) as? WheelHubBlockEntity)?.wheel ?: return SHAPES.getValue(facing)
+        return FITTED_SHAPES.getValue(facing).getValue(size)
+    }
+
+    override fun getCollisionShape(state: BlockState, level: BlockGetter, pos: BlockPos, context: CollisionContext) =
         SHAPES.getValue(state.getValue(FACING))
 
     override fun use(state: BlockState, level: Level, pos: BlockPos, player: Player, hand: InteractionHand,
                      hit: BlockHitResult): InteractionResult {
-        if (!player.mayBuild() || !player.getItemInHand(hand).isEmpty || player.isShiftKeyDown) return InteractionResult.PASS
+        if (!player.mayBuild() || player.isShiftKeyDown) return InteractionResult.PASS
         val hub = level.getBlockEntity(pos) as? WheelHubBlockEntity ?: return InteractionResult.PASS
+        val stack = player.getItemInHand(hand)
+        if (!stack.isEmpty) return if (hub.repairTire(stack, player)) InteractionResult.sidedSuccess(level.isClientSide) else InteractionResult.PASS
+        if (player.isHolding { it.item is AirPumpItem }) return InteractionResult.PASS
+        if (hand == InteractionHand.MAIN_HAND &&
+            hub.tireType?.let { hub.condition.canRepair(player.offhandItem, it) } == true) return InteractionResult.PASS
         if (!level.isClientSide) hub.toggleDrive(player)
         return InteractionResult.sidedSuccess(level.isClientSide)
     }
@@ -58,13 +73,18 @@ class WheelHubBlock(properties: Properties) : BearingBlock(properties), IBE<Whee
     override fun onSneakScrewdrived(state: BlockState, context: UseOnContext): InteractionResult {
         val hub = context.level.getBlockEntity(context.clickedPos) as? WheelHubBlockEntity
         if (hub?.wheel == null || context.clickedFace != hub.facing) return InteractionResult.PASS
-        if (context.hand == InteractionHand.OFF_HAND && context.player?.mainHandItem?.item is WheelItem)
+        val mainItem = context.player?.mainHandItem?.item
+        if (context.hand == InteractionHand.OFF_HAND && (mainItem is WheelItem || mainItem is TireItem))
             return InteractionResult.PASS
-        if (!context.level.isClientSide) hub.uninstall(context.player)
+        if (!context.level.isClientSide) {
+            if (hub.tireType != null && hub.tireType != TireType.WOOD) hub.removeTire(context.player)
+            else hub.uninstall(context.player)
+        }
         return InteractionResult.sidedSuccess(context.level.isClientSide)
     }
 
     override fun onRemove(state: BlockState, level: Level, pos: BlockPos, next: BlockState, moved: Boolean) {
+        if (level is ServerLevel && state.block != next.block) DrivingControlLinks.get(level).endpointRemoved(pos)
         IBE.onRemove(state, level, pos, next)
         super.onRemove(state, level, pos, next, moved)
     }
@@ -82,7 +102,7 @@ class WheelHubBlock(properties: Properties) : BearingBlock(properties), IBE<Whee
     override fun pasteSurvivalCost(data: Supplier<CompoundTag>?): Map<Item, Int>? {
         val tag = data?.get() ?: return null
         val size = WheelSize.byId(tag.getString("Wheel")) ?: return null
-        return mapOf(item(size, TireType.read(tag)) to 1)
+        return parts(size, TireType.read(tag)).associateWith { 1 }
     }
 
     companion object {
@@ -93,9 +113,22 @@ class WheelHubBlock(properties: Properties) : BearingBlock(properties), IBE<Whee
             high[facing.axis.ordinal] = if (facing.axisDirection == Direction.AxisDirection.POSITIVE) 8.0 else 16.0
             box(low[0], low[1], low[2], high[0], high[1], high[2])
         }
+        private val FITTED_SHAPES = Direction.entries.associateWith { facing ->
+            WheelSize.entries.associateWith { size ->
+                val half = DoubleArray(3) { size.rimRadius * 16 }
+                half[facing.axis.ordinal] = size.rimWidth * 8
+                Shapes.or(SHAPES.getValue(facing), box(8 - half[0], 8 - half[1], 8 - half[2],
+                    8 + half[0], 8 + half[1], 8 + half[2]))
+            }
+        }
+
         fun clearBodyReference(tag: CompoundTag) {
             for (key in listOf("WheelBody", "WheelJoint", "WheelOwner", "WheelParent", "WheelDimension")) tag.remove(key)
         }
+
+        fun parts(size: WheelSize, type: TireType?): List<Item> =
+            if (type == TireType.WOOD) listOf(item(size, type))
+            else listOfNotNull(item(size), type?.let(TireTypes::item))
 
         fun item(size: WheelSize, type: TireType = TireType.RUBBER): Item =
             ClockworkItems.WHEELS.getValue(type).getValue(size).get()
