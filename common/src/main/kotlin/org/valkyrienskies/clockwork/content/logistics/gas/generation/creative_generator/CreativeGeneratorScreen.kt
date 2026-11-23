@@ -1,69 +1,96 @@
 package org.valkyrienskies.clockwork.content.logistics.gas.generation.creative_generator
 
-import com.mojang.blaze3d.vertex.PoseStack
-import com.simibubi.create.foundation.blockEntity.behaviour.scrollValue.ScrollValueBehaviour
-import com.simibubi.create.foundation.gui.widget.ScrollInput
+import com.simibubi.create.foundation.gui.AllIcons
+import com.simibubi.create.foundation.gui.widget.IconButton
 import net.createmod.catnip.gui.AbstractSimiScreen
 import net.minecraft.client.gui.GuiGraphics
+import net.minecraft.network.chat.Component
 import org.valkyrienskies.clockwork.ClockworkGuiTextures
 import org.valkyrienskies.clockwork.ClockworkPackets
-import org.valkyrienskies.clockwork.util.gui.ScrollingFrame
 import org.valkyrienskies.kelvin.impl.registry.GasTypeRegistry
 
-class CreativeGeneratorScreen(private val be: CreativeGeneratorBlockEntity) : AbstractSimiScreen()  {
-
-    private val background: ClockworkGuiTextures = ClockworkGuiTextures.CREATIVE_GAS_GENERATOR
-    private val frame: ClockworkGuiTextures = ClockworkGuiTextures.CREATIVE_GAS_GENERATOR_FRAME
-
-    val scrollingElements: MutableList<ScrollingFrame.ScrollingElement> = mutableListOf()
-    lateinit var scrollingFrame: CreativeGeneratorScrolling
-
-    lateinit var temperatureInput: ScrollInput
+class CreativeGeneratorScreen(private val be: CreativeGeneratorBlockEntity) : AbstractSimiScreen(Component.translatable("block.vs_clockwork.creative_gas_generator")) {
+    private val gasValues = HashMap(GasTypeRegistry.GAS_TYPES.values.associateWith { (be.gasValues[it] ?: 0).coerceIn(0, MAX_GAS) })
+    private var temperature = be.temperature.toInt().coerceIn(0, MAX_TEMPERATURE)
+    private lateinit var gasList: CreativeGeneratorScrolling
+    private lateinit var temperatureInput: CreativeGeneratorValueInput
+    private lateinit var resetButton: IconButton
 
     override fun init() {
-        setWindowSize(background.width, background.height)
+        val scroll = if (::gasList.isInitialized) gasList.scroll else 0.0
+        setWindowSize(217, 157)
         super.init()
 
-        scrollingFrame = CreativeGeneratorScrolling(guiLeft+3, guiTop+16)
-        for (type in GasTypeRegistry.GAS_TYPES.values) {
+        gasList = CreativeGeneratorScrolling(guiLeft + 3, guiTop + 18, 204, 106, font, gasValues)
+        gasList.restoreScroll(scroll)
+        addRenderableWidget(gasList)
 
-            val input = ScrollInput(0,0,51, 18)
-            input.calling { state: Int -> be.gasValues[type] = state }
-            input.withRange(0,8000)
-            input.withStepFunction {  c: ScrollValueBehaviour.StepContext -> if (c.control) 1000 else if (c.shift) 100 else 10  }
-            input.state = be.gasValues[type] ?: 0
-
-            scrollingElements.add(CreativeGeneratorScrolling.CreativeGeneratorScrollingElement(type, font, input))
-        }
-
-        scrollingFrame.scrollingElements = scrollingElements
-        addRenderableWidget(scrollingFrame)
-
-        temperatureInput = ScrollInput(guiLeft + 82,guiTop + 89, 51, 18)
-        temperatureInput.withRange(0,2000)
-        temperatureInput.withStepFunction {  c: ScrollValueBehaviour.StepContext -> if (c.shift) 100 else 10  }
-        temperatureInput.calling { state: Int -> be.temperature = state.toDouble() }
+        temperatureInput = CreativeGeneratorValueInput(guiLeft + 98, guiTop + 133, MAX_TEMPERATURE, "K")
+        temperatureInput.titled(tr("temperature"))
+        temperatureInput.state = temperature
+        temperatureInput.calling { temperature = it; updateResetButton() }
         addRenderableWidget(temperatureInput)
+
+        resetButton = IconButton(guiLeft + 156, guiTop + 132, AllIcons.I_TRASH)
+        resetButton.setToolTip(tr("reset"))
+        resetButton.withCallback<IconButton> {
+            gasList.reset()
+            temperatureInput.state = 0
+            temperatureInput.onChanged()
+        }
+        addRenderableWidget(resetButton)
+        updateResetButton()
+
+        val confirm = IconButton(guiLeft + 184, guiTop + 132, AllIcons.I_CONFIRM)
+        confirm.setToolTip(Component.translatable("gui.done"))
+        confirm.withCallback<IconButton> { onClose() }
+        addRenderableWidget(confirm)
     }
 
-
-    override fun renderWindowBackground(ms: GuiGraphics, mouseX: Int, mouseY: Int, partialTicks: Float) {
-
-        frame.render(ms,guiLeft, guiTop)
-
+    override fun tick() {
+        super.tick()
+        updateResetButton()
     }
 
-    override fun renderWindow(ms: GuiGraphics, mouseX: Int, mouseY: Int, partialTicks: Float) { }
+    private fun updateResetButton() {
+        resetButton.active = temperature != 0 || gasValues.values.any { it != 0 }
+    }
 
-    override fun renderWindowForeground(ms: GuiGraphics, mouseX: Int, mouseY: Int, partialTicks: Float) {
-        background.render(ms, guiLeft, guiTop)
+    override fun renderWindow(graphics: GuiGraphics, mouseX: Int, mouseY: Int, partialTicks: Float) {
+        val background = ClockworkGuiTextures.CREATIVE_GAS_GENERATOR.location
+        val frame = ClockworkGuiTextures.CREATIVE_GAS_GENERATOR_FRAME.location
+        graphics.blitNineSliced(background, guiLeft, guiTop, 209, 15, 3, 165, 15, 0, 0)
+        graphics.blitNineSliced(frame, guiLeft + 1, guiTop + 15, 207, 111, 2, 163, 66, 1, 15)
+        for (dx in 0 until 203 step 158) {
+            for (dy in 0 until 109 step 64) {
+                graphics.blit(frame, guiLeft + 3 + dx, guiTop + 16 + dy, 3f, 16f,
+                    minOf(158, 203 - dx), minOf(64, 109 - dy), 256, 256)
+            }
+        }
+        graphics.blitNineSliced(background, guiLeft, guiTop + 127, 96, 29, 4, 80, 29, 0, 82)
+        graphics.blit(background, guiLeft + 96, guiTop + 127, 80f, 82f, 54, 29, 256, 256)
+        graphics.blit(background, guiLeft + 150, guiTop + 127, 134f, 82f, 28, 29, 256, 256)
+        graphics.blit(background, guiLeft + 178, guiTop + 127, 134f, 82f, 39, 29, 256, 256)
+        graphics.drawCenteredString(font, title, guiLeft + 104, guiTop + 4, 0xFFFFEE)
+        graphics.drawString(font, tr("temperature"), guiLeft + 8, guiTop + 138, 0xFFFFEE)
+    }
 
-        ms.drawString(font, "Temperature", guiLeft+8, guiTop+93,0xFFFFFF)
-        ms.drawString(font, be.temperature.toInt().toString()+" K", guiLeft+82, guiTop+93,0xFFFFFF)
+    override fun renderWindowForeground(graphics: GuiGraphics, mouseX: Int, mouseY: Int, partialTicks: Float) {
+        gasList.renderHoverTooltip(graphics, mouseX, mouseY)
+        if (temperatureInput.isMouseOver(mouseX.toDouble(), mouseY.toDouble())) {
+            graphics.renderComponentTooltip(font, temperatureInput.valueTooltip(), mouseX, mouseY)
+        }
     }
 
     override fun onClose() {
-        ClockworkPackets.sendToServer(CreativeGeneratorPacket(be.gasValues, be.temperature, be.blockPos))
+        ClockworkPackets.sendToServer(CreativeGeneratorPacket(HashMap(gasValues), temperature.toDouble(), be.blockPos))
         super.onClose()
+    }
+
+    companion object {
+        const val MAX_GAS = 8000
+        const val MAX_TEMPERATURE = 2000
+
+        private fun tr(key: String, vararg args: Any) = Component.translatable("vs_clockwork.gui.creative_generator.$key", *args)
     }
 }

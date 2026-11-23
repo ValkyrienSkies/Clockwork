@@ -1,4 +1,8 @@
 {
+  "vs_clockwork.gui.creative_generator.temperature": "Temperature",
+  "vs_clockwork.gui.creative_generator.reset": "Reset all amounts and temperature",
+  "vs_clockwork.gui.creative_generator.range": "Range: 0–%s %s",
+  "vs_clockwork.gui.creative_generator.steps": "Step: 10 · Shift: 100 · Ctrl: 1000",
   "vs_clockwork.subtitle.gatemakyr_charge_1": "Gatemakyr charges",
   "vs_clockwork.subtitle.gatemakyr_fire_1": "Gatemakyr fires",
   "vs_clockwork.subtitle.gatemakyr_cancel": "Gatemakyr charge dissipates",

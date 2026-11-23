@@ -8,7 +8,6 @@ import org.valkyrienskies.clockwork.platform.api.network.C2SCWPacket
 import org.valkyrienskies.clockwork.platform.api.network.ServerNetworkContext
 import org.valkyrienskies.kelvin.api.GasType
 import org.valkyrienskies.kelvin.impl.registry.GasTypeRegistry
-import java.util.*
 import kotlin.collections.HashMap
 
 class CreativeGeneratorPacket(var gasValues: HashMap<GasType, Int>, var temperature: Double, var blockPos: BlockPos): C2SCWPacket {
@@ -16,10 +15,12 @@ class CreativeGeneratorPacket(var gasValues: HashMap<GasType, Int>, var temperat
 
     constructor(buffer: FriendlyByteBuf) : this(
 
-        buffer.readNbt()!!.let {
+        (buffer.readNbt() ?: CompoundTag()).let {
             val map: HashMap<GasType, Int> = HashMap(GasTypeRegistry.GAS_TYPES.values.associateWith { 0 })
             for (key in it.allKeys) {
-                map[GasTypeRegistry.getGasType(ResourceLocation(key))!!] = it.getInt(key)
+                val id = ResourceLocation.tryParse(key) ?: continue
+                val gas = GasTypeRegistry.getGasType(id) ?: continue
+                map[gas] = it.getInt(key)
             }
             map
        },
@@ -31,17 +32,19 @@ class CreativeGeneratorPacket(var gasValues: HashMap<GasType, Int>, var temperat
 
     override fun handle(context: ServerNetworkContext) {
         context.enqueueWork {
-            val be = context.sender.level().getBlockEntity(blockPos) ?: return@enqueueWork
-            val cBe = be as CreativeGeneratorBlockEntity
-            cBe.gasValues = gasValues
-            cBe.temperature = temperature
+            val level = context.sender.level()
+            if (!level.hasChunkAt(blockPos)) return@enqueueWork
+            val be = level.getBlockEntity(blockPos) as? CreativeGeneratorBlockEntity ?: return@enqueueWork
+            if (!temperature.isFinite()) return@enqueueWork
+            be.gasValues = HashMap(GasTypeRegistry.GAS_TYPES.values.associateWith { (gasValues[it] ?: 0).coerceIn(0, 8000) })
+            be.temperature = temperature.coerceIn(0.0, 2000.0)
+            be.notifyUpdate()
         }
         context.setPacketHandled(true)
     }
 
     override fun write(buffer: FriendlyByteBuf) {
         val compound = CompoundTag()
-        //todo: figure out some way for other namespaces in this packet
         for (gas in gasValues.keys) {
             compound.putInt(gas.resourceLocation.toString(), gasValues[gas] ?: 0)
         }
