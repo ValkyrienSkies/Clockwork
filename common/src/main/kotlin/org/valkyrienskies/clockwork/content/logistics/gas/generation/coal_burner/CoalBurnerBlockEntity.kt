@@ -195,7 +195,11 @@ class CoalBurnerBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: Bloc
         itemStack: ItemStack,
         direction: Direction?
     ): Boolean {
-        return (direction != Direction.DOWN) && (FuelRegistry.get(itemStack) > 0) && (index == 0)
+        return direction != Direction.DOWN && canPlaceItem(index, itemStack)
+    }
+
+    override fun canPlaceItem(index: Int, stack: ItemStack): Boolean {
+        return index == 0 && FuelRegistry.get(stack) > 0
     }
 
     override fun canTakeItemThroughFace(
@@ -215,30 +219,38 @@ class CoalBurnerBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: Bloc
     }
 
     override fun getItem(slot: Int): ItemStack {
-        return if (slot == 0) storedFuelStack else remainingItemStack
+        return when (slot) {
+            0 -> storedFuelStack
+            1 -> remainingItemStack
+            else -> ItemStack.EMPTY
+        }
     }
 
-    // We let the remainder item (bucket) be extracted from DOWN
-    // You can't extract the fuel from DOWN because... why would you want that
+    // The face checks above handle hopper access, so these need to work for both slots
+    // This also lets automation put items back if a transfer fails
     override fun removeItem(slot: Int, amount: Int): ItemStack {
-        if (remainingItemStack.isEmpty) {
-            return ItemStack.EMPTY
-        }
-        val result = remainingItemStack.split(amount)
-        if (remainingItemStack.isEmpty) {
-            remainingItemStack = ItemStack.EMPTY
-        }
+        if (amount <= 0) return ItemStack.EMPTY
+        val result = getItem(slot).split(amount)
+        if (!result.isEmpty) setChanged()
         return result
     }
+
     override fun removeItemNoUpdate(slot: Int): ItemStack {
-        val result = remainingItemStack.copy()
-        remainingItemStack = ItemStack.EMPTY
+        val result = getItem(slot)
+        when (slot) {
+            0 -> storedFuelStack = ItemStack.EMPTY
+            1 -> remainingItemStack = ItemStack.EMPTY
+        }
         return result
     }
 
     override fun setItem(slot: Int, stack: ItemStack) {
-        if (slot != 0) return
-        storedFuelStack = stack
+        when (slot) {
+            0 -> storedFuelStack = stack
+            1 -> remainingItemStack = stack
+            else -> return
+        }
+        setChanged()
     }
 
     override fun stillValid(player: Player): Boolean {
@@ -260,7 +272,7 @@ class CoalBurnerBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: Bloc
     }
 
     override fun getStorageInventorySize(): Int {
-        return 1
+        return containerSize
     }
 
     override fun getBlockPositionFromISS(): BlockPos {

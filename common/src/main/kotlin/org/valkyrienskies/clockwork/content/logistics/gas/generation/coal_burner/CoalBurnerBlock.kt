@@ -46,48 +46,37 @@ class CoalBurnerBlock(properties: Properties) : HorizontalDirectionalBlock(prope
         hand: InteractionHand,
         hit: BlockHitResult
     ): InteractionResult {
-        val be = level.getBlockEntity(pos) as CoalBurnerBlockEntity? ?: return  InteractionResult.PASS
+        val be = level.getBlockEntity(pos) as? CoalBurnerBlockEntity ?: return InteractionResult.PASS
         val item = player.getItemInHand(hand)
 
         if (player.isShiftKeyDown) return InteractionResult.PASS
 
-        if (item == ItemStack.EMPTY) {
-            if (!be.remainingItemStack.isEmpty) {
-                player.setItemInHand(hand, be.remainingItemStack)
-                be.remainingItemStack = ItemStack.EMPTY
-            } else if (!be.storedFuelStack.isEmpty) {
-                player.setItemInHand(hand, be.storedFuelStack)
-                be.storedFuelStack = ItemStack.EMPTY
+        if (item.isEmpty) {
+            if (level.isClientSide) return InteractionResult.SUCCESS
+
+            val slot = if (!be.remainingItemStack.isEmpty) 1 else 0
+            val extracted = be.removeItem(slot, be.getItem(slot).count)
+            if (!extracted.isEmpty) {
+                player.setItemInHand(hand, extracted)
+                be.notifyUpdate()
             }
-            return InteractionResult.SUCCESS
+            return InteractionResult.CONSUME
         }
-        if (FuelRegistry.get(item)>0 && !player.isShiftKeyDown) {
-            if (be.storedFuelStack.isEmpty) {
-                be.storedFuelStack = item.copy()
-                if (!player.isCreative) player.setItemInHand(hand, ItemStack.EMPTY)
-            } else if (be.storedFuelStack.item.equals(item.item)) {
+        if (FuelRegistry.get(item) <= 0) return InteractionResult.PASS
+        if (level.isClientSide) return InteractionResult.SUCCESS
 
-                if (be.storedFuelStack.count + item.count <= item.maxStackSize) {
-                    val copy = item.copy()
-                    copy.count += be.storedFuelStack.count
-                    be.storedFuelStack = copy
-                    if (!player.isCreative) player.setItemInHand(hand, ItemStack.EMPTY)
-                } else {
-                    val copy = item.copy()
-                    copy.count = item.maxStackSize
-                    be.storedFuelStack = copy
-
-
-                    if (!player.isCreative) item.count = be.storedFuelStack.count + item.count - item.maxStackSize
-                }
-
+        val stored = be.storedFuelStack
+        if (stored.isEmpty || ItemStack.isSameItemSameTags(stored, item)) {
+            // Do this before changing the stack, otherwise we get free fuel
+            val capacity = minOf(item.maxStackSize, be.maxStackSize)
+            val inserted = minOf(item.count, capacity - stored.count)
+            if (inserted > 0) {
+                be.setItem(0, item.copyWithCount(stored.count + inserted))
+                if (!player.isCreative) item.shrink(inserted)
+                be.notifyUpdate()
             }
-
-
-            return InteractionResult.SUCCESS
         }
-
-        return InteractionResult.PASS
+        return InteractionResult.CONSUME
     }
 
 
