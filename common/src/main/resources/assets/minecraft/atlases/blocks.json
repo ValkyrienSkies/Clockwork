@@ -2,6 +2,14 @@
   "sources": [
     {
       "type": "minecraft:single",
+      "resource": "vs_clockwork:fluid/tar_still"
+    },
+    {
+      "type": "minecraft:single",
+      "resource": "vs_clockwork:fluid/tar_flow"
+    },
+    {
+      "type": "minecraft:single",
       "resource": "vs_clockwork:entity/rope"
     }
   ]
