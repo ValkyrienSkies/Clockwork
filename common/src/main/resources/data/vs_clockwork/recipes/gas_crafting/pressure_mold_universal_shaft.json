@@ -1,0 +1,64 @@
+{
+  "type": "vs_clockwork:gas_crafting",
+  "ingredients": [
+    {
+      "item": "create:shaft"
+    },
+    {
+      "item": "minecraft:dried_kelp"
+    },
+    {
+      "item": "minecraft:dried_kelp"
+    },
+    {
+      "item": "minecraft:dried_kelp"
+    },
+    {
+      "item": "minecraft:dried_kelp"
+    },
+    {
+      "item": "minecraft:dried_kelp"
+    },
+    {
+      "item": "minecraft:dried_kelp"
+    },
+    {
+      "item": "minecraft:dried_kelp"
+    },
+    {
+      "item": "minecraft:dried_kelp"
+    },
+    {
+      "item": "minecraft:dried_kelp"
+    },
+    {
+      "item": "minecraft:dried_kelp"
+    },
+    {
+      "item": "create:iron_sheet"
+    },
+    {
+      "item": "create:iron_sheet"
+    },
+    {
+      "item": "create:iron_sheet"
+    },
+    {
+      "item": "create:iron_sheet"
+    },
+    {
+      "item": "create:iron_sheet"
+    }
+  ],
+  "input_gasses": {},
+  "result_gasses": {},
+  "results": [
+    {
+      "item": "vs_clockwork:universal_shaft"
+    }
+  ],
+  "requirements": {
+    "kelvin:min_pressure": 750000.0
+  },
+  "processingTime": 100
+}

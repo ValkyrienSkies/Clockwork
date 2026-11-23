@@ -1,0 +1,28 @@
+{
+  "type": "vs_clockwork:gas_crafting",
+  "ingredients": [
+    {
+      "item": "minecraft:paper"
+    },
+    {
+      "fluid": "minecraft:water",
+      "amount": 100
+    }
+  ],
+  "input_gasses": {
+    "vs_clockwork:exhaust": {
+      "amount": 0.05,
+      "unit": "kg"
+    }
+  },
+  "result_gasses": {},
+  "results": [
+    {
+      "item": "minecraft:black_dye"
+    }
+  ],
+  "requirements": {
+    "kelvin:max_temperature": 450.0
+  },
+  "processingTime": 60
+}
