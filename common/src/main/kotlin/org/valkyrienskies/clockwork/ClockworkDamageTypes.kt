@@ -8,6 +8,7 @@ import net.minecraft.world.damagesource.DamageSource
 import net.minecraft.world.entity.Entity
 
 object ClockworkDamageTypes {
+    private val SIPHON = ResourceKey.create(Registries.DAMAGE_TYPE, ClockworkMod.asResource("siphon"))
     private val WANDERLITE_LIGHTNING_KEY = ResourceKey.create(
         Registries.DAMAGE_TYPE,
         ResourceLocation(ClockworkMod.MOD_ID, "wanderlite_lightning")
@@ -27,6 +28,9 @@ object ClockworkDamageTypes {
         val holder = registryAccess.registryOrThrow(Registries.DAMAGE_TYPE).getHolderOrThrow(SOLVER_KEY)
         return DamageSource(holder, victim)
     }
+
+    fun siphon(registryAccess: RegistryAccess) =
+        DamageSource(registryAccess.registryOrThrow(Registries.DAMAGE_TYPE).getHolderOrThrow(SIPHON))
 
     fun init() {
 

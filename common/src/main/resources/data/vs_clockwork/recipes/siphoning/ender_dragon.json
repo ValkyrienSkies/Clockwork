@@ -1,0 +1,6 @@
+{
+  "type": "vs_clockwork:siphoning",
+  "entity": "minecraft:ender_dragon",
+  "gas": "vs_clockwork:phlogiston",
+  "kg_per_tick_at_64_rpm": 0.01
+}

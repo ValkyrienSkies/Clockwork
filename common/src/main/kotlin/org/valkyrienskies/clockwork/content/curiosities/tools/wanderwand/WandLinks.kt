@@ -7,6 +7,7 @@ import net.minecraft.server.level.ServerLevel
 import net.minecraft.world.level.saveddata.SavedData
 import org.joml.Quaterniond
 import org.joml.Vector3d
+import org.valkyrienskies.core.api.chains.ChainId
 import org.valkyrienskies.core.internal.joints.*
 import org.valkyrienskies.clockwork.content.curiosities.spring.SpringBendingController
 import org.valkyrienskies.mod.common.dimensionId
@@ -21,6 +22,7 @@ import org.valkyrienskies.clockwork.content.curiosities.spring.SpringJoints
 import org.valkyrienskies.clockwork.content.curiosities.rope.RopeKnotPhysics
 import org.valkyrienskies.clockwork.content.curiosities.rope.RopeKnotServer
 import org.valkyrienskies.clockwork.content.curiosities.rope.RopeWinchBlockEntity
+import org.valkyrienskies.clockwork.content.curiosities.harpoon.EntityHarpoonTether
 import org.valkyrienskies.clockwork.content.kinetics.combobulator.ThinkableSignals
 import org.valkyrienskies.clockwork.content.kinetics.combobulator.ThinkableConnections
 import java.util.UUID
@@ -30,6 +32,7 @@ class WandLinks : SavedData() {
     data class Link(val id: UUID, var a: WandAnchor, var b: WandAnchor, val rope: Boolean,
                     var length: Double, var pose0: VSJointPose, var pose1: VSJointPose, val physical: Boolean = false,
                     val spring: Boolean = false, val thinkable: Boolean = false, var harpoon: Boolean = false) {
+        var hose = false
         var pulseStart = -1L
         var pulseDuration = 0
         var nextPulse = 0L
@@ -56,6 +59,7 @@ class WandLinks : SavedData() {
         var knotB: UUID? = null
         var hits = 0
         var lastHit = Long.MIN_VALUE
+        internal val entityTether = if (harpoon && b.entityId != null) EntityHarpoonTether() else null
         fun save() = CompoundTag().also {
             it.putUUID("id", id); it.put("a", a.save()); it.put("b", b.save())
             it.putBoolean("rope", rope); it.putDouble("length", length)
@@ -65,8 +69,10 @@ class WandLinks : SavedData() {
             }
             it.putBoolean("physical", physical); it.putBoolean("spring", spring)
             it.putBoolean("thinkable", thinkable); it.putBoolean("harpoon", harpoon)
+            if (hose) it.putBoolean("hose", true)
             it.put("pose0", savePose(pose0)); it.put("pose1", savePose(pose1))
             it.putBoolean("faceAligned", !needsReframe)
+            entityTether?.chainId?.let { chain -> it.putLong("entityChain", chain.value) }
         }
     }
 
@@ -87,6 +93,7 @@ class WandLinks : SavedData() {
     fun add(level: ServerLevel, a: WandAnchor, b: WandAnchor, rope: Boolean, length: Double, physical: Boolean = false,
             spring: Boolean = false, thinkable: Boolean = false, harpoon: Boolean = false): Link? {
         if (links.size >= 2048 || a == b) return null
+        if (a.entityId != null || (b.entityId != null && !harpoon)) return null
         if (thinkable && (!rope || !physical || spring || a.winch || b.winch)) return null
         if (harpoon && (!rope || !physical || spring || thinkable)) return null
         for (anchor in listOf(a, b).filter { it.winch }) {
@@ -105,7 +112,7 @@ class WandLinks : SavedData() {
             physical && rope, spring, thinkable, harpoon)
         links[link.id] = link
         setDirty()
-        ensureJoint(level, link)
+        if (link.entityTether == null) ensureJoint(level, link)
         if (link.physical) RopeKnotServer.ensureKnots(level, link)
         return link
     }
@@ -158,6 +165,7 @@ class WandLinks : SavedData() {
         if (links[link.id] !== link) return
         if (link.thinkable) ThinkableConnections.device(level, link.b)?.receiveThinkable(link.b.face, null)
         links.remove(link.id)
+        link.entityTether?.clear(level)
         link.knotA?.let { level.getEntity(it)?.discard() }
         link.knotB?.let { level.getEntity(it)?.discard() }
         link.jointId?.let { removeJoint(level, it) }
@@ -171,6 +179,7 @@ class WandLinks : SavedData() {
     }
 
     fun resetJoints(level: ServerLevel, link: Link) {
+        link.entityTether?.clear(level)
         link.jointGeneration++
         link.jointId?.let { removeJoint(level, it) }
         link.alignmentId?.let { removeJoint(level, it) }
@@ -186,6 +195,15 @@ class WandLinks : SavedData() {
         var changed = ropeLengthChanged && level.gameTime % 2L == 0L
         if (changed) ropeLengthChanged = false
         for (link in links.values.toList()) {
+            val tether = link.entityTether
+            if (tether != null) {
+                if (!tether.tick(level, link)) {
+                    remove(level, link)
+                    WanderwandServer.breakEffect(level, link)
+                    changed = true
+                } else if (!link.suspended) RopeKnotServer.ensureKnots(level, link)
+                continue
+            }
             val ends = listOf(link.a, link.b)
             val a = link.a.world(level)
             val b = link.b.world(level)
@@ -386,8 +404,11 @@ class WandLinks : SavedData() {
                     t.getBoolean("rope"), length.coerceIn(0.5, 128.0), loadPose(t.getCompound("pose0")), loadPose(t.getCompound("pose1")),
                     t.getBoolean("physical") && t.getBoolean("rope"), t.getBoolean("spring"), t.getBoolean("thinkable"),
                     t.getBoolean("harpoon"))
+                link.hose = link.harpoon && (t.getBoolean("hose") || link.b.entityId != null)
                 if (link.thinkable && (!link.physical || !link.rope || link.spring || link.a.winch || link.b.winch)) continue
                 if (link.harpoon && (!link.physical || !link.rope || link.spring || link.thinkable)) continue
+                if (link.a.entityId != null || (link.b.entityId != null && !link.harpoon)) continue
+                if (t.contains("entityChain")) link.entityTether?.chainId = ChainId(t.getLong("entityChain"))
                 link.settings = SpringSettings.load(t.getCompound("settings"))
                 if (link.spring) link.appliedLength = readAppliedLength(t, link.length)
                 link.needsReframe = !t.getBoolean("faceAligned") && !link.rope

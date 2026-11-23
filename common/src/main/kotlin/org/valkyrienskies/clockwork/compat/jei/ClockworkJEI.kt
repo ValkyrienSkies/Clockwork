@@ -39,6 +39,8 @@ import org.valkyrienskies.clockwork.compat.jei.DuctStatsDummyRecipe.Companion.DU
 import org.valkyrienskies.clockwork.compat.jei.categories.DuctStatsCategory
 import org.valkyrienskies.clockwork.compat.jei.categories.GasCrafterCategory
 import org.valkyrienskies.clockwork.compat.jei.categories.GasReactionCategory
+import org.valkyrienskies.clockwork.compat.jei.categories.SiphoningCategory
+import org.valkyrienskies.clockwork.content.curiosities.harpoon.SiphoningRecipe
 import org.valkyrienskies.clockwork.content.logistics.gas.crafter.GasCraftingRecipe
 import org.valkyrienskies.clockwork.util.gui.IHaveDuctStats
 import org.valkyrienskies.kelvin.api.recipe.KelvinGasIngredient
@@ -89,6 +91,7 @@ class ClockworkJEI() : IModPlugin {
         loadCategories(helper)
         registration.addRecipeCategories(*allCategories.toTypedArray())
         registration.addRecipeCategories(GasReactionCategory(helper))
+        registration.addRecipeCategories(SiphoningCategory(helper))
         registration.addRecipeCategories(DuctStatsCategory(registration.jeiHelpers))
     }
 
@@ -96,6 +99,7 @@ class ClockworkJEI() : IModPlugin {
         allCategories.forEach(Consumer { c: CreateRecipeCategory<*>? -> c!!.registerCatalysts(registration) })
 
         registration.addRecipeCatalyst(ClockworkBlocks.DUCT.asStack(), KelvinJeiPlugin.GAS_REACTION_RECIPE_TYPE)
+        registration.addRecipeCatalyst(ClockworkBlocks.SIPHON_HARPOON.asStack(), SiphoningCategory.TYPE)
     }
 
     override fun registerRecipes(registration: IRecipeRegistration) {
@@ -115,6 +119,11 @@ class ClockworkJEI() : IModPlugin {
         }
 
         registration.addRecipes(DUCT_STATS_DUMMY_TYPE, recipes)
+        val siphoning = ClockworkRecipes.ClockworkRecipeTypes.SIPHONING.getType<net.minecraft.world.item.crafting.RecipeType<SiphoningRecipe>>()
+        Minecraft.getInstance().connection?.recipeManager?.let { manager ->
+            registration.addRecipes(SiphoningCategory.TYPE, manager.getAllRecipesFor(siphoning))
+        }
+        registration.addIngredientInfo(ClockworkBlocks.SIPHON_HARPOON.get(), ClockworkLang.translateDirect("recipe.siphoning.pumping"))
     }
 
     class CategoryBuilder<T : Recipe<*>?>(private val recipeClass: Class<out T?>) {

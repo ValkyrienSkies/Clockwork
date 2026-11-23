@@ -56,6 +56,7 @@ import org.valkyrienskies.clockwork.content.curiosities.debug.DebugLightningArce
 import org.valkyrienskies.clockwork.content.curiosities.grippad.GripPadBlockEntity
 import org.valkyrienskies.clockwork.content.curiosities.grippad.GripPadRenderer
 import org.valkyrienskies.clockwork.content.curiosities.harpoon.HarpoonBlockEntity
+import org.valkyrienskies.clockwork.content.curiosities.harpoon.SiphonHarpoonBlockEntity
 import org.valkyrienskies.clockwork.content.curiosities.harpoon.HarpoonRenderer
 import org.valkyrienskies.clockwork.content.curiosities.rope.RopeWinchBlockEntity
 import org.valkyrienskies.clockwork.content.curiosities.rope.RopeWinchRenderer
@@ -1004,6 +1005,14 @@ object ClockworkBlockEntities {
         .renderer { NonNullFunction { context: BlockEntityRendererProvider.Context ->
             HarpoonRenderer(context)
         } }.register()
+
+    @JvmField
+    val SIPHON_HARPOON = ClockworkMod.REGISTRATE
+        .blockEntity("siphon_harpoon") { type: BlockEntityType<SiphonHarpoonBlockEntity>, pos: BlockPos, state: BlockState ->
+            SiphonHarpoonBlockEntity(type, pos, state)
+        }.validBlocks(ClockworkBlocks.SIPHON_HARPOON)
+        .renderer { NonNullFunction { context: BlockEntityRendererProvider.Context -> HarpoonRenderer(context) } }
+        .register()
 
     @JvmField
     val ROPE_WINCH = ClockworkMod.REGISTRATE

@@ -80,7 +80,7 @@ object WandLinkTransfer {
         var changed = false
         for (link in data.links.values) {
             val a = destination(link.a)
-            val b = destination(link.b)
+            val b = if (link.b.entityId == null) destination(link.b) else null
             if (a == null && b == null) continue
             data.resetJoints(level, link)
             if (a != null) { link.pose0 = pose(link.pose0, link.a, a); link.a = a.anchor }

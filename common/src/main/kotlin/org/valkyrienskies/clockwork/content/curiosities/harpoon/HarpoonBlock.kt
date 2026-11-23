@@ -12,6 +12,7 @@ import net.minecraft.world.item.context.BlockPlaceContext
 import net.minecraft.world.level.Level
 import net.minecraft.world.level.LevelReader
 import net.minecraft.world.level.block.Block
+import net.minecraft.world.level.block.entity.BlockEntityType
 import net.minecraft.world.level.block.state.BlockState
 import net.minecraft.world.level.block.state.StateDefinition
 import net.minecraft.world.level.block.state.properties.BlockStateProperties
@@ -19,7 +20,7 @@ import net.minecraft.world.phys.BlockHitResult
 import org.valkyrienskies.clockwork.ClockworkBlockEntities
 
 /** The muzzle faces away from the single shaft input. */
-class HarpoonBlock(properties: Properties) : DirectionalKineticBlock(properties), IBE<HarpoonBlockEntity> {
+open class HarpoonBlock(properties: Properties) : DirectionalKineticBlock(properties), IBE<HarpoonBlockEntity> {
     init { registerDefaultState(defaultBlockState().setValue(FACING, Direction.NORTH).setValue(POWERED, false)) }
 
     override fun createBlockStateDefinition(builder: StateDefinition.Builder<Block, BlockState>) {
@@ -45,7 +46,7 @@ class HarpoonBlock(properties: Properties) : DirectionalKineticBlock(properties)
         face == state.getValue(FACING).opposite
 
     override fun getBlockEntityClass() = HarpoonBlockEntity::class.java
-    override fun getBlockEntityType() = ClockworkBlockEntities.HARPOON.get()
+    override fun getBlockEntityType(): BlockEntityType<out HarpoonBlockEntity> = ClockworkBlockEntities.HARPOON.get()
 
     override fun neighborChanged(state: BlockState, level: Level, pos: BlockPos, block: Block, from: BlockPos, moving: Boolean) {
         if (!level.isClientSide) (level.getBlockEntity(pos) as? HarpoonBlockEntity)?.redstoneChanged()

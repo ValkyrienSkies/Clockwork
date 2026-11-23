@@ -75,6 +75,9 @@ object ClockworkConfig {
         @ConfigCategory(title = "Harpoon")
         val harpoon = Harpoon()
 
+        @ConfigCategory(title = "Siphon Harpoon")
+        val siphonHarpoon = SiphonHarpoon()
+
         @ConfigCategory(title = "Heat Exchanger")
         val heatExchanger = HeatExchanger()
 
@@ -337,6 +340,23 @@ object ClockworkConfig {
 
         @ConfigEntry(description = "Maximum range (in blocks) the survival gravitron will interact with ships", min = 1.0, max = 1000.0)
         var survivalGravitronMaxRange = 20.0
+    }
+
+    class SiphonHarpoon {
+        @ConfigEntry(description = "Multiplier for gas yields from siphoning recipes", min = 0.0)
+        var yieldMultiplier = 1.0
+
+        @ConfigEntry(description = "Maximum RPM for siphoning a creature without hurting it", min = 0.0)
+        var safeRpm = 64.0
+
+        @ConfigEntry(description = "Damage per tick for each RPM above the safe speed", min = 0.0)
+        var damagePerExcessRpm = 0.01
+
+        @ConfigEntry(description = "Pressure added toward the launcher per RPM when pumping from a node, in Pa", min = 0.0)
+        var pumpPressurePerRpm = 4000.0
+
+        @ConfigEntry(description = "Temperature of gas taken from a creature, in K", min = 1.0)
+        var gasTemperature = 293.15
     }
 
     class Harpoon {

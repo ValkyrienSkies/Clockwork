@@ -63,6 +63,7 @@ import org.valkyrienskies.clockwork.content.curiosities.debug.DebugLightningArce
 import org.valkyrienskies.clockwork.content.curiosities.grippad.GripPadBlock
 import org.valkyrienskies.clockwork.content.curiosities.meteor.MeteorTestBlock
 import org.valkyrienskies.clockwork.content.curiosities.harpoon.HarpoonBlock
+import org.valkyrienskies.clockwork.content.curiosities.harpoon.SiphonHarpoonBlock
 import org.valkyrienskies.clockwork.content.curiosities.rope.RopeWinchBlock
 import org.valkyrienskies.clockwork.content.curiosities.sensor.distance.DistanceSensorBlock
 import org.valkyrienskies.clockwork.content.curiosities.sensor.impact.ImpactSensorBlock
@@ -934,6 +935,13 @@ object ClockworkBlocks {
         .transform(axeOrPickaxe()).properties { it.noOcclusion() }
         .addLayer { Supplier { RenderType.cutout() } }
         .item().tab(ClockworkMod.BASE_CREATIVE_TABINFO).build().register()
+
+    @JvmField
+    val SIPHON_HARPOON = REGISTRATE.block("siphon_harpoon", ::SiphonHarpoonBlock)
+        .initialProperties { SharedProperties.softMetal() }
+        .transform(axeOrPickaxe()).properties { it.noOcclusion() }
+        .addLayer { Supplier { RenderType.cutout() } }
+        .item().tab(ClockworkMod.GAS_CREATIVE_TABINFO).build().register()
 
     @JvmField
     val ROPE_WINCH = REGISTRATE.block("rope_winch") { p: BlockBehaviour.Properties ->
