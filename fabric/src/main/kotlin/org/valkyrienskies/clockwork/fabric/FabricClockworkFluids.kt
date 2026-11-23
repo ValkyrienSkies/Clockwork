@@ -37,7 +37,7 @@ object FabricClockworkFluids {
         .build()
         .bucket()
         .tab(ClockworkMod.BASE_CREATIVE_TABINFO)
-        .onRegister(ClockworkFluids::registerBucket)
+        .onRegister(ClockworkFluids::registerTarBucket)
         .build()
         .onRegisterAfter(Registries.ITEM) { flowing ->
             val source = flowing.source

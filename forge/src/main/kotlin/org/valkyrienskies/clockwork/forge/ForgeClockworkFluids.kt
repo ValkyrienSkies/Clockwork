@@ -20,7 +20,7 @@ object ForgeClockworkFluids {
         .build()
         .bucket()
         .tab(ClockworkMod.BASE_CREATIVE_TABINFO)
-        .onRegister(ClockworkFluids::registerBucket)
+        .onRegister(ClockworkFluids::registerTarBucket)
         .build()
         .register()
 

@@ -1,5 +1,6 @@
 package org.valkyrienskies.clockwork
 
+import dev.architectury.registry.fuel.FuelRegistry
 import net.minecraft.core.BlockSource
 import net.minecraft.core.dispenser.DefaultDispenseItemBehavior
 import net.minecraft.world.item.BucketItem
@@ -8,7 +9,8 @@ import net.minecraft.world.item.Items
 import net.minecraft.world.level.block.DispenserBlock
 
 object ClockworkFluids {
-    fun registerBucket(bucket: BucketItem) {
+    fun registerTarBucket(bucket: BucketItem) {
+        FuelRegistry.register(20000, bucket)
         DispenserBlock.registerBehavior(bucket, object : DefaultDispenseItemBehavior() {
             private val fallback = DefaultDispenseItemBehavior()
 
