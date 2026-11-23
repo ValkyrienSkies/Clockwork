@@ -58,7 +58,7 @@
     }
   ],
   "requirements": {
-    "kelvin:min_pressure": 750000.0
+    "kelvin:min_pressure": 5000000.0
   },
   "processingTime": 100
 }
