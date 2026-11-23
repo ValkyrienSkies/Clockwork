@@ -1,0 +1,21 @@
+{
+  "type": "vs_clockwork:gas_crafting",
+  "ingredients": [
+    {
+      "item": "minecraft:exposed_cut_copper_slab"
+    }
+  ],
+  "input_gasses": {
+    "vs_clockwork:ozonite": {
+      "amount": 0.01,
+      "unit": "kg"
+    }
+  },
+  "result_gasses": {},
+  "results": [
+    {
+      "item": "minecraft:weathered_cut_copper_slab"
+    }
+  ],
+  "processingTime": 60
+}

@@ -1,0 +1,21 @@
+{
+  "type": "vs_clockwork:gas_crafting",
+  "ingredients": [
+    {
+      "item": "minecraft:copper_block"
+    }
+  ],
+  "input_gasses": {
+    "vs_clockwork:ozonite": {
+      "amount": 0.01,
+      "unit": "kg"
+    }
+  },
+  "result_gasses": {},
+  "results": [
+    {
+      "item": "minecraft:exposed_copper"
+    }
+  ],
+  "processingTime": 60
+}
