@@ -12,6 +12,7 @@ import net.minecraft.core.BlockPos
 import net.minecraft.core.Direction
 import net.minecraft.core.particles.DustParticleOptions
 import net.minecraft.core.particles.ParticleTypes
+import net.minecraft.world.level.block.Blocks
 import net.minecraft.world.phys.Vec3
 import org.joml.Vector3f
 import org.valkyrienskies.clockwork.ClockworkBlocks
@@ -41,18 +42,18 @@ object ThermalGasPonders {
         scene.world().modifyBlockEntityNBT(util.select().position(tank), FluidTankBlockEntity::class.java) { tag ->
             tag.getCompound("Boiler").putInt("Engines", 1)
         }
-        scene.overlay().showText(65).attachKeyFrame()
+        scene.overlay().showText(115).attachKeyFrame()
             .text("Attach a Steam Extractor to a Fluid Tank to form a Boiler")
             .pointAt(util.vector().topOf(extractor)).placeNearTarget()
-        scene.idle(75)
+        scene.idle(130)
 
         scene.world().showSection(util.select().fromTo(3, 1, 1, 4, 1, 2), Direction.UP)
         scene.world().setKineticSpeed(util.select().position(pump), 64f)
         scene.world().setKineticSpeed(util.select().position(4, 1, 1), -64f)
-        scene.overlay().showText(75).attachKeyFrame()
+        scene.overlay().showText(110).attachKeyFrame()
             .text("Heat the Boiler from below and pump Water into the tank")
             .pointAt(util.vector().topOf(pump)).placeNearTarget()
-        scene.idle(85)
+        scene.idle(120)
 
         scene.world().showSection(util.select().fromTo(0, 2, 2, 1, 2, 2), Direction.EAST)
         scene.world().modifyBlockEntityNBT(util.select().position(tank), FluidTankBlockEntity::class.java) { tag ->
@@ -61,10 +62,12 @@ object ThermalGasPonders {
             boiler.putDouble("Supply", FluidStack.bucketAmount() / 100.0)
         }
         scene.idle(15)
-        scene.overlay().showText(75).attachKeyFrame()
+        scene.overlay().showControls(util.vector().blockSurface(extractor.west(2), Direction.WEST), Pointing.RIGHT, 115)
+            .withGas(ClockworkGasses.STEAM)
+        scene.overlay().showText(115).attachKeyFrame()
             .text("Connect a Gas Duct to the outer face to carry Steam away")
             .pointAt(util.vector().blockSurface(extractor, Direction.WEST)).placeNearTarget()
-        scene.idle(80)
+        scene.idle(130)
         scene.markAsFinished()
     }
 
@@ -80,32 +83,32 @@ object ThermalGasPonders {
         scene.world().showSection(util.select().position(radiator), Direction.DOWN)
         scene.idle(8)
         scene.world().showSection(util.select().fromTo(3, 1, 2, 4, 1, 2), Direction.WEST)
-        scene.overlay().showText(65).attachKeyFrame()
+        scene.overlay().showText(100).attachKeyFrame()
             .text("Connect a Gas Duct to either end of a Radiator")
             .pointAt(util.vector().blockSurface(radiator, Direction.EAST)).placeNearTarget()
-        scene.idle(75)
+        scene.idle(115)
 
         supplyGas(scene, (0..4).map { BlockPos(it, 1, 2) }, ClockworkGasses.EXHAUST, 850.0)
-        showTemperature(scene, radiator, 235)
-        scene.overlay().showText(70).attachKeyFrame()
+        showTemperature(scene, radiator, 375)
+        scene.overlay().showText(130).attachKeyFrame()
             .text("Heat escapes through the fins when the gas inside is hotter than the surrounding air")
             .pointAt(util.vector().topOf(radiator)).placeNearTarget()
-        scene.idle(80)
+        scene.idle(140)
 
         scene.world().showSection(util.select().position(second), Direction.EAST)
         scene.idle(5)
         scene.world().showSection(util.select().position(0, 1, 2), Direction.EAST)
-        showTemperature(scene, second, 135)
-        scene.overlay().showText(65).attachKeyFrame()
+        showTemperature(scene, second, 230)
+        scene.overlay().showText(100).attachKeyFrame()
             .text("Add more Radiators in series to cool the gas faster")
             .pointAt(util.vector().topOf(second)).placeNearTarget()
-        scene.idle(75)
+        scene.idle(115)
         scene.overlay().showControls(util.vector().blockSurface(radiator, Direction.SOUTH), Pointing.DOWN, 45)
             .withItem(AllItems.GOGGLES.asStack())
-        scene.overlay().showText(65)
+        scene.overlay().showText(115)
             .text("Engineer's Goggles show the temperature as it falls towards the air temperature")
             .pointAt(util.vector().topOf(radiator)).placeNearTarget()
-        scene.idle(70)
+        scene.idle(130)
         scene.markAsFinished()
     }
 
@@ -123,30 +126,30 @@ object ThermalGasPonders {
         scene.world().showSection(firstLine, Direction.DOWN)
         scene.idle(12)
         scene.world().showSection(secondLine, Direction.NORTH)
-        scene.overlay().showText(75).attachKeyFrame()
+        scene.overlay().showText(125).attachKeyFrame()
             .text("Place two Heat Exchangers side by side, with their ports facing the same direction")
             .pointAt(util.vector().blockSurface(hot, Direction.SOUTH)).placeNearTarget()
-        scene.idle(85)
+        scene.idle(140)
 
-        scene.overlay().showOutline(PonderPalette.RED, "hotGasLine", firstLine, 75)
-        scene.overlay().showOutline(PonderPalette.BLUE, "coolGasLine", secondLine, 75)
-        scene.overlay().showText(70).attachKeyFrame()
+        scene.overlay().showOutline(PonderPalette.RED, "hotGasLine", firstLine, 95)
+        scene.overlay().showOutline(PonderPalette.BLUE, "coolGasLine", secondLine, 95)
+        scene.overlay().showText(95).attachKeyFrame()
             .text("Keep the Ducts on each side in separate lines")
             .pointAt(util.vector().blockSurface(hot.west(), Direction.SOUTH)).placeNearTarget()
-        scene.idle(80)
+        scene.idle(110)
 
         supplyGas(scene, (1..3).map { BlockPos(it, 1, 2) }, ClockworkGasses.EXHAUST, 850.0)
         supplyGas(scene, (1..3).map { BlockPos(it, 1, 3) }, ClockworkGasses.HELIUM, 300.0)
-        showTemperature(scene, hot, 145)
-        showTemperature(scene, cool, 145)
-        scene.overlay().showText(65).attachKeyFrame()
+        showTemperature(scene, hot, 260)
+        showTemperature(scene, cool, 260)
+        scene.overlay().showText(125).attachKeyFrame()
             .text("Heat passes from the hotter gas into the cooler gas through the touching sides")
             .pointAt(util.vector().blockSurface(hot, Direction.SOUTH)).placeNearTarget()
-        scene.idle(75)
-        scene.overlay().showText(65)
+        scene.idle(140)
+        scene.overlay().showText(120)
             .text("Their temperatures approach each other while the gases stay in their own lines")
             .pointAt(util.vector().topOf(cool)).placeNearTarget()
-        scene.idle(70)
+        scene.idle(135)
         scene.markAsFinished()
     }
 
@@ -158,40 +161,52 @@ object ThermalGasPonders {
         scene.idle(10)
 
         val heater = util.grid().at(2, 1, 2)
+        val second = heater.west()
         val supply = (2..4).map { BlockPos(it, 1, 2) }
+        scene.world().setBlock(second, Blocks.AIR.defaultBlockState(), false)
         scene.world().showSection(util.select().position(heater), Direction.DOWN)
         scene.idle(10)
         scene.world().showSection(util.select().fromTo(3, 1, 2, 4, 1, 2), Direction.WEST)
-        scene.overlay().showText(70).attachKeyFrame()
+        scene.overlay().showText(120).attachKeyFrame()
             .text("Supply hot gas through either end of a Gas Heater, or from below")
             .pointAt(util.vector().blockSurface(heater, Direction.EAST)).placeNearTarget()
-        scene.idle(80)
+        scene.idle(135)
 
         val thresholds = ClockworkConfig.SERVER.gasHeater
         supplyGas(scene, supply, ClockworkGasses.EXHAUST, thresholds.heaterKindledTemp + 80.0)
         scene.world().showSection(util.select().position(heater.above()), Direction.DOWN)
         val rim = util.vector().blockSurface(heater, Direction.WEST).add(0.0, 0.4, 0.0)
         scene.effects().emitParticles(rim, scene.effects().simpleParticleEmitter(ParticleTypes.FLAME, Vec3.ZERO), .3f, 55)
-        scene.overlay().showText(70).attachKeyFrame()
+        scene.overlay().showText(140).attachKeyFrame()
             .text("A hot Gas Heater can heat a Basin or a Steam Boiler placed directly above it")
             .pointAt(util.vector().blockSurface(heater.above(), Direction.WEST)).placeNearTarget()
-        scene.idle(80)
+        scene.idle(155)
 
         supplyGas(scene, supply, ClockworkGasses.EXHAUST, thresholds.heaterSeethingTemp + 80.0)
         scene.effects().emitParticles(rim, scene.effects().simpleParticleEmitter(ParticleTypes.SOUL_FIRE_FLAME, Vec3.ZERO), .3f, 60)
-        scene.overlay().showText(75).attachKeyFrame()
+        scene.overlay().showText(130).attachKeyFrame()
             .text("Hotter gas can bring the Heater up to Superheated, allowing more recipes in the Basin")
             .pointAt(util.vector().topOf(heater)).placeNearTarget()
-        scene.idle(85)
+        scene.idle(140)
+        scene.world().restoreBlocks(util.select().position(second))
+        scene.world().showSection(util.select().position(second), Direction.EAST)
+        scene.idle(10)
+        scene.world().showSection(util.select().position(second.above()), Direction.DOWN)
+        supplyGas(scene, listOf(heater.east(2)), ClockworkGasses.EXHAUST, thresholds.heaterSeethingTemp + 80.0, mass = 0.75)
+        scene.overlay().showOutline(PonderPalette.INPUT, "heaterSeries", util.select().fromTo(second, heater), 130)
+        scene.overlay().showText(130).attachKeyFrame()
+            .text("Place Gas Heaters end to end to heat several Basins from the same gas line")
+            .pointAt(util.vector().blockSurface(second, Direction.EAST)).placeNearTarget()
+        scene.idle(145)
         scene.markAsFinished()
     }
 
-    private fun supplyGas(scene: CreateSceneBuilder, positions: List<BlockPos>, gas: GasType, temperature: Double) {
+    private fun supplyGas(scene: CreateSceneBuilder, positions: List<BlockPos>, gas: GasType, temperature: Double, mass: Double = 0.025) {
         scene.addInstruction { step ->
             val network = ClockworkModClient.getKelvin(step.world)
             for (pos in positions) {
                 val node = pos.toDuctNodePos(step.world.dimension().location())
-                network.addGasAtTemperature(node, gas, 0.025, temperature)
+                network.addGasAtTemperature(node, gas, mass, temperature)
                 network.modTemperature(node, temperature - network.getTemperatureAt(node))
             }
         }

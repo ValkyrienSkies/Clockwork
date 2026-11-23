@@ -81,40 +81,42 @@ object GasProcessingPonders {
         val joint = util.vector().blockSurface(duct, Direction.SOUTH)
         val outlet = util.vector().blockSurface(util.grid().at(1, 1, 4), Direction.WEST)
 
-        scene.overlay().showText(60)
+        scene.overlay().showText(115)
             .text("Here, Steam and Exhaust share a Duct and leave through two outlets")
             .pointAt(outlet).placeNearTarget()
-        scene.idle(70)
+        scene.idle(130)
 
         scene.overlay().showControls(joint, Pointing.DOWN, 35).whileSneaking().rightClick().withItem(ClockworkItems.SCREWDRIVER.asStack())
-        scene.overlay().showText(75).attachKeyFrame()
+        scene.overlay().showText(120).attachKeyFrame()
             .text("Sneak and right-click a connection with a Screwdriver until the Filtered connection appears")
             .pointAt(joint).placeNearTarget()
         scene.idle(15)
         configureConnection(scene, duct, DuctEdgeType.FILTERED) {}
-        scene.idle(70)
+        scene.idle(120)
 
         scene.overlay().showControls(joint, Pointing.DOWN, 35).rightClick().withItem(ClockworkItems.SCREWDRIVER.asStack())
-        scene.overlay().showText(70).attachKeyFrame()
+        scene.overlay().showText(110).attachKeyFrame()
             .text("Right-click it with the Screwdriver to choose which gases may pass")
             .pointAt(joint).placeNearTarget()
-        scene.idle(80)
+        scene.idle(125)
 
         configureConnection(scene, duct, DuctEdgeType.FILTERED) {
             (it as FilteredEdge).modFilter(hashSetOf(ClockworkGasses.STEAM), false)
         }
-        scene.overlay().showText(70).attachKeyFrame().colored(PonderPalette.OUTPUT)
+        scene.overlay().showControls(outlet, Pointing.RIGHT, 115).withGas(ClockworkGasses.STEAM)
+        scene.overlay().showText(115).attachKeyFrame().colored(PonderPalette.OUTPUT)
             .text("Add Steam to the Allow List and only Steam reaches the outlet")
             .pointAt(outlet).placeNearTarget()
-        scene.idle(85)
+        scene.idle(130)
 
         configureConnection(scene, duct, DuctEdgeType.FILTERED) {
             (it as FilteredEdge).modFilter(hashSetOf(ClockworkGasses.STEAM), true)
         }
-        scene.overlay().showText(70).colored(PonderPalette.OUTPUT)
+        scene.overlay().showControls(outlet, Pointing.RIGHT, 125).withGas(ClockworkGasses.EXHAUST)
+        scene.overlay().showText(125).colored(PonderPalette.OUTPUT)
             .text("Switch to the Deny List to hold back Steam and let the Exhaust through")
             .pointAt(outlet).placeNearTarget()
-        scene.idle(85)
+        scene.idle(140)
     }
 
     fun smartEdge(builder: SceneBuilder, util: SceneBuildingUtil) {
@@ -127,15 +129,15 @@ object GasProcessingPonders {
         val outlet = util.vector().blockSurface(util.grid().at(1, 1, 4), Direction.WEST)
 
         scene.overlay().showControls(joint, Pointing.DOWN, 35).whileSneaking().rightClick().withItem(ClockworkItems.SCREWDRIVER.asStack())
-        scene.overlay().showText(70).attachKeyFrame()
+        scene.overlay().showText(120).attachKeyFrame()
             .text("Cycle a Duct connection with a Screwdriver while sneaking to make it Smart")
             .pointAt(joint).placeNearTarget()
         scene.idle(15)
         configureConnection(scene, duct, DuctEdgeType.SMART) {}
-        scene.idle(65)
+        scene.idle(120)
 
         scene.overlay().showControls(joint, Pointing.DOWN, 35).rightClick().withItem(ClockworkItems.SCREWDRIVER.asStack())
-        scene.overlay().showText(85).attachKeyFrame()
+        scene.overlay().showText(130).attachKeyFrame()
             .text("Right-click to set a condition on the receiving side. Try a pressure above 100 kPa")
             .pointAt(receiver).placeNearTarget()
         configureConnection(scene, duct, DuctEdgeType.SMART) {
@@ -145,23 +147,23 @@ object GasProcessingPonders {
                 moreThan = true
             }
         }
-        scene.idle(95)
+        scene.idle(145)
 
-        scene.overlay().showText(65).colored(PonderPalette.RED)
+        scene.overlay().showText(120).colored(PonderPalette.RED)
             .text("The outlet keeps this side below the threshold, so the connection stays shut")
             .pointAt(outlet).placeNearTarget()
-        scene.idle(75)
+        scene.idle(135)
 
         configureConnection(scene, duct, DuctEdgeType.SMART) { (it as SmartEdge).moreThan = false }
-        scene.overlay().showText(75).attachKeyFrame().colored(PonderPalette.GREEN)
+        scene.overlay().showText(115).attachKeyFrame().colored(PonderPalette.GREEN)
             .text("Switch to below 100 kPa and the whole mixture can flow again")
             .pointAt(outlet).placeNearTarget()
-        scene.idle(85)
+        scene.idle(130)
 
-        scene.overlay().showText(75)
+        scene.overlay().showText(120)
             .text("Select which gases count towards the pressure, temperature, heat energy or mass measurement")
             .pointAt(joint).placeNearTarget()
-        scene.idle(85)
+        scene.idle(135)
     }
 
     fun gasReactions(builder: SceneBuilder, util: SceneBuildingUtil) {
@@ -184,24 +186,26 @@ object GasProcessingPonders {
             it.gasValues[ClockworkGasses.METHANE] = 30
             it.temperature = 300.0
         }
-        scene.overlay().showText(55).colored(PonderPalette.INPUT)
+        scene.overlay().showControls(util.vector().topOf(bogSource), Pointing.RIGHT, 100).withGas(ClockworkGasses.METHANE)
+        scene.overlay().showText(100).colored(PonderPalette.INPUT)
             .text("Fill a closed Duct with Bog gas from one side...")
             .pointAt(util.vector().topOf(bogSource)).placeNearTarget()
-        scene.idle(65)
+        scene.idle(115)
         scene.world().showSection(util.select().position(airSource), Direction.SOUTH)
+        val air = GasTypeRegistry.GAS_TYPES.getValue(ResourceLocation("kelvin", "air"))
         scene.world().modifyBlockEntity(airSource, CreativeGeneratorBlockEntity::class.java) {
-            val air = GasTypeRegistry.GAS_TYPES.getValue(ResourceLocation("kelvin", "air"))
             it.gasValues[air] = 60
             it.temperature = 300.0
         }
-        scene.overlay().showText(65).attachKeyFrame().colored(PonderPalette.INPUT)
+        scene.overlay().showControls(util.vector().topOf(airSource), Pointing.RIGHT, 115).withGas(air)
+        scene.overlay().showText(115).attachKeyFrame().colored(PonderPalette.INPUT)
             .text("...and admit Air from the other. At room temperature they simply mix")
             .pointAt(util.vector().topOf(chamber)).placeNearTarget()
-        scene.idle(75)
+        scene.idle(130)
 
         scene.world().modifyBlockEntity(bogSource, CreativeGeneratorBlockEntity::class.java) { it.gasValues.clear() }
         scene.world().modifyBlockEntity(airSource, CreativeGeneratorBlockEntity::class.java) { it.gasValues.clear() }
-        scene.overlay().showText(80).attachKeyFrame()
+        scene.overlay().showText(140).attachKeyFrame()
             .text("Bring the mixture between 800 and 1200 K and the Bog gas reacts with the Air")
             .pointAt(util.vector().topOf(chamber)).placeNearTarget()
         scene.idle(15)
@@ -213,17 +217,17 @@ object GasProcessingPonders {
             }
         }
         scene.effects().indicateSuccess(chamber)
-        scene.idle(75)
+        scene.idle(140)
 
         val joint = util.vector().blockSurface(shutoff, Direction.SOUTH)
         scene.overlay().showControls(joint, Pointing.DOWN, 25).rightClick().withItem(AllItems.WRENCH.asStack())
-        scene.overlay().showText(75).attachKeyFrame().colored(PonderPalette.OUTPUT)
+        scene.overlay().showText(120).attachKeyFrame().colored(PonderPalette.OUTPUT)
             .text("Open the outlet to release the Steam and Exhaust produced by the reaction")
             .pointAt(util.vector().blockSurface(outlet, Direction.WEST)).placeNearTarget()
         scene.idle(10)
         scene.world().modifyBlock(shutoff, { it.setValue(SOUTH_CONNECTION, DuctConnectionType.SIDE) }, false)
         scene.world().modifyBlock(shutoff.south(), { it.setValue(NORTH_CONNECTION, DuctConnectionType.SIDE) }, false)
-        scene.idle(75)
+        scene.idle(125)
     }
 
     fun gasCrafter(builder: SceneBuilder, util: SceneBuildingUtil) {
@@ -239,27 +243,28 @@ object GasProcessingPonders {
         scene.world().showSection(util.select().position(basin), Direction.DOWN)
         scene.idle(12)
         scene.world().showSection(util.select().position(crafter), Direction.DOWN)
-        scene.overlay().showText(65).attachKeyFrame()
+        scene.overlay().showText(90).attachKeyFrame()
             .text("Place a Gas Crafter directly above a Basin")
             .pointAt(util.vector().centerOf(crafter)).placeNearTarget()
-        scene.idle(75)
+        scene.idle(105)
 
         scene.overlay().showControls(basinSide, Pointing.RIGHT, 35).withItem(ItemStack(Items.COPPER_BLOCK))
-        scene.overlay().showText(65).colored(PonderPalette.INPUT)
+        scene.overlay().showText(125).colored(PonderPalette.INPUT)
             .text("Supply the Basin with the recipe's ingredients. Here, a Block of Copper will do")
             .pointAt(basinSide).placeNearTarget()
         scene.world().createItemOnBeltLike(basin, Direction.WEST, ItemStack(Items.COPPER_BLOCK))
-        scene.idle(75)
+        scene.idle(140)
 
         scene.world().showSection(util.select().fromTo(1, 1, 2, 2, 2, 2), Direction.DOWN)
         scene.world().modifyBlockEntity(source, CreativeGeneratorBlockEntity::class.java) {
             it.gasValues[ClockworkGasses.OZONITE] = 100
             it.temperature = 300.0
         }
-        scene.overlay().showText(70).attachKeyFrame().colored(PonderPalette.INPUT)
+        scene.overlay().showControls(util.vector().topOf(crafter.north()), Pointing.RIGHT, 90).withGas(ClockworkGasses.OZONITE)
+        scene.overlay().showText(90).attachKeyFrame().colored(PonderPalette.INPUT)
             .text("Feed Ozonite into the Crafter through a Duct")
             .pointAt(util.vector().topOf(crafter.north())).placeNearTarget()
-        scene.idle(80)
+        scene.idle(100)
         scene.world().modifyBlockEntity(crafter, GasCrafterBlockEntity::class.java) {
             val recipe = copperOxidation
             if (it.matchRecipe(recipe)) {
@@ -271,9 +276,9 @@ object GasProcessingPonders {
         scene.idle(65)
         scene.effects().indicateSuccess(basin)
         scene.overlay().showControls(basinSide, Pointing.RIGHT, 45).withItem(ItemStack(Items.EXPOSED_COPPER))
-        scene.overlay().showText(75).attachKeyFrame().colored(PonderPalette.OUTPUT)
+        scene.overlay().showText(130).attachKeyFrame().colored(PonderPalette.OUTPUT)
             .text("The Crafter consumes the gas and leaves a block of Exposed Copper in the Basin")
             .pointAt(basinSide).placeNearTarget()
-        scene.idle(85)
+        scene.idle(145)
     }
 }

@@ -48,19 +48,19 @@ object KelvinPonders {
         scene.idle(20)
 
         // Intro text
-        scene.overlay().showText(60)
+        scene.overlay().showText(90)
             .text("Ducts form the core of Clockwork's gas networks.")
             .attachKeyFrame()
             .pointAt(util.vector().topOf(duct2))
             .placeNearTarget()
-        scene.idle(70)
+        scene.idle(105)
 
-        scene.overlay().showText(80)
+        scene.overlay().showText(110)
             .text("Gas blocks can only be connected to each other with ducts.")
             .pointAt(util.vector().topOf(duct2))
             .placeNearTarget()
 
-        scene.idle(90)
+        scene.idle(120)
 
         // Wrench mechanics
         scene.overlay().showControls(
@@ -69,7 +69,7 @@ object KelvinPonders {
 
         scene.idle(10)
 
-        scene.overlay().showText(70)
+        scene.overlay().showText(110)
             .text("Using a Wrench on a connection toggles it on or off.")
             .attachKeyFrame()
             .pointAt(edgeVec)
@@ -79,7 +79,7 @@ object KelvinPonders {
         scene.world().modifyBlock(duct1, { s: BlockState -> s.setValue(DuctBlock.DIR_TO_CONNECTION[Direction.SOUTH]!!, DuctConnectionType.FORCED_OFF) }, true)
         scene.world().modifyBlock(duct2, { s: BlockState -> s.setValue(DuctBlock.DIR_TO_CONNECTION[Direction.NORTH]!!, DuctConnectionType.FORCED_OFF) }, true)
         //scene.world().modifyBlock(duct3, { s: BlockState -> s.setValue(DuctBlock.NORTH_CONNECTION, DuctConnectionType.FORCED_OFF) }, true)
-        scene.idle(40)
+        scene.idle(80)
 
         // Visual toggle back to side
         scene.world().modifyBlock(duct1, { s: BlockState -> s.setValue(DuctBlock.DIR_TO_CONNECTION[Direction.SOUTH]!!, DuctConnectionType.SIDE) }, true)
@@ -94,43 +94,43 @@ object KelvinPonders {
 
         scene.idle(10)
 
-        scene.overlay().showText( 50)
+        scene.overlay().showText(125)
             .text("Shift right clicking an edge with a Screwdriver cycles its type. The types are:")
             .attachKeyFrame()
             .pointAt(edgeVec)
 
-        scene.idle(55)
+        scene.idle(140)
 
         // One-Way
-        scene.overlay().showText( 30)
+        scene.overlay().showText(50)
             .text("One-way")
             .attachKeyFrame()
             .pointAt(edgeVec)
 
         setEdgeType(DuctEdgeType.ONEWAY_BACKWARD)
-        scene.idle(40)
+        scene.idle(65)
 
-        scene.overlay().showText( 30)
+        scene.overlay().showText(50)
             .text("Filtered")
             .attachKeyFrame()
             .pointAt(edgeVec)
 
         // Filtered
         setEdgeType(DuctEdgeType.FILTERED)
-        scene.idle(40)
+        scene.idle(65)
 
         // Smart
 
-        scene.overlay().showText( 50)
+        scene.overlay().showText(50)
             .text("Smart")
             .attachKeyFrame()
             .pointAt(edgeVec)
         setEdgeType(DuctEdgeType.SMART)
-        scene.idle(60)
+        scene.idle(65)
 
         // Screwdriving
 
-        scene.overlay().showText( 50)
+        scene.overlay().showText(125)
             .text("Right clicking a Smart or Filtered edge with a Screwdriver lets you edit it")
             .attachKeyFrame()
             .pointAt(edgeVec)
@@ -139,18 +139,18 @@ object KelvinPonders {
             edgeVec, Pointing.DOWN, 20
         ).rightClick().withItem(ClockworkItems.SCREWDRIVER.asStack())
 
-        scene.idle(80)
+        scene.idle(155)
 
         // Leaks
         // Visually create a leak!
         scene.world().modifyBlock(duct3, { s: BlockState -> s.setValue(DuctBlock.DIR_TO_CONNECTION[Direction.UP]!!, DuctConnectionType.LEAK) }, true)
 
-        scene.overlay().showText(70)
+        scene.overlay().showText(150)
             .text("If a duct is caught in an explosion, it will become a leak and gas will violently escape!")
             .attachKeyFrame()
 //            .pointAt(util.vector().topOf(duct3))
 //            .placeNearTarget()
-        scene.idle(80)
+        scene.idle(160)
 
         scene.overlay().showControls(
             util.vector().topOf(duct3), Pointing.DOWN, 60
@@ -158,7 +158,7 @@ object KelvinPonders {
 
         scene.idle(10)
 
-        scene.overlay().showText(60)
+        scene.overlay().showText(110)
             .text("Right-Clicking a leak with a Wrench will seal it back up.")
             .pointAt(util.vector().topOf(duct3))
             .placeNearTarget()
@@ -168,6 +168,6 @@ object KelvinPonders {
         // Seal the leak
         scene.world().modifyBlock(duct3, { s: BlockState -> s.setValue(DuctBlock.DIR_TO_CONNECTION[Direction.UP]!!, DuctConnectionType.NONE) }, true)
 
-        scene.idle(70)
+        scene.idle(120)
     }
 }
