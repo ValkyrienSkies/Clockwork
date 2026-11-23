@@ -35,6 +35,7 @@ object ClockworkShipSchematics {
                         put("Gases", CompoundTag().also { gases -> balloon.gasMasses.forEach(gases::putDouble) })
                         putDouble("Energy", balloon.currentEnergy); putDouble("Volume", balloon.currentVolume)
                         putBoolean("Leaking", balloon.isLeaking)
+                        putBoolean("Sealed", balloon.sealed)
                     })
                 } })
             }
@@ -69,7 +70,7 @@ object ClockworkShipSchematics {
                 val gases = balloon.getCompound("Gases")
                 BalloonController.getOrCreate(ship).addBalloon(BalloonData(ArrayList(regions),
                     HashMap(gases.allKeys.associateWith(gases::getDouble)), balloon.getDouble("Energy"),
-                    balloon.getDouble("Volume"), balloon.getBoolean("Leaking")))
+                    balloon.getDouble("Volume"), balloon.getBoolean("Leaking"), balloon.getBoolean("Sealed")))
             }
         }
     }

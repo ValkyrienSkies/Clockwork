@@ -1,0 +1,22 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    " P ",
+    "PCP",
+    " V "
+  ],
+  "key": {
+    "P": {
+      "item": "create:iron_sheet"
+    },
+    "C": {
+      "item": "create:industrial_iron_block"
+    },
+    "V": {
+      "item": "vs_clockwork:valve_duct"
+    }
+  },
+  "result": {
+    "item": "vs_clockwork:blimp_port"
+  }
+}

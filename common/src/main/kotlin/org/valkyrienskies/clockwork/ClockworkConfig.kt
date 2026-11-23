@@ -185,6 +185,9 @@ object ClockworkConfig {
         @ConfigEntry(description = "Sets the gas retention efficiency of the balloon material; lower values simulate airtight rubber/synthetic, while higher values represent porous fabrics. Default 0.001.", min = 0.0, max = 1.0)
         var permeabilityConstant = 0.01
 
+        @ConfigEntry(description = "Passive outward gas permeation constant for intact sealed blimp envelopes. Much smaller than permeabilityConstant so blimps slowly lose lifting gas over time.", min = 0.0, max = 1.0)
+        var blimpPermeabilityConstant = 1e-6
+
         @ConfigEntry(description = "Controls how fast air pocket temperature equalizes with the ambient temperature; lower values simulate thick insulation, while higher values cause rapid cooling or heating. Default 0.001", min = 0.0, max = 1.0)
         var heatTransferCoefficient = 0.01
 

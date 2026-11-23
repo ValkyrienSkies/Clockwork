@@ -90,6 +90,7 @@ import org.valkyrienskies.clockwork.content.logistics.gas.heater.GasHeaterBlock
 import org.valkyrienskies.clockwork.content.logistics.gas.thermal.HeatExchangerBlock
 import org.valkyrienskies.clockwork.content.logistics.gas.thermal.RadiatorBlock
 import org.valkyrienskies.clockwork.content.logistics.gas.hoseport.HosePortBlock
+import org.valkyrienskies.clockwork.content.logistics.gas.pockets.blimp.BlimpPortBlock
 import org.valkyrienskies.clockwork.content.logistics.gas.pockets.nozzle.GasNozzleBlock
 import org.valkyrienskies.clockwork.content.logistics.gas.pump.PumpDuctBlock
 import org.valkyrienskies.clockwork.content.logistics.gas.redstone.RedstoneDuctBlock
@@ -703,6 +704,22 @@ object ClockworkBlocks {
             .item()
             .tab(ClockworkMod.GAS_CREATIVE_TABINFO)
             .model(AssetLookup.customBlockItemModel("gas_nozzle"))
+            .build()
+            .register()
+
+    @JvmField
+    val BLIMP_PORT: BlockEntry<BlimpPortBlock> =
+        REGISTRATE.block("blimp_port") { properties: BlockBehaviour.Properties? ->
+            BlimpPortBlock(properties!!)
+        }
+            .initialProperties { SharedProperties.netheriteMetal() }
+            .transform(axeOrPickaxe())
+            .properties { it.noOcclusion() }
+            .addLayer { Supplier { RenderType.cutout() } }
+            .tag(AllTags.AllBlockTags.SAFE_NBT.tag)
+            .transform(displaySource(ClockworkDisplaySources.BLIMP_PORT))
+            .item()
+            .tab(ClockworkMod.GAS_CREATIVE_TABINFO)
             .build()
             .register()
 

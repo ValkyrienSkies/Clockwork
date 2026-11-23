@@ -91,6 +91,9 @@ import org.valkyrienskies.clockwork.content.logistics.gas.thermal.HeatExchangerB
 import org.valkyrienskies.clockwork.content.logistics.gas.thermal.RadiatorBlockEntity
 import org.valkyrienskies.clockwork.content.logistics.gas.hoseport.HosePortRenderer
 import org.valkyrienskies.clockwork.content.logistics.gas.hoseport.HosePortBlockEntity
+import org.valkyrienskies.clockwork.content.logistics.gas.pockets.blimp.BlimpPortBlockEntity
+import org.valkyrienskies.clockwork.content.logistics.gas.pockets.blimp.BlimpPortRenderer
+import org.valkyrienskies.clockwork.content.logistics.gas.pockets.blimp.BlimpPortVisual
 import org.valkyrienskies.clockwork.content.logistics.gas.pockets.nozzle.GasNozzleBlockEntity
 import org.valkyrienskies.clockwork.content.logistics.gas.pockets.nozzle.GasNozzleRenderer
 import org.valkyrienskies.clockwork.content.logistics.gas.pump.PumpDuctBlockEntity
@@ -683,6 +686,30 @@ object ClockworkBlockEntities {
             NonNullFunction { context: BlockEntityRendererProvider.Context? ->
                 GasNozzleRenderer(
                     context
+                )
+            }
+        }
+        .register()
+
+    @JvmField
+    val BLIMP_PORT: BlockEntityEntry<BlimpPortBlockEntity> = (ClockworkMod.REGISTRATE
+        .blockEntity("blimp_port") { type: BlockEntityType<*>, pos: BlockPos, state: BlockState ->
+            BlimpPortBlockEntity(
+                type,
+                pos,
+                state
+            )
+        } as ClockworkBlockEntityBuilder)
+        .clockworkVisual {
+            ClockworkSimpleBlockEntityVisualFactory { ctx, blockEntity, partialTick ->
+                BlimpPortVisual(ctx, blockEntity, partialTick)
+            }
+        }
+        .validBlocks(ClockworkBlocks.BLIMP_PORT)
+        .renderer {
+            NonNullFunction { context: BlockEntityRendererProvider.Context? ->
+                BlimpPortRenderer(
+                    context!!
                 )
             }
         }

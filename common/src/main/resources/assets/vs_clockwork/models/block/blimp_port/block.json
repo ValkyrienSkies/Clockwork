@@ -1,0 +1,48 @@
+{
+  "parent": "minecraft:block/block",
+  "textures": {
+    "casing": "vs_clockwork:block/balloon_casing",
+    "gearbox": "vs_clockwork:block/balloon_gearbox",
+    "duct": "vs_clockwork:block/duct",
+    "particle": "vs_clockwork:block/balloon_casing"
+  },
+  "elements": [
+    {
+      "name": "hull_flange",
+      "from": [0, 0, 0],
+      "to": [16, 16, 4],
+      "faces": {
+        "north": {"uv": [0, 0, 16, 16], "texture": "#gearbox"},
+        "south": {"uv": [0, 0, 16, 16], "texture": "#casing"},
+        "east": {"uv": [0, 0, 4, 16], "texture": "#casing"},
+        "west": {"uv": [0, 0, 4, 16], "texture": "#casing"},
+        "up": {"uv": [0, 0, 16, 4], "texture": "#casing"},
+        "down": {"uv": [0, 0, 16, 4], "texture": "#casing"}
+      }
+    },
+    {
+      "name": "valve_body",
+      "from": [3, 3, 4],
+      "to": [13, 13, 12],
+      "faces": {
+        "east": {"uv": [3, 3, 11, 13], "texture": "#casing"},
+        "west": {"uv": [3, 3, 11, 13], "texture": "#casing"},
+        "up": {"uv": [3, 3, 13, 11], "texture": "#casing"},
+        "down": {"uv": [3, 3, 13, 11], "texture": "#casing"},
+        "south": {"uv": [3, 3, 13, 13], "texture": "#casing"}
+      }
+    },
+    {
+      "name": "duct_collar",
+      "from": [4, 4, 12],
+      "to": [12, 12, 16],
+      "faces": {
+        "east": {"uv": [4, 4, 8, 12], "texture": "#duct"},
+        "west": {"uv": [4, 4, 8, 12], "texture": "#duct"},
+        "up": {"uv": [4, 4, 12, 8], "texture": "#duct"},
+        "down": {"uv": [4, 4, 12, 8], "texture": "#duct"},
+        "south": {"uv": [4, 4, 12, 12], "texture": "#duct"}
+      }
+    }
+  ]
+}
