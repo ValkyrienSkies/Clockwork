@@ -74,7 +74,11 @@ dependencies {
 
     //Kelvin
 
-    modImplementation("org.valkyrienskies.kelvin:kelvin-fabric:${rootProject.minecraft_version}-${rootProject.kelvin_version}") {
+    add(rootProject.useLocalKelvin ? "implementation" : "modImplementation",
+            "org.valkyrienskies.kelvin:kelvin-fabric:${rootProject.minecraft_version}-${rootProject.kelvin_version}") {
+        if (rootProject.useLocalKelvin) {
+            capabilities { requireCapability("org.valkyrienskies.kelvin:kelvin-fabric-dev") }
+        }
         exclude group: 'org.joml', module: ''
     }
 
