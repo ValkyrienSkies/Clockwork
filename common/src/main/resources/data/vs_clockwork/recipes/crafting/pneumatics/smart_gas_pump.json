@@ -1,0 +1,22 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    " B ",
+    "APA",
+    " B "
+  ],
+  "key": {
+    "B": {
+      "item": "create:brass_sheet"
+    },
+    "A": {
+      "item": "create:precision_mechanism"
+    },
+    "P": {
+      "item": "vs_clockwork:pump_duct"
+    }
+  },
+  "result": {
+    "item": "vs_clockwork:smart_gas_pump"
+  }
+}

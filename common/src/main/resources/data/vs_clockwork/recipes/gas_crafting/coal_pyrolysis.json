@@ -9,7 +9,7 @@
   "input_gasses": { },
   "result_gasses": {
     "vs_clockwork:bog": {
-      "amount": 35,
+      "amount": 250,
       "unit": "g"
     },
     "vs_clockwork:exhaust": {

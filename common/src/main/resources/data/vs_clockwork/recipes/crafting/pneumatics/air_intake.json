@@ -1,0 +1,22 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    " I ",
+    "CDC",
+    " I "
+  ],
+  "key": {
+    "I": {
+      "item": "minecraft:iron_bars"
+    },
+    "C": {
+      "item": "create:copper_sheet"
+    },
+    "D": {
+      "item": "vs_clockwork:duct"
+    }
+  },
+  "result": {
+    "item": "vs_clockwork:air_intake"
+  }
+}

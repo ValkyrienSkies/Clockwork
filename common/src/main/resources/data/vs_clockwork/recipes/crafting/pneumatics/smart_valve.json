@@ -1,0 +1,22 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    " R ",
+    "BVB",
+    " R "
+  ],
+  "key": {
+    "R": {
+      "item": "minecraft:redstone"
+    },
+    "B": {
+      "item": "create:brass_sheet"
+    },
+    "V": {
+      "item": "vs_clockwork:valve_duct"
+    }
+  },
+  "result": {
+    "item": "vs_clockwork:smart_valve"
+  }
+}

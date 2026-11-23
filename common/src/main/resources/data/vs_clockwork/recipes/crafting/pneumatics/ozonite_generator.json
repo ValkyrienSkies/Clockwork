@@ -1,0 +1,25 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    " L ",
+    "BPB",
+    " S "
+  ],
+  "key": {
+    "L": {
+      "item": "minecraft:lapis_lazuli"
+    },
+    "B": {
+      "item": "create:brass_sheet"
+    },
+    "P": {
+      "item": "vs_clockwork:air_compressor"
+    },
+    "S": {
+      "item": "create:precision_mechanism"
+    }
+  },
+  "result": {
+    "item": "vs_clockwork:ozonite_generator"
+  }
+}

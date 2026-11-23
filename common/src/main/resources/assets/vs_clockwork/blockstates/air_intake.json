@@ -1,0 +1,27 @@
+{
+  "variants": {
+    "facing=north": {
+      "model": "vs_clockwork:block/air_intake"
+    },
+    "facing=east": {
+      "model": "vs_clockwork:block/air_intake",
+      "y": 90
+    },
+    "facing=south": {
+      "model": "vs_clockwork:block/air_intake",
+      "y": 180
+    },
+    "facing=west": {
+      "model": "vs_clockwork:block/air_intake",
+      "y": 270
+    },
+    "facing=up": {
+      "model": "vs_clockwork:block/air_intake",
+      "x": 270
+    },
+    "facing=down": {
+      "model": "vs_clockwork:block/air_intake",
+      "x": 90
+    }
+  }
+}

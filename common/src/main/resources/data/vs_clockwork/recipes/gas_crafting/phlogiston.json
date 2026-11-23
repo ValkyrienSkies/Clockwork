@@ -7,23 +7,23 @@
   ],
   "input_gasses": {
     "vs_clockwork:stellane": {
-      "amount": 0.002,
-      "unit": "kg"
+      "amount": 66.6666666667,
+      "unit": "g"
     },
 	"vs_clockwork:vitriol": {
-      "amount": 0.001,
-      "unit": "kg"
+      "amount": 33.3333333333,
+      "unit": "g"
     }
   },
   "result_gasses": {
     "vs_clockwork:phlogiston": {
-      "amount": 0.003,
-      "unit": "kg"
+      "amount": 100,
+      "unit": "g"
     }
   },
   "results": [],
   "requirements": {
     "kelvin:min_temperature": 900.0
   },
-  "energy": 1000
+  "energy": 33333
 }

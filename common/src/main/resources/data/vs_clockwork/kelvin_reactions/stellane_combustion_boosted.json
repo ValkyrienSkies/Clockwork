@@ -11,12 +11,12 @@
   },
   "requirements": {
     "kelvin:min_temperature": 500,
-    "kelvin:max_temperature": 1750
+    "kelvin:max_temperature": 1450
   },
-  "energy": 150000,
+  "energy": 488900,
   "result_gasses": {
     "vs_clockwork:steam": {
-      "amount": 0.04,
+      "amount": 0.28,
       "unit": "kg"
     }
   }

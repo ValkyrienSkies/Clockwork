@@ -75,6 +75,7 @@ import org.valkyrienskies.clockwork.content.kinetics.universal_shaft.UniversalSh
 import org.valkyrienskies.clockwork.content.kinetics.universal_shaft.UniversalShaftRenderer
 import org.valkyrienskies.clockwork.content.logistics.gas.backtank.GasBacktankBlockEntity
 import org.valkyrienskies.clockwork.content.logistics.gas.crafter.GasCrafterBlockEntity
+import org.valkyrienskies.clockwork.content.logistics.gas.combustor.GasCombustorBlockEntity
 import org.valkyrienskies.clockwork.content.logistics.gas.crafter.GasCrafterBlockEntityRenderer
 import org.valkyrienskies.clockwork.content.logistics.gas.duct.DuctBlockEntity
 import org.valkyrienskies.clockwork.content.logistics.gas.duct.DuctRenderer
@@ -84,6 +85,7 @@ import org.valkyrienskies.clockwork.content.logistics.gas.engine.SterlingEngineR
 import org.valkyrienskies.clockwork.content.logistics.gas.exhaust.ExhaustBlockEntity
 import org.valkyrienskies.clockwork.content.logistics.gas.generation.coal_burner.CoalBurnerBlockEntity
 import org.valkyrienskies.clockwork.content.logistics.gas.generation.compressor.AirCompressorBlockEntity
+import org.valkyrienskies.clockwork.content.logistics.gas.generation.intake.AirIntakeBlockEntity
 import org.valkyrienskies.clockwork.content.logistics.gas.generation.compressor.AirCompressorRenderer
 import org.valkyrienskies.clockwork.content.logistics.gas.generation.creative_generator.CreativeGeneratorBlockEntity
 import org.valkyrienskies.clockwork.content.logistics.gas.generation.steam_generator.SteamGeneratorBlockEntity
@@ -95,9 +97,11 @@ import org.valkyrienskies.clockwork.content.logistics.gas.hoseport.HosePortBlock
 import org.valkyrienskies.clockwork.content.logistics.gas.pockets.nozzle.GasNozzleBlockEntity
 import org.valkyrienskies.clockwork.content.logistics.gas.pockets.nozzle.GasNozzleRenderer
 import org.valkyrienskies.clockwork.content.logistics.gas.pump.PumpDuctBlockEntity
+import org.valkyrienskies.clockwork.content.logistics.gas.pump.OzoniteGeneratorBlockEntity
 import org.valkyrienskies.clockwork.content.logistics.gas.pump.PumpDuctRenderer
 import org.valkyrienskies.clockwork.content.logistics.gas.redstone.RedstoneDuctBlockEntity
 import org.valkyrienskies.clockwork.content.logistics.gas.storage.tank.DuctTankBlockEntity
+import org.valkyrienskies.clockwork.content.logistics.gas.valve.SmartValveBlockEntity
 import org.valkyrienskies.clockwork.content.logistics.gas.valve.ValveDuctBlockEntity
 import org.valkyrienskies.clockwork.content.logistics.gas.valve.ValveDuctRenderer
 import org.valkyrienskies.clockwork.content.logistics.gas.valve.ValveDuctVisual
@@ -550,18 +554,18 @@ object ClockworkBlockEntities {
     @JvmField
     val PUMP_DUCT: BlockEntityEntry<PumpDuctBlockEntity> = (ClockworkMod.REGISTRATE
         .blockEntity("pump_duct") { type: BlockEntityType<*>, pos: BlockPos, state: BlockState ->
-            PumpDuctBlockEntity(
-                type,
-                pos,
-                state
-            )
+            if (state.`is`(ClockworkBlocks.OZONITE_GENERATOR.get())) {
+                OzoniteGeneratorBlockEntity(type, pos, state)
+            } else {
+                PumpDuctBlockEntity(type, pos, state)
+            }
         } as ClockworkBlockEntityBuilder)
         .clockworkVisual {
             ClockworkSimpleBlockEntityVisualFactory { ctx, blockEntity, partialTick ->
                 SingleAxisRotatingVisual(ctx, blockEntity, partialTick, Direction.SOUTH, Models.partial(AllPartialModels.MECHANICAL_PUMP_COG))
             }
         }
-        .validBlocks(ClockworkBlocks.PUMP_DUCT)
+        .validBlocks(ClockworkBlocks.PUMP_DUCT, ClockworkBlocks.SMART_GAS_PUMP, ClockworkBlocks.OZONITE_GENERATOR)
         .renderer {
             NonNullFunction { context: BlockEntityRendererProvider.Context? ->
                 PumpDuctRenderer(
@@ -570,6 +574,16 @@ object ClockworkBlockEntities {
             }
         }
         .register()
+
+    @JvmField
+    val GAS_COMBUSTOR: BlockEntityEntry<GasCombustorBlockEntity> =
+        ClockworkMod.REGISTRATE.blockEntity("gas_combustor", ::GasCombustorBlockEntity)
+        .validBlocks(ClockworkBlocks.GAS_COMBUSTOR).register()
+
+    @JvmField
+    val SMART_VALVE: BlockEntityEntry<SmartValveBlockEntity> =
+        ClockworkMod.REGISTRATE.blockEntity("smart_valve", ::SmartValveBlockEntity)
+        .validBlocks(ClockworkBlocks.SMART_VALVE).register()
 
     @JvmField
     val REDSTONE_DUCT: BlockEntityEntry<RedstoneDuctBlockEntity> = ClockworkMod.REGISTRATE
@@ -661,6 +675,11 @@ object ClockworkBlockEntities {
             }
         }
         .register()
+
+    @JvmField
+    val AIR_INTAKE: BlockEntityEntry<AirIntakeBlockEntity> =
+        ClockworkMod.REGISTRATE.blockEntity("air_intake", ::AirIntakeBlockEntity)
+            .validBlocks(ClockworkBlocks.AIR_INTAKE).register()
 
     @JvmField
     val GAS_NOZZLE: BlockEntityEntry<GasNozzleBlockEntity> = ClockworkMod.REGISTRATE

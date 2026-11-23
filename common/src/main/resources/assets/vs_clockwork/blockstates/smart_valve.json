@@ -1,0 +1,19 @@
+{
+  "variants": {
+    "facing=north": {
+      "model": "vs_clockwork:block/smart_valve"
+    },
+    "facing=east": {
+      "model": "vs_clockwork:block/smart_valve",
+      "y": 90
+    },
+    "facing=south": {
+      "model": "vs_clockwork:block/smart_valve",
+      "y": 180
+    },
+    "facing=west": {
+      "model": "vs_clockwork:block/smart_valve",
+      "y": 270
+    }
+  }
+}

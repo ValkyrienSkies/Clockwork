@@ -39,6 +39,7 @@ import org.joml.Vector3d
 import org.valkyrienskies.clockwork.ClockworkBlockEntities
 import org.valkyrienskies.clockwork.ClockworkConfig
 import org.valkyrienskies.clockwork.ClockworkMod
+import org.valkyrienskies.clockwork.content.logistics.gas.MeteredGasInlet
 import org.valkyrienskies.clockwork.ClockworkModClient
 import org.valkyrienskies.clockwork.ClockworkSoundScapes
 import org.valkyrienskies.clockwork.content.curiosities.tools.screwdriver.IScrewdrivable
@@ -216,7 +217,8 @@ class DuctBlock(properties: Properties) : Block(properties), INodeBlock, IDuct, 
             otherConnected =
                 (neighborState.block as INodeBlock).canConnectTo(neighborPos, currentPos, direction.opposite, level)
 
-        otherConnected = otherConnected || isConnectedEdgeBlock
+        val meteredInlet = (neighborState.block as? MeteredGasInlet)?.isMeteredInlet(neighborState, direction.opposite) == true
+        otherConnected = otherConnected || isConnectedEdgeBlock || meteredInlet
 
         val finalConnection: DuctConnectionType = when {
             temp && (!otherConnected || forced) -> DuctConnectionType.TEMP_ON
@@ -245,7 +247,9 @@ class DuctBlock(properties: Properties) : Block(properties), INodeBlock, IDuct, 
             return finalConnection
         }
         val storedType = blockEntity.DIR_TO_CONNECTION_TYPE[direction] ?: DuctEdgeType.PIPE
-        val connectionType = if (finalConnection.isConnected) (if (storedType != DuctEdgeType.NONE) storedType else DuctEdgeType.PIPE) else DuctEdgeType.NONE
+        val connectionType = if (finalConnection.isConnected && !meteredInlet) {
+            if (storedType != DuctEdgeType.NONE) storedType else DuctEdgeType.PIPE
+        } else DuctEdgeType.NONE
 
         //if (type != finalConnection)
         blockEntity.setEdgeType(direction, neighborDuctNodePos, connectionType, clientPacket = false, silent = false, forced = true)

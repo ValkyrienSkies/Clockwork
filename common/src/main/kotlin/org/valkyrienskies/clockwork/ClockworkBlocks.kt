@@ -80,12 +80,15 @@ import org.valkyrienskies.clockwork.content.kinetics.combobulator.ThinkableRelay
 import org.valkyrienskies.clockwork.content.kinetics.universal_shaft.UniversalShaftBlock
 import org.valkyrienskies.clockwork.content.logistics.gas.backtank.GasBacktankBlock
 import org.valkyrienskies.clockwork.content.logistics.gas.crafter.GasCrafterBlock
+import org.valkyrienskies.clockwork.content.logistics.gas.GasProcessorBlock
+import org.valkyrienskies.clockwork.content.logistics.gas.combustor.GasCombustorBlockEntity
 import org.valkyrienskies.clockwork.content.logistics.gas.duct.DuctBlock
 import org.valkyrienskies.clockwork.content.logistics.gas.engine.GasEngineBlock
 import org.valkyrienskies.clockwork.content.logistics.gas.engine.SterlingEngineBlock
 import org.valkyrienskies.clockwork.content.logistics.gas.exhaust.ExhaustBlock
 import org.valkyrienskies.clockwork.content.logistics.gas.generation.coal_burner.CoalBurnerBlock
 import org.valkyrienskies.clockwork.content.logistics.gas.generation.compressor.AirCompressorBlock
+import org.valkyrienskies.clockwork.content.logistics.gas.generation.intake.AirIntakeBlock
 import org.valkyrienskies.clockwork.content.logistics.gas.generation.creative_generator.CreativeGeneratorBlock
 import org.valkyrienskies.clockwork.content.logistics.gas.generation.steam_generator.SteamGeneratorBlock
 import org.valkyrienskies.clockwork.content.logistics.gas.heater.GasHeaterBlock
@@ -97,6 +100,7 @@ import org.valkyrienskies.clockwork.content.logistics.gas.pump.PumpDuctBlock
 import org.valkyrienskies.clockwork.content.logistics.gas.redstone.RedstoneDuctBlock
 import org.valkyrienskies.clockwork.content.logistics.gas.storage.tank.DuctTankBlock
 import org.valkyrienskies.clockwork.content.logistics.gas.storage.tank.DuctTankModel
+import org.valkyrienskies.clockwork.content.logistics.gas.valve.SmartValveBlockEntity
 import org.valkyrienskies.clockwork.content.logistics.gas.valve.ValveDuctBlock
 import org.valkyrienskies.clockwork.content.logistics.solid.delivery.cannon.DeliveryCannonBlock
 import org.valkyrienskies.clockwork.content.logistics.solid.delivery.chute.DeliveryChuteBlock
@@ -637,6 +641,14 @@ object ClockworkBlocks {
         .register()
 
     @JvmField
+    val AIR_INTAKE: BlockEntry<AirIntakeBlock> =
+        REGISTRATE.block("air_intake") { p: BlockBehaviour.Properties -> AirIntakeBlock(p) }
+            .initialProperties { SharedProperties.netheriteMetal() }
+            .properties { it.noOcclusion() }
+            .transform(displaySource(ClockworkDisplaySources.KNODE))
+            .item().tab(ClockworkMod.GAS_CREATIVE_TABINFO).build().register()
+
+    @JvmField
     val PUMP_DUCT: BlockEntry<PumpDuctBlock> = REGISTRATE.block(
         "pump_duct"
     ) { properties: BlockBehaviour.Properties? ->
@@ -653,6 +665,43 @@ object ClockworkBlocks {
         .transform(customItemModel())
         .transform(ClockworkStress.setImpact(4.0))
         .register()
+
+    @JvmField
+    val SMART_GAS_PUMP = REGISTRATE.block("smart_gas_pump") { p: BlockBehaviour.Properties ->
+        PumpDuctBlock(p, PumpDuctBlock.Mode.SMART)
+    }.initialProperties { SharedProperties.netheriteMetal() }
+        .properties { it.noOcclusion() }
+        .addLayer { Supplier { RenderType.cutoutMipped() } }
+        .transform(ClockworkStress.setImpact(16.0))
+        .transform(displaySource(ClockworkDisplaySources.KNODE))
+        .tag(AllTags.AllBlockTags.SAFE_NBT.tag)
+        .item().tab(ClockworkMod.GAS_CREATIVE_TABINFO).build().register()
+
+    @JvmField
+    val SMART_VALVE: BlockEntry<GasProcessorBlock<SmartValveBlockEntity>> = REGISTRATE.block("smart_valve") { p: BlockBehaviour.Properties ->
+        GasProcessorBlock(p, SmartValveBlockEntity::class.java) { ClockworkBlockEntities.SMART_VALVE.get() }
+    }.initialProperties { SharedProperties.netheriteMetal() }
+        .transform(displaySource(ClockworkDisplaySources.KNODE))
+        .tag(AllTags.AllBlockTags.SAFE_NBT.tag)
+        .item().tab(ClockworkMod.GAS_CREATIVE_TABINFO).build().register()
+
+    @JvmField
+    val OZONITE_GENERATOR = REGISTRATE.block("ozonite_generator") { p: BlockBehaviour.Properties ->
+        PumpDuctBlock(p, PumpDuctBlock.Mode.OZONITE)
+    }.initialProperties { SharedProperties.netheriteMetal() }
+        .properties { it.noOcclusion() }
+        .addLayer { Supplier { RenderType.cutoutMipped() } }
+        .transform(ClockworkStress.setImpact(8.0))
+        .transform(displaySource(ClockworkDisplaySources.KNODE))
+        .item().tab(ClockworkMod.GAS_CREATIVE_TABINFO).build().register()
+
+    @JvmField
+    val GAS_COMBUSTOR: BlockEntry<GasProcessorBlock<GasCombustorBlockEntity>> = REGISTRATE.block("gas_combustor") { p: BlockBehaviour.Properties ->
+        GasProcessorBlock(p, GasCombustorBlockEntity::class.java, hasOxidizerInlet = true) { ClockworkBlockEntities.GAS_COMBUSTOR.get() }
+    }.initialProperties { SharedProperties.netheriteMetal() }
+        .transform(displaySource(ClockworkDisplaySources.KNODE))
+        .tag(AllTags.AllBlockTags.SAFE_NBT.tag)
+        .item().tab(ClockworkMod.GAS_CREATIVE_TABINFO).build().register()
 
     @JvmField
     val REDSTONE_DUCT: BlockEntry<RedstoneDuctBlock> = REGISTRATE.block(

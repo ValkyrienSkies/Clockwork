@@ -1,0 +1,25 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "ICI",
+    "PB ",
+    "ICI"
+  ],
+  "key": {
+    "I": {
+      "item": "create:iron_sheet"
+    },
+    "C": {
+      "item": "create:industrial_iron_block"
+    },
+    "P": {
+      "item": "vs_clockwork:duct"
+    },
+    "B": {
+      "item": "vs_clockwork:coal_burner"
+    }
+  },
+  "result": {
+    "item": "vs_clockwork:gas_combustor"
+  }
+}

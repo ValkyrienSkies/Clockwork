@@ -1,13 +1,18 @@
 package org.valkyrienskies.clockwork.content.physicalities.gas_thruster
 
 import com.simibubi.create.foundation.blockEntity.behaviour.BlockEntityBehaviour
+import com.simibubi.create.foundation.blockEntity.behaviour.ValueBoxTransform
+import com.simibubi.create.foundation.blockEntity.behaviour.scrollValue.ScrollValueBehaviour
 import net.minecraft.client.multiplayer.ClientLevel
 import net.minecraft.core.BlockPos
+import net.minecraft.core.Direction
 import net.minecraft.nbt.CompoundTag
+import net.minecraft.network.chat.Component
 import net.minecraft.resources.ResourceLocation
 import net.minecraft.world.level.block.entity.BlockEntityType
 import net.minecraft.world.level.block.state.BlockState
 import net.minecraft.world.level.block.state.properties.BlockStateProperties
+import net.minecraft.world.phys.Vec3
 import org.valkyrienskies.clockwork.ClockworkConfig
 import org.valkyrienskies.clockwork.ClockworkMod
 import org.valkyrienskies.clockwork.content.curiosities.aeronaut.AeronautForceTelemetry
@@ -16,7 +21,6 @@ import org.valkyrienskies.clockwork.content.curiosities.aeronaut.AeronautForceAc
 import net.minecraft.server.level.ServerLevel
 import org.valkyrienskies.core.api.ships.LoadedServerShip
 import org.valkyrienskies.clockwork.ClockworkSoundScapes
-import org.valkyrienskies.clockwork.util.ClockworkConstants
 import org.valkyrienskies.clockwork.util.kelvin.KNodeBlockEntity
 import org.valkyrienskies.core.api.VsBeta
 import org.valkyrienskies.core.api.ships.PhysShip
@@ -36,6 +40,7 @@ import org.valkyrienskies.kelvin.util.KelvinExtensions.toDuctNodePos
 import org.valkyrienskies.mod.api.BlockEntityPhysicsListener
 import org.valkyrienskies.mod.api.dimensionId
 import org.valkyrienskies.mod.common.shipObjectWorld
+import org.valkyrienskies.mod.common.toWorldCoordinates
 import org.valkyrienskies.mod.common.util.toJOMLD
 import kotlin.math.*
 
@@ -45,6 +50,9 @@ class GasThrusterBlockEntity(type: BlockEntityType<*>?, pos: BlockPos, state: Bl
     companion object {
         private const val TICK_SECONDS = 0.05 // 20 game ticks per second
         private const val DISCHARGE_COEFFICIENT = 0.8
+        private const val NOZZLE_AREA_STEP = 0.001175
+        private const val DEFAULT_NOZZLE = 2
+        private const val MAX_NOZZLE = 16
     }
 
     @Volatile
@@ -56,6 +64,7 @@ class GasThrusterBlockEntity(type: BlockEntityType<*>?, pos: BlockPos, state: Bl
 
     val gasMassFlow = HashMap<GasType, Double>()
     val massPerParticle = 0.005
+    private lateinit var nozzle: ScrollValueBehaviour
 
     override fun write(tag: CompoundTag, clientPacket: Boolean) {
 
@@ -83,8 +92,16 @@ class GasThrusterBlockEntity(type: BlockEntityType<*>?, pos: BlockPos, state: Bl
 
     }
 
-    override fun addBehaviours(behaviours: MutableList<BlockEntityBehaviour>?) {
-        return
+    override fun addBehaviours(behaviours: MutableList<BlockEntityBehaviour>) {
+        nozzle = object : ScrollValueBehaviour(Component.translatable("vs_clockwork.gas_thruster.nozzle"), this, NozzleSlot()) {
+            override fun read(tag: CompoundTag, clientPacket: Boolean) {
+                super.read(tag, clientPacket)
+                value = if (tag.contains("ScrollValue")) value.coerceIn(1, MAX_NOZZLE) else DEFAULT_NOZZLE
+            }
+        }.between(1, MAX_NOZZLE).withFormatter { "${it * 1175} mm²" }
+        nozzle.setValue(DEFAULT_NOZZLE)
+        nozzle.requiresWrench()
+        behaviours.add(nozzle)
     }
 
     override fun getDuctNodePosition(): DuctNodePos {
@@ -146,9 +163,10 @@ class GasThrusterBlockEntity(type: BlockEntityType<*>?, pos: BlockPos, state: Bl
         val availableMass = gasMasses.values.sum()
         if (availableMass <= 0.0 || !availableMass.isFinite()) return clearMassFlow()
 
+        val worldPosition = currentLevel.toWorldCoordinates(blockPos.toJOMLD().add(0.5, 0.5, 0.5))
         val ambientPressure = (currentLevel.shipObjectWorld as? VsiServerShipWorld)
             ?.aerodynamicUtils
-            ?.getAirPressureForY(blockPos.y.toDouble(), currentLevel.dimensionId)
+            ?.getAirPressureForY(worldPosition.y, currentLevel.dimensionId)
             ?: return clearMassFlow()
         val chamberPressure = kelvin.getPressureAt(ductNodePos)
         val chamberTemperature = kelvin.getTemperatureAt(ductNodePos)
@@ -163,7 +181,7 @@ class GasThrusterBlockEntity(type: BlockEntityType<*>?, pos: BlockPos, state: Bl
             gamma <= 1.0 || specificGasConstant <= 0.0
         ) return clearMassFlow()
 
-        val nozzleArea = ClockworkConstants.Misc.DUCT_AREA
+        val nozzleArea = nozzle.value * NOZZLE_AREA_STEP
         if (!nozzleArea.isFinite() || nozzleArea <= 0.0) return clearMassFlow()
 
         val criticalRatio = (2.0 / (gamma + 1.0)).pow(gamma / (gamma - 1.0))
@@ -234,6 +252,10 @@ class GasThrusterBlockEntity(type: BlockEntityType<*>?, pos: BlockPos, state: Bl
             blockState.getValue(BlockStateProperties.FACING).normal.toJOMLD().mul(this.thrust))
     }
 
+    private class NozzleSlot : ValueBoxTransform.Sided() {
+        override fun isSideActive(state: BlockState, side: Direction): Boolean =
+            side.axis.isHorizontal && side.axis != state.getValue(BlockStateProperties.FACING).axis
 
-
+        override fun getSouthLocation() = Vec3(0.5, 0.5, 0.8)
+    }
 }

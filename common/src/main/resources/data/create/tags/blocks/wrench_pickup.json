@@ -2,6 +2,7 @@
   "replace": false,
   "values": [
     "vs_clockwork:air_compressor",
+    "vs_clockwork:air_intake",
     "vs_clockwork:alt_meter",
     "vs_clockwork:andesite_flap_bearing",
     "vs_clockwork:blade_controller",
@@ -26,6 +27,10 @@
     "vs_clockwork:heat_exchanger",
     "vs_clockwork:gas_nozzle",
     "vs_clockwork:gas_thruster",
+    "vs_clockwork:gas_combustor",
+    "vs_clockwork:smart_gas_pump",
+    "vs_clockwork:smart_valve",
+    "vs_clockwork:ozonite_generator",
     "vs_clockwork:gyro",
     "vs_clockwork:gyroscopic_sensor",
     "vs_clockwork:impact_sensor",

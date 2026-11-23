@@ -34,7 +34,7 @@ object ClockworkGasses {
     val HYDROGEN = GasType("Stellane",ClockworkMod.asResource( "stellane"),  density = 0.08988, viscosity = 0.88e-5, specificHeatCapacity = 14.30,
         thermalConductivity = 0.18, sutherlandConstant = 72.0, adiabaticIndex = 1.4, iconLocation = getIcon("stellane"))
     val METHANE = GasType("Bog",ClockworkMod.asResource( "bog"),  density = 0.657, viscosity = 1.10e-5, specificHeatCapacity = 2.2,
-        thermalConductivity = 0.031, sutherlandConstant = 90.0, adiabaticIndex = 16.0, iconLocation = getIcon("bog"))
+        thermalConductivity = 0.031, sutherlandConstant = 90.0, adiabaticIndex = 1.3, iconLocation = getIcon("bog"))
 
     val VITRIOL = GasType("Vitriol", ClockworkMod.asResource( "vitriol"), density = 2.2, viscosity = 2.0e-5, specificHeatCapacity = 8.0,
         thermalConductivity = 0.16, sutherlandConstant = 68.4, adiabaticIndex = 1.008, getIcon("vitriol"))

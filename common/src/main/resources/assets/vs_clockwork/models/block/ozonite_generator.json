@@ -1,0 +1,7 @@
+{
+  "parent": "vs_clockwork:block/pump/block",
+  "textures": {
+    "0": "minecraft:block/oxidized_cut_copper",
+    "particle": "minecraft:block/oxidized_cut_copper"
+  }
+}
