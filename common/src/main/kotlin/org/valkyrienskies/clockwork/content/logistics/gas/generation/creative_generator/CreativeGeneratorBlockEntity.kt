@@ -19,7 +19,7 @@ class CreativeGeneratorBlockEntity(type: BlockEntityType<*>, pos: BlockPos, stat
 
 
 
-    var gasValues: HashMap<GasType, Int> = HashMap(GasTypeRegistry.GAS_TYPES.values.associateWith { 0 }) // This makes an EnumMap of all 0s
+    var gasValues: HashMap<GasType, Int> = HashMap(GasTypeRegistry.getGasTypes().associateWith { 0 }) // This makes an EnumMap of all 0s
     var temperature: Double = 0.0
 
 

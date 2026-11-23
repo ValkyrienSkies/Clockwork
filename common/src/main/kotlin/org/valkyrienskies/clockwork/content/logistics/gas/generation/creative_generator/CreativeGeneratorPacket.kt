@@ -16,7 +16,7 @@ class CreativeGeneratorPacket(var gasValues: HashMap<GasType, Int>, var temperat
     constructor(buffer: FriendlyByteBuf) : this(
 
         (buffer.readNbt() ?: CompoundTag()).let {
-            val map: HashMap<GasType, Int> = HashMap(GasTypeRegistry.GAS_TYPES.values.associateWith { 0 })
+            val map: HashMap<GasType, Int> = HashMap(GasTypeRegistry.getGasTypes().associateWith { 0 })
             for (key in it.allKeys) {
                 val id = ResourceLocation.tryParse(key) ?: continue
                 val gas = GasTypeRegistry.getGasType(id) ?: continue
@@ -36,7 +36,7 @@ class CreativeGeneratorPacket(var gasValues: HashMap<GasType, Int>, var temperat
             if (!level.hasChunkAt(blockPos)) return@enqueueWork
             val be = level.getBlockEntity(blockPos) as? CreativeGeneratorBlockEntity ?: return@enqueueWork
             if (!temperature.isFinite()) return@enqueueWork
-            be.gasValues = HashMap(GasTypeRegistry.GAS_TYPES.values.associateWith { (gasValues[it] ?: 0).coerceIn(0, 8000) })
+            be.gasValues = HashMap(GasTypeRegistry.getGasTypes().associateWith { (gasValues[it] ?: 0).coerceIn(0, 8000) })
             be.temperature = temperature.coerceIn(0.0, 2000.0)
             be.notifyUpdate()
         }

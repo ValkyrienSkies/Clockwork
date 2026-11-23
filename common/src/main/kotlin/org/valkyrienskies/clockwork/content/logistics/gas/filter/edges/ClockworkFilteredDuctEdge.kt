@@ -50,6 +50,7 @@ class ClockworkFilteredDuctEdge(
 
         val set = HashSet<GasType>()
         for (str in filtered.split(" ")) {
+            if (str.isBlank()) continue
             val type = GasTypeRegistry.getGasType(ResourceLocation(str.trim())) ?: continue
             set.add(type)
         }

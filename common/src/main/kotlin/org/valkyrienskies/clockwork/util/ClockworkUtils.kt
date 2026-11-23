@@ -297,7 +297,7 @@ object ClockworkUtils {
 
     fun retrieveGasInfoFromPocket(pos: Vector3ic, level: ServerLevel): Pair<HashMap<GasType, Double>, Double> {
         val gasMap = HashMap<GasType, Double>()
-        for (type in GasTypeRegistry.GAS_TYPES.values) {
+        for (type in GasTypeRegistry.getGasTypes()) {
             val key = ClockworkAugmentations.getComponentAugmentation("gas/" + type.resourceLocation.toString())
             val gas = level.shipObjectWorld.getAirComponentAugmentation(key, pos.x(), pos.y(), pos.z(), level.dimensionId)
             if (gas.isNaN() || gas < 0.0001) continue

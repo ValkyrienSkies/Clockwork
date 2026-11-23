@@ -159,7 +159,7 @@ class GasBacktankBlock(properties: Properties) : HorizontalDirectionalBlock(prop
         for (gasResourceLocation in tag.allKeys) {
             if (":" !in gasResourceLocation) continue
 
-            val gasType = GasTypeRegistry.GAS_TYPES[ResourceLocation(gasResourceLocation)] ?: continue
+            val gasType = GasTypeRegistry.getGasType(ResourceLocation(gasResourceLocation)) ?: continue
             // Extremely stupid fix. TODO: Figure out why this is needed
             //network.modGasMass(pos,gasType,tag.getDouble(gasResourceLocation))
             //network.modGasMass(pos,gasType,tag.getDouble(gasResourceLocation))

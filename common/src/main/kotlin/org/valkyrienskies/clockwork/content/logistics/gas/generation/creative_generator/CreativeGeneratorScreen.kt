@@ -10,7 +10,7 @@ import org.valkyrienskies.clockwork.ClockworkPackets
 import org.valkyrienskies.kelvin.impl.registry.GasTypeRegistry
 
 class CreativeGeneratorScreen(private val be: CreativeGeneratorBlockEntity) : AbstractSimiScreen(Component.translatable("block.vs_clockwork.creative_gas_generator")) {
-    private val gasValues = HashMap(GasTypeRegistry.GAS_TYPES.values.associateWith { (be.gasValues[it] ?: 0).coerceIn(0, MAX_GAS) })
+    private val gasValues = HashMap(GasTypeRegistry.getGasTypes().associateWith { (be.gasValues[it] ?: 0).coerceIn(0, MAX_GAS) })
     private var temperature = be.temperature.toInt().coerceIn(0, MAX_TEMPERATURE)
     private lateinit var gasList: CreativeGeneratorScrolling
     private lateinit var temperatureInput: CreativeGeneratorValueInput

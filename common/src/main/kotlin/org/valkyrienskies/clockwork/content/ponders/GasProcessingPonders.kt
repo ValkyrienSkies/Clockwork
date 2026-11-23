@@ -10,7 +10,6 @@ import net.createmod.ponder.api.scene.SceneBuilder
 import net.createmod.ponder.api.scene.SceneBuildingUtil
 import net.minecraft.core.BlockPos
 import net.minecraft.core.Direction
-import net.minecraft.resources.ResourceLocation
 import net.minecraft.world.item.ItemStack
 import net.minecraft.world.item.Items
 import org.valkyrienskies.clockwork.ClockworkGasses
@@ -192,7 +191,7 @@ object GasProcessingPonders {
             .pointAt(util.vector().topOf(bogSource)).placeNearTarget()
         scene.idle(115)
         scene.world().showSection(util.select().position(airSource), Direction.SOUTH)
-        val air = GasTypeRegistry.GAS_TYPES.getValue(ResourceLocation("kelvin", "air"))
+        val air = GasTypeRegistry.getGasType("kelvin", "air")!!
         scene.world().modifyBlockEntity(airSource, CreativeGeneratorBlockEntity::class.java) {
             it.gasValues[air] = 60
             it.temperature = 300.0

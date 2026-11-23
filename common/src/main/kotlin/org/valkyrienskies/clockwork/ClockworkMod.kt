@@ -175,7 +175,7 @@ object ClockworkMod {
         LifecycleEvent.SERVER_STARTED.register {
             ClockworkAugmentations.registerComponentAvgAugmentation("heatEnergy", it.shipObjectWorld)
             ClockworkAugmentations.registerComponentAvgAugmentation("pressure", it.shipObjectWorld)
-            for (gas in GasTypeRegistry.GAS_TYPES.values) {
+            for (gas in GasTypeRegistry.getGasTypes()) {
                 ClockworkAugmentations.registerComponentAvgAugmentation("gas/${gas.resourceLocation}", it.shipObjectWorld)
             }
             //println("augments ${ClockworkAugmentations.componentAugmentKeys}")

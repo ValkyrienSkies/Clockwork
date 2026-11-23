@@ -9,7 +9,6 @@ import net.createmod.ponder.api.scene.SceneBuilder
 import net.createmod.ponder.api.scene.SceneBuildingUtil
 import net.minecraft.core.BlockPos
 import net.minecraft.core.Direction
-import net.minecraft.resources.ResourceLocation
 import net.minecraft.world.level.block.Blocks
 import org.valkyrienskies.clockwork.ClockworkBlocks
 import org.valkyrienskies.clockwork.ClockworkConfig
@@ -176,7 +175,7 @@ object GasMachineryPonders {
         scene.caption(util, intake, "Covering the intake stops the compressor, even while its shaft is turning", PonderPalette.RED)
         scene.world().destroyBlock(intake)
         scene.idle(25)
-        val air = GasTypeRegistry.GAS_TYPES.getValue(ResourceLocation("kelvin", "air"))
+        val air = GasTypeRegistry.getGasType("kelvin", "air")!!
         scene.caption(util, intake, "Altitude and dimension determine the intake temperature and how much of the gas is Air", gas = air)
         scene.caption(util, compressor, "In thin air the Compressor also collects Aether. In the Overworld, this starts around Y = 350", PonderPalette.OUTPUT, ClockworkGasses.HELIUM)
         scene.markAsFinished()

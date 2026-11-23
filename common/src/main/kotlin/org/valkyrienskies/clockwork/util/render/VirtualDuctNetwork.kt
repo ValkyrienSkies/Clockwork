@@ -105,8 +105,9 @@ class VirtualDuctNetwork(
         if (data.isEmpty) return
         val info = nodeInfo.getValue(pos)
         info.currentGasMasses.clear()
-        for ((id, gas) in GasTypeRegistry.GAS_TYPES) {
-            if (data.contains(id.toString())) info.currentGasMasses[gas] = data.getDouble(id.toString())
+        for (gas in GasTypeRegistry.getGasTypes()) {
+            val id = gas.resourceLocation.toString()
+            if (data.contains(id)) info.currentGasMasses[gas] = data.getDouble(id)
         }
         if (data.contains("KelvinTemperature")) info.currentTemperature = data.getDouble("KelvinTemperature")
         info.currentPressure = data.getDouble("KelvinPressure")
