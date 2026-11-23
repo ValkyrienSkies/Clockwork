@@ -21,6 +21,7 @@ import org.valkyrienskies.clockwork.content.forces.BalloonGeometry
 import org.valkyrienskies.clockwork.content.forces.BalloonThermodynamics
 import org.valkyrienskies.clockwork.content.logistics.gas.pockets.nozzle.LeakParticleData
 import org.valkyrienskies.core.api.ships.LoadedServerShip
+import org.valkyrienskies.kelvin.api.DuctNetwork
 import org.valkyrienskies.kelvin.api.GasType
 import org.valkyrienskies.kelvin.impl.registry.GasTypeRegistry
 import org.valkyrienskies.mod.api.positionToWorld
@@ -183,7 +184,38 @@ class BalloonData {
 
     fun tick(level: ServerLevel, ship: LoadedServerShip): Boolean {
         if (level.dimensionId != ship.chunkClaimDimension || enclosureStatus == EnclosureStatus.UNKNOWN) return false
-        if (isLeaking && leakPositions.isNotEmpty()) {
+        val y = ship.transform.positionToWorld(Vector3d(getCenter())).y
+        val atmosphere = level.shipObjectWorld.aerodynamicUtils
+        val density = atmosphere.getAirDensityForY(y, level.dimensionId)
+        val pressure = atmosphere.getAirPressureForY(y, level.dimensionId)
+        val temperature = atmosphere.getAirTemperatureForY(y, level.dimensionId)
+        val masses = resolvedMasses()
+        val air = GasTypeRegistry.getGasType("kelvin", "air") ?: return false
+        if (gasMasses.values.any { !it.isFinite() || it < 0.0 } || !BalloonThermodynamics.isValidState(masses, currentEnergy)) {
+            resetGas(air, density, temperature)
+            return false
+        }
+        val config = ClockworkConfig.SERVER.balloons
+        // holes can stick around after the gas stops flowing out
+        // check before stepping, since this tick might finish venting
+        val emitLeakEffects = isLeaking && leakPositions.isNotEmpty() && config.permeabilityConstant > 0.0 && run {
+            val internalTemperature = currentEnergy / BalloonThermodynamics.capacity(masses)
+            val moles = masses.entries.sumOf { (gas, mass) -> gas.massToMoles(mass) }
+            val pressureDelta = moles * DuctNetwork.idealGasConstant * internalTemperature / currentVolume - pressure
+            // ignore tiny pressure differences (0.1%, at least 1 Pa)
+            pressureDelta.isFinite() && pressureDelta > max(1.0, pressure * 0.001)
+        }
+        val energy = BalloonThermodynamics.step(masses, currentEnergy, currentVolume, air,
+            pressure, temperature, config.permeabilityConstant, config.heatTransferCoefficient,
+            config.leakHeatTransferMultiplier, missingExternalPositions)
+        if (!BalloonThermodynamics.isValidState(masses, energy)) {
+            resetGas(air, density, temperature)
+            return false
+        }
+        currentEnergy = energy
+        gasMasses.clear()
+        masses.forEach { (gas, mass) -> gasMasses[gas.resourceLocation.toString()] = mass }
+        if (emitLeakEffects) {
             val average = Vector3d()
             for (pos in leakPositions) {
                 val blockPos = BlockPos(pos.x(), pos.y(), pos.z())
@@ -199,28 +231,6 @@ class BalloonData {
             }
         }
         if (timeSinceLeakSound > 0) timeSinceLeakSound--
-        val y = ship.transform.positionToWorld(Vector3d(getCenter())).y
-        val atmosphere = level.shipObjectWorld.aerodynamicUtils
-        val density = atmosphere.getAirDensityForY(y, level.dimensionId)
-        val pressure = atmosphere.getAirPressureForY(y, level.dimensionId)
-        val temperature = atmosphere.getAirTemperatureForY(y, level.dimensionId)
-        val masses = resolvedMasses()
-        val air = GasTypeRegistry.getGasType("kelvin", "air") ?: return false
-        if (gasMasses.values.any { !it.isFinite() || it < 0.0 } || !BalloonThermodynamics.isValidState(masses, currentEnergy)) {
-            resetGas(air, density, temperature)
-            return false
-        }
-        val config = ClockworkConfig.SERVER.balloons
-        val energy = BalloonThermodynamics.step(masses, currentEnergy, currentVolume, air,
-            pressure, temperature, config.permeabilityConstant, config.heatTransferCoefficient,
-            config.leakHeatTransferMultiplier, missingExternalPositions)
-        if (!BalloonThermodynamics.isValidState(masses, energy)) {
-            resetGas(air, density, temperature)
-            return false
-        }
-        currentEnergy = energy
-        gasMasses.clear()
-        masses.forEach { (gas, mass) -> gasMasses[gas.resourceLocation.toString()] = mass }
         return true
     }
 
