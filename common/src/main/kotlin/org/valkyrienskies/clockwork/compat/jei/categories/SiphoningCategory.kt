@@ -59,9 +59,11 @@ class SiphoningCategory(private val helper: IGuiHelper) : IRecipeCategory<Siphon
             graphics.drawString(font, ClockworkLang.translateDirect("recipe.siphoning.$key", ClockworkLang.number(value)),
                 5, y, 0x404040, false)
         }
-        row("yield", recipe.massPerTick(64.0) * 1000.0, 83)
-        row("safe_speed", config.safeRpm, 95)
-        row("damage", config.damagePerExcessRpm, 107)
+        val interval = config.damageIntervalTicks.coerceAtLeast(1)
+        row("yield", recipe.massPerTick(64.0) * 1000.0, 80)
+        row("safe_speed", config.safeRpm, 89)
+        row("hit_damage", config.damagePerExcessRpm * interval, 98)
+        row("hit_interval", interval.toDouble(), 107)
     }
 
     companion object {

@@ -29,6 +29,7 @@ import org.valkyrienskies.kelvin.api.edges.PumpDuctEdge
 import org.valkyrienskies.kelvin.util.INodeBlock
 import org.valkyrienskies.kelvin.util.KelvinExtensions.toDuctNodePos
 import org.valkyrienskies.mod.common.toWorldCoordinates
+import java.util.UUID
 import kotlin.math.abs
 
 class SiphonHarpoonBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: BlockState) :
@@ -41,6 +42,9 @@ class SiphonHarpoonBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: B
     private var harvestedGas = ""
     private var kgPerTick = 0.0
     private var pumping = false
+    private var damageRopeId: UUID? = null
+    private var damageTicks = 0
+    private var pendingDamage = 0.0
 
     override fun getDuctNodePosition() = level?.let { blockPos.toDuctNodePos(it.dimension().location()) } ?: blockPos.toDuctNodePos()
 
@@ -113,14 +117,27 @@ class SiphonHarpoonBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: B
         val config = ClockworkConfig.SERVER.siphonHarpoon
         val mass = recipe.massPerTick(rpm)
         val added = mass > 0.0 && network.addGasAtTemperature(pos, recipe.gas, mass, config.gasTemperature)
-        if (added) setChanged()
         val damage = (rpm - config.safeRpm) * config.damagePerExcessRpm
-        if (damage > 0.0 && damage.isFinite()) {
-            val source = ClockworkDamageTypes.siphon(world.registryAccess())
-            val amount = damage.coerceAtMost(Float.MAX_VALUE.toDouble()).toFloat()
-            if (target is EnderDragon) target.hurt(target.head, source, amount) else target.hurt(source, amount)
-        }
+        val damaging = damage > 0.0 && damage.isFinite()
+        if (damaging) tickDamage(world, target, damage, config.damageIntervalTicks)
+        if (added || damaging) setChanged()
         return if (added) mass else 0.0
+    }
+
+    private fun tickDamage(world: ServerLevel, target: Entity, damage: Double, interval: Int) {
+        if (damageRopeId != ropeId) {
+            damageRopeId = ropeId
+            damageTicks = 0
+            pendingDamage = 0.0
+        }
+        pendingDamage = (pendingDamage + damage).coerceAtMost(Float.MAX_VALUE.toDouble())
+        damageTicks++
+        if (damageTicks < interval) return
+        val amount = pendingDamage.toFloat()
+        pendingDamage = 0.0
+        damageTicks = 0
+        val source = ClockworkDamageTypes.siphon(world.registryAccess())
+        if (target is EnderDragon) target.hurt(target.head, source, amount) else target.hurt(source, amount)
     }
 
     private fun updateReadout(gas: String, rate: Double, fromPump: Boolean) {
@@ -174,7 +191,12 @@ class SiphonHarpoonBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: B
             harvestedGas = tag.getString("HarvestGas")
             kgPerTick = tag.getDouble("GasPerTick")
             pumping = tag.getBoolean("Pumping")
-        } else readNodeData(level, tag)
+        } else {
+            readNodeData(level, tag)
+            damageRopeId = ropeId
+            damageTicks = tag.getInt("SiphonDamageTicks").coerceIn(0, Int.MAX_VALUE - 1)
+            pendingDamage = tag.getDouble("PendingSiphonDamage").takeIf { it in 0.0..Float.MAX_VALUE.toDouble() } ?: 0.0
+        }
     }
 
     override fun write(tag: CompoundTag, clientPacket: Boolean) {
@@ -183,7 +205,13 @@ class SiphonHarpoonBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: B
             tag.putString("HarvestGas", harvestedGas)
             tag.putDouble("GasPerTick", kgPerTick)
             tag.putBoolean("Pumping", pumping)
-        } else writeNodeData(level, tag)
+        } else {
+            writeNodeData(level, tag)
+            if (damageRopeId == ropeId && damageTicks > 0) {
+                tag.putInt("SiphonDamageTicks", damageTicks)
+                tag.putDouble("PendingSiphonDamage", pendingDamage)
+            }
+        }
     }
 
     override fun addAttachedTooltip(tooltip: MutableList<Component>, length: Double) {

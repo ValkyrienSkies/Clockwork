@@ -349,8 +349,11 @@ object ClockworkConfig {
         @ConfigEntry(description = "Maximum RPM for siphoning a creature without hurting it", min = 0.0)
         var safeRpm = 64.0
 
-        @ConfigEntry(description = "Damage per tick for each RPM above the safe speed", min = 0.0)
+        @ConfigEntry(description = "Damage accumulated per tick for each RPM above the safe speed", min = 0.0)
         var damagePerExcessRpm = 0.01
+
+        @ConfigEntry(description = "Ticks above the safe speed between damage hits on the attached creature", min = 1.0)
+        var damageIntervalTicks = 20
 
         @ConfigEntry(description = "Pressure added toward the launcher per RPM when pumping from a node, in Pa", min = 0.0)
         var pumpPressurePerRpm = 4000.0
