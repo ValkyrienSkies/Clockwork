@@ -2,9 +2,6 @@
   "type": "vs_clockwork:gas_crafting",
   "ingredients": [
     {
-      "item": "minecraft:paper"
-    },
-    {
       "fluid": "minecraft:water",
       "amount": 100
     }
