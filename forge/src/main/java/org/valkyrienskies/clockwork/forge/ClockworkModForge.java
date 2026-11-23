@@ -60,6 +60,7 @@ public class ClockworkModForge {
         ClockworkParticles.init();
         ClockworkBlocks.register();
         ClockworkItems.register();
+        ForgeClockworkFluids.register();
         ClockworkBlockEntities.register();
         ClockworkDisplaySources.register();
 

@@ -1,18 +1,20 @@
 package org.valkyrienskies.clockwork
 
-import dev.architectury.event.events.common.LifecycleEvent
 import dev.architectury.hooks.level.biome.BiomeProperties
 import dev.architectury.registry.level.biome.BiomeModifications
+import dev.architectury.registry.registries.DeferredRegister
 import net.minecraft.core.registries.Registries
 import net.minecraft.resources.ResourceKey
-import net.minecraft.resources.ResourceLocation
 import net.minecraft.tags.BiomeTags
 import net.minecraft.world.level.levelgen.GenerationStep
-import net.minecraft.world.level.levelgen.placement.PlacedFeature
+import org.valkyrienskies.clockwork.content.worldgen.TarPitFeature
 
 object ClockworkWorldgen {
-    fun register() {
+    private val FEATURES = DeferredRegister.create(ClockworkMod.MOD_ID, Registries.FEATURE)
+    val TAR_PIT = FEATURES.register("tar_pit") { TarPitFeature() }
 
+    fun register() {
+        FEATURES.register()
         BiomeModifications.addProperties { ctx: BiomeModifications.BiomeContext, mutable: BiomeProperties.Mutable ->
             if (ctx.hasTag(BiomeTags.IS_NETHER)) return@addProperties
 
@@ -20,8 +22,13 @@ object ClockworkWorldgen {
                 GenerationStep.Decoration.UNDERGROUND_ORES,
                 ResourceKey.create(Registries.PLACED_FEATURE, ClockworkMod.asResource("wanderlite_ore"))
             )
+
+            if (ctx.hasTag(BiomeTags.IS_OVERWORLD)) {
+                mutable.generationProperties.addFeature(
+                    GenerationStep.Decoration.LAKES,
+                    ResourceKey.create(Registries.PLACED_FEATURE, ClockworkMod.asResource("tar_pit"))
+                )
+            }
         }
-
     }
-
 }
