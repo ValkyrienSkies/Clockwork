@@ -68,7 +68,7 @@ import org.valkyrienskies.clockwork.util.gtpa
 import org.valkyrienskies.clockwork.util.universal_joint.IUniversalJoint
 import org.valkyrienskies.core.api.ships.ServerShip
 import org.valkyrienskies.kelvin.api.edges.FilteredEdge
-import org.valkyrienskies.kelvin.api.edges.SmartEdge
+import org.valkyrienskies.clockwork.content.logistics.gas.smart.ClockworkSmartEdge
 import org.valkyrienskies.kelvin.util.KelvinExtensions.toDuctNodePos
 import org.valkyrienskies.mod.common.assembly.ShipAssembler
 import org.valkyrienskies.mod.common.getShipManagingPos
@@ -525,7 +525,7 @@ class VdexFeatureGameTests {
                     val other = level.getBlockEntity(duct.blockPos.relative(direction)) as DuctBlockEntity
                     val settings = CompoundTag().apply {
                         if (type == DuctEdgeType.SMART) {
-                            putInt("filter", SmartEdge.FilterType.PRESSURE.ordinal)
+                            putInt("filter", ClockworkSmartEdge.FilterType.PRESSURE.ordinal)
                             putDouble("comparisonValue", 234567.0); putBoolean("moreThan", true)
                         } else {
                             putString("filtered", ClockworkGasses.HELIUM.resourceLocation.toString()); putBoolean("blacklist", true)
@@ -574,7 +574,7 @@ class VdexFeatureGameTests {
                 val edges = ClockworkMod.getKelvin(level).edges
                 val east = copiedDuct.blockPos.east().toDuctNodePos(level.dimension().location())
                 val west = copiedDuct.blockPos.west().toDuctNodePos(level.dimension().location())
-                val smartEdge = (edges[a to east] ?: edges[east to a]) as? SmartEdge
+                val smartEdge = (edges[a to east] ?: edges[east to a]) as? ClockworkSmartEdge
                 val filterEdge = (edges[a to west] ?: edges[west to a]) as? FilteredEdge
                 helper.assertTrue(smartEdge?.comparisonValue == 234567.0 && smartEdge.moreThan, "Smart duct did not apply its restored settings")
                 helper.assertTrue(filterEdge?.blacklist == true && filterEdge.filter.any { it.resourceLocation == ClockworkGasses.HELIUM.resourceLocation },

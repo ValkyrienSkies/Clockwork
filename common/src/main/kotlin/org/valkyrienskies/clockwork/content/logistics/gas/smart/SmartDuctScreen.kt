@@ -14,7 +14,7 @@ import org.valkyrienskies.clockwork.ClockworkLang
 import org.valkyrienskies.clockwork.ClockworkPackets
 import org.valkyrienskies.clockwork.util.gui.DuctTextUtil
 import org.valkyrienskies.kelvin.api.DuctNodePos
-import org.valkyrienskies.kelvin.api.edges.SmartEdge.FilterType
+import org.valkyrienskies.clockwork.content.logistics.gas.smart.ClockworkSmartEdge.FilterType
 import kotlin.math.sign
 
 

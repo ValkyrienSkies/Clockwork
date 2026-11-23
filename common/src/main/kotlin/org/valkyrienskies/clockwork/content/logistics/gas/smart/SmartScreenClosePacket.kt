@@ -11,7 +11,7 @@ import org.valkyrienskies.core.util.readVec3d
 import org.valkyrienskies.core.util.writeVec3d
 import org.valkyrienskies.kelvin.api.DuctEdge
 import org.valkyrienskies.kelvin.api.DuctNodePos
-import org.valkyrienskies.kelvin.api.edges.SmartEdge.FilterType
+import org.valkyrienskies.clockwork.content.logistics.gas.smart.ClockworkSmartEdge.FilterType
 import org.valkyrienskies.kelvin.util.KelvinExtensions.toDuctNodePos
 import org.valkyrienskies.kelvin.util.KelvinExtensions.toMinecraft
 import org.valkyrienskies.kelvin.util.KelvinExtensions.toVector3d
