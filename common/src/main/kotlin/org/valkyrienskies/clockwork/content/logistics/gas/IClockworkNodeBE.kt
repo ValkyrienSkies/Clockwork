@@ -5,7 +5,9 @@ import dev.architectury.platform.Platform
 import net.createmod.ponder.api.level.PonderLevel
 import net.minecraft.ChatFormatting
 import net.minecraft.client.Minecraft
+import net.minecraft.nbt.CompoundTag
 import net.minecraft.network.chat.Component
+import net.minecraft.world.level.Level
 import net.minecraft.world.level.block.entity.BlockEntity
 import org.valkyrienskies.clockwork.ClockworkConfig
 import org.valkyrienskies.clockwork.ClockworkLang
@@ -21,6 +23,33 @@ import kotlin.apply
 interface IClockworkNodeBE: INodeBlockEntity, IHaveGoggleInformation {
 
 
+    var dataToLoad: CompoundTag?
+
+    fun readNodeData(level: Level?, tag: CompoundTag) {
+        if (level == null || level.isClientSide || !ensureNodeExists()) {
+            dataToLoad = tag
+            if (level?.isClientSide == true && level is PonderLevel && level.scene != null) {
+                ClockworkModClient.getKelvin(level).queueUpdate(getDuctNodePosition().toMinecraft())
+            }
+        } else {
+            loadData(tag, getDuctNodePosition())
+            dataToLoad = null
+        }
+    }
+
+    fun writeNodeData(level: Level?, tag: CompoundTag) {
+        if (level == null || (level.isClientSide && level is PonderLevel)) {
+            val pending = dataToLoad?.get("kelvin_node_data")
+            if (pending != null) {
+                tag.put("kelvin_node_data", pending.copy())
+            } else if (level is PonderLevel) {
+                ClockworkModClient.ponderNetworks[level]?.saveNodeData(getDuctNodePosition(), tag)
+            }
+        } else if (ensureNodeExists()) {
+            saveData(tag, getDuctNodePosition())
+        }
+    }
+
     fun heatableGoggleTooltip(tooltip: MutableList<Component>, isPlayerSneaking: Boolean): Boolean {
         ClockworkLang.translate("gui.ductInfo.title").forGoggles(tooltip)
 
@@ -29,7 +58,7 @@ interface IClockworkNodeBE: INodeBlockEntity, IHaveGoggleInformation {
         val kelvin = if (beLevel is PonderLevel) ClockworkMod.getKelvin(beLevel)
             else if (Minecraft.getInstance().isLocalServer && Platform.isFabric()) ClockworkMod.getKelvin()
             else ClockworkModClient.getKelvin()
-        val blockStats = Minecraft.getInstance().level?.getBlockState(pos.toMinecraft())?.block as? IHaveDuctStats
+        val blockStats = beLevel?.getBlockState(pos.toMinecraft())?.block as? IHaveDuctStats
 
         var found = false
 

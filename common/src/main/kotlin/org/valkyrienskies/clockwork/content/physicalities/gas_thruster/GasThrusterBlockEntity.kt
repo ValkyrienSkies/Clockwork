@@ -1,7 +1,6 @@
 package org.valkyrienskies.clockwork.content.physicalities.gas_thruster
 
 import com.simibubi.create.foundation.blockEntity.behaviour.BlockEntityBehaviour
-import net.minecraft.client.multiplayer.ClientLevel
 import net.minecraft.core.BlockPos
 import net.minecraft.nbt.CompoundTag
 import net.minecraft.resources.ResourceLocation
@@ -27,12 +26,10 @@ import org.valkyrienskies.core.api.world.PhysLevel
 import org.valkyrienskies.core.api.world.properties.DimensionId
 import org.valkyrienskies.core.internal.world.VsiServerShipWorld
 import org.valkyrienskies.clockwork.util.kelvin.KelvinParticleHelper
-import org.valkyrienskies.kelvin.api.DuctNodePos
 import org.valkyrienskies.kelvin.api.GasType
 import org.valkyrienskies.kelvin.impl.registry.GasTypeRegistry
 import org.valkyrienskies.kelvin.util.GasPhysics
 import org.valkyrienskies.kelvin.util.GasPhysics.mixtureCapacity
-import org.valkyrienskies.kelvin.util.KelvinExtensions.toDuctNodePos
 import org.valkyrienskies.mod.api.BlockEntityPhysicsListener
 import org.valkyrienskies.mod.api.dimensionId
 import org.valkyrienskies.mod.common.shipObjectWorld
@@ -87,14 +84,8 @@ class GasThrusterBlockEntity(type: BlockEntityType<*>?, pos: BlockPos, state: Bl
         return
     }
 
-    override fun getDuctNodePosition(): DuctNodePos {
-        if (level != null && !level!!.isClientSide()) {
-            return blockPos.toDuctNodePos(level!!.dimension().location())
-        }
-        return blockPos.toDuctNodePos()
-    }
-
     fun clientTick() {
+        val level = level ?: return
         if (gasMassFlow.isEmpty() || velocity == 0.0) return
 
         // Handle audio
@@ -108,12 +99,12 @@ class GasThrusterBlockEntity(type: BlockEntityType<*>?, pos: BlockPos, state: Bl
         val outward = direction.opposite
         val speed = cbrt(abs(velocity)) / 50
         val center = blockPos.toJOMLD().add(0.5, 0.5, 0.5)
-        val ductNodePos = blockPos.toDuctNodePos(level!!.dimension().location())
+        val ductNodePos = getDuctNodePosition()
 
         for ((gas, mass) in gasMassFlow) {
             val particleCount = mass / massPerParticle
             KelvinParticleHelper.spawnJetForGas(
-                level as ClientLevel,
+                level,
                 ductNodePos,
                 gas,
                 center,

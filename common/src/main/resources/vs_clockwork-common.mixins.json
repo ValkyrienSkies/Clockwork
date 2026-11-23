@@ -98,6 +98,8 @@
     "MixinLevelRenderer",
     "MixinLocalPlayer",
     "client.MixinCamera",
+    "client.MixinPonderLevel",
+    "client.MixinPonderWorldParticles",
     "client.MixinFogRenderer",
     "client.MixinItemInHandRenderer",
     "client.SpriteContentsAccessor",

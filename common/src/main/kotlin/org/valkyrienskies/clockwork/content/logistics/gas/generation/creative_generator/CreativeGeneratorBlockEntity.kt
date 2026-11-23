@@ -7,13 +7,13 @@ import net.minecraft.resources.ResourceLocation
 import net.minecraft.world.level.block.entity.BlockEntityType
 import net.minecraft.world.level.block.state.BlockState
 import org.valkyrienskies.clockwork.ClockworkMod
+import org.valkyrienskies.clockwork.util.DuctNetworkUtils.simulatesGas
 import org.valkyrienskies.clockwork.util.kelvin.KNodeBlockEntity
 import org.valkyrienskies.kelvin.api.DuctNodePos
 import org.valkyrienskies.kelvin.api.GasType
 import org.valkyrienskies.kelvin.impl.registry.GasTypeRegistry
 import org.valkyrienskies.kelvin.util.KelvinExtensions.toDuctNodePos
 import kotlin.collections.HashMap
-import kotlin.math.max
 
 class CreativeGeneratorBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: BlockState) : KNodeBlockEntity(type, pos, state) {
 
@@ -25,23 +25,17 @@ class CreativeGeneratorBlockEntity(type: BlockEntityType<*>, pos: BlockPos, stat
 
     override fun tick() {
         super.tick()
-        if (level!!.isClientSide) return
+        val level = level ?: return
+        if (!level.simulatesGas) return
         val kelvin = ClockworkMod.getKelvin(level)
-        val node = kelvin.getNodeAt(blockPos.toDuctNodePos(level!!.dimension().location())) ?: return
-        val masses = kelvin.getGasMassAt(getDuctNodePosition())
-
-        for (gas in gasValues.keys) {
-            if (gasValues[gas] == 0 ) continue
-            val gasMass: Double
-            if (masses[gas] == null) gasMass = 0.0
-            else gasMass = masses[gas]!!
-            kelvin.addGasAtTemperature(getDuctNodePosition(), gas, max(gasValues[gas]!!/1000.0-gasMass, 0.0),temperature)
+        val pos = getDuctNodePosition()
+        if (kelvin.getNodeAt(pos) == null) return
+        val masses = kelvin.getGasMassAt(pos)
+        for ((gas, target) in gasValues) {
+            val missing = target / 1000.0 - (masses[gas] ?: 0.0)
+            if (missing > 0.0) kelvin.addGasAtTemperature(pos, gas, missing, temperature)
         }
-
-
     }
-
-
 
     override fun addBehaviours(behaviours: MutableList<BlockEntityBehaviour>?) {
         return

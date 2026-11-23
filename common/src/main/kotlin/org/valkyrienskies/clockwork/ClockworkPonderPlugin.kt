@@ -1,16 +1,26 @@
 package org.valkyrienskies.clockwork
 
 import com.tterrag.registrate.util.entry.RegistryEntry
+import net.createmod.ponder.api.level.PonderLevel
 import net.createmod.ponder.api.registration.PonderPlugin
 import net.createmod.ponder.api.registration.PonderSceneRegistrationHelper
 import net.createmod.ponder.api.registration.PonderTagRegistrationHelper
 import net.minecraft.network.chat.Component
 import net.minecraft.resources.ResourceLocation
+import org.valkyrienskies.kelvin.util.INodeBlock
 
 class ClockworkPonderPlugin : PonderPlugin {
 
     override fun getModId(): String {
         return ClockworkMod.MOD_ID
+    }
+
+    override fun onPonderLevelRestore(ponderLevel: PonderLevel) {
+        ClockworkModClient.ponderNetworks.remove(ponderLevel)
+        for ((pos, state) in ponderLevel.blockMap) {
+            if (state.block is INodeBlock) ClockworkModClient.getKelvin(ponderLevel).queueUpdate(pos.offset(ponderLevel.anchor))
+        }
+        ClockworkModClient.ponderNetworks[ponderLevel]?.updateBlocks(ponderLevel)
     }
 
     override fun registerScenes(helper: PonderSceneRegistrationHelper<ResourceLocation>) {

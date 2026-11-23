@@ -10,6 +10,7 @@ import net.minecraft.world.level.block.state.BlockState
 import org.valkyrienskies.clockwork.ClockworkConfig
 import org.valkyrienskies.clockwork.ClockworkMod
 import org.valkyrienskies.clockwork.content.logistics.gas.IConnectable
+import org.valkyrienskies.clockwork.util.DuctNetworkUtils.simulatesGas
 import org.valkyrienskies.clockwork.util.kelvin.KNodeBlockEntity
 import org.valkyrienskies.kelvin.util.INodeBlock
 import org.valkyrienskies.kelvin.util.INodeBlockEntity
@@ -47,7 +48,7 @@ class RadiatorBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: BlockS
     }
 
     override fun updateConnection(level: Level, blockPos: BlockPos, direction: Direction) {
-        if (level.isClientSide) return
+        if (!level.simulatesGas) return
         val neighbor = blockPos.relative(direction)
         if (!level.hasChunkAt(neighbor)) return
         val selfBlock = level.getBlockState(blockPos).block as? INodeBlock ?: return

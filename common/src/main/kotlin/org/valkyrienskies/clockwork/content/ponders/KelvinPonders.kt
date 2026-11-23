@@ -5,15 +5,15 @@ import com.simibubi.create.foundation.ponder.CreateSceneBuilder
 import net.createmod.catnip.math.Pointing
 import net.createmod.ponder.api.scene.SceneBuilder
 import net.createmod.ponder.api.scene.SceneBuildingUtil
-import net.createmod.ponder.foundation.PonderSceneBuilder
-import net.createmod.ponder.foundation.element.InputWindowElement
 import net.minecraft.core.Direction
 import net.minecraft.world.level.block.state.BlockState
+import org.valkyrienskies.clockwork.ClockworkGasses
 import org.valkyrienskies.clockwork.ClockworkItems
 import org.valkyrienskies.clockwork.content.logistics.gas.duct.DuctBlock
 import org.valkyrienskies.clockwork.content.logistics.gas.duct.DuctBlockEntity
 import org.valkyrienskies.clockwork.content.logistics.gas.duct.DuctConnectionType
 import org.valkyrienskies.clockwork.content.logistics.gas.duct.DuctEdgeType
+import org.valkyrienskies.clockwork.content.logistics.gas.generation.creative_generator.CreativeGeneratorBlockEntity
 
 object KelvinPonders {
     fun duct(sceneBuilder: SceneBuilder, util: SceneBuildingUtil) {
@@ -23,16 +23,25 @@ object KelvinPonders {
         scene.showBasePlate()
         scene.idle(10)
 
-
-
-        // Select the ducts in the schematic (Assuming a 3-long line of ducts in the center, from z=2 to z=4)
         val duct1 = util.grid().at(2, 1, 2)
         val duct2 = util.grid().at(2, 1, 3)
         val duct3 = util.grid().at(2, 1, 4)
         val ductGroup = util.select().fromTo(1, 1, 2, 3, 1, 4)
         val edgeVec = util.vector().centerOf(duct1).add(0.0, 0.0, 0.5)
 
+        fun setEdgeType(type: DuctEdgeType) {
+            scene.addInstruction { step ->
+                val first = step.world.getBlockEntity(duct1) as? DuctBlockEntity ?: return@addInstruction
+                val second = step.world.getBlockEntity(duct2) as? DuctBlockEntity ?: return@addInstruction
+                first.setEdgeType(Direction.SOUTH, second.getDuctNodePosition(), type, clientPacket = false)
+                second.DIR_TO_CONNECTION_TYPE[Direction.NORTH] = type
+            }
+        }
 
+        scene.world().modifyBlockEntity(util.grid().at(3, 1, 2), CreativeGeneratorBlockEntity::class.java) { generator ->
+            generator.gasValues[ClockworkGasses.STEAM] = 250
+            generator.temperature = 373.15
+        }
 
         // Drop the ducts into the scene
         scene.world().showSection(ductGroup, Direction.DOWN)
@@ -52,10 +61,6 @@ object KelvinPonders {
             .placeNearTarget()
 
         scene.idle(90)
-
-
-
-
 
         // Wrench mechanics
         scene.overlay().showControls(
@@ -102,8 +107,7 @@ object KelvinPonders {
             .attachKeyFrame()
             .pointAt(edgeVec)
 
-        scene.world().modifyBlockEntity(duct1, DuctBlockEntity::class.java) { be: DuctBlockEntity -> be.DIR_TO_CONNECTION_TYPE[Direction.SOUTH] = DuctEdgeType.ONEWAY_FORWARD }
-        scene.world().modifyBlockEntity(duct2, DuctBlockEntity::class.java) { be: DuctBlockEntity -> be.DIR_TO_CONNECTION_TYPE[Direction.NORTH] = DuctEdgeType.ONEWAY_BACKWARD }
+        setEdgeType(DuctEdgeType.ONEWAY_BACKWARD)
         scene.idle(40)
 
         scene.overlay().showText( 30)
@@ -112,8 +116,7 @@ object KelvinPonders {
             .pointAt(edgeVec)
 
         // Filtered
-        scene.world().modifyBlockEntity(duct1, DuctBlockEntity::class.java) { be: DuctBlockEntity -> be.DIR_TO_CONNECTION_TYPE[Direction.SOUTH] = DuctEdgeType.FILTERED }
-        scene.world().modifyBlockEntity(duct2, DuctBlockEntity::class.java) { be: DuctBlockEntity -> be.DIR_TO_CONNECTION_TYPE[Direction.NORTH] = DuctEdgeType.FILTERED }
+        setEdgeType(DuctEdgeType.FILTERED)
         scene.idle(40)
 
         // Smart
@@ -122,8 +125,7 @@ object KelvinPonders {
             .text("Smart")
             .attachKeyFrame()
             .pointAt(edgeVec)
-        scene.world().modifyBlockEntity(duct1, DuctBlockEntity::class.java) { be: DuctBlockEntity -> be.DIR_TO_CONNECTION_TYPE[Direction.SOUTH] = DuctEdgeType.SMART }
-        scene.world().modifyBlockEntity(duct2, DuctBlockEntity::class.java) { be: DuctBlockEntity -> be.DIR_TO_CONNECTION_TYPE[Direction.NORTH] = DuctEdgeType.SMART }
+        setEdgeType(DuctEdgeType.SMART)
         scene.idle(60)
 
         // Screwdriving

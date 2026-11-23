@@ -6,7 +6,6 @@ import net.fabricmc.api.EnvType
 import net.fabricmc.api.Environment
 import net.minecraft.ChatFormatting
 import net.minecraft.client.Minecraft
-import net.minecraft.client.multiplayer.ClientLevel
 import net.minecraft.core.BlockPos
 import net.minecraft.core.Direction
 import net.minecraft.nbt.CompoundTag
@@ -23,7 +22,6 @@ import org.valkyrienskies.clockwork.ClockworkAugmentations
 import org.valkyrienskies.clockwork.ClockworkConfig
 import org.valkyrienskies.clockwork.ClockworkLang
 import org.valkyrienskies.clockwork.ClockworkMod
-import org.valkyrienskies.clockwork.ClockworkModClient
 import org.valkyrienskies.clockwork.ClockworkSounds
 import org.valkyrienskies.clockwork.content.forces.BalloonController
 import org.valkyrienskies.clockwork.content.forces.BalloonThermodynamics
@@ -134,18 +132,19 @@ class GasNozzleBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: Block
 
         pointer.tickChaser()
 
-        if (level != null && level!!.isClientSide && hasPocket) {
-            val state = level!!.getBlockState(blockPos)
+        val clientLevel = level
+        if (clientLevel?.isClientSide == true && hasPocket) {
+            val state = clientLevel.getBlockState(blockPos)
             if (state.block !is GasNozzleBlock) return
             val facing = Direction.UP
-            val random = level!!.random
-            val network = ClockworkModClient.getKelvin()
+            val random = clientLevel.random
+            val network = ClockworkMod.getKelvin(clientLevel)
             val gasses = network.getGasMassAt(getDuctNodePosition())
             val pressure = network.getPressureAt(getDuctNodePosition())
             val MASS_PER_EXHAUST = 0.001
 
             for (i in 1..min(floor((gasses.values.sum()*pointer.value)/MASS_PER_EXHAUST).toInt(), 60)) {
-                KelvinParticleHelper.spawnParticleWithRatio(level as ClientLevel, getDuctNodePosition(),
+                KelvinParticleHelper.spawnParticleWithRatio(clientLevel, getDuctNodePosition(),
                     blockPos.toJOMLD().add(randomPos(0.3, random), randomPos(0.3, random), randomPos(0.3, random)),
                     facing.normal.toJOMLD().mul(Mth.clamp(0.0025 * pressure.pow(0.4), 0.1,5.0 )))
             }
