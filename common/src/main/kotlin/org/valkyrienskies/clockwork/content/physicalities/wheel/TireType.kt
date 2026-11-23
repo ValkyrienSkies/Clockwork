@@ -18,7 +18,23 @@ class TireType @JvmOverloads constructor(
     val driven: Boolean = true,
     val floating: Boolean = false,
     val carving: Boolean = false,
+    val maintenance: Maintenance = Maintenance(),
 ) {
+    data class Maintenance(
+        val wearRate: Double = 1.0,
+        val punctureResistance: Double = 1.0,
+        val patchMaterial: ResourceLocation? = null,
+        val repairsTread: Boolean = false,
+    ) {
+        init {
+            require(wearRate.isFinite() && wearRate >= 0)
+            require(punctureResistance > 0)
+            require(!repairsTread || patchMaterial != null)
+        }
+
+        val canPuncture get() = punctureResistance.isFinite()
+    }
+
     fun stepAssist(config: ClockworkConfig.Wheel): StepAssist = when {
         !config.wheelStepAssist -> StepAssist.NONE
         config.usesRoundedContact(id.toString()) -> StepAssist.ROUNDED_CONTACT
@@ -71,6 +87,7 @@ class TireType @JvmOverloads constructor(
     }
 
     companion object {
+        private val SOLID = Maintenance(0.0, Double.POSITIVE_INFINITY)
         val RUBBER = TireType(ResourceLocation(ClockworkMod.MOD_ID, "rubber"))
         val HONEY = TireType(ResourceLocation(ClockworkMod.MOD_ID, "honey"), physics = Physics(adhesion = 500_000.0),
             appearance = Appearance(mesh = Mesh.LAYERED,
@@ -78,37 +95,39 @@ class TireType @JvmOverloads constructor(
                 shellTexture = ResourceLocation("minecraft", "block/honey_block_bottom"), webs = true),
             rollingSound = ResourceLocation(ClockworkMod.MOD_ID, "driving_honey"),
             skidSound = ResourceLocation(ClockworkMod.MOD_ID, "tire_skid_honey"),
-            skidSmoke = false, raycastAssist = false)
+            skidSmoke = false, raycastAssist = false, maintenance = Maintenance(
+                patchMaterial = ResourceLocation("minecraft", "honey_block"), repairsTread = true))
         val FROST = TireType(ResourceLocation(ClockworkMod.MOD_ID, "frost"), physics = Physics(staticFriction = .025, dynamicFriction = .015,
             longitudinalStiffness = 30_000.0, lateralStiffness = 30_000.0, slidingGrip = .12, slipTransitionSpeed = .08),
             appearance = Appearance(treadTexture = ResourceLocation(ClockworkMod.MOD_ID, "textures/block/wheel/frost_tire.png")),
             rollingSound = ResourceLocation(ClockworkMod.MOD_ID, "driving_icy"),
             skidSound = ResourceLocation(ClockworkMod.MOD_ID, "tire_skid_icy"),
-            skidSmoke = false, raycastAssist = false)
+            skidSmoke = false, raycastAssist = false, maintenance = SOLID)
         val FLOAT = TireType(ResourceLocation(ClockworkMod.MOD_ID, "float"), physics = Physics(radialStiffness = 700_000.0, radialDamping = 95_000.0,
             staticFriction = .9, dynamicFriction = .7, massMultiplier = .5),
             appearance = Appearance(treadTexture = ResourceLocation(ClockworkMod.MOD_ID, "textures/block/wheel/float_tire.png"),
-                cleats = Cleats.PADDLES), floating = true)
+                cleats = Cleats.PADDLES), floating = true, maintenance = Maintenance(punctureResistance = .5))
         val WOOD = TireType(ResourceLocation(ClockworkMod.MOD_ID, "wood"), physics = Physics(compression = .015, radialStiffness = 40_000_000.0,
             radialDamping = 250_000.0, staticFriction = .8, dynamicFriction = .6),
             appearance = Appearance(treadTexture = ResourceLocation(ClockworkMod.MOD_ID, "textures/block/wheel/wooden/oak.png"),
                 innerTexture = ResourceLocation("minecraft", "block/oak_planks")),
-            rollingSound = ResourceLocation(ClockworkMod.MOD_ID, "driving_wood"), skidSmoke = false, raycastAssist = false, driven = false)
+            rollingSound = ResourceLocation(ClockworkMod.MOD_ID, "driving_wood"), skidSmoke = false, raycastAssist = false, driven = false, maintenance = SOLID)
         val CARVER = TireType(ResourceLocation(ClockworkMod.MOD_ID, "carver"), physics = Physics(compression = .06, radialStiffness = 8_000_000.0,
             radialDamping = 180_000.0, staticFriction = .6, dynamicFriction = .4, massMultiplier = 2.0),
             appearance = Appearance(treadTexture = ResourceLocation(ClockworkMod.MOD_ID, "textures/block/wheel/carver_tire.png"),
-                cleats = Cleats.TEETH), skidSmoke = false, raycastAssist = false, carving = true)
+                cleats = Cleats.TEETH), skidSmoke = false, raycastAssist = false, carving = true, maintenance = SOLID)
         val GOO = TireType(ResourceLocation(ClockworkMod.MOD_ID, "goo"), physics = Physics(radialStiffness = 650_000.0, radialDamping = 2_000.0,
             treadDamping = 1_000.0, restitution = .85),
             appearance = Appearance(mesh = Mesh.LAYERED, innerTexture = ResourceLocation(ClockworkMod.MOD_ID, "block/goo"),
                 shellTexture = ResourceLocation(ClockworkMod.MOD_ID, "block/gooborder")),
             rollingSound = ResourceLocation(ClockworkMod.MOD_ID, "driving_honey"),
             skidSound = ResourceLocation(ClockworkMod.MOD_ID, "tire_skid_honey"),
-            impactSound = ResourceLocation(ClockworkMod.MOD_ID, "boing"), skidSmoke = false, raycastAssist = false)
+            impactSound = ResourceLocation(ClockworkMod.MOD_ID, "boing"), skidSmoke = false, raycastAssist = false,
+            maintenance = Maintenance(.6, Double.POSITIVE_INFINITY, ResourceLocation(ClockworkMod.MOD_ID, "goo_block"), true))
         val GUMMY = TireType(ResourceLocation(ClockworkMod.MOD_ID, "gummy"), physics = Physics(compression = .9, radialStiffness = 650_000.0, radialDamping = 125_000.0,
             staticFriction = 2.6, dynamicFriction = 2.1, slidingGrip = .85),
             appearance = Appearance(treadTexture = ResourceLocation(ClockworkMod.MOD_ID, "textures/block/wheel/gummy_tire.png"),
-                cleats = Cleats.LUGS))
+                cleats = Cleats.LUGS), maintenance = Maintenance(punctureResistance = 2.0))
 
         internal val builtIns = listOf(RUBBER, HONEY, FROST, FLOAT, WOOD, CARVER, GOO, GUMMY)
 

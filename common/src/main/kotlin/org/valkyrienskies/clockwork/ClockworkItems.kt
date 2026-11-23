@@ -77,6 +77,10 @@ object ClockworkItems {
     val LARGE_HONEY_WHEEL = WHEELS.getValue(TireType.HONEY).getValue(WheelSize.LARGE)
 
     @JvmField
+    val TAR = REGISTRATE.item<Item>("tar") { Item(it!!) }
+        .tab(ClockworkMod.PHYSICAL_CREATIVE_TABINFO).model(AssetLookup.existingItemModel()).register()
+
+    @JvmField
     val AIR_PUMP = REGISTRATE.item<AirPumpItem>("air_pump") { AirPumpItem(it!!) }
         .properties { it.durability(256) }.tab(ClockworkMod.PHYSICAL_CREATIVE_TABINFO)
         .transform(ClockworkRegistrate.customRenderedItem { Supplier { AirPumpRenderer() } })

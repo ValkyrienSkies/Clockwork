@@ -42,6 +42,7 @@ import org.valkyrienskies.clockwork.util.BearingAttachmentGeometry
 import org.valkyrienskies.clockwork.util.findCompatiblePhysBearingJoint
 import org.valkyrienskies.clockwork.util.removeCompatiblePhysBearingJointsExcept
 import org.valkyrienskies.clockwork.util.GlueAssembler.collectGlued
+import org.valkyrienskies.clockwork.content.physicalities.steering.DrivingControlLinks
 import org.valkyrienskies.clockwork.util.gtpa
 import org.valkyrienskies.clockwork.util.updateJoint
 import org.valkyrienskies.core.api.attachment.getAttachment
@@ -122,6 +123,8 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
     private var lastSyncedJointId: VSJointId = jointId
 
     @Volatile
+    private var brakeAngle: Double? = null
+
     var targetAngle = 0f
         private set
 
@@ -553,7 +556,20 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
             sendData()
         }
 
+        if (joint == null) brakeAngle = null
         if (joint != null) {
+            val world = level as ServerLevel
+            if (DrivingControlLinks.get(world).braked(world, blockPos)) {
+                val angle = brakeAngle ?: getActualAngle()
+                if (angle != null) {
+                    brakeAngle = angle
+                    targetAngle = -Math.toDegrees(angle).toFloat()
+                    setLockedAngleGoal(targetAngle)
+                    updateControllerData()
+                    return
+                }
+            }
+            brakeAngle = null
             val steering = ThinkableConnections.input(level, blockPos, facing.opposite)
             val angularSpeed = if (steering != null && !aligning) {
                 thinkableAngleStep(targetAngle, steering.value, abs(convertToAngular(getSpeed())))
@@ -616,10 +632,10 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
             BearingData(
                 originalFacing.normal.toJOMLD(),
                 -Math.toRadians(targetAngle.toDouble()), // why negative here? idk but it breaks without it
-                if (aligning) 0.0f else getRealisticAngularSpeed(),
-                movementMode?.get() == LockedMode.LOCKED,
+                if (aligning || brakeAngle != null) 0.0f else getRealisticAngularSpeed(),
+                brakeAngle != null || movementMode?.get() == LockedMode.LOCKED,
                 false,
-                aligning,
+                aligning && brakeAngle == null,
                 thisShip,
                 joint.pose0.pos.get(Vector3d()),
                 joint.pose1.pos.get(Vector3d())

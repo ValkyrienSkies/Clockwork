@@ -14,6 +14,8 @@ import net.minecraft.gametest.framework.GameTest
 import net.minecraft.gametest.framework.GameTestHelper
 import net.minecraft.network.Connection
 import net.minecraft.nbt.CompoundTag
+import com.simibubi.create.content.equipment.clipboard.ClipboardCloneable
+import net.minecraft.nbt.Tag
 import net.minecraft.network.ConnectionProtocol
 import net.minecraft.network.FriendlyByteBuf
 import net.minecraft.network.PacketSendListener
@@ -25,6 +27,8 @@ import net.minecraft.server.level.ServerLevel
 import net.minecraft.server.level.ServerPlayer
 import net.minecraft.world.InteractionHand
 import net.minecraft.world.entity.EquipmentSlot
+import net.minecraft.world.entity.EntityType
+import net.minecraft.world.entity.projectile.Arrow
 import net.minecraft.world.item.ItemStack
 import net.minecraft.world.item.context.UseOnContext
 import net.minecraft.world.level.ChunkPos
@@ -43,6 +47,12 @@ import org.joml.Quaterniond
 import org.valkyrienskies.clockwork.ClockworkBlocks
 import org.valkyrienskies.clockwork.ClockworkMod
 import org.valkyrienskies.clockwork.ClockworkPackets
+import org.valkyrienskies.clockwork.content.contraptions.phys.hinge.HingeAssembly
+import org.valkyrienskies.clockwork.content.contraptions.phys.hinge.HingeBlock
+import org.valkyrienskies.clockwork.content.contraptions.phys.hinge.HingeGeometry
+import org.valkyrienskies.clockwork.content.contraptions.phys.hinge.HingeLinks
+import org.valkyrienskies.clockwork.content.physicalities.steering.HandbrakeBlock
+import org.valkyrienskies.clockwork.content.physicalities.steering.SteeringWheelBlockEntity
 import org.valkyrienskies.clockwork.content.physicalities.wheel.WheelContactPacket
 import org.valkyrienskies.clockwork.content.physicalities.wheel.WheelHubBlockEntity
 import org.valkyrienskies.clockwork.content.physicalities.wheel.WheelHubBlock
@@ -66,6 +76,7 @@ import org.valkyrienskies.mod.common.shipObjectWorld
 import org.valkyrienskies.mod.common.dimensionId
 import org.valkyrienskies.mod.common.vsCore
 import java.util.UUID
+import java.util.concurrent.atomic.AtomicInteger
 import kotlin.math.abs
 
 @GameTestHolder("clockwork_wheels")
@@ -192,11 +203,27 @@ class WheelGameTests {
                         .generatedSpeed.setValue(0)
                 }
             }.thenIdle(45).thenExecute {
+                val clipboard = CompoundTag()
                 for (hub in hubs) {
                     helper.assertTrue(level.shipObjectWorld.allBodies.getById(hub.bodyId)!!.angularVelocity.length() < .3,
                         "Zero RPM did not brake the tire")
-                    hub.setTireSetting(AirPumpSetting.WIDTH, 25)
-                    hub.setTireSetting(AirPumpSetting.THICKNESS, 25)
+                    val copying = hub == hubs.first()
+                    if (copying) {
+                        hub.setTireSetting(AirPumpSetting.WIDTH, 25)
+                        hub.setTireSetting(AirPumpSetting.THICKNESS, 25)
+                    }
+                    for (setting in hub.allBehaviours.filterIsInstance<ClipboardCloneable>()) {
+                        val key = setting.clipboardKey
+                        if (key != "WheelWidth" && key != "WheelThickness") continue
+                        if (copying) {
+                            val tag = CompoundTag()
+                            helper.assertTrue(setting.writeToClipboard(tag, hub.facing), "Could not copy $key")
+                            clipboard.put(key, tag)
+                        } else {
+                            helper.assertTrue(setting.readFromClipboard(clipboard.getCompound(key), player, hub.facing, false),
+                                "Could not paste $key")
+                        }
+                    }
                 }
             }.thenIdle(6).thenExecute {
                 for ((i, hub) in hubs.withIndex()) {
@@ -241,6 +268,78 @@ class WheelGameTests {
                 }
             }.thenIdle(4).thenExecute {
                 helper.assertTrue(ids.none { level.shipObjectWorld.allBodies.contains(it) }, "Removed tires left physics bodies behind")
+            }.thenSucceed()
+        }
+
+        @JvmStatic @GameTest(template = "wheel", batch = BATCH, timeoutTicks = 150)
+        fun tirePuncturesLeakAndCanBePatched(helper: GameTestHelper) {
+            val level = helper.level
+            val origin = helper.absolutePos(BlockPos(2, 0, 2)).let { BlockPos(it.x, 206, it.z) }
+            val player = observe(level, origin)
+            player.abilities.instabuild = false
+            fun wheel(pos: BlockPos, size: WheelSize): WheelHubBlockEntity {
+                force(level, pos)
+                blocks.add(pos)
+                level.setBlockAndUpdate(pos, ClockworkBlocks.WHEEL_HUB.defaultState.setValue(FACING, Direction.EAST))
+                return (level.getBlockEntity(pos) as WheelHubBlockEntity).also {
+                    it.install(size, player, type = TireType.RUBBER)
+                }
+            }
+            val hub = wheel(origin, WheelSize.MEDIUM)
+            val trap = wheel(origin.south(6), WheelSize.LARGE)
+            val spike = trap.blockPos.below()
+            blocks.add(spike)
+            blocks.add(spike.below())
+            level.setBlockAndUpdate(spike.below(), Blocks.STONE.defaultBlockState())
+            level.setBlockAndUpdate(spike, Blocks.POINTED_DRIPSTONE.defaultBlockState())
+            val patch = ItemStack(ClockworkItems.TAR.get(), 2)
+            var repairedPressure = 0
+            helper.startSequence().thenIdle(10).thenExecute {
+                val arrow = Arrow(EntityType.ARROW, level)
+                arrow.setPos(origin.x - 1.5, origin.y + 1.15, origin.z + .5)
+                arrow.setNoGravity(true)
+                arrow.setDeltaMovement(3.0, 0.0, 0.0)
+                level.addFreshEntity(arrow)
+            }.thenIdle(24).thenExecute {
+                helper.assertTrue(hub.saveWithFullMetadata().getDouble("TirePunctures") == 1.0, "Arrow missed the sidewall")
+                val damage = trap.saveWithFullMetadata().getDouble("TirePunctures")
+                helper.assertTrue(damage == 3.0, "One continuous dripstone contact should cause three leaks, got $damage")
+                val sites = trap.saveWithFullMetadata().getList("TireHoles", Tag.TAG_COMPOUND.toInt())
+                helper.assertTrue(sites.size == 3 && sites.toSet().size == 3, "Dripstone did not leave three distinct holes")
+                repairedPressure = hub.tire!!.pressureKpa
+                helper.assertTrue(repairedPressure in 1..799, "Puncture did not gradually release pressure")
+                hub.removeTire(player)
+                val used = player.inventory.items.single { it.item == TireTypes.item(TireType.RUBBER) }
+                val shot = used.tag!!.getList("TireHoles", Tag.TAG_COMPOUND.toInt())
+                helper.assertTrue(shot.size == 1 && shot.getCompound(0).getDouble("Across") < -.6,
+                    "The puncture did not stay on the sidewall the arrow hit")
+                hub.fitTire(TireType.RUBBER, player, false, used.tag)
+                helper.assertTrue(hub.saveWithFullMetadata().get("TireHoles") == shot, "Refitting the tire moved its puncture")
+                helper.assertTrue(hub.tire!!.pressureKpa == repairedPressure && hub.repairTire(patch, player) && patch.count == 1,
+                    "Removing and refitting a leaking tire lost its condition")
+            }.thenIdle(24).thenExecute {
+                helper.assertTrue(hub.tire!!.pressureKpa == repairedPressure && !hub.repairTire(patch, player),
+                    "A patch must seal the leak without reinflating the tire")
+                helper.assertTrue(!hub.saveWithFullMetadata().contains("TireHoles"), "Patched tire retained its puncture mark")
+                val data = trap.saveWithFullMetadata()
+                data.putInt("WheelPressure", 1)
+                trap.load(data)
+            }.thenIdle(24).thenExecute {
+                val flat = trap.tire!!
+                val nativeShape = level.shipObjectWorld.allBodies.getById(trap.bodyId)?.collisionShape as? WheelBodyShapeData
+                helper.assertTrue(flat.pressureKpa == 0 && nativeShape?.radius == flat.radius && flat.radius < flat.size.radius,
+                    "Flat tire did not collapse in physics")
+                for ((type, expected) in listOf(TireType.FLOAT to 2.0, TireType.GUMMY to .5, TireType.FROST to 0.0, TireType.CARVER to 0.0)) {
+                    hub.fitTire(type, player, true)
+                    hub.puncture(1.0)
+                    helper.assertTrue(hub.saveWithFullMetadata().getDouble("TirePunctures") == expected, "Wrong puncture resistance for ${type.id}")
+                }
+                val worn = CompoundTag().apply { putDouble("TireWear", .5); putDouble("TirePunctures", 1.0) }
+                hub.fitTire(TireType.HONEY, player, true, worn)
+                helper.assertTrue(hub.repairTire(patch, player) && hub.saveWithFullMetadata().getDouble("TireWear") == .5,
+                    "Tar should seal punctures without replacing tread")
+                helper.assertTrue(hub.repairTire(ItemStack(Blocks.HONEY_BLOCK), player) && hub.saveWithFullMetadata().getDouble("TireWear") == .25,
+                    "Honey did not restore the tread")
             }.thenSucceed()
         }
 
@@ -289,16 +388,26 @@ class WheelGameTests {
                     "Embedded tire did not create its native body")
                 helper.assertTrue(hub.bodyId in compressed, "Ground tire compression was not sent in world coordinates")
                 helper.assertTrue(hub.bodyId in groundEffects, "Ground tire contact did not resolve its surface block")
-                val pressure = hub.tire!!.pressureKpa
+                hub.setTireSetting(AirPumpSetting.PRESSURE, 167)
                 val pump = ItemStack(ClockworkItems.AIR_PUMP.get())
-                helper.assertTrue(fit(pump) && hub.tire!!.pressureKpa == pressure + 25, "Pump did not inflate the tire")
+                helper.assertTrue(fit(pump) && hub.tire!!.pressureKpa == 900, "Pump did not round 8.35 bar up to 9 bar")
                 helper.assertTrue(pump.damageValue == 1, "Pumping without air should cost one durability")
+                val driveBefore = hub.engaged
+                val hit = BlockHitResult(Vec3.atCenterOf(hubPos), Direction.EAST, hubPos, false)
+                for (pumpHand in InteractionHand.values()) {
+                    val emptyHand = if (pumpHand == InteractionHand.MAIN_HAND) InteractionHand.OFF_HAND else InteractionHand.MAIN_HAND
+                    player.setItemInHand(pumpHand, pump)
+                    player.setItemInHand(emptyHand, ItemStack.EMPTY)
+                    hub.blockState.use(level, player, emptyHand, hit)
+                    helper.assertTrue(hub.engaged == driveBefore, "Empty hand toggled the drive with a pump in $pumpHand")
+                }
+                player.setItemInHand(InteractionHand.OFF_HAND, ItemStack.EMPTY)
                 val tank = AllItems.COPPER_BACKTANK.asStack()
                 val full = BacktankUtil.maxAir(tank).toFloat()
                 tank.orCreateTag.putFloat("Air", full)
                 player.setItemSlot(EquipmentSlot.CHEST, tank)
                 player.isShiftKeyDown = true
-                helper.assertTrue(fit(pump) && hub.tire!!.pressureKpa == pressure, "Pump did not release air")
+                helper.assertTrue(fit(pump) && hub.tire!!.pressureKpa == 800, "Pump did not release a full bar")
                 helper.assertTrue(pump.damageValue == 1 && BacktankUtil.getAir(tank) < full,
                     "A charged backtank should pay for the adjustment")
                 player.setItemSlot(EquipmentSlot.CHEST, ItemStack.EMPTY)
@@ -507,17 +616,149 @@ class WheelGameTests {
             }.thenSucceed()
         }
 
+        @JvmStatic @GameTest(template = "wheel", batch = BATCH, timeoutTicks = 140)
+        fun linkedHubThrottle(helper: GameTestHelper) {
+            val level = helper.level
+            val pos = helper.absolutePos(BlockPos(2, 0, 2)).let { BlockPos(it.x, 245, it.z) }
+            val wheelPos = pos.south(2)
+            val brakePos = pos.east(2)
+            var flashes = 0
+            val player = observe(level, pos, onBrake = { if (it == pos) flashes++ })
+            player.setPos(pos.x + 1.5, pos.y.toDouble(), pos.z + 1.5)
+            for (p in listOf(pos, pos.west(), wheelPos, wheelPos.below(), brakePos, brakePos.below())) {
+                force(level, p)
+                blocks.add(p)
+            }
+            level.setBlockAndUpdate(pos, ClockworkBlocks.WHEEL_HUB.defaultState.setValue(FACING, Direction.EAST))
+            level.setBlockAndUpdate(wheelPos.below(), Blocks.STONE.defaultBlockState())
+            val stack = ItemStack(ClockworkBlocks.STEERING_WHEEL.get())
+            player.setItemInHand(InteractionHand.MAIN_HAND, stack)
+            fun click(p: BlockPos) = player.gameMode.useItemOn(player, level, player.mainHandItem, InteractionHand.MAIN_HAND,
+                BlockHitResult(Vec3.atCenterOf(p), Direction.UP, p, false))
+            click(pos)
+            click(pos)
+            helper.assertTrue(stack.tag?.contains("SelectedHubs") != true, "Selected hub did not toggle off")
+            click(pos)
+            click(wheelPos.below())
+            level.setBlockAndUpdate(brakePos.below(), Blocks.STONE.defaultBlockState())
+            player.setItemInHand(InteractionHand.MAIN_HAND, ItemStack(ClockworkBlocks.HANDBRAKE.get()))
+            click(pos)
+            click(wheelPos)
+            click(brakePos.below())
+            player.setItemInHand(InteractionHand.MAIN_HAND, ItemStack.EMPTY)
+            val steering = level.getBlockEntity(wheelPos) as SteeringWheelBlockEntity
+            val hub = level.getBlockEntity(pos) as WheelHubBlockEntity
+            hub.install(WheelSize.MEDIUM, player, type = TireType.RUBBER)
+            level.setBlockAndUpdate(pos.west(), AllBlocks.CREATIVE_MOTOR.defaultState.setValue(FACING, Direction.EAST))
+            (level.getBlockEntity(pos.west()) as CreativeMotorBlockEntity).generatedSpeed.setValue(64)
+            fun axle() = level.gtpa.getAllJoints().values.filterIsInstance<VSRevoluteJoint>().single { it.shipId1 == hub.bodyId }
+            var sawBrake = false
+            var movedWheel = wheelPos
+            helper.startSequence().thenIdle(8).thenExecute {
+                helper.assertTrue(hub.speed == 64f && axle().driveVelocity == null, "Linked hub drove at neutral")
+                steering.use(player)
+                steering.control(player, 0, 1)
+            }.thenIdle(5).thenExecute {
+                helper.assertTrue(axle().driveForceLimit!! in 1f..7999f && axle().driveVelocity!!.velocity > 0f,
+                    "Forward input did not ramp axle torque")
+            }.thenIdle(9).thenExecute {
+                helper.assertTrue(axle().driveForceLimit == 8000f && axle().driveFreeSpin == true, "Lost full throttle or overrun")
+                steering.control(player, 0, -1)
+            }.thenExecuteFor(20) {
+                steering.control(player, 0, -1)
+                if (axle().driveVelocity?.velocity == 0f) sawBrake = true
+            }.thenExecute {
+                helper.assertTrue(sawBrake && axle().driveVelocity!!.velocity < 0f && hub.speed == 64f,
+                    "Reverse did not brake the rotating wheel before reversing on the same Create network")
+                steering.control(player, 0, 0)
+            }.thenIdle(8).thenExecute {
+                helper.assertTrue(axle().driveVelocity == null, "Releasing throttle did not disengage the drive")
+                hub.toggleDrive(player)
+                steering.control(player, 0, 1, true)
+            }.thenIdle(6).thenExecute {
+                helper.assertTrue(level.getBlockState(brakePos).getValue(HandbrakeBlock.PULLED) &&
+                    axle().driveVelocity?.velocity == 0f && axle().driveFreeSpin == false && flashes == 1,
+                    "Driver handbrake did not lock the freewheeling axle and flash once")
+                click(brakePos)
+                steering.control(player, 2, 0)
+            }.thenIdle(5).thenExecute {
+                helper.assertTrue(axle().driveVelocity?.velocity == 0f && flashes == 1, "Dismount released the parking brake or repeated its flash")
+                click(brakePos)
+            }.thenIdle(4).thenExecute {
+                helper.assertTrue(axle().driveVelocity == null && flashes == 1, "Releasing the parking brake failed")
+                hub.toggleDrive(player)
+                val assembly = ShipAssembler.assembleToShipFull(level, mutableSetOf(wheelPos))
+                ships.add(assembly.ship)
+                val moved = Vector3d(wheelPos.x + .5, wheelPos.y + .5, wheelPos.z + .5).sub(assembly.fromCenter).add(assembly.toCenter)
+                movedWheel = BlockPos.containing(moved.x, moved.y, moved.z)
+            }.thenIdle(8).thenExecute {
+                helper.assertTrue(level.getBlockEntity(movedWheel) is SteeringWheelBlockEntity && axle().driveVelocity == null,
+                    "Moving just the controller during assembly lost its link")
+                level.removeBlock(movedWheel, false)
+            }.thenIdle(5).thenExecute {
+                helper.assertTrue(axle().driveVelocity!!.velocity > 0f && axle().driveForceLimit == 8000f,
+                    "Removing the controller did not restore ordinary shaft drive")
+            }.thenSucceed()
+        }
+
+        @JvmStatic @GameTest(template = "wheel", batch = BATCH, timeoutTicks = 180)
+        fun handbrakeHoldsBentHinge(helper: GameTestHelper) {
+            val level = helper.level
+            val pos = helper.absolutePos(BlockPos(3, 0, 3)).let { BlockPos(it.x, 255, it.z) }
+            val brake = pos.east(2)
+            val player = observe(level, pos)
+            player.setPos(pos.x + .5, pos.y.toDouble(), pos.z + 2.5)
+            for (p in listOf(pos, pos.above(), brake, brake.below())) {
+                blocks.add(p)
+                force(level, p)
+            }
+            level.setBlockAndUpdate(pos, ClockworkBlocks.HINGE.defaultState.setValue(HingeBlock.FACING, Direction.UP))
+            level.setBlockAndUpdate(pos.above(), Blocks.BARREL.defaultBlockState())
+            level.setBlockAndUpdate(brake.below(), Blocks.STONE.defaultBlockState())
+            player.setItemInHand(InteractionHand.MAIN_HAND, ItemStack(ClockworkBlocks.HANDBRAKE.get()))
+            fun click(p: BlockPos) = player.gameMode.useItemOn(player, level, player.mainHandItem, InteractionHand.MAIN_HAND,
+                BlockHitResult(Vec3.atCenterOf(p), Direction.UP, p, false))
+            click(pos)
+            click(brake.below())
+            player.setItemInHand(InteractionHand.MAIN_HAND, ItemStack.EMPTY)
+            helper.assertTrue(HingeAssembly.assemble(level, pos) == null, "Could not assemble brake test hinge")
+            val link = HingeLinks.get(level).at(pos)!!
+            ships.add(level.shipObjectWorld.allShips.getById(link.b.shipId)!!)
+            force(level, link.b.pos)
+            fun angle() = HingeGeometry.angle(HingeLinks.worldRotation(level, link.a), HingeLinks.worldRotation(level, link.b))
+            val torque = AtomicInteger(5000)
+            var heldAngle = 0.0
+            helper.startSequence().thenIdle(20).thenExecute {
+                var remaining = 450
+                ClockworkMod.physTickOnce(level.dimensionId) { physics, _, again ->
+                    if (--remaining > 0 && torque.get() != 0) {
+                        physics.getBodyById(link.b.shipId)?.applyWorldTorque(Vector3d(torque.get().toDouble(), 0.0, 0.0))
+                        again()
+                    }
+                }
+            }.thenWaitUntil { helper.assertTrue(angle() > 25, "Hinge did not rotate before braking") }
+                .thenExecute { heldAngle = angle(); click(brake); torque.set(-5000) }
+                .thenIdle(15).thenExecute {
+                    helper.assertTrue(link.connected && abs(angle() - heldAngle) < 8, "Brake lost its engagement angle: $heldAngle to ${angle()}")
+                    click(brake)
+                }.thenWaitUntil { helper.assertTrue(angle() < heldAngle - 15, "Released hinge did not rotate again") }
+                .thenExecute { torque.set(0) }.thenSucceed()
+        }
+
         private fun force(level: ServerLevel, pos: BlockPos) {
             val chunk = ChunkPos(pos)
             if (chunks.add(chunk)) level.setChunkForced(chunk.x, chunk.z, true)
         }
 
-        private fun observe(level: ServerLevel, pos: BlockPos, contacts: (WheelContactPacket) -> Unit = {}): ServerPlayer {
+        private fun observe(level: ServerLevel, pos: BlockPos, onBrake: (BlockPos) -> Unit = {}, contacts: (WheelContactPacket) -> Unit = {}): ServerPlayer {
             val connection = object : Connection(PacketFlow.SERVERBOUND) {
                 override fun send(packet: Packet<*>, listener: PacketSendListener?) {
                     if (packet is ClientboundCustomPayloadPacket && packet.identifier == ClockworkMod.NETWORK_CHANNEL) {
                         val data = FriendlyByteBuf(packet.data.duplicate())
-                        if (data.readVarInt() == ClockworkPackets.WHEEL_CONTACTS.ordinal) contacts(WheelContactPacket(data))
+                        when (data.readVarInt()) {
+                            ClockworkPackets.WHEEL_CONTACTS.ordinal -> contacts(WheelContactPacket(data))
+                            ClockworkPackets.HANDBRAKE_EFFECT.ordinal -> onBrake(data.readBlockPos())
+                        }
                     }
                     listener?.onSuccess()
                 }

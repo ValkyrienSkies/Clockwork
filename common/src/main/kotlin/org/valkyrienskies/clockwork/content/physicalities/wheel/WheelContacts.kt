@@ -37,7 +37,7 @@ internal const val CONTACT_INTERVAL = 2L
 
 object WheelContacts {
     internal data class Support(val position: Vector3d, val force: Vector3d)
-    private data class Wheel(val width: Double, val tick: Long, val assist: Boolean, val type: TireType)
+    private data class Wheel(val width: Double, val tick: Long, val assist: Boolean, val type: TireType, val pos: BlockPos)
     private data class TrailKey(val stream: Long, val epoch: Long, val patch: Long, val wheelRevision: Long,
                                 val surfaceRevision: Long)
     private data class Trail(val point: Vector3d, val time: Double)
@@ -50,18 +50,24 @@ object WheelContacts {
         var unsupported = false
         @Volatile var ground = -1L
         @Volatile var contacts = emptyList<TireState>()
+        var lastEvaluated = emptyList<TireState>()
         @Volatile var frame: ContactDiagnosticsFrame? = null
         @Volatile var supports = emptyMap<Long, Support>()
     }
     private val dimensions = ConcurrentHashMap<String, State>()
 
-    fun watch(level: ServerLevel, body: Long, width: Double, assist: Boolean, type: TireType) {
+    fun watch(level: ServerLevel, body: Long, width: Double, assist: Boolean, type: TireType, pos: BlockPos) {
         val state = dimensions.computeIfAbsent(level.dimensionId) { State() }
         state.ground = level.shipObjectWorld.dimensionToGroundBodyIdImmutable[level.dimensionId] ?: -1L
-        state.wheels[body] = Wheel(width, level.gameTime, assist, type)
+        state.wheels[body] = Wheel(width, level.gameTime, assist, type, pos)
     }
 
     fun clear() = dimensions.clear()
+    internal fun hub(level: ServerLevel, body: Long): WheelHubBlockEntity? {
+        val pos = dimensions[level.dimensionId]?.wheels?.get(body)?.pos ?: return null
+        if (!level.hasChunkAt(pos)) return null
+        return (level.getBlockEntity(pos) as? WheelHubBlockEntity)?.takeIf { it.bodyId == body }
+    }
     fun lastFrame(dimension: String): ContactDiagnosticsFrame? = dimensions[dimension]?.frame
     internal fun support(dimension: String, wheel: Long): Support? = dimensions[dimension]?.supports?.get(wheel)
 
@@ -73,12 +79,19 @@ object WheelContacts {
         val marks = ArrayList<TireMark>()
         state.marks.drainTo(marks, 256)
         val listeners = level.players().map { Vector3d(it.x, it.y, it.z) }
-        val contacts = state.contacts.map { wheel ->
+        val samples = state.contacts
+        val fresh = samples !== state.lastEvaluated
+        state.lastEvaluated = samples
+        val contacts = samples.map { wheel ->
             val effect = wheel.effect
             val peak = state.peaks.remove(wheel.body) ?: 0f
             val position = level.shipObjectWorld.allBodies.getById(wheel.body)?.kinematics?.position
             val close = position != null && listeners.any { it.distanceSquared(position) < 96 * 96 }
-            wheel.copy(effect = effect?.takeIf { close }?.let { resolve(level, it.copy(peak = maxOf(it.peak, peak))) })
+            val abrasive = fresh && effect != null && effect.sliding > .4f && wheel.type.maintenance.wearRate > 0
+            val resolved = effect?.takeIf { close || abrasive }?.let { resolve(level, it.copy(peak = maxOf(it.peak, peak))) }
+            if (abrasive && resolved != null)
+                hub(level, wheel.body)?.applyTreadWear(wheel.type, resolved)
+            wheel.copy(effect = resolved)
         }
         val rollingSurfaces = HashMap<Pair<Long, BlockPos>, Boolean>()
         for (player in level.players()) {

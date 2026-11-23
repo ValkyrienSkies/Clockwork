@@ -24,6 +24,7 @@ import org.valkyrienskies.mod.common.schematic.VdexShipEntry
 import org.valkyrienskies.clockwork.content.physicalities.wheel.WheelHubBlock
 import org.valkyrienskies.clockwork.content.physicalities.wheel.WheelSize
 import org.valkyrienskies.clockwork.content.physicalities.wheel.TireType
+import org.valkyrienskies.clockwork.content.physicalities.wheel.withSavedWear
 import java.io.ByteArrayInputStream
 import java.io.DataInputStream
 import java.nio.file.Files
@@ -40,7 +41,7 @@ class VdexBlueprintData(val data: VdexData, val ships: List<Ship>) {
             size.tire(
                 if (data.contains("WheelWidth")) data.getInt("WheelWidth") * 5 else 100,
                 if (data.contains("WheelThickness")) data.getInt("WheelThickness") * 5 else 100,
-                if (data.contains("WheelPressure")) data.getInt("WheelPressure") * 5 else 800, type)
+                if (data.contains("WheelPressure")) data.getInt("WheelPressure") * 5 else 800, type).withSavedWear(data)
         }
     }
     data class Ship(val entry: VdexShipEntry, val size: BlockPos, val blocks: List<Block>, val entities: List<CompoundTag>,

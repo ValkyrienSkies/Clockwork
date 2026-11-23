@@ -2,6 +2,7 @@ package org.valkyrienskies.clockwork
 
 import org.valkyrienskies.clockwork.content.physicalities.wheel.WheelHubBlockEntity
 import org.valkyrienskies.clockwork.content.physicalities.wheel.WheelHubRenderer
+import org.valkyrienskies.clockwork.content.physicalities.steering.HandbrakeBlockEntity
 import org.valkyrienskies.clockwork.content.physicalities.steering.SteeringWheelBlockEntity
 import org.valkyrienskies.clockwork.content.physicalities.steering.SteeringWheelRenderer
 
@@ -952,6 +953,11 @@ object ClockworkBlockEntities {
         .renderer { NonNullFunction { context: BlockEntityRendererProvider.Context ->
             ClampotronRenderer(context)
         } }.register()
+
+    @JvmField
+    val HANDBRAKE = ClockworkMod.REGISTRATE
+        .blockEntity("handbrake", ::HandbrakeBlockEntity)
+        .validBlocks(ClockworkBlocks.HANDBRAKE).register()
 
     @JvmField
     val STEERING_WHEEL = ClockworkMod.REGISTRATE

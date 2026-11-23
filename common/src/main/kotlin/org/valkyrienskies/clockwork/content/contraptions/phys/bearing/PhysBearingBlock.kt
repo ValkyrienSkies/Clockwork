@@ -22,6 +22,7 @@ import net.minecraft.world.phys.BlockHitResult
 import net.minecraft.world.phys.shapes.CollisionContext
 import net.minecraft.world.phys.shapes.VoxelShape
 import org.joml.Vector3dc
+import org.valkyrienskies.clockwork.content.physicalities.steering.DrivingControlLinks
 import org.valkyrienskies.clockwork.ClockworkBlockEntities
 import org.valkyrienskies.clockwork.content.kinetics.combobulator.ThinkableItem
 import org.valkyrienskies.clockwork.ClockworkConfig
@@ -93,6 +94,11 @@ class PhysBearingBlock(properties: Properties) : BearingBlock(properties), IBE<P
         if (level.isClientSide) {return}
         val blockEntity = level.getBlockEntity(pos)
         if (blockEntity !is PhysBearingBlockEntity) {return}
+    }
+
+    override fun onRemove(state: BlockState, level: Level, pos: BlockPos, next: BlockState, moved: Boolean) {
+        if (level is ServerLevel && state.block != next.block) DrivingControlLinks.get(level).endpointRemoved(pos)
+        super.onRemove(state, level, pos, next, moved)
     }
 
     override fun getBlockEntityClass(): Class<PhysBearingBlockEntity> = PhysBearingBlockEntity::class.java

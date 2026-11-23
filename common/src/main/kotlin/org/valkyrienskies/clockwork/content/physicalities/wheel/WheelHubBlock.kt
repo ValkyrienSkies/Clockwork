@@ -21,6 +21,7 @@ import net.minecraft.world.phys.shapes.VoxelShape
 import net.minecraft.world.phys.shapes.Shapes
 import net.minecraft.world.phys.shapes.CollisionContext
 import org.joml.Vector3dc
+import org.valkyrienskies.clockwork.content.physicalities.steering.DrivingControlLinks
 import org.valkyrienskies.clockwork.ClockworkBlockEntities
 import org.valkyrienskies.clockwork.api.wheel.TireTypes
 import org.valkyrienskies.clockwork.ClockworkItems
@@ -44,9 +45,13 @@ class WheelHubBlock(properties: Properties) : BearingBlock(properties), IBE<Whee
 
     override fun use(state: BlockState, level: Level, pos: BlockPos, player: Player, hand: InteractionHand,
                      hit: BlockHitResult): InteractionResult {
-        if (!player.mayBuild() || !player.getItemInHand(hand).isEmpty || player.isShiftKeyDown) return InteractionResult.PASS
-        if (hand == InteractionHand.MAIN_HAND && player.offhandItem.item is AirPumpItem) return InteractionResult.PASS
+        if (!player.mayBuild() || player.isShiftKeyDown) return InteractionResult.PASS
         val hub = level.getBlockEntity(pos) as? WheelHubBlockEntity ?: return InteractionResult.PASS
+        val stack = player.getItemInHand(hand)
+        if (!stack.isEmpty) return if (hub.repairTire(stack, player)) InteractionResult.sidedSuccess(level.isClientSide) else InteractionResult.PASS
+        if (player.isHolding { it.item is AirPumpItem }) return InteractionResult.PASS
+        if (hand == InteractionHand.MAIN_HAND &&
+            hub.tireType?.let { hub.condition.canRepair(player.offhandItem, it) } == true) return InteractionResult.PASS
         if (!level.isClientSide) hub.toggleDrive(player)
         return InteractionResult.sidedSuccess(level.isClientSide)
     }
@@ -79,6 +84,7 @@ class WheelHubBlock(properties: Properties) : BearingBlock(properties), IBE<Whee
     }
 
     override fun onRemove(state: BlockState, level: Level, pos: BlockPos, next: BlockState, moved: Boolean) {
+        if (level is ServerLevel && state.block != next.block) DrivingControlLinks.get(level).endpointRemoved(pos)
         IBE.onRemove(state, level, pos, next)
         super.onRemove(state, level, pos, next, moved)
     }

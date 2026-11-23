@@ -1,6 +1,8 @@
 package org.valkyrienskies.clockwork.content.curiosities.tools.wanderwand
 
 import org.valkyrienskies.clockwork.content.physicalities.wheel.WheelHubBlockEntity
+import org.valkyrienskies.clockwork.content.physicalities.steering.DrivingControlItem
+import org.valkyrienskies.clockwork.content.physicalities.steering.DrivingControlLinks
 import org.valkyrienskies.clockwork.util.universal_joint.BlockAnchorLinks
 
 import net.minecraft.core.BlockPos
@@ -73,7 +75,9 @@ object WandLinkTransfer {
     }
 
     private fun remap(level: ServerLevel, destination: (WandAnchor) -> Destination?) {
-        WheelHubBlockEntity.moveBodies(level) { pos -> destination(WandAnchor.at(level, pos, Direction.UP))?.anchor?.pos }
+        fun moved(pos: BlockPos) = destination(WandAnchor.at(level, pos, Direction.UP))?.anchor?.pos
+        WheelHubBlockEntity.moveBodies(level, ::moved)
+        DrivingControlLinks.get(level).remap(::moved)
         HingeLinks.get(level).remap(level, destination)
         BlockAnchorLinks.get(level).remap(level, destination)
         val data = WandLinks.get(level)
@@ -95,6 +99,12 @@ object WandLinkTransfer {
             if (first != null || rope != null) level.server.playerList.getPlayer(id)?.let { WanderwandServer.sync(it, session) }
         }
         for (player in level.players()) for (stack in player.inventory.items + player.inventory.offhand) {
+            if (stack.item is DrivingControlItem) {
+                val selected = DrivingControlItem.selected(stack, level)
+                val remapped = selected.map { moved(it) ?: it }
+                if (selected != remapped) DrivingControlItem.writeSelection(stack, level, remapped)
+                continue
+            }
             if (stack.item !is RopeKnotItem && stack.item !is ThinkableItem) continue
             val start = RopeKnotItem.start(stack, level) ?: continue
             destination(start)?.let { RopeKnotItem.setStart(stack, level, it.anchor) }

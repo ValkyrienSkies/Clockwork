@@ -2,6 +2,7 @@
   "replace": false,
   "values": [
     "vs_clockwork:steering_wheel",
+    "vs_clockwork:handbrake",
     "vs_clockwork:wheel_hub",
     "vs_clockwork:harpoon_launcher",
     "vs_clockwork:thinkable_relay",

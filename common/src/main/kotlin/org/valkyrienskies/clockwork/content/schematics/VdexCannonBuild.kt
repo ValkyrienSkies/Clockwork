@@ -25,6 +25,7 @@ import org.joml.Vector3d
 import org.joml.Vector3i
 import org.valkyrienskies.clockwork.ClockworkMod
 import org.valkyrienskies.clockwork.content.contraptions.phys.hinge.HingeLinks
+import org.valkyrienskies.clockwork.content.physicalities.steering.DrivingControlLinks
 import org.valkyrienskies.clockwork.util.universal_joint.BlockAnchorLinks
 import org.valkyrienskies.clockwork.content.curiosities.lubricant.LubricantData
 import org.valkyrienskies.clockwork.content.curiosities.tools.gravitron.GravitronFrozenShip
@@ -310,6 +311,7 @@ class VdexCannonBuild(val saved: CompoundTag) {
         val payload = plan(level).blueprint.data.nbtData[WandLinkSchematics.ENTRY]
         if (payload != null) {
             val dest = destinations(level)
+            DrivingControlLinks.get(level).paste(level, payload.getList("steeringHubs", 10), dest)
             val hinges = WandLinkSchematics.decodeHinges(payload, dest)
             hinges.forEachIndexed { index, hinge ->
                 val restored = hinge.copy(id = stableId("hinge", index))

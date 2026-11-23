@@ -16,6 +16,7 @@ import org.joml.Quaterniond
 import org.joml.Vector3d
 import org.joml.Vector3i
 import org.valkyrienskies.clockwork.util.alignAssembledShip
+import org.valkyrienskies.clockwork.content.physicalities.steering.DrivingControlLinks
 import org.valkyrienskies.clockwork.util.gtpa
 import org.valkyrienskies.clockwork.content.kinetics.combobulator.IThinkable
 import org.valkyrienskies.core.api.ships.PhysShip
@@ -67,6 +68,7 @@ abstract class PhysicalLinearBlockEntity(type: BlockEntityType<*>, pos: BlockPos
     override lateinit var dimension: DimensionId
     private var assemblyException: AssemblyException? = null
     protected var waitForStop = false
+    private var brakeOffset: Double? = null
     private var lockedOffset: Double? = null
 
     private var slide: Slide? = null
@@ -103,6 +105,17 @@ abstract class PhysicalLinearBlockEntity(type: BlockEntityType<*>, pos: BlockPos
         axis: Direction, min: Int, max: Int, speed: Double, locked: Boolean
     ) {
         val offset = displacement(parent, child, parentAnchor, childAnchor, axis)
+        val world = level as? ServerLevel
+        if (world != null && DrivingControlLinks.get(world).braked(world, blockPos)) {
+            val hold = (brakeOffset ?: offset).coerceIn(min.toDouble(), max.toDouble())
+            brakeOffset = hold
+            slide = Slide(parent?.id, child.id, parentAnchor, childAnchor, axis, min, max, hold, 0.0)
+            return
+        }
+        if (brakeOffset != null) {
+            lockedOffset = offset
+            brakeOffset = null
+        }
         val target = when {
             !locked -> null
             speed != 0.0 -> ((lockedOffset ?: offset) + speed).coerceIn(offset - 0.5, offset + 0.5)
@@ -118,6 +131,7 @@ abstract class PhysicalLinearBlockEntity(type: BlockEntityType<*>, pos: BlockPos
 
     @Synchronized
     private fun removeJoint() {
+        brakeOffset = null
         slide = null
         if (jointId != -1) (level as? ServerLevel)?.gtpa?.removeJoint(jointId)
         jointId = -1

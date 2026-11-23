@@ -31,6 +31,7 @@ import net.minecraft.sounds.SoundSource
 import net.minecraft.tags.FluidTags
 import net.minecraft.world.level.ClipContext
 import net.minecraft.world.phys.HitResult
+import net.minecraft.world.phys.BlockHitResult
 import net.minecraft.world.phys.AABB
 import net.minecraft.util.RandomSource
 import net.minecraft.world.level.block.state.BlockState
@@ -41,11 +42,13 @@ import org.joml.Vector3d
 import org.joml.primitives.AABBd
 import org.valkyrienskies.clockwork.ClockworkSounds
 import org.valkyrienskies.clockwork.ClockworkRenderTypes
+import org.valkyrienskies.clockwork.content.logistics.gas.pockets.nozzle.LeakParticleData
 import org.valkyrienskies.clockwork.util.render.ShaderPackCompat
 import org.valkyrienskies.core.api.bodies.ClientVsBody
 import org.valkyrienskies.core.api.bodies.shape.WheelBodyShapeData
 import org.valkyrienskies.core.api.ships.ClientShip
 import org.valkyrienskies.mod.common.getShipManagingPos
+import org.valkyrienskies.mod.common.dimensionId
 import org.valkyrienskies.mod.common.world.clipIncludeShips
 import org.valkyrienskies.mod.common.getShipsIntersecting
 import org.valkyrienskies.mod.common.shipObjectWorld
@@ -152,6 +155,49 @@ object WheelEffects {
     }
     private data class RimScrape(val tick: Long, val gain: Float, val pitch: Float)
     private val rimScrapes = HashMap<Long, RimScrape>()
+    private val leakingHubs = HashMap<Long, WheelHubBlockEntity>()
+    private val fittedHubs = HashMap<Long, WheelHubBlockEntity>()
+
+    fun indexHub(hub: WheelHubBlockEntity) {
+        checkLevel()
+        if (hub.level === level && hub.bodyId >= 0 && hub.tireType != null) fittedHubs[hub.bodyId] = hub
+    }
+
+    fun forgetHub(hub: WheelHubBlockEntity) {
+        fittedHubs.remove(hub.bodyId, hub)
+    }
+
+    fun aimedHub(mc: Minecraft): WheelHubBlockEntity? {
+        val world = mc.level ?: return null
+        val camera = mc.gameRenderer.mainCamera
+        val eye = camera.position
+        val hit = mc.hitResult
+        var nearest = (hit as? BlockHitResult)?.takeIf { it.type == HitResult.Type.BLOCK }
+            ?.let { world.getBlockEntity(it.blockPos) as? WheelHubBlockEntity }
+        if (fittedHubs.isEmpty()) return nearest
+        val reach = mc.gameMode?.pickRange?.toDouble() ?: return nearest
+        val distance = if (hit != null && hit.type != HitResult.Type.MISS) minOf(reach, eye.distanceTo(hit.location)) else reach
+        val start = Vector3d(eye.x, eye.y, eye.z)
+        val end = Vector3d(camera.lookVector).mul(distance).add(start)
+        val bounds = AABBd().union(start).union(end)
+        val padding = 1.5
+        val candidates = AABBd(bounds.minX - padding, bounds.minY - padding, bounds.minZ - padding,
+            bounds.maxX + padding, bounds.maxY + padding, bounds.maxZ + padding)
+        var entry = Double.POSITIVE_INFINITY
+        for (body in world.shipObjectWorld.allBodies.getIntersecting(candidates, world.dimensionId)) {
+            val hub = fittedHubs[body.id] ?: continue
+            val tire = hub.tire ?: continue
+            val local = (body as? ClientVsBody)?.renderTransform?.toModel ?: continue
+            val t = TireProjectileHits.intersection(local.transformPosition(start, Vector3d()),
+                local.transformPosition(end, Vector3d()), tire, tire.carcassRadius)
+            if (t < entry) { entry = t; nearest = hub }
+        }
+        return nearest
+    }
+
+    fun trackLeak(hub: WheelHubBlockEntity) {
+        leakingHubs[hub.bodyId] = hub
+    }
     private val wheels = HashMap<Long, Wheel>()
     private val sounds = ArrayList<SurfaceLoop>()
     private val marks = LinkedHashMap<MarkKey, Mark>()
@@ -194,6 +240,8 @@ object WheelEffects {
         sounds.forEach { Minecraft.getInstance().soundManager.stop(it) }
         sounds.clear(); wheels.clear(); marks.clear()
         rimScrapes.clear()
+        leakingHubs.clear()
+        fittedHubs.clear()
         LayeredTireRenderer.clear()
         pixelCount = 0
         level = current
@@ -301,6 +349,36 @@ object WheelEffects {
                 group.point.lerp(point, .25)
                 if (gain > group.gain) { group.gain = gain; group.pitch = pitch }
             }
+        }
+        leakingHubs.entries.removeIf { (id, hub) ->
+            val holes = hub.condition.leaks
+            val tire = hub.tire ?: return@removeIf true
+            val pressure = tire.pressureKpa
+            if (hub.isRemoved || hub.level !== world || hub.bodyId != id || holes == 0 || pressure == 0) return@removeIf true
+            val body = world.shipObjectWorld.allBodies.getById(id) as? ClientVsBody ?: return@removeIf true
+            val center = body.renderTransform.position
+            if (camera.distanceToSqr(center.x(), center.y(), center.z()) < 24 * 24) {
+                val event = if (holes >= 3) ClockworkSounds.TIRE_LEAK_HEAVY else ClockworkSounds.TIRE_LEAK_LIGHT
+                voice(event.mainEvent!!, Vector3d(center), (.10f + .035f * holes) * (pressure / 150f).coerceIn(.2f, 1f), 1f)
+                val strength = (pressure / 800f).coerceIn(0f, 1f)
+                val interval = ((7 - 4 * strength).toInt() / holes).coerceAtLeast(1)
+                val phase = clock + id
+                if (budget > 0 && phase % interval == 0L) {
+                    val hole = hub.condition.holes[((phase / interval) % holes).toInt()]
+                    val surface = TirePunctureRenderer(tire, compression(body, 1f)).surface(hole)
+                    if (surface != null) {
+                        val transform = body.renderTransform.toWorld
+                        val point = transform.transformPosition(surface.point)
+                        val velocity = transform.transformDirection(surface.normal).normalize().mul(.07 + .17 * strength)
+                            .fma(.05, body.velocity)
+                        val speed = velocity.length().coerceAtLeast(.001)
+                        val air = LeakParticleData(velocity.div(speed).get(Vector3f()), speed.toFloat())
+                        world.addParticle(air, point.x, point.y, point.z, 0.0, 0.0, 0.0)
+                        budget--
+                    }
+                }
+            }
+            false
         }
         rimScrapes.entries.removeIf { (id, scrape) ->
             val body = world.shipObjectWorld.allBodies.getById(id) as? ClientVsBody

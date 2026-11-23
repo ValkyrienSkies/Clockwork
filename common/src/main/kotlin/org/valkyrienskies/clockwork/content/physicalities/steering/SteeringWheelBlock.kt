@@ -5,6 +5,9 @@ import com.simibubi.create.foundation.block.IBE
 import net.createmod.catnip.math.VoxelShaper
 import net.minecraft.core.BlockPos
 import net.minecraft.core.Direction
+import net.minecraft.server.level.ServerLevel
+import net.minecraft.world.entity.LivingEntity
+import net.minecraft.world.item.ItemStack
 import net.minecraft.world.InteractionHand
 import net.minecraft.world.InteractionResult
 import net.minecraft.world.entity.player.Player
@@ -40,7 +43,13 @@ class SteeringWheelBlock(properties: Properties) : HorizontalDirectionalBlock(pr
         return InteractionResult.sidedSuccess(level.isClientSide)
     }
 
+    override fun setPlacedBy(level: Level, pos: BlockPos, state: BlockState, placer: LivingEntity?, stack: ItemStack) {
+        super.setPlacedBy(level, pos, state, placer, stack)
+        (stack.item as? DrivingControlItem)?.linkSelected(level, pos, placer, stack)
+    }
+
     override fun onRemove(state: BlockState, level: Level, pos: BlockPos, next: BlockState, moved: Boolean) {
+        if (level is ServerLevel && state.block != next.block) DrivingControlLinks.get(level).endpointRemoved(pos)
         IBE.onRemove(state, level, pos, next)
         super.onRemove(state, level, pos, next, moved)
     }

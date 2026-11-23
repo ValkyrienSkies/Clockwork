@@ -10,7 +10,7 @@
   "type": "minecraft:crafting_shaped",
   "key": {
     "K": {
-      "item": "minecraft:dried_kelp_block"
+      "item": "vs_clockwork:tar"
     }
   }
 }

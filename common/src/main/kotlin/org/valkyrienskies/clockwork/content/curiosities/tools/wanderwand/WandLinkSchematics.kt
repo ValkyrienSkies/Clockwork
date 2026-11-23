@@ -11,6 +11,7 @@ import org.valkyrienskies.clockwork.util.ClockworkShipSchematics
 import org.valkyrienskies.clockwork.util.ClockworkContraptionSchematics
 import org.valkyrienskies.clockwork.ClockworkMod
 import org.valkyrienskies.clockwork.content.contraptions.phys.hinge.HingeLinks
+import org.valkyrienskies.clockwork.content.physicalities.steering.DrivingControlLinks
 import org.valkyrienskies.clockwork.util.universal_joint.BlockAnchorLinks
 import org.valkyrienskies.core.api.ships.ServerShip
 import org.valkyrienskies.mod.common.ValkyrienSkiesMod
@@ -38,11 +39,13 @@ object WandLinkSchematics {
                 entry.previousId to BlockPos(it.minX(), it.minY(), it.minZ())
             }
         }.toMap()
+        val steering = DrivingControlLinks.get(level).capture(level, origins)
         val lubricant = LubricantData.get(level).captureSchematic(level, origins)
         val attachments = ClockworkShipSchematics.capture(level, origins)
         val capturedBlocks = ClockworkContraptionSchematics.capture(level, metadata, origins, blocks)
-        if (links.isEmpty() && hinges.isEmpty() && shafts.isEmpty() && attachments.isEmpty() && lubricant.getList("Blocks", 10).isEmpty()) return VdexData(filtered, mods, capturedBlocks)
+        if (links.isEmpty() && hinges.isEmpty() && shafts.isEmpty() && steering.isEmpty() && attachments.isEmpty() && lubricant.getList("Blocks", 10).isEmpty()) return VdexData(filtered, mods, capturedBlocks)
         val payload = encode(links, origins)
+        payload.put("steeringHubs", steering)
         payload.put("lubricant", lubricant)
         payload.put("attachments", attachments)
         payload.put("hinges", ListTag().also { list -> hinges.forEach { list.add(it.save()) } })
@@ -109,6 +112,7 @@ object WandLinkSchematics {
             }
             if (destinations.values.any { level.shipObjectWorld.loadedShips.getById(it.first) == null }) return@on
             listener.unregister()
+            DrivingControlLinks.get(level).paste(level, payload.getList("steeringHubs", 10), destinations)
             ClockworkShipSchematics.paste(level, payload.getList("attachments", 10), destinations)
             LubricantData.get(level).pasteSchematic(level, payload.getCompound("lubricant"), destinations)
             val data = WandLinks.get(level)

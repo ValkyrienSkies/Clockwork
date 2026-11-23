@@ -296,6 +296,11 @@ object ClockworkSounds {
         .attenuationDistance(64)
         .build()
 
+    val TIRE_LEAK_LIGHT = create("tire_leak_light").subtitle("Tire leaks air")
+        .playExisting({ BALLOON_LEAKING_LIGHT.mainEvent!! }, 1f, 1f).build()
+    val TIRE_LEAK_HEAVY = create("tire_leak_heavy").subtitle("Tire leaks air rapidly")
+        .playExisting({ BALLOON_LEAKING_HEAVY.mainEvent!! }, 1f, 1f).build()
+
     private val sounds: DeferredRegister<SoundEvent> =
         DeferredRegister.create(BuiltInRegistries.SOUND_EVENT, ClockworkMod.MOD_ID)
 

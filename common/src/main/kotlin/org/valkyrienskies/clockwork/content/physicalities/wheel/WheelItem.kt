@@ -57,14 +57,22 @@ private fun UseOnContext.canSwap() = hand == InteractionHand.MAIN_HAND && player
 class TireItem(properties: Properties, val type: TireType) : Item(properties) {
     init { TireTypes.register(this) }
 
+    override fun appendHoverText(stack: ItemStack, level: Level?, tooltip: MutableList<Component>, flag: TooltipFlag) {
+        if (stack.hasTag()) {
+            val condition = TireCondition()
+            condition.read(stack.tag, type)
+            tooltip.add(condition.status())
+        }
+    }
+
     override fun useOn(context: UseOnContext): InteractionResult {
         val hub = context.level.getBlockEntity(context.clickedPos) as? WheelHubBlockEntity ?: return InteractionResult.PASS
         val player = context.player ?: return InteractionResult.PASS
         if (!player.mayBuild() || context.clickedFace != hub.facing || hub.wheel == null || hub.tireType == TireType.WOOD)
             return InteractionResult.PASS
-        if (hub.tireType == type || (hub.tireType != null && !context.canSwap())) return InteractionResult.FAIL
+        if (hub.tireType != null && !context.canSwap()) return InteractionResult.FAIL
         if (context.level.isClientSide) return InteractionResult.SUCCESS
-        if (!hub.fitTire(type, player, context.canSwap())) return InteractionResult.FAIL
+        if (!hub.fitTire(type, player, context.canSwap(), context.itemInHand.tag)) return InteractionResult.FAIL
         if (!player.isCreative) context.itemInHand.shrink(1)
         return InteractionResult.CONSUME
     }

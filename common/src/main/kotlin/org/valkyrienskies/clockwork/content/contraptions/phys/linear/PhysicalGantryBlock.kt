@@ -18,6 +18,8 @@ import net.minecraft.world.level.block.state.BlockState
 import net.minecraft.world.level.block.state.StateDefinition
 import net.minecraft.world.level.block.state.properties.BooleanProperty
 import net.minecraft.world.phys.BlockHitResult
+import org.valkyrienskies.clockwork.content.physicalities.steering.DrivingControlLinks
+import net.minecraft.server.level.ServerLevel
 import org.valkyrienskies.clockwork.ClockworkBlockEntities
 import org.valkyrienskies.clockwork.util.ClockworkCopyableBlock
 
@@ -56,6 +58,11 @@ class PhysicalGantryBlock(properties: Properties) : DirectionalAxisKineticBlock(
 
     override fun onWrenched(state: BlockState, context: UseOnContext): InteractionResult =
         if (state.getValue(ASSEMBLED)) InteractionResult.PASS else super.onWrenched(state, context)
+
+    override fun onRemove(state: BlockState, level: Level, pos: BlockPos, next: BlockState, moved: Boolean) {
+        if (level is ServerLevel && state.block != next.block) DrivingControlLinks.get(level).endpointRemoved(pos)
+        super.onRemove(state, level, pos, next, moved)
+    }
 
     override fun getBlockEntityClass() = PhysicalGantryBlockEntity::class.java
 

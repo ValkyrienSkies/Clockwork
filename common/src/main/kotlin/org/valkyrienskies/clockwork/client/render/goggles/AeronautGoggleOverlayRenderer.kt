@@ -19,6 +19,7 @@ import net.minecraft.client.renderer.MultiBufferSource
 import net.minecraft.network.chat.Component
 import net.minecraft.resources.ResourceLocation
 import net.minecraft.world.entity.EquipmentSlot
+import net.minecraft.world.item.ItemStack
 import net.minecraft.world.phys.AABB
 import net.minecraft.world.phys.BlockHitResult
 import net.minecraft.world.phys.HitResult
@@ -41,6 +42,11 @@ import org.valkyrienskies.clockwork.content.curiosities.aeronaut.AeronautShipRea
 import org.valkyrienskies.clockwork.content.curiosities.aeronaut.AeronautShipRequestPacket
 import org.valkyrienskies.clockwork.content.curiosities.aeronaut.AeronautSupportGeometry
 import org.valkyrienskies.clockwork.content.curiosities.magnet.MagneticFieldView
+import org.valkyrienskies.clockwork.api.wheel.TireTypes
+import org.valkyrienskies.clockwork.content.physicalities.wheel.AirPumpItem
+import org.valkyrienskies.clockwork.content.physicalities.wheel.AirPumpSetting
+import org.valkyrienskies.clockwork.content.physicalities.wheel.TireType
+import org.valkyrienskies.clockwork.content.physicalities.wheel.WheelEffects
 import org.valkyrienskies.clockwork.util.render.ShaderPackCompat
 import org.valkyrienskies.core.api.event.RegisteredListener
 import org.valkyrienskies.core.api.ships.ClientShip
@@ -63,8 +69,8 @@ object AeronautGoggleOverlayRenderer {
     private const val OUTSIDE = 0xFFF38C80.toInt()
     private const val TARGET_RAYS = 16
 
-    private enum class Icon(name: String) {
-        MASS("com"), ASSEMBLY_MASS("cov"), LIFT("col"), THRUST("cot"), JOINT("coj"), CONTACT("cog");
+    private enum class Icon(name: String, val idleBrightness: Float = 3.5f) {
+        MASS("com"), ASSEMBLY_MASS("cov", 1f), LIFT("col"), THRUST("cot"), JOINT("coj"), CONTACT("cog", 1f);
 
         val idle = ResourceLocation(ClockworkMod.MOD_ID, "textures/gui/aeronaut/${name}_0.png")
         val highlighted = ResourceLocation(ClockworkMod.MOD_ID, "textures/gui/aeronaut/${name}_1.png")
@@ -392,8 +398,26 @@ object AeronautGoggleOverlayRenderer {
 
     @JvmStatic
     fun render(graphics: GuiGraphics) {
-        if (!enabled()) return
         val mc = Minecraft.getInstance()
+        val player = mc.player ?: return
+        val goggles = enabled()
+        if (!goggles && (!player.isHolding { it.item is AirPumpItem } || mc.screen != null || mc.options.hideGui ||
+            !mc.options.cameraType.isFirstPerson || !player.isAlive || player.isSpectator)) return
+        val hub = WheelEffects.aimedHub(mc)
+        val tire = hub?.tire
+        if (hub != null && tire != null && tire.type != TireType.WOOD) {
+            if (goggles && visibleReadout != null) renderMarkers(graphics)
+            val lines = ArrayList<Component>()
+            CreateLang.builder().add(TireTypes.item(tire.type).description).style(ChatFormatting.GOLD).forGoggles(lines)
+            CreateLang.builder().add(AirPumpSetting.PRESSURE.readout(tire)).forGoggles(lines, 1)
+            val leaks = hub.condition.leaks
+            CreateLang.builder().add(Component.translatable("block.vs_clockwork.wheel_hub.leaks", leaks))
+                .style(if (leaks > 0) ChatFormatting.RED else ChatFormatting.GRAY).forGoggles(lines, 1)
+            renderTooltip(graphics, lines, sidePanel = GoggleOverlayRenderer.hoverTicks > 0,
+                icon = if (goggles) ClockworkItems.AERONAUT_GOGGLES.asStack() else ClockworkItems.AIR_PUMP.asStack())
+            return
+        }
+        if (!goggles) return
         val tooltip = ArrayList<Component>()
         val magnetic = MagneticFieldView.tooltip()
         var joint: AeronautAssemblyReadout.Joint? = null
@@ -429,7 +453,7 @@ object AeronautGoggleOverlayRenderer {
         }
         if (magnetic.isNotEmpty()) renderTooltip(graphics, magnetic)
         else if (tooltip.isNotEmpty() && GoggleOverlayRenderer.hoverTicks == 0) renderTooltip(graphics, tooltip)
-        joint?.let { renderTooltip(graphics, jointTooltip(it), jointInspection = true) }
+        joint?.let { renderTooltip(graphics, jointTooltip(it), sidePanel = true) }
     }
 
     private fun renderMarkers(graphics: GuiGraphics) {
@@ -442,12 +466,15 @@ object AeronautGoggleOverlayRenderer {
             for (marker in markers) {
                 val color = marker.color
                 val texture = if (marker.highlighted) marker.icon.highlighted else marker.icon.idle
-                var size = if (marker.highlighted) 16 else 8
-                if (marker.potential) size += 8
+                var size = if (marker.highlighted) 20 else 16
+                if (marker.potential) size += 4
                 val x = (centerX + marker.point.x).roundToInt() - size / 2
                 val y = (centerY - marker.point.y).roundToInt() - size / 2
-                graphics.setColor((color shr 16 and 255) / 255f, (color shr 8 and 255) / 255f,
-                    (color and 255) / 255f, if (marker.potential) .65f else 1f)
+                val alpha = if (marker.potential) .65f else 1f
+                val tint = (if (marker.highlighted) 1f else marker.icon.idleBrightness) / 255f
+                graphics.setColor(0f, 0f, 0f, .75f * alpha)
+                graphics.blit(texture, x + 1, y + 1, size, size, 0f, 0f, 8, 8, 8, 8)
+                graphics.setColor((color shr 16 and 255) * tint, (color shr 8 and 255) * tint, (color and 255) * tint, alpha)
                 graphics.blit(texture, x, y, size, size, 0f, 0f, 8, 8, 8, 8)
             }
         } finally {
@@ -519,14 +546,15 @@ object AeronautGoggleOverlayRenderer {
 
     private fun formatLoad(newtons: Double) = if (newtons >= 1000.0) "${format(newtons / 1000.0)} kN" else "${format(newtons)} N"
 
-    private fun renderTooltip(graphics: GuiGraphics, tooltip: List<Component>, jointInspection: Boolean = false) {
+    private fun renderTooltip(graphics: GuiGraphics, tooltip: List<Component>, sidePanel: Boolean = false,
+                              icon: ItemStack? = if (sidePanel) null else ClockworkItems.AERONAUT_GOGGLES.asStack()) {
         val mc = Minecraft.getInstance()
         val width = mc.window.guiScaledWidth
         val height = mc.window.guiScaledHeight
         val config = AllConfigs.client()
         val textWidth = tooltip.maxOf { mc.font.width(it) }
-        val anchorX = if (jointInspection) 12 else width / 2 + config.overlayOffsetX.get()
-        val anchorY = if (jointInspection) height / 2 else height / 2 + config.overlayOffsetY.get()
+        val anchorX = if (sidePanel) 12 else width / 2 + config.overlayOffsetX.get()
+        val anchorY = if (sidePanel) height / 2 else height / 2 + config.overlayOffsetY.get()
         val x = anchorX.coerceAtMost(width - textWidth - 20).coerceAtLeast(4)
         val y = anchorY.coerceAtMost(height - tooltip.size * 10 - 20).coerceAtLeast(20)
         val custom = config.overlayCustomColor.get()
@@ -535,7 +563,7 @@ object AeronautGoggleOverlayRenderer {
         val bottom = if (custom) Color(config.overlayBorderColorBot.get()) else BoxElement.COLOR_VANILLA_BORDER.getSecond().copy()
         graphics.pose().pushPose()
         try {
-            if (!jointInspection) GuiGameElement.of(ClockworkItems.AERONAUT_GOGGLES.asStack())
+            if (icon != null) GuiGameElement.of(icon)
                 .at<GuiGameElement.GuiRenderBuilder>((x + 10).toFloat(), (y - 16).toFloat(), 450f).render(graphics)
             RemovedGuiUtils.drawHoveringText(graphics, tooltip, x, y, width, height, -1,
                 background.getRGB(), top.getRGB(), bottom.getRGB(), mc.font)

@@ -13,6 +13,7 @@ import org.joml.Vector3d
 import org.valkyrienskies.clockwork.ClockworkSounds
 import org.valkyrienskies.clockwork.content.curiosities.tools.wanderwand.WandAnchor
 import org.valkyrienskies.clockwork.content.curiosities.tools.wanderwand.WandLinkTransfer
+import org.valkyrienskies.clockwork.content.physicalities.steering.DrivingControlLinks
 import org.valkyrienskies.clockwork.util.gtpa
 import org.valkyrienskies.clockwork.util.updateJoint
 import org.valkyrienskies.core.internal.joints.VSJointPose
@@ -30,6 +31,7 @@ class HingeLinks : SavedData() {
         var missing = 0
         var age = 0
         var overloadedTicks = 0
+        var brakeAngle: Double? = null
         var appliedLower = lower
         var appliedUpper = upper
         fun save() = CompoundTag().also {
@@ -54,6 +56,7 @@ class HingeLinks : SavedData() {
     fun reset(level: ServerLevel, link: Link) {
         for (anchor in listOf(link.a, link.b))
             if (level.hasChunkAt(anchor.pos)) (level.getBlockEntity(anchor.pos) as? HingeBlockEntity)?.updateStrain(false)
+        link.brakeAngle = null
         link.generation++
         link.jointId?.let { if (level.gtpa.getJointById(it) != null) level.gtpa.removeJoint(it) }
         link.jointId = null; link.pending = false; link.dirty = true; link.missing = 0; link.age = 0; link.overloadedTicks = 0
@@ -89,6 +92,14 @@ class HingeLinks : SavedData() {
         }
     }
 
+    fun engageBrake(level: ServerLevel, pos: BlockPos) {
+        val link = at(pos) ?: return
+        if (link.connected && link.brakeAngle == null && level.hasChunkAt(link.a.pos) && level.hasChunkAt(link.b.pos)) {
+            link.brakeAngle = HingeGeometry.angle(worldRotation(level, link.a), worldRotation(level, link.b))
+            link.dirty = true
+        }
+    }
+
     fun tick(level: ServerLevel) {
         for (link in links.values.toList()) {
             val ends = listOf(link.a, link.b)
@@ -112,9 +123,11 @@ class HingeLinks : SavedData() {
                 continue
             }
             link.missing = 0
+            val brakes = DrivingControlLinks.get(level)
+            val braked = brakes.braked(level, link.a.pos) || brakes.braked(level, link.b.pos)
             val nextLower = link.appliedLower + (link.lower - link.appliedLower).coerceIn(-2, 2)
             val nextUpper = link.appliedUpper + (link.upper - link.appliedUpper).coerceIn(-2, 2)
-            if (nextLower != link.appliedLower || nextUpper != link.appliedUpper) {
+            if (!braked && (nextLower != link.appliedLower || nextUpper != link.appliedUpper)) {
                 link.appliedLower = nextLower; link.appliedUpper = nextUpper
                 link.dirty = true
             }
@@ -122,9 +135,14 @@ class HingeLinks : SavedData() {
             val stateB = level.getBlockState(link.b.pos)
             val poseA = VSJointPose(center(link.a.pos), HingeGeometry.orientation(stateA))
             val poseB = VSJointPose(center(link.b.pos), HingeGeometry.orientation(stateB))
+            if (braked != (link.brakeAngle != null)) {
+                link.brakeAngle = if (braked) HingeGeometry.angle(worldRotation(level, link.a), worldRotation(level, link.b)) else null
+                link.dirty = true
+            }
             if (link.jointId == null || link.dirty || link.age <= HingeGeometry.SETTLE_TICKS) {
                 val joint = HingeGeometry.joint(link.a.shipId.takeIf { it >= 0 }, link.b.shipId.takeIf { it >= 0 },
-                    poseA, poseB, link.appliedLower, link.appliedUpper, link.age)
+                    link.brakeAngle?.let { poseA.copy(rot = Quaterniond(poseA.rot).rotateX(Math.toRadians(it))) } ?: poseA,
+                    poseB, if (braked) 0 else link.appliedLower, if (braked) 0 else link.appliedUpper, link.age)
                 link.dirty = false
                 if (link.jointId != null) level.gtpa.updateJoint(link.jointId!!, joint) else {
                     val generation = link.generation
