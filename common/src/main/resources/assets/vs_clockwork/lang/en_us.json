@@ -1306,6 +1306,7 @@
 
   "death.attack.gas_burn": "%s was singed to a crisp",
   "death.attack.gas_explosion": "%s couldn't handle the pressure",
+  "death.attack.gas_suffocation": "%s suffocated in unbreathable gas",
   "item.vs_clockwork.lubricant": "Lubricant",
   "key.vs_clockwork.gravitron_rotate": "Rotate held Gravitron object",
   "key.vs_clockwork.gravitron_unfreeze_connected": "Unfreeze connected ships (Supercharged Gravitron)",

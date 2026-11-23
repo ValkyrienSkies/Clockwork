@@ -190,6 +190,7 @@ object ClockworkMod {
             GripPadController.clear()
             HarpoonProjectiles.clear()
             GatemakyrServer.clear()
+            BalloonPocketGasEffects.clear()
         }
 
         TickEvent.SERVER_LEVEL_POST.register {
@@ -209,6 +210,7 @@ object ClockworkMod {
                 //ship.getAttachment(PocketForcesController::class.java)?.gameTick(it, ship.id)
                 ship.getAttachment(BalloonController::class.java)?.gameTick(it, ship)
             }
+            BalloonPocketGasEffects.tick(it)
 
             if (ClockworkConfig.CLIENT.debug.debugRender) AirpocketRenderer.tick(it)
             CollisionSoundEffectHandler.tick(it)
