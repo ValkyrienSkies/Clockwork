@@ -8,80 +8,86 @@ import net.minecraft.client.gui.GuiGraphics
 import net.minecraft.client.multiplayer.ClientLevel
 import net.minecraft.client.player.RemotePlayer
 import net.minecraft.client.renderer.LightTexture
+import net.minecraft.client.renderer.texture.OverlayTexture
 import net.minecraft.world.entity.Entity
 import net.minecraft.world.entity.EntityType
 import net.minecraft.world.entity.LivingEntity
 import net.minecraft.world.entity.boss.enderdragon.EnderDragon
 import net.minecraft.world.entity.monster.Ghast
+import net.minecraft.world.item.ItemDisplayContext
 import net.minecraft.world.phys.Vec3
 import org.joml.Matrix4f
 import org.joml.Quaternionf
 import org.joml.Vector3f
+import org.valkyrienskies.clockwork.ClockworkBlocks
 import org.valkyrienskies.clockwork.content.curiosities.rope.RopeKnotRenderer
+import org.valkyrienskies.clockwork.content.curiosities.tools.wanderwand.WandRopeCurve
 import kotlin.math.ceil
 import kotlin.math.floor
-import kotlin.math.PI
-import kotlin.math.sin
 
 internal class SiphoningPreview {
-    private val entities = mutableMapOf<EntityType<*>, Entity?>()
-    private var level: ClientLevel? = null
+    private class Target(val entity: Entity, val scale: Float, val hit: Vec3)
 
-    fun draw(graphics: GuiGraphics, type: EntityType<*>) {
+    private val targets = mutableMapOf<EntityType<*>, Target?>()
+    private var level: ClientLevel? = null
+    private val launcher = ClockworkBlocks.SIPHON_HARPOON.asStack()
+    private val view = Axis.XP.rotationDegrees(-18f).mul(Axis.YP.rotationDegrees(-39f))
+    private val cameraView = Quaternionf(view).conjugate()
+    private val downrange = Axis.XP.rotationDegrees(90f)
+    private val tip = Vec3(0.0, 0.0, 5.8)
+    private val hose = run {
+        val muzzle = Vec3(0.0, 0.0, 5.0 / 16)
+        val length = RopeKnotRenderer.harpoonRopeLength(muzzle.distanceTo(tip))
+        val tail = muzzle.add(0.0, 0.0, length)
+        val curve = WandRopeCurve(muzzle, tail, length + .14)
+        List(17) { curve.point(it / 16.0) }
+    }
+
+    fun draw(graphics: GuiGraphics, type: EntityType<*>, x: Int, y: Int) {
         val minecraft = Minecraft.getInstance()
         val world = minecraft.level ?: return
         if (world !== level) {
-            entities.clear()
+            targets.clear()
             level = world
         }
-        if (type !in entities) {
-            val entity = if (type == EntityType.PLAYER) RemotePlayer(world, minecraft.user.gameProfile) else type.create(world)
-            if (entity is LivingEntity) {
-                entity.yRot = 180f
-                entity.yRotO = 180f
-                entity.yBodyRot = 180f
-                entity.yBodyRotO = 180f
-                entity.yHeadRot = 180f
-                entity.yHeadRotO = 180f
-            }
-            entities[type] = entity
-        }
-        val entity = entities[type] ?: return
+        if (type !in targets) targets[type] = createTarget(world, type)
+        val target = targets[type] ?: return
         val dispatcher = minecraft.entityRenderDispatcher
-        val renderer = dispatcher.getRenderer(entity) ?: return
         val pose = graphics.pose()
         val matrix = pose.last().pose()
-        val top = matrix.transformPosition(0f, 0f, 0f, Vector3f())
-        val bottom = matrix.transformPosition(99f, 61f, 0f, Vector3f())
-        val scale = when (entity) {
-            is Ghast -> 6.4f
-            is EnderDragon -> 5f
-            else -> minOf(45f / entity.bbHeight.coerceAtLeast(.25f), 47f / entity.bbWidth.coerceAtLeast(.25f))
-        }
-        val baseY = when (entity) {
-            is Ghast -> 32f
-            is EnderDragon -> 42f
-            else -> 54f
-        }
-        val view = Axis.XP.rotationDegrees(if (entity is EnderDragon) 18f else 10f)
-            .mul(Axis.YP.rotationDegrees(if (entity is EnderDragon) 50f else 27f))
+        val top = matrix.transformPosition(x.toFloat(), y.toFloat(), 0f, Vector3f())
+        val bottom = matrix.transformPosition(x + 120f, y + 64f, 0f, Vector3f())
         val camera = dispatcher.cameraOrientation()
+        val guiProjection = RenderSystem.getProjectionMatrix()
+        val sorting = RenderSystem.getVertexSorting()
         graphics.flush()
         graphics.enableScissor(floor(top.x).toInt(), floor(top.y).toInt(), ceil(bottom.x).toInt(), ceil(bottom.y).toInt())
         pose.pushPose()
         try {
-            pose.translate(if (entity is EnderDragon) 46f else 55f, baseY, 50f)
-            pose.mulPoseMatrix(Matrix4f().scaling(scale, scale, -scale))
+            pose.translate(x + 22f, y + 46f, 150f)
+            pose.mulPoseMatrix(Matrix4f().scaling(26f, 26f, -26f))
+            val previewToView = Matrix4f(RenderSystem.getModelViewMatrix()).mul(pose.last().pose())
+            // Give the recipe a perspective camera seven blocks behind the launcher.
+            val projection = Matrix4f(guiProjection).mul(previewToView)
+                .mul(Matrix4f().m23(1f / 7f)).mul(previewToView.invert())
+            RenderSystem.setProjectionMatrix(projection, sorting)
             pose.mulPose(Axis.ZP.rotationDegrees(180f))
             pose.mulPose(view)
-            dispatcher.overrideCameraOrientation(Quaternionf(view).conjugate())
+            dispatcher.overrideCameraOrientation(cameraView)
             Lighting.setupForEntityInInventory()
             RenderSystem.runAsFancy {
-                renderer.render(entity, 180f, 1f, pose, graphics.bufferSource(), LightTexture.FULL_BRIGHT)
-                drawHarpoon(graphics, world, entity, scale)
+                drawTarget(graphics, target)
+                RopeKnotRenderer.strand(world, hose, Vec3.ZERO, pose, graphics.bufferSource(), RopeKnotRenderer.Material.HOSE,
+                    packedLight = LightTexture.FULL_BRIGHT)
+                pose.mulPose(downrange)
+                minecraft.itemRenderer.renderStatic(launcher, ItemDisplayContext.NONE, LightTexture.FULL_BRIGHT,
+                    OverlayTexture.NO_OVERLAY, pose, graphics.bufferSource(), world, 0)
+                pose.translate(0.0, tip.z, 0.0)
+                RopeKnotRenderer.harpoonModel(pose, graphics.bufferSource(), LightTexture.FULL_BRIGHT)
                 graphics.flush()
             }
         } finally {
+            RenderSystem.setProjectionMatrix(guiProjection, sorting)
             dispatcher.overrideCameraOrientation(camera)
             pose.popPose()
             graphics.disableScissor()
@@ -89,25 +95,40 @@ internal class SiphoningPreview {
         }
     }
 
-    private fun drawHarpoon(graphics: GuiGraphics, world: ClientLevel, entity: Entity, scale: Float) {
-        val tip = when (entity) {
-            is EnderDragon -> Vec3(.35, 1.05, -5.7)
-            is Ghast -> Vec3(2.05, 1.8, -.9)
-            else -> Vec3(entity.bbWidth * .34, entity.bbHeight * .56, -entity.bbWidth * .19)
+    private fun createTarget(world: ClientLevel, type: EntityType<*>): Target? {
+        val entity = if (type == EntityType.PLAYER) RemotePlayer(world, Minecraft.getInstance().user.gameProfile)
+            else type.create(world) ?: return null
+        if (entity is LivingEntity) {
+            entity.yRot = 180f
+            entity.yRotO = 180f
+            entity.yBodyRot = 180f
+            entity.yBodyRotO = 180f
+            entity.yHeadRot = 180f
+            entity.yHeadRotO = 180f
         }
+        return when (entity) {
+            is Ghast -> Target(entity, .30f, Vec3(-.75, 1.8, -2.15))
+            is EnderDragon -> {
+                entity.flapTime = .6f
+                entity.oFlapTime = entity.flapTime
+                Target(entity, .24f, Vec3(-.35, 1.05, -5.7))
+            }
+            else -> Target(entity, minOf(1.7f / entity.bbHeight.coerceAtLeast(.25f), 2f / entity.bbWidth.coerceAtLeast(.25f)),
+                Vec3(-entity.bbWidth * .16, entity.bbHeight * .45, -entity.bbWidth * .18))
+        }
+    }
+
+    private fun drawTarget(graphics: GuiGraphics, target: Target) {
+        val renderer = Minecraft.getInstance().entityRenderDispatcher.getRenderer(target.entity) ?: return
         val pose = graphics.pose()
-        pose.translate(tip.x, tip.y, tip.z)
-        val harpoonScale = 22f / scale
-        pose.scale(harpoonScale, harpoonScale, harpoonScale)
-        val direction = (if (entity is EnderDragon) Vec3(.35, .8, .62) else Vec3(-.9, .36, .24)).normalize()
-        val tail = direction.scale(-13.0 / 16.0)
-        val hose = (0..4).map { i ->
-            val t = i / 4.0
-            tail.add(direction.scale(-.55 * t)).add(0.0, -.07 * sin(PI * t), 0.0)
+        pose.pushPose()
+        try {
+            pose.translate(tip.x, tip.y, tip.z)
+            pose.scale(target.scale, target.scale, target.scale)
+            pose.translate(-target.hit.x, -target.hit.y, -target.hit.z)
+            renderer.render(target.entity, 180f, 1f, pose, graphics.bufferSource(), LightTexture.FULL_BRIGHT)
+        } finally {
+            pose.popPose()
         }
-        RopeKnotRenderer.strand(world, hose, Vec3.ZERO, pose, graphics.bufferSource(), RopeKnotRenderer.Material.HOSE,
-            packedLight = LightTexture.FULL_BRIGHT)
-        pose.mulPose(Quaternionf().rotationTo(0f, 1f, 0f, direction.x.toFloat(), direction.y.toFloat(), direction.z.toFloat()))
-        RopeKnotRenderer.harpoonModel(pose, graphics.bufferSource(), LightTexture.FULL_BRIGHT)
     }
 }

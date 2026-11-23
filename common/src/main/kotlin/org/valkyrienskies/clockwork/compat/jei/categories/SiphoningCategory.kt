@@ -1,5 +1,6 @@
 package org.valkyrienskies.clockwork.compat.jei.categories
 
+import com.mojang.math.Axis
 import com.simibubi.create.compat.jei.ItemIcon
 import mezz.jei.api.gui.builder.IRecipeLayoutBuilder
 import mezz.jei.api.gui.ingredient.IRecipeSlotsView
@@ -33,19 +34,25 @@ class SiphoningCategory(private val helper: IGuiHelper) : IRecipeCategory<Siphon
         SpawnEggItem.byId(recipe.entityType)?.let { egg ->
             builder.addInvisibleIngredients(RecipeIngredientRole.INPUT).addItemStack(egg.defaultInstance)
         }
-        ClockworkJEI.addOutputGasSlot(builder, 137, 23, KelvinGasIngredient(recipe.gas, recipe.massPerTick(64.0)))
+        ClockworkJEI.addOutputGasSlot(builder, 20, 39, KelvinGasIngredient(recipe.gas, recipe.massPerTick(64.0)))
     }
 
     override fun draw(recipe: SiphoningRecipe, slots: IRecipeSlotsView, graphics: GuiGraphics, mouseX: Double, mouseY: Double) {
         val font = Minecraft.getInstance().font
-        preview.draw(graphics, recipe.entityType)
-        helper.recipeArrowFilled.draw(graphics, 99, 26)
+        preview.draw(graphics, recipe.entityType, 56, 0)
+        val pose = graphics.pose()
+        pose.pushPose()
+        pose.translate(57f, 52f, 0f)
+        pose.mulPose(Axis.ZP.rotationDegrees(180f))
+        pose.scale(.7f, .7f, 1f)
+        helper.recipeArrowFilled.draw(graphics, 0, 0)
+        pose.popPose()
         fun label(text: Component, center: Int, maxWidth: Int) {
             val line = font.substrByWidth(text, maxWidth)
-            graphics.drawString(font, line.string, center - font.width(line) / 2, 63, 0x404040, false)
+            graphics.drawString(font, line.string, center - font.width(line) / 2, 65, 0x404040, false)
         }
-        label(recipe.entityType.description, 50, 99)
-        label(Component.literal(recipe.gas.name), 145, 61)
+        label(Component.literal(recipe.gas.name), 28, 56)
+        label(recipe.entityType.description, 124, 101)
         graphics.hLine(4, width - 5, 77, 0xffb8b8b8.toInt())
         val config = ClockworkConfig.SERVER.siphonHarpoon
         fun row(key: String, value: Double, y: Int) {
