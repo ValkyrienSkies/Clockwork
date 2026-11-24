@@ -648,6 +648,7 @@ object ClockworkBlocks {
         REGISTRATE.block("air_intake") { p: BlockBehaviour.Properties -> AirIntakeBlock(p) }
             .initialProperties { SharedProperties.netheriteMetal() }
             .properties { it.noOcclusion() }
+            .addLayer { Supplier { RenderType.cutoutMipped() } }
             .transform(displaySource(ClockworkDisplaySources.KNODE))
             .item().tab(ClockworkMod.GAS_CREATIVE_TABINFO).build().register()
 
