@@ -475,6 +475,9 @@ class GasCombustorAndThrusterTest {
                 }
 
                 solver.step(network, 10)
+                if (ambientP > 0.0) {
+                    GasThrusterDuctNode.diffuseOpenTailpipe(network, tPos, ambientP, 0.05)
+                }
                 runReactions(network, cPos)
                 runReactions(network, tPos)
 
@@ -639,6 +642,7 @@ class GasCombustorAndThrusterTest {
                     seedNode(network, sPos, mapOf(gas to massForPressure(gas, p, 10.0, 293.15)), 293.15)
                 }
                 solver.step(network, 10)
+                GasThrusterDuctNode.diffuseOpenTailpipe(network, tPos, 101_325.0, 0.05)
                 runReactions(network, cPos)
                 runReactions(network, tPos)
                 if (sparkCd > 0) sparkCd--
@@ -663,6 +667,91 @@ class GasCombustorAndThrusterTest {
             val (endT, endThrust) = runUnvalvedSeaLevel(supplies)
             assertTrue(endT > 1000.0, "$name should kickstart and sustain > 1000 K (got $endT K)")
             assertTrue(endThrust > 500_000.0, "$name should sustain > 500 kN steady thrust (got $endThrust N)")
+        }
+    }
+
+    @Test
+    fun `bog pulsejet recovers from fuel clogging and sustains pulsing across pressures and spacer ducts`() {
+        data class Case(val label: String, val bogP: Double, val startMode: String, val spacerDucts: Int = 0)
+        val cases = listOf(
+            Case("150kPa air-filled", 150_000.0, "air"),
+            Case("500kPa air-filled", 500_000.0, "air"),
+            Case("500kPa bog-clogged", 500_000.0, "bog"),
+            Case("500kPa air + 1 duct", 500_000.0, "air", spacerDucts = 1),
+        )
+        for (c in cases) {
+            val net = DuctNetworkServer(disabled = false)
+            val sol = JacobiSeidelSolver()
+            val sPos = DuctNodePos(0.0, 0.0, 1.0, TEST_DIM)
+            val cPos = DuctNodePos(0.0, 0.0, 0.0, TEST_DIM)
+            val tPos = DuctNodePos(0.0, 0.0, -(1.0 + c.spacerDucts), TEST_DIM)
+            val combustor = CombustorDuctNode(cPos, volume = 0.4, maxPressure = 16_375_049.0, maxTemperature = GasCombustorBlock.COMBUSTOR_MAX_TEMPERATURE).apply {
+                facing = Direction.NORTH
+                ambientPressure = 101_325.0
+                throttle = 1.0
+            }
+            val thruster = GasThrusterDuctNode(tPos, volume = 0.5, maxPressure = 16_375_049.0, maxTemperature = 1900.0).apply {
+                ambientPressure = 101_325.0
+                ambientTemperature = 293.15
+                ambientAirGas = AIR
+                nozzleOpenToAir = true
+                environmentValid = true
+            }
+            net.addNode(sPos, PipeDuctNode(sPos, volume = 10.0, maxPressure = 16_375_049.0, maxTemperature = 1478.0, heatCapacity = 44.9))
+            net.addNode(cPos, combustor)
+            net.addNode(tPos, thruster)
+            val ie = PipeDuctEdge(ConnectionType.PIPE, sPos, cPos, radius = 0.3125, length = 0.375).apply {
+                wallThermalConductance = 0.0
+                thermalConductivityMultiplier = 0.0
+            }
+            net.addEdge(sPos, cPos, ie)
+            var prev = cPos
+            for (d in 1..c.spacerDucts) {
+                val dPos = DuctNodePos(0.0, 0.0, -d.toDouble(), TEST_DIM)
+                net.addNode(dPos, PipeDuctNode(dPos, volume = 0.4, maxPressure = 16_375_049.0, maxTemperature = 1478.0, heatCapacity = 44.9))
+                net.addEdge(prev, dPos, DuctNetworkUtils.configureMetalDuctEdge(PipeDuctEdge(ConnectionType.PIPE, prev, dPos, radius = 0.3125, length = 0.375)))
+                prev = dPos
+            }
+            net.addEdge(prev, tPos, DuctNetworkUtils.configureMetalDuctEdge(PipeDuctEdge(ConnectionType.PIPE, prev, tPos, radius = 0.3125, length = 0.375)))
+            combustor.insulateInletEdges()
+
+            val nodesToSeed = listOf(cPos, tPos) + (1..c.spacerDucts).map { DuctNodePos(0.0, 0.0, -it.toDouble(), TEST_DIM) }
+            if (c.startMode == "air") {
+                for (p in nodesToSeed) seedNode(net, p, mapOf(AIR to massForPressure(AIR, 101_325.0, net.getNodeAt(p)!!.volume, 293.15)), 293.15)
+            } else if (c.startMode == "bog") {
+                for (p in nodesToSeed) seedNode(net, p, mapOf(METHANE to massForPressure(METHANE, 105_000.0, net.getNodeAt(p)!!.volume, 293.15)), 293.15)
+            }
+
+            var sparkCd = 0
+            var latePulses = 0
+            var high = false
+            var lateSumF = 0.0
+            var maxT = 0.0
+            for (tick in 0 until 600) {
+                seedNode(net, sPos, mapOf(METHANE to massForPressure(METHANE, c.bogP, 10.0, 293.15)), 293.15)
+                sol.step(net, 10)
+                GasThrusterDuctNode.diffuseOpenTailpipe(net, tPos, 101_325.0, 0.05)
+                for (p in nodesToSeed) runReactions(net, p)
+                if (sparkCd > 0) sparkCd--
+                if (sparkCd == 0 && net.getTemperatureAt(cPos) < 750.0 && net.getGasMassAt(cPos).values.sum() > 1e-4) {
+                    CombustionSpark.ignite(net, cPos, reactions = REACTIONS, requirementCheck = ::checkRequirement)
+                    sparkCd = GasCombustorBlockEntity.AUTO_SPARK_COOLDOWN_TICKS
+                }
+                val f = thruster.drainTickSummary().averageRawThrust * 2000.0
+                val cT = net.getTemperatureAt(cPos)
+                if (cT > maxT) maxT = cT
+                if (tick >= 300) lateSumF += f
+                if (f > 40_000.0 && !high) {
+                    if (tick >= 300) latePulses++
+                    high = true
+                } else if (f < 10_000.0) {
+                    high = false
+                }
+            }
+            val lateAvg = lateSumF / 300.0
+            assertTrue(latePulses >= 2, "${c.label} should sustain late pulsing (latePulses=$latePulses, lateAvg=$lateAvg N)")
+            assertTrue(lateAvg > 25_000.0, "${c.label} should sustain meaningful late thrust (lateAvg=$lateAvg N)")
+            assertTrue(maxT < 1478.0, "${c.label} should stay below standard duct melting temperature (maxT=$maxT K)")
         }
     }
 }

@@ -1,15 +1,19 @@
 package org.valkyrienskies.clockwork.content.physicalities.gas_thruster
 
+import org.valkyrienskies.clockwork.content.logistics.gas.combustor.CombustorDuctNode
 import org.valkyrienskies.clockwork.content.logistics.gas.thermal.ThermalTransfer
+import org.valkyrienskies.kelvin.api.DuctNetwork
 import org.valkyrienskies.kelvin.api.DuctNodePos
 import org.valkyrienskies.kelvin.api.GasType
 import org.valkyrienskies.kelvin.api.nodes.INodeSimulationStep
 import org.valkyrienskies.kelvin.api.nodes.INodeStateSource
 import org.valkyrienskies.kelvin.api.nodes.PipeDuctNode
+import org.valkyrienskies.kelvin.api.nodes.ValveDuctNode
 import org.valkyrienskies.kelvin.api.simulation.NodeStateChange
 import org.valkyrienskies.kelvin.api.simulation.NodeStepContext
 import org.valkyrienskies.kelvin.api.simulation.NodeStepResult
 import org.valkyrienskies.kelvin.util.GasPhysics
+import org.valkyrienskies.kelvin.util.NodeThermodynamics
 import kotlin.math.PI
 import kotlin.math.abs
 import kotlin.math.max
@@ -192,7 +196,7 @@ class GasThrusterDuctNode(
             val massToExpel = min(outMdot * dt, availableMass * MAX_SUBSTEP_EXPEL_FRACTION)
             if (massToExpel <= 1e-12) return NodeStateChange.NONE
 
-            val deltas = HashMap<GasType, Double>(gasMasses.size)
+            val deltas = HashMap<GasType, Double>(gasMasses.size + 1)
             var energyRemoved = 0.0
             for ((gas, mass) in gasMasses) {
                 if (!mass.isFinite() || mass <= 0.0) continue
@@ -203,12 +207,47 @@ class GasThrusterDuctNode(
             }
             if (deltas.isEmpty() || !energyRemoved.isFinite()) return NodeStateChange.NONE
 
+            // If we are barely trickling (not jetting or coasting), open-mouth buoyant exchange still lets ambient air in
+            // so a slow unlit fuel trickle cannot permanently suffocate an open thruster.
+            var energyAdded = 0.0
+            val air = ambientAirGas
+            if (pAmb > 0.0 && nozzleOpenToAir && exhaustMomentumFlow <= 0.0 &&
+                exhaustVelocity < OPEN_MOUTH_EXCHANGE_MAX_VELOCITY_MS &&
+                tAmb.isFinite() && tAmb > 0.0 && air != null && state.volume > 0.0
+            ) {
+                val airCv = air.specificHeatCapacity * 1000.0 / air.adiabaticIndex
+                val airR = (air.adiabaticIndex - 1.0) * airCv
+                if (airR > 1e-12) {
+                    val exchangeFrac = min(0.5, dt / OPEN_MOUTH_EXCHANGE_TAU_S)
+                    var extraRemovedPressure = 0.0
+                    for ((gas, mass) in gasMasses) {
+                        if (gas == air || !mass.isFinite() || mass <= 1e-12) continue
+                        val alreadyRemoved = -(deltas[gas] ?: 0.0)
+                        val remaining = (mass - alreadyRemoved).coerceAtLeast(0.0)
+                        val dmOut = remaining * exchangeFrac
+                        if (dmOut <= 1e-12) continue
+                        val gasCv = gas.specificHeatCapacity * 1000.0 / gas.adiabaticIndex
+                        val gasR = (gas.adiabaticIndex - 1.0) * gasCv
+                        deltas[gas] = -(alreadyRemoved + dmOut)
+                        energyRemoved += dmOut * gasCv * chamberTemp
+                        extraRemovedPressure += dmOut * gasR * chamberTemp / state.volume
+                    }
+                    if (extraRemovedPressure > 0.0) {
+                        val dmIn = extraRemovedPressure * state.volume / (airR * tAmb)
+                        if (dmIn > 1e-12 && dmIn.isFinite()) {
+                            deltas[air] = (deltas[air] ?: 0.0) + dmIn
+                            energyAdded += dmIn * airCv * tAmb
+                        }
+                    }
+                }
+            }
+
             pendingMode = StepMode.OUTFLOW
             pendingNozzleMdot = nozzleMdot
             pendingExitPressure = exitPressure
             pendingExhaustVelocity = exhaustVelocity
             pendingChamberTemp = chamberTemp
-            return NodeStateChange(deltas, -energyRemoved + ambientHeatDelta)
+            return NodeStateChange(deltas, -energyRemoved + energyAdded + ambientHeatDelta)
         }
 
         // 3b) Open-mouth atmospheric refill + passive exchange of stagnant non-air gas up to ambient pressure
@@ -308,18 +347,134 @@ class GasThrusterDuctNode(
         private const val MAX_SUBSTEP_EXPEL_FRACTION = 0.95
 
         // Kadenacy exhaust-column inertia tuning
-        private const val KADENACY_MIN_VELOCITY_MS = 150.0
-        private const val KADENACY_CHARGE_TAU_S = 0.05
-        private const val KADENACY_INERTANCE = 1.5e-5
-        private const val KADENACY_DRAG = 0.35
-        private const val KADENACY_STOP_FLOW_KG_S = 0.02
+        private const val KADENACY_MIN_VELOCITY_MS = 100.0
+        private const val KADENACY_CHARGE_TAU_S = 0.04
+        private const val KADENACY_INERTANCE = 5.0e-6
+        private const val KADENACY_DRAG = 0.25
+        private const val KADENACY_STOP_FLOW_KG_S = 0.015
 
         // Open-mouth ambient air refill and passive stagnant-gas exchange
-        private const val REFILL_AREA_MULTIPLIER = 25.0
-        private const val OPEN_MOUTH_EXCHANGE_TAU_S = 1.5
+        private const val REFILL_AREA_MULTIPLIER = 35.0
+        private const val OPEN_MOUTH_EXCHANGE_TAU_S = 1.2
+        private const val OPEN_MOUTH_EXCHANGE_MAX_VELOCITY_MS = 60.0
+        private const val TAILPIPE_DIFFUSION_TAU_S = 0.6
+        private const val TAILPIPE_DIFFUSION_TARGET_AIR_FRACTION = 0.65
+        private const val TAILPIPE_DIFFUSION_MAX_OVERPRESSURE_PA = 15_000.0
+        private const val TAILPIPE_DIFFUSION_MAX_DELTA_P_PA = 8_000.0
+        private const val TAILPIPE_DIFFUSION_MAX_HOPS = 3
 
         // Ambient air thermal equalization (W/K at sea level, matching Radiator default)
         private const val SEA_LEVEL_PRESSURE_PA = 101_325.0
         const val DEFAULT_AMBIENT_HEAT_TRANSFER_COEFFICIENT = 5.0
+
+        /**
+         * Conservatively mixes stagnant gas species (Fickian/buoyant diffusion) along an open atmospheric
+         * tailpipe (up to [TAILPIPE_DIFFUSION_MAX_HOPS] hops back from an open thruster mouth) when not jetting.
+         *
+         * Strictly conserves every gas species mass and total thermal energy, never crosses a combustor's rear
+         * reed-valve inlet or a closed valve, and does nothing in vacuum or during active pressurized jetting.
+         */
+        fun diffuseOpenTailpipe(
+            network: DuctNetwork<*>,
+            thrusterPos: DuctNodePos,
+            ambientPressure: Double,
+            dtSeconds: Double,
+        ) {
+            if (!ambientPressure.isFinite() || ambientPressure <= 0.0 || dtSeconds <= 0.0) return
+            val thrusterNode = network.getNodeAt(thrusterPos) as? GasThrusterDuctNode ?: return
+            if (!thrusterNode.nozzleOpenToAir || thrusterNode.exhaustMomentumFlow > 0.0) return
+
+            val maxP = ambientPressure + TAILPIPE_DIFFUSION_MAX_OVERPRESSURE_PA
+            val visited = HashSet<DuctNodePos>(8)
+            val queue = ArrayDeque<Pair<DuctNodePos, Int>>()
+            visited.add(thrusterPos)
+            queue.addLast(thrusterPos to 0)
+
+            val alpha = min(0.35, dtSeconds / TAILPIPE_DIFFUSION_TAU_S)
+            while (queue.isNotEmpty()) {
+                val (posA, depth) = queue.removeFirst()
+                if (depth >= TAILPIPE_DIFFUSION_MAX_HOPS) continue
+                val nodeA = network.getNodeAt(posA) ?: continue
+                val infoA = network.nodeInfo[posA] ?: continue
+                val pA = infoA.currentPressure
+                if (!pA.isFinite() || pA > maxP) continue
+
+                for (edge in nodeA.nodeEdges) {
+                    if (nodeA is CombustorDuctNode && nodeA.isInletEdge(edge)) continue
+                    val posB = when (posA) {
+                        edge.nodeA -> edge.nodeB
+                        edge.nodeB -> edge.nodeA
+                        else -> continue
+                    }
+                    if (!visited.add(posB)) continue
+                    val nodeB = network.getNodeAt(posB) ?: continue
+                    if (nodeB is CombustorDuctNode && nodeB.isInletEdge(edge)) continue
+                    if (nodeB is ValveDuctNode && nodeB.radius <= 1e-6) continue
+                    if (nodeB !is PipeDuctNode) continue
+                    val infoB = network.nodeInfo[posB] ?: continue
+                    val pB = infoB.currentPressure
+                    if (!pB.isFinite() || pB > maxP || abs(pA - pB) > TAILPIPE_DIFFUSION_MAX_DELTA_P_PA) continue
+
+                    val volA = (nodeA.volume + infoA.volumeChange).takeIf { it.isFinite() && it > 1e-6 } ?: continue
+                    val volB = (nodeB.volume + infoB.volumeChange).takeIf { it.isFinite() && it > 1e-6 } ?: continue
+                    val tA = infoA.currentTemperature.takeIf { it.isFinite() && it > 0.0 } ?: continue
+                    val tB = infoB.currentTemperature.takeIf { it.isFinite() && it > 0.0 } ?: continue
+
+                    // Only convectively scavenge when the upstream chamber/duct is actually oxygen-starved
+                    // relative to the open thruster mouth; leave air-rich startup pilot charges undisturbed.
+                    val air = thrusterNode.ambientAirGas
+                    if (air != null) {
+                        val totalA = infoA.currentGasMasses.values.sum()
+                        val totalB = infoB.currentGasMasses.values.sum()
+                        val airFracA = if (totalA > 1e-12) infoA.currentGasMasses.getDouble(air) / totalA else 0.0
+                        val airFracB = if (totalB > 1e-12) infoB.currentGasMasses.getDouble(air) / totalB else 0.0
+                        if (airFracB >= TAILPIPE_DIFFUSION_TARGET_AIR_FRACTION || airFracA <= airFracB + 0.05) {
+                            if (nodeB !is CombustorDuctNode) queue.addLast(posB to (depth + 1))
+                            continue
+                        }
+                    }
+
+                    val swapVol = alpha * min(volA, volB)
+                    val fracA = (swapVol / volA).coerceIn(0.0, 0.35)
+                    val fracB = (swapVol / volB).coerceIn(0.0, 0.35)
+
+                    val gases = HashSet<GasType>(infoA.currentGasMasses.size + infoB.currentGasMasses.size)
+                    gases.addAll(infoA.currentGasMasses.keys)
+                    gases.addAll(infoB.currentGasMasses.keys)
+                    if (gases.isEmpty()) continue
+
+                    var energyDeltaA = 0.0
+                    var energyDeltaB = 0.0
+                    var changed = false
+                    for (gas in gases) {
+                        val mA = infoA.currentGasMasses.getDouble(gas).takeIf { it.isFinite() && it > 0.0 } ?: 0.0
+                        val mB = infoB.currentGasMasses.getDouble(gas).takeIf { it.isFinite() && it > 0.0 } ?: 0.0
+                        val outA = mA * fracA
+                        val outB = mB * fracB
+                        if (outA <= 1e-12 && outB <= 1e-12) continue
+                        val netToB = outA - outB
+                        val cv = gas.specificHeatCapacity * 1000.0 / gas.adiabaticIndex
+                        val nextA = (mA - netToB).coerceAtLeast(0.0)
+                        val nextB = (mB + netToB).coerceAtLeast(0.0)
+                        if (nextA <= 1e-12) infoA.currentGasMasses.removeDouble(gas) else infoA.currentGasMasses.put(gas, nextA)
+                        if (nextB <= 1e-12) infoB.currentGasMasses.removeDouble(gas) else infoB.currentGasMasses.put(gas, nextB)
+                        energyDeltaA += outB * cv * tB - outA * cv * tA
+                        energyDeltaB += outA * cv * tA - outB * cv * tB
+                        changed = true
+                    }
+                    if (changed) {
+                        infoA.currentEnergy = (infoA.currentEnergy + energyDeltaA).coerceAtLeast(0.001)
+                        infoB.currentEnergy = (infoB.currentEnergy + energyDeltaB).coerceAtLeast(0.001)
+                        NodeThermodynamics.update(nodeA, infoA)
+                        NodeThermodynamics.update(nodeB, infoB)
+                    }
+
+                    // Keep walking backward through plain spacer ducts, but stop at a combustion chamber.
+                    if (nodeB !is CombustorDuctNode) {
+                        queue.addLast(posB to (depth + 1))
+                    }
+                }
+            }
+        }
     }
 }

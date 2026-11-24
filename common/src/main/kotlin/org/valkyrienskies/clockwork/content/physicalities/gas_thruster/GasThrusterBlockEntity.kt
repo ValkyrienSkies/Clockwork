@@ -296,6 +296,9 @@ class GasThrusterBlockEntity(type: BlockEntityType<*>?, pos: BlockPos, state: Bl
         node.ambientAirGas = GasTypeRegistry.getGasType(AIR_ID)
         node.nozzleOpenToAir = nozzleOpenToAir
         node.environmentValid = true
+        if (nozzleOpenToAir && ambientPressure > 0.0) {
+            GasThrusterDuctNode.diffuseOpenTailpipe(kelvin, ductNodePos, ambientPressure, 0.05)
+        }
 
         val summary = node.drainTickSummary()
         if (summary.totalExpelledMass <= 0.0 || summary.averageRawThrust <= 0.0) return clearMassFlow()
