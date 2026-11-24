@@ -38,6 +38,7 @@ class SmartScreenClosePacket(
             edge.gasFilter.clear()
             edge.gasFilter.addAll(settings.gasFilter)
             edge.filterBlacklist = settings.filterBlacklist
+            edge.checkInput = settings.checkInput
 
             forceUpdate(level, edge.nodeA, edge.nodeB, edge)
             forceUpdate(level, edge.nodeB, edge.nodeA, edge)

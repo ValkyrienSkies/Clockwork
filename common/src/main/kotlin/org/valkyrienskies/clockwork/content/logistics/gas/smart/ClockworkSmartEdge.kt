@@ -32,11 +32,12 @@ class ClockworkSmartEdge(
     var moreThan = false
     val gasFilter = hashSetOf<GasType>()
     var filterBlacklist = true
+    var checkInput = false
 
     override fun allowsFlow(context: EdgeFlowContext, flowRate: Double): Boolean {
         if (filter == FilterType.NONE) return true
-        val receivingNode = if (flowRate > 0.0) context.nodeB else context.nodeA
-        val value = measuredValue(receivingNode.pressure, receivingNode.temperature, receivingNode.gasMasses)
+        val checkedNode = if ((flowRate > 0.0) != checkInput) context.nodeB else context.nodeA
+        val value = measuredValue(checkedNode.pressure, checkedNode.temperature, checkedNode.gasMasses)
         return if (moreThan) value > comparisonValue else value < comparisonValue
     }
 
@@ -65,8 +66,8 @@ class ClockworkSmartEdge(
 
     override fun interact(player: ServerPlayer): Boolean {
         val settings = if (filter == FilterType.NONE) {
-            SmartDuctSettings(FilterType.PRESSURE, 101_325.0, false, HashSet(gasFilter), filterBlacklist)
-        } else SmartDuctSettings(filter, comparisonValue, moreThan, HashSet(gasFilter), filterBlacklist)
+            SmartDuctSettings(FilterType.PRESSURE, 101_325.0, false, HashSet(gasFilter), filterBlacklist, checkInput)
+        } else SmartDuctSettings(filter, comparisonValue, moreThan, HashSet(gasFilter), filterBlacklist, checkInput)
         ClockworkPackets.sendTo(SmartScreenOpenPacket(nodeA, nodeB, settings), player)
         return true
     }
@@ -79,6 +80,7 @@ class ClockworkSmartEdge(
             gasFilter.forEach { add(StringTag.valueOf(it.resourceLocation.toString())) }
         })
         tag.putBoolean("filterBlacklist", filterBlacklist)
+        tag.putBoolean("checkInput", checkInput)
         return super.serialize(tag)
     }
 
@@ -95,6 +97,7 @@ class ClockworkSmartEdge(
             GasTypeRegistry.getGasType(id)?.let { gasFilter.add(it) }
         }
         filterBlacklist = !tag.contains("filterBlacklist") || tag.getBoolean("filterBlacklist")
+        checkInput = tag.getBoolean("checkInput")
         super.deserialize(tag)
     }
 }

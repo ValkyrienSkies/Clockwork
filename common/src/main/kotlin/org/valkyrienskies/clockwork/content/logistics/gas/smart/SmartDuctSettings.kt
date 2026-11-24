@@ -12,12 +12,14 @@ data class SmartDuctSettings(
     var moreThan: Boolean,
     val gasFilter: HashSet<GasType> = hashSetOf(),
     var filterBlacklist: Boolean = true,
+    var checkInput: Boolean = false,
 ) {
     fun write(buffer: FriendlyByteBuf) {
         buffer.writeEnum(filter)
         buffer.writeDouble(comparisonValue)
         buffer.writeBoolean(moreThan)
         buffer.writeBoolean(filterBlacklist)
+        buffer.writeBoolean(checkInput)
         buffer.writeVarInt(gasFilter.size)
         gasFilter.forEach { buffer.writeResourceLocation(it.resourceLocation) }
     }
@@ -26,6 +28,7 @@ data class SmartDuctSettings(
         fun read(buffer: FriendlyByteBuf): SmartDuctSettings {
             val settings = SmartDuctSettings(buffer.readEnum(FilterType::class.java), buffer.readDouble(), buffer.readBoolean())
             settings.filterBlacklist = buffer.readBoolean()
+            settings.checkInput = buffer.readBoolean()
             val count = buffer.readVarInt()
             require(count in 0..4096) { "Invalid smart duct gas filter size" }
             repeat(count) {

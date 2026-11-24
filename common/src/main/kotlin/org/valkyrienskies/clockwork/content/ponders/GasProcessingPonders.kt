@@ -122,8 +122,14 @@ object GasProcessingPonders {
         val scene = CreateSceneBuilder(builder)
         scene.title("duct_smart", "Controlling flow with a Smart Duct connection")
         showMixedGasSupply(scene, util)
+        scene.world().modifyBlockEntity(util.grid().at(3, 1, 2), CreativeGeneratorBlockEntity::class.java) {
+            it.gasValues[ClockworkGasses.STEAM] = 350
+            it.gasValues[ClockworkGasses.EXHAUST] = 350
+            it.temperature = 700.0
+        }
         val duct = util.grid().at(2, 1, 2)
         val joint = util.vector().blockSurface(duct, Direction.SOUTH)
+        val input = util.vector().topOf(duct)
         val receiver = util.vector().topOf(duct.south())
         val outlet = util.vector().blockSurface(util.grid().at(1, 1, 4), Direction.WEST)
 
@@ -136,20 +142,21 @@ object GasProcessingPonders {
         scene.idle(120)
 
         scene.overlay().showControls(joint, Pointing.DOWN, 35).rightClick().withItem(ClockworkItems.SCREWDRIVER.asStack())
-        scene.overlay().showText(130).attachKeyFrame()
-            .text("Right-click to set a condition on the receiving side. Try a pressure above 100 kPa")
+        scene.overlay().showText(135).attachKeyFrame().colored(PonderPalette.OUTPUT)
+            .text("Right-click to set a condition. By default, it checks the output side gas flows into. Try a pressure above 100 kPa")
             .pointAt(receiver).placeNearTarget()
         configureConnection(scene, duct, DuctEdgeType.SMART) {
             (it as ClockworkSmartEdge).apply {
                 filter = ClockworkSmartEdge.FilterType.PRESSURE
                 comparisonValue = 100_000.0
                 moreThan = true
+                checkInput = false
             }
         }
-        scene.idle(145)
+        scene.idle(150)
 
         scene.overlay().showText(120).colored(PonderPalette.RED)
-            .text("The outlet keeps this side below the threshold, so the connection stays shut")
+            .text("The outlet keeps the output side below the threshold, so the connection stays shut")
             .pointAt(outlet).placeNearTarget()
         scene.idle(135)
 
@@ -158,6 +165,18 @@ object GasProcessingPonders {
             .text("Switch to below 100 kPa and the whole mixture can flow again")
             .pointAt(outlet).placeNearTarget()
         scene.idle(130)
+
+        configureConnection(scene, duct, DuctEdgeType.SMART) { (it as ClockworkSmartEdge).checkInput = true }
+        scene.overlay().showText(135).attachKeyFrame().colored(PonderPalette.INPUT)
+            .text("Toggle to Input to check the side gas flows from instead. Since the supply is above 100 kPa, the connection shuts")
+            .pointAt(input).placeNearTarget()
+        scene.idle(150)
+
+        configureConnection(scene, duct, DuctEdgeType.SMART) { (it as ClockworkSmartEdge).moreThan = true }
+        scene.overlay().showText(125).attachKeyFrame().colored(PonderPalette.GREEN)
+            .text("Switch back to above 100 kPa and gas flows again as long as the supply stays pressurized")
+            .pointAt(outlet).placeNearTarget()
+        scene.idle(140)
 
         scene.overlay().showText(120)
             .text("Select which gases count towards the pressure, temperature, heat energy or mass measurement")
