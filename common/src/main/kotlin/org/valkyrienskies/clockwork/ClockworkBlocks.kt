@@ -83,7 +83,7 @@ import org.valkyrienskies.clockwork.content.kinetics.universal_shaft.UniversalSh
 import org.valkyrienskies.clockwork.content.logistics.gas.backtank.GasBacktankBlock
 import org.valkyrienskies.clockwork.content.logistics.gas.crafter.GasCrafterBlock
 import org.valkyrienskies.clockwork.content.logistics.gas.GasProcessorBlock
-import org.valkyrienskies.clockwork.content.logistics.gas.combustor.GasCombustorBlockEntity
+import org.valkyrienskies.clockwork.content.logistics.gas.combustor.GasCombustorBlock
 import org.valkyrienskies.clockwork.content.logistics.gas.duct.DuctBlock
 import org.valkyrienskies.clockwork.content.logistics.gas.engine.GasEngineBlock
 import org.valkyrienskies.clockwork.content.logistics.gas.engine.SterlingEngineBlock
@@ -699,8 +699,8 @@ object ClockworkBlocks {
         .item().tab(ClockworkMod.GAS_CREATIVE_TABINFO).build().register()
 
     @JvmField
-    val GAS_COMBUSTOR: BlockEntry<GasProcessorBlock<GasCombustorBlockEntity>> = REGISTRATE.block("gas_combustor") { p: BlockBehaviour.Properties ->
-        GasProcessorBlock(p, GasCombustorBlockEntity::class.java, hasSideInlets = true) { ClockworkBlockEntities.GAS_COMBUSTOR.get() }
+    val GAS_COMBUSTOR: BlockEntry<GasCombustorBlock> = REGISTRATE.block("gas_combustor") { p: BlockBehaviour.Properties ->
+        GasCombustorBlock(p)
     }.initialProperties { SharedProperties.netheriteMetal() }
         .transform(displaySource(ClockworkDisplaySources.KNODE))
         .tag(AllTags.AllBlockTags.SAFE_NBT.tag)

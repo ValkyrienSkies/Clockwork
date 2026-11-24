@@ -1,70 +1,37 @@
 package org.valkyrienskies.clockwork.content.logistics.gas.combustor
 
 import com.simibubi.create.foundation.blockEntity.behaviour.BlockEntityBehaviour
-import com.simibubi.create.foundation.blockEntity.behaviour.ValueBoxTransform
-import com.simibubi.create.foundation.blockEntity.behaviour.scrollValue.INamedIconOptions
-import com.simibubi.create.foundation.blockEntity.behaviour.scrollValue.ScrollOptionBehaviour
-import com.simibubi.create.foundation.gui.AllIcons
 import net.minecraft.core.BlockPos
 import net.minecraft.core.Direction
+import net.minecraft.core.particles.ParticleTypes
 import net.minecraft.nbt.CompoundTag
 import net.minecraft.network.chat.Component
+import net.minecraft.resources.ResourceLocation
 import net.minecraft.server.level.ServerLevel
+import net.minecraft.sounds.SoundEvents
+import net.minecraft.sounds.SoundSource
+import net.minecraft.world.level.Level
 import net.minecraft.world.level.block.entity.BlockEntityType
 import net.minecraft.world.level.block.state.BlockState
 import net.minecraft.world.level.block.state.properties.BlockStateProperties
-import net.minecraft.world.phys.Vec3
-import org.valkyrienskies.clockwork.ClockworkGasses
 import org.valkyrienskies.clockwork.ClockworkMod
 import org.valkyrienskies.clockwork.content.kinetics.combobulator.IThinkable
 import org.valkyrienskies.clockwork.content.kinetics.combobulator.ThinkableConnections
-import org.valkyrienskies.clockwork.content.logistics.gas.GasTransfer
 import org.valkyrienskies.clockwork.content.logistics.gas.IConnectable
 import org.valkyrienskies.clockwork.content.physicalities.steering.DrivingControlLinks
+import org.valkyrienskies.clockwork.util.DuctNetworkUtils.configureMetalDuctEdge
 import org.valkyrienskies.clockwork.util.kelvin.KNodeBlockEntity
-import org.valkyrienskies.kelvin.api.DuctNetwork
-import org.valkyrienskies.kelvin.api.GasType
-import org.valkyrienskies.kelvin.impl.recipe.DefaultKelvinRequirements
-import org.valkyrienskies.kelvin.impl.recipe.KelvinReactionDataLoader
-import org.valkyrienskies.kelvin.impl.registry.GasTypeRegistry
-import org.valkyrienskies.kelvin.util.GasPhysics
-import org.valkyrienskies.mod.api.dimensionId
-import org.valkyrienskies.mod.common.shipObjectWorld
+import org.valkyrienskies.kelvin.api.DuctNodePos
 import org.valkyrienskies.mod.common.toWorldCoordinates
-import kotlin.math.abs
-import kotlin.math.min
+import org.valkyrienskies.mod.common.util.toJOMLD
 
 class GasCombustorBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: BlockState) :
     KNodeBlockEntity(type, pos, state), IConnectable, IThinkable {
 
-    private lateinit var fuelSetting: ScrollOptionBehaviour<Fuel>
+    private var sparkCooldown = 0
+    private var lastSyncedFacing: Direction? = null
 
-    override fun addBehaviours(behaviours: MutableList<BlockEntityBehaviour>) {
-        fuelSetting = object : ScrollOptionBehaviour<Fuel>(
-            Fuel::class.java, Component.translatable("vs_clockwork.gas_combustor.fuel"), this, FuelSlot()
-        ) {
-            override fun write(tag: CompoundTag, clientPacket: Boolean) {
-                super.write(tag, clientPacket)
-                tag.remove("ScrollValue")
-                tag.putInt("FuelMode", value)
-            }
-
-            override fun read(tag: CompoundTag, clientPacket: Boolean) {
-                val fuel = if (tag.contains("FuelMode")) {
-                    tag.getInt("FuelMode").coerceIn(0, Fuel.entries.lastIndex)
-                } else {
-                    when (tag.getInt("ScrollValue")) {
-                        2, 3 -> Fuel.STELLANE.ordinal
-                        4, 5, 6 -> Fuel.PHLOGISTON.ordinal
-                        else -> Fuel.BOG.ordinal
-                    }
-                }
-                super.read(tag.copy().apply { putInt("ScrollValue", fuel) }, clientPacket)
-            }
-        }
-        fuelSetting.requiresWrench()
-        behaviours.add(fuelSetting)
-    }
+    override fun addBehaviours(behaviours: MutableList<BlockEntityBehaviour>) {}
 
     override fun acceptsThinkable(side: Direction) = side == Direction.UP
 
@@ -74,189 +41,130 @@ class GasCombustorBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: Bl
     private fun throttle(world: ServerLevel): Double {
         val linkedThrottle = DrivingControlLinks.get(world).linkedThrottle(world, blockPos)
         val source = ThinkableConnections.sourceAt(world, blockPos, Direction.UP, cableOnly = linkedThrottle != null)
-            ?: return linkedThrottle ?: world.getBestNeighborSignal(blockPos) / 15.0
+            ?: return linkedThrottle ?: (world.getBestNeighborSignal(blockPos) / 15.0)
         val device = source.device ?: return 0.0
         val reading = if (device.thinkableReadings(source.side).any { it.id() == "throttle" }) "throttle" else ""
         return device.thinkableValue(source.side, reading)?.takeIf { it.isFinite() }?.coerceIn(0.0, 1.0) ?: 0.0
     }
 
-    private fun ambientAir(world: ServerLevel): AmbientAir? {
-        val intake = blockPos.above()
-        val position = world.toWorldCoordinates(Vec3.atCenterOf(intake))
-        val atmosphere = world.shipObjectWorld.aerodynamicUtils
-        val dimension = world.dimensionId
-        val pressure = atmosphere.getAirPressureForY(position.y, dimension)
-        if (!pressure.isFinite() || pressure <= 0.0) return null
-        val outside = BlockPos.containing(position)
-        if (!world.hasChunkAt(intake) || !world.getBlockState(intake).isAir ||
-            !world.hasChunkAt(outside) || !world.getBlockState(outside).isAir
-        ) return AmbientAir(pressure, 0.0, 0.0)
+    override fun setEdge(nodeA: DuctNodePos, nodeB: DuctNodePos, level: Level, blockPos: BlockPos, direction: Direction) {
+        val kelvin = ClockworkMod.getKelvin(level)
+        if (kelvin.getEdgeBetween(nodeA, nodeB) != null) return
+        val edge = getEdge(nodeA, nodeB, level, blockPos, direction)
+        val exhaustFacing = blockState.getValue(BlockStateProperties.HORIZONTAL_FACING)
+        if (direction == exhaustFacing) {
+            configureMetalDuctEdge(edge)
+        } else {
+            edge.wallThermalConductance = 0.0
+            edge.thermalConductivityMultiplier = 0.0
+        }
+        kelvin.addEdge(nodeA, nodeB, edge)
+    }
 
-        val density = atmosphere.getAirDensityForY(position.y, dimension)
-        val temperature = atmosphere.getAirTemperatureForY(position.y, dimension)
-        if (!density.isFinite() || density <= 0.0 || !temperature.isFinite() || temperature <= 0.0)
-            return AmbientAir(pressure, 0.0, 0.0)
-        val mass = COMPRESSOR_AIR_PER_TICK * (density / SEA_LEVEL_DENSITY).coerceAtMost(1.0)
-        return AmbientAir(pressure, mass, temperature)
+    internal fun syncNodeState(throttleValue: Double? = null) {
+        val world = level as? ServerLevel ?: return
+        val network = ClockworkMod.getKelvin(world)
+        val node = network.getNodeAt(getDuctNodePosition()) as? CombustorDuctNode ?: return
+        val facing = blockState.getValue(BlockStateProperties.HORIZONTAL_FACING)
+        val facingChanged = node.facing != facing || lastSyncedFacing != facing
+        node.facing = facing
+        lastSyncedFacing = facing
+        if (throttleValue != null) {
+            node.throttle = throttleValue
+        }
+        node.insulateInletEdges()
+        if (facingChanged) {
+            val exhaustPos = blockPos.relative(facing)
+            val exhaustNodePos = DuctNodePos(
+                exhaustPos.x.toDouble(), exhaustPos.y.toDouble(), exhaustPos.z.toDouble(),
+                world.dimension().location(),
+            )
+            network.getEdgeBetween(getDuctNodePosition(), exhaustNodePos)?.let { configureMetalDuctEdge(it) }
+        }
+    }
+
+    fun triggerManualSpark(world: ServerLevel): Boolean {
+        if (dataToLoad != null) return false
+        if (sparkCooldown > AUTO_SPARK_COOLDOWN_TICKS - MANUAL_SPARK_MIN_INTERVAL_TICKS) return false
+        return fireSpark(world)
+    }
+
+    private fun fireSpark(world: ServerLevel): Boolean {
+        val network = ClockworkMod.getKelvin(world)
+        val position = getDuctNodePosition()
+        if (network.getNodeAt(position) == null) return false
+
+        val result = CombustionSpark.ignite(world, network, position)
+        sparkCooldown = AUTO_SPARK_COOLDOWN_TICKS
+
+        val center = world.toWorldCoordinates(blockPos.toJOMLD().add(0.5, 0.5, 0.5))
+        world.playSound(
+            null,
+            center.x, center.y, center.z,
+            if (result.ignited) SoundEvents.FIRECHARGE_USE else SoundEvents.FLINTANDSTEEL_USE,
+            SoundSource.BLOCKS,
+            if (result.ignited) 0.45f else 0.35f,
+            if (result.ignited) 1.2f else 1.65f,
+        )
+        world.sendParticles(
+            if (result.ignited) ParticleTypes.FLAME else ParticleTypes.ELECTRIC_SPARK,
+            center.x, center.y + 0.55, center.z,
+            if (result.ignited) 6 else 4,
+            0.15, 0.1, 0.15,
+            0.02,
+        )
+        return result.ignited
     }
 
     override fun tick() {
         super.tick()
         val world = level as? ServerLevel ?: return
         if (dataToLoad != null) return
-        val throttle = throttle(world)
-        if (throttle <= 0.0) return
+
+        val currentThrottle = throttle(world)
+        syncNodeState(currentThrottle)
+
+        if (sparkCooldown > 0) sparkCooldown--
+        if (currentThrottle <= 0.0 || sparkCooldown > 0) return
 
         val network = ClockworkMod.getKelvin(world)
         val position = getDuctNodePosition()
-        val chamber = GasTransfer.port(network, position) ?: return
-        if (chamber.pressure >= BOOST_TARGET_PRESSURE) return
-        val selected = fuelSetting.get()
-        val fuel = selected.gas()
-        val air = GasTypeRegistry.getGasType("kelvin", "air") ?: return
-        val ambient = ambientAir(world)
-        var remainingAmbient = ambient?.mass ?: 0.0
-        val fuelLimit = throttle * FUEL_PER_TICK
-        var remainingFuel = fuelLimit
-        var ignition: Ignition? = null
+        val node = network.getNodeAt(position) as? CombustorDuctNode ?: return
+        val temp = network.getTemperatureAt(position)
+        if (!temp.isFinite() || temp >= AUTO_IGNITE_THRESHOLD_K) return
 
-        for (mix in selected.mixtures) {
-            if (remainingFuel <= GasTransfer.MIN_MASS) break
-            val output = GasTransfer.port(network, position) ?: break
-            val burn = burn(world, network, output, mix, fuel, air, ambient, remainingFuel, remainingAmbient) ?: continue
-            remainingFuel -= burn.fuel
-            remainingAmbient -= burn.ambientAir
-            val candidate = burn.ignition
-            if (candidate != null && candidate.temperature < (ignition?.temperature ?: Double.POSITIVE_INFINITY))
-                ignition = candidate
-        }
+        val chamberMasses = network.getGasMassAt(position)
+        val chamberMass = chamberMasses.values.sum()
+        if (chamberMass <= MIN_SPARK_GAS_MASS_KG) return
 
-        if (remainingFuel == fuelLimit && ignition != null) {
-            val heat = min(STARTER_JOULES, (ignition.temperature + 5.0 - chamber.temperature) * chamber.capacity)
-            val fraction = chamber.allowedFraction(emptyMap(), heat, ignition.pressureLimit, GasTransfer.MAX_TEMPERATURE)
-            network.modHeatEnergy(position, heat * fraction)
+        val hasInletGas = node.nodeEdges.any { edge ->
+            if (!node.isInletEdge(edge)) return@any false
+            val other = if (edge.nodeA == position) edge.nodeB else edge.nodeA
+            network.getGasMassAt(other).values.sum() > MIN_SPARK_GAS_MASS_KG
         }
+        val hasNonAirInChamber = chamberMasses.any { (gas, mass) ->
+            mass > MIN_SPARK_GAS_MASS_KG && gas.resourceLocation != AIR_ID
+        }
+        if (!hasInletGas && !hasNonAirInChamber) return
+
+        fireSpark(world)
     }
 
-    private fun burn(
-        world: ServerLevel, network: DuctNetwork<*>, output: GasTransfer.Port, mix: Mixture,
-        fuel: GasType, air: GasType, ambient: AmbientAir?, fuelLimit: Double, ambientLimit: Double,
-    ): Burn? {
-        val recipe = KelvinReactionDataLoader.gas_reactions[mix.recipeId] ?: return null
-        if (abs(recipe.gasses.values.sum() - recipe.result.values.sum()) > 1e-9) return null
-        val boosted = ClockworkGasses.OZONITE in recipe.gasses
-        val targetPressure = if (boosted) BOOST_TARGET_PRESSURE else CHAMBER_TARGET_PRESSURE
-        if (output.pressure >= targetPressure) return null
-        val fuelPerBatch = recipe.gasses[fuel]?.takeIf { it > 0.0 } ?: return null
-        val workingAirPerBatch = mix.workingAirPerFuel * fuelPerBatch
-        val airPerBatch = workingAirPerBatch + (recipe.gasses[air] ?: 0.0)
-        val ductOxidizers = recipe.gasses.filterKeys { it != fuel && it != air }
-        val facing = blockState.getValue(BlockStateProperties.HORIZONTAL_FACING)
-
-        val fuelInlet = GasTransfer.inlet(world, network, blockPos, facing.opposite) ?: return null
-        val rightInlet = GasTransfer.inlet(world, network, blockPos, facing.clockWise)
-        val oxidizerInlet = if (ductOxidizers.isEmpty()) null else rightInlet ?: return null
-        if (fuelInlet.position == oxidizerInlet?.position) return null
-        val feeds = buildList {
-            add(Feed(fuelInlet, mapOf(fuel to fuelPerBatch)))
-            if (oxidizerInlet != null) add(Feed(oxidizerInlet, ductOxidizers))
-        }
-        var batches = fuelLimit / fuelPerBatch
-        for ((port, gases) in feeds) {
-            if (port.pressure <= output.pressure) return null
-            for ((gas, mass) in gases) batches = min(batches, (port.masses[gas] ?: return null) / mass)
-        }
-
-        val airInlets = if (airPerBatch > 0.0) {
-            val leftInlet = GasTransfer.inlet(world, network, blockPos, facing.counterClockWise)
-            val rightAir = rightInlet.takeIf { oxidizerInlet == null && air in recipe.gasses }
-            listOfNotNull(leftInlet, rightAir).distinctBy { it.position }.mapNotNull { port ->
-                if (port.position == fuelInlet.position || port.position == oxidizerInlet?.position) return@mapNotNull null
-                val mass = port.masses[air] ?: return@mapNotNull null
-                val available = when {
-                    port.pressure > output.pressure -> mass
-                    ambient != null && port.pressure > ambient.pressure &&
-                        port.pressure * COMPRESSOR_PRESSURE_RATIO > output.pressure ->
-                        mass * (1.0 - ambient.pressure / port.pressure)
-                    else -> 0.0
-                }
-                if (available > GasTransfer.MIN_MASS) AirInlet(port, available) else null
-            }
-        } else emptyList()
-        val ambientMass = if (ambient != null && ambient.pressure * COMPRESSOR_PRESSURE_RATIO > output.pressure)
-            ambientLimit else 0.0
-        if (airPerBatch > 0.0) batches = min(batches, (airInlets.sumOf { it.mass } + ambientMass) / airPerBatch)
-        if (batches * fuelPerBatch <= GasTransfer.MIN_MASS) return null
-
-        val ignition = recipe.requirements[DefaultKelvinRequirements.minTemperature]?.asDouble ?: 0.0
-        if (output.temperature < ignition) return Burn(ignition = Ignition(ignition, targetPressure))
-
-        val state = output.reactionState()
-        if (!recipe.requirements.all { (test, value) -> test.apply_requirement(world, state, value) }) return null
-        val maxTemperature = recipe.requirements[DefaultKelvinRequirements.maxTemperature]?.asDouble
-            ?: GasTransfer.MAX_TEMPERATURE
-        val products = recipe.result.mapValues { it.value * batches }.toMutableMap()
-        if (workingAirPerBatch > 0.0) products.merge(air, workingAirPerBatch * batches, Double::plus)
-
-        var remainingAir = airPerBatch * batches
-        val meteredFeeds = buildList {
-            for ((port, gases) in feeds) add(Feed(port, gases.mapValues { it.value * batches }))
-            for ((port, available) in airInlets) {
-                val mass = min(remainingAir, available)
-                if (mass <= 0.0) continue
-                add(Feed(port, mapOf(air to mass)))
-                remainingAir -= mass
-            }
-        }
-        val ambientEnergy = if (ambient == null) 0.0
-            else GasPhysics.mixtureCapacity(mapOf(air to remainingAir)) * ambient.temperature
-        val energy = recipe.energy * batches + ambientEnergy +
-            meteredFeeds.sumOf { GasPhysics.mixtureCapacity(it.gases) * it.port.temperature }
-        val pressureLimit = if (boosted) BOOST_PRESSURE_LIMIT else CHAMBER_PRESSURE_LIMIT
-        val fraction = output.allowedFraction(products, energy, pressureLimit, maxTemperature)
-        val fuelBurned = fuelPerBatch * batches * fraction
-        if (fuelBurned <= GasTransfer.MIN_MASS) return null
-
-        for ((port, gases) in meteredFeeds) GasTransfer.remove(network, port, gases, fraction)
-        GasTransfer.add(network, output, products, energy, fraction)
-        return Burn(fuelBurned, remainingAir * fraction)
+    override fun write(tag: CompoundTag, clientPacket: Boolean) {
+        if (!clientPacket) tag.putInt("SparkCooldown", sparkCooldown)
+        super.write(tag, clientPacket)
     }
 
-    private data class AmbientAir(val pressure: Double, val mass: Double, val temperature: Double)
-    private data class AirInlet(val port: GasTransfer.Port, val mass: Double)
-    private data class Feed(val port: GasTransfer.Port, val gases: Map<GasType, Double>)
-    private data class Ignition(val temperature: Double, val pressureLimit: Double)
-    private data class Burn(val fuel: Double = 0.0, val ambientAir: Double = 0.0, val ignition: Ignition? = null)
-
-    private class Mixture(recipe: String, val workingAirPerFuel: Double) {
-        val recipeId = ClockworkMod.asResource(recipe)
-    }
-
-    private enum class Fuel(val gas: () -> GasType, vararg val mixtures: Mixture) : INamedIconOptions {
-        BOG({ ClockworkGasses.METHANE }, Mixture("bog_combustion_boosted", 118.75), Mixture("bog_combustion", 57.0)),
-        STELLANE({ ClockworkGasses.HYDROGEN }, Mixture("stellane_combustion_boosted", 0.0), Mixture("stellane_combustion", 0.0)),
-        PHLOGISTON({ ClockworkGasses.PHLOGISTON }, Mixture("phlogiston_ozonite", 258.5),
-            Mixture("phlogiston_air", 193.5), Mixture("phlogiston_passive", 130.25));
-
-        override fun getIcon() = AllIcons.I_CONFIG_LOCKED
-        override fun getTranslationKey() = "vs_clockwork.gas_combustor.fuel.${name.lowercase()}"
-    }
-
-    private class FuelSlot : ValueBoxTransform.Sided() {
-        override fun isSideActive(state: BlockState, side: Direction) = side == Direction.UP
-
-        override fun getSouthLocation() = Vec3(0.5, 0.5, 0.99)
+    override fun read(tag: CompoundTag, clientPacket: Boolean) {
+        super.read(tag, clientPacket)
+        if (!clientPacket) sparkCooldown = tag.getInt("SparkCooldown").coerceIn(0, AUTO_SPARK_COOLDOWN_TICKS)
     }
 
     companion object {
-        private const val FUEL_PER_TICK = 0.008 / 20.0
-        private const val CHAMBER_TARGET_PRESSURE = 300000.0
-        private const val CHAMBER_PRESSURE_LIMIT = 400000.0
-        private const val BOOST_TARGET_PRESSURE = 600000.0
-        private const val BOOST_PRESSURE_LIMIT = 700000.0
-        private const val STARTER_JOULES = 5000.0
-        private const val COMPRESSOR_AIR_PER_TICK = 0.006
-        private const val COMPRESSOR_PRESSURE_RATIO = 3.0
-        private const val SEA_LEVEL_DENSITY = 1.225
+        const val AUTO_SPARK_COOLDOWN_TICKS = 40
+        private const val MANUAL_SPARK_MIN_INTERVAL_TICKS = 10
+        private const val AUTO_IGNITE_THRESHOLD_K = 750.0
+        private const val MIN_SPARK_GAS_MASS_KG = 1e-4
+        private val AIR_ID = ResourceLocation("kelvin", "air")
     }
 }

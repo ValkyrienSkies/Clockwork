@@ -18,7 +18,6 @@ import net.minecraft.world.level.block.state.BlockState
 import net.minecraft.world.level.block.state.StateDefinition
 import net.minecraft.world.level.block.state.properties.BooleanProperty
 import org.valkyrienskies.clockwork.ClockworkBlockEntities
-import org.valkyrienskies.clockwork.content.logistics.gas.duct.DuctPipeNode
 import org.valkyrienskies.clockwork.content.physicalities.steering.DrivingControlLinks
 import org.valkyrienskies.clockwork.util.gui.IHaveDuctStats
 import org.valkyrienskies.kelvin.api.DuctNode
@@ -89,7 +88,7 @@ class GasThrusterBlock(properties: Properties) : DirectionalBlock(properties), I
     }
 
     override fun createNode(pos: DuctNodePos): DuctNode {
-        return  DuctPipeNode(pos = pos, volume = getInternalVolume(), maxPressure = 16375049.0, maxTemperature = 1478.0)
+        return GasThrusterDuctNode(pos = pos, volume = getInternalVolume(), maxPressure = 16375049.0, maxTemperature = 1478.0)
     }
 
     override fun onRemove(

@@ -12,6 +12,7 @@ import net.minecraft.world.level.block.state.BlockState
 import net.minecraft.world.phys.AABB
 import org.valkyrienskies.clockwork.ClockworkMod
 import org.valkyrienskies.clockwork.ClockworkPackets
+import org.valkyrienskies.clockwork.content.logistics.gas.combustor.CombustorDuctNode
 import org.valkyrienskies.clockwork.util.DuctNetworkUtils.configureMetalDuctEdge
 import org.valkyrienskies.clockwork.util.DuctNetworkUtils.simulatesGas
 import org.valkyrienskies.clockwork.util.kelvin.KNodeBlockEntity
@@ -142,8 +143,15 @@ class DuctBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: BlockState
                     if (edgeData[EdgePos(nodeA, nodeB)] != null)
                         newEdge.deserialize(edgeData[EdgePos(nodeA, nodeB)]!!)
 
-                    configureMetalDuctEdge(newEdge)
-                    ClockworkMod.getKelvin(level).addEdge(newEdge.nodeA, newEdge.nodeB, newEdge)
+                    val kelvin = ClockworkMod.getKelvin(level)
+                    val combustor = kelvin.getNodeAt(nodeB) as? CombustorDuctNode
+                    if (combustor != null && combustor.isInletNeighbor(nodeA)) {
+                        newEdge.wallThermalConductance = 0.0
+                        newEdge.thermalConductivityMultiplier = 0.0
+                    } else {
+                        configureMetalDuctEdge(newEdge)
+                    }
+                    kelvin.addEdge(newEdge.nodeA, newEdge.nodeB, newEdge)
                 }
             }
         }

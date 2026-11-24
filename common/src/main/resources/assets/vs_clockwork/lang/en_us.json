@@ -728,7 +728,7 @@
   "vs_clockwork.gas_combustor.fuel.bog": "Bog",
   "vs_clockwork.gas_combustor.fuel.stellane": "Stellane",
   "vs_clockwork.gas_combustor.fuel.phlogiston": "Phlogiston",
-  "vs_clockwork.gas_combustor.function": "Set the fuel with a wrench. Fuel enters at the back and exhaust leaves at the front. An open top draws limited ambient air. Feed extra air on the left. Ozonite on the right boosts combustion automatically. Redstone or Thinkable sets throttle.",
+  "vs_clockwork.gas_combustor.function": "Meters gas from the rear through a one-way inlet into the chamber, ignites flammable mixtures with a built-in spark igniter, and vents exhaust out the front. Redstone, Thinkable, or a Throttle Lever controls throttle; right-click to spark manually.",
   "vs_clockwork.smart_valve.function": "Regulates rear inlet gas to the target outlet pressure.",
   "vs_clockwork.smart_gas_pump.function": "Uses rotation to pressurize the outlet up to the setpoint.",
   "vs_clockwork.ozonite_generator.function": "Draws in ambient air from the rear and uses rotation and Lapis Lazuli to produce Ozonite. Right-click with Lapis Lazuli to load it.",
