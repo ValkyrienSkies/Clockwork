@@ -1,22 +1,21 @@
 {
   "input_gasses": {
     "vs_clockwork:stellane": {
-      "amount": 0.002,
+      "amount": 0.001,
       "unit": "kg"
     },
     "kelvin:air": {
-      "amount": 0.001,
+      "amount": 0.012,
       "unit": "kg"
     }
   },
   "requirements": {
-    "kelvin:min_temperature": 775,
-    "kelvin:max_temperature": 1400
+    "kelvin:min_temperature": 620
   },
-  "energy": 74,
+  "energy": 25866,
   "result_gasses": {
     "vs_clockwork:steam": {
-      "amount": 0.003,
+      "amount": 0.013,
       "unit": "kg"
     }
   }

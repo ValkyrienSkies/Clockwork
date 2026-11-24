@@ -22,13 +22,13 @@ object ClockworkGasses {
         }
     }
 
-    val EXHAUST = GasType("Exhaust", ClockworkMod.asResource("exhaust"),  density = 1.98, viscosity =1.10e-5, specificHeatCapacity = 2.846,
+    val EXHAUST = GasType("Exhaust", ClockworkMod.asResource("exhaust"),  density = 1.98, viscosity =1.10e-5, specificHeatCapacity = 1.8,
         thermalConductivity = 0.031, iconLocation = getIcon("exhaust"))
-    val STEAM = GasType("Steam", ClockworkMod.asResource( "steam"),  density = 0.762 , viscosity = 1.223e-5, specificHeatCapacity = 2.2,
+    val STEAM = GasType("Steam", ClockworkMod.asResource( "steam"),  density = 0.762 , viscosity = 1.223e-5, specificHeatCapacity = 2.6,
         thermalConductivity = 0.031, iconLocation = getIcon("steam"))
 
-    val PHLOGISTON = GasType("Phlogiston",ClockworkMod.asResource( "phlogiston"),  density = 3.0, viscosity = 2.0e-5, specificHeatCapacity = 14.30,
-        thermalConductivity = 0.240, sutherlandConstant = 150.0, adiabaticIndex = 1.008, iconLocation = getIcon("phlogiston"))
+    val PHLOGISTON = GasType("Phlogiston",ClockworkMod.asResource( "phlogiston"),  density = 3.0, viscosity = 2.0e-5, specificHeatCapacity = 1.6,
+        thermalConductivity = 0.240, sutherlandConstant = 150.0, adiabaticIndex = 1.02, iconLocation = getIcon("phlogiston"))
     val HELIUM = GasType("Aether",ClockworkMod.asResource( "aether"),  density = 0.166, viscosity = 1.96e-5, specificHeatCapacity = 5.1832,
         thermalConductivity = 0.151, sutherlandConstant = 79.4, adiabaticIndex = 1.66, iconLocation = getIcon("aether"))
     val HYDROGEN = GasType("Stellane",ClockworkMod.asResource( "stellane"),  density = 0.08988, viscosity = 0.88e-5, specificHeatCapacity = 14.30,

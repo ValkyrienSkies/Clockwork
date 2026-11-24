@@ -5,22 +5,21 @@
       "unit": "kg"
     },
     "kelvin:air": {
-      "amount": 0.002,
+      "amount": 0.01,
       "unit": "kg"
     }
   },
   "requirements": {
-    "kelvin:min_temperature": 800,
-    "kelvin:max_temperature": 1200
+    "kelvin:min_temperature": 620
   },
-  "energy": 28786,
+  "energy": 16414,
   "result_gasses": {
     "vs_clockwork:exhaust": {
-      "amount": 0.0015,
+      "amount": 0.0055,
       "unit": "kg"
     },
     "vs_clockwork:steam": {
-      "amount": 0.0015,
+      "amount": 0.0055,
       "unit": "kg"
     }
   }

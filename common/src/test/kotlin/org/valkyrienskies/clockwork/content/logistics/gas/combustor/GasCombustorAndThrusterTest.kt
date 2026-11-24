@@ -42,9 +42,9 @@ class GasCombustorAndThrusterTest {
     companion object {
         private val TEST_DIM = ResourceLocation("minecraft", "overworld")
         private val AIR = GasType("Air", ResourceLocation("kelvin", "air"), 1.293, 1.716e-5, 1.005, 0.026)
-        private val EXHAUST = GasType("Exhaust", ResourceLocation("vs_clockwork", "exhaust"), density = 1.98, viscosity = 1.10e-5, specificHeatCapacity = 2.846, thermalConductivity = 0.031)
-        private val STEAM = GasType("Steam", ResourceLocation("vs_clockwork", "steam"), density = 0.762, viscosity = 1.223e-5, specificHeatCapacity = 2.2, thermalConductivity = 0.031)
-        private val PHLOGISTON = GasType("Phlogiston", ResourceLocation("vs_clockwork", "phlogiston"), density = 3.0, viscosity = 2.0e-5, specificHeatCapacity = 14.30, thermalConductivity = 0.240, sutherlandConstant = 150.0, adiabaticIndex = 1.008)
+        private val EXHAUST = GasType("Exhaust", ResourceLocation("vs_clockwork", "exhaust"), density = 1.98, viscosity = 1.10e-5, specificHeatCapacity = 1.8, thermalConductivity = 0.031)
+        private val STEAM = GasType("Steam", ResourceLocation("vs_clockwork", "steam"), density = 0.762, viscosity = 1.223e-5, specificHeatCapacity = 2.6, thermalConductivity = 0.031)
+        private val PHLOGISTON = GasType("Phlogiston", ResourceLocation("vs_clockwork", "phlogiston"), density = 3.0, viscosity = 2.0e-5, specificHeatCapacity = 1.6, thermalConductivity = 0.240, sutherlandConstant = 150.0, adiabaticIndex = 1.02)
         private val HELIUM = GasType("Aether", ResourceLocation("vs_clockwork", "aether"), density = 0.166, viscosity = 1.96e-5, specificHeatCapacity = 5.1832, thermalConductivity = 0.151, sutherlandConstant = 79.4, adiabaticIndex = 1.66)
         private val HYDROGEN = GasType("Stellane", ResourceLocation("vs_clockwork", "stellane"), density = 0.08988, viscosity = 0.88e-5, specificHeatCapacity = 14.30, thermalConductivity = 0.18, sutherlandConstant = 72.0, adiabaticIndex = 1.4)
         private val METHANE = GasType("Bog", ResourceLocation("vs_clockwork", "bog"), density = 0.657, viscosity = 1.10e-5, specificHeatCapacity = 2.2, thermalConductivity = 0.031, sutherlandConstant = 90.0, adiabaticIndex = 1.3)
@@ -202,6 +202,10 @@ class GasCombustorAndThrusterTest {
             val inMass = recipe.gasses.values.sum()
             val outMass = recipe.result.values.sum()
             assertEquals(inMass, outMass, 1e-9, "Reaction $name must conserve mass (in=$inMass, out=$outMass)")
+            assertFalse(
+                recipe.requirements.containsKey(DefaultKelvinRequirements.maxTemperature),
+                "Reaction $name should not cap combustion with max_temperature",
+            )
         }
 
         // Pure gas-to-gas gas_crafting recipes (catalyst item only, no item/fluid outputs) also conserve gas mass.
@@ -228,7 +232,7 @@ class GasCombustorAndThrusterTest {
         assertTrue(inert.finalTemperature < 305.0, "Inert air should only warm slightly from 2 kJ spark (got ${inert.finalTemperature} K)")
 
         // 2) Flammable Bog + Air mixture: ignites cleanly and reaches self-sustaining combustion temperature
-        seedNode(network, pos, mapOf(AIR to 0.48, METHANE to 0.015), 293.15)
+        seedNode(network, pos, mapOf(AIR to 0.48, METHANE to 0.06), 293.15)
         val totalMassBefore = network.getGasMassAt(pos).values.sum()
         val bogIgnite = CombustionSpark.ignite(network, pos, reactions = REACTIONS, requirementCheck = ::checkRequirement)
         assertTrue(bogIgnite.ignited, "Bog + Air should ignite")
@@ -241,10 +245,10 @@ class GasCombustorAndThrusterTest {
         assertTrue(diluted.finalTemperature < 350.0, "Heavily diluted mix should quench (got ${diluted.finalTemperature} K)")
 
         // 4) Stellane + Ozonite (rocket propellant): ignites cleanly with zero air
-        seedNode(network, pos, mapOf(HYDROGEN to 0.02, OZONITE to 0.01), 293.15)
+        seedNode(network, pos, mapOf(HYDROGEN to 0.01, OZONITE to 0.08), 293.15)
         val rocket = CombustionSpark.ignite(network, pos, reactions = REACTIONS, requirementCheck = ::checkRequirement)
         assertTrue(rocket.ignited, "Stellane + Ozonite should ignite")
-        assertTrue(rocket.finalTemperature > 800.0, "Ignited Stellane + Ozonite should reach > 800 K (got ${rocket.finalTemperature} K)")
+        assertTrue(rocket.finalTemperature > 1000.0, "Ignited Stellane + Ozonite should reach > 1000 K (got ${rocket.finalTemperature} K)")
 
         // 5) Endothermic recipe at 800 K: must immediately self-extinguish without cheating bulk conversion
         val endo = GasBaseRecipe(
@@ -410,12 +414,12 @@ class GasCombustorAndThrusterTest {
             val tPos = DuctNodePos(0.0, 0.0, -1.0, TEST_DIM)    // North = single front exhaust
             val inPos = DuctNodePos(0.0, 0.0, 1.0, TEST_DIM)    // South = single rear inlet
 
-            val combustor = CombustorDuctNode(cPos, volume = 0.4, maxPressure = 16_375_049.0, maxTemperature = 1478.0).apply {
+            val combustor = CombustorDuctNode(cPos, volume = 0.4, maxPressure = 16_375_049.0, maxTemperature = GasCombustorBlock.COMBUSTOR_MAX_TEMPERATURE).apply {
                 facing = Direction.NORTH
                 ambientPressure = ambientP
                 this.throttle = throttle
             }
-            val thruster = GasThrusterDuctNode(tPos, volume = 0.5, maxPressure = 16_375_049.0, maxTemperature = 1478.0).apply {
+            val thruster = GasThrusterDuctNode(tPos, volume = 0.5, maxPressure = 16_375_049.0, maxTemperature = 1900.0).apply {
                 ambientPressure = ambientP
                 ambientTemperature = 293.15
                 ambientAirGas = AIR
@@ -517,24 +521,31 @@ class GasCombustorAndThrusterTest {
         // 2) Bog + Air Continuous Jet via upstream T-junction into the single rear inlet
         val bogJet = runEngine(listOf(SupplySpec(METHANE, 300_000.0), SupplySpec(AIR, 300_000.0)))
         assertTrue(bogJet.avgThrustN > pulsejet.avgThrustN * 2.0, "Continuous jet (${bogJet.avgThrustN}) should beat pulsejet (${pulsejet.avgThrustN})")
-        assertTrue(bogJet.endCombustorT > 1000.0, "Continuous Bog+Air jet should stay self-sustaining hot (${bogJet.endCombustorT} K)")
+        assertTrue(bogJet.endCombustorT in 750.0..1200.0, "Continuous Bog+Air jet should stay self-sustaining hot without melting (${bogJet.endCombustorT} K)")
 
         // 3) Bog + Ozonite + Air Boosted Jet via upstream manifold into the single rear inlet
         val boostedJet = runEngine(listOf(SupplySpec(METHANE, 500_000.0), SupplySpec(AIR, 500_000.0), SupplySpec(OZONITE, 500_000.0)))
-        assertTrue(boostedJet.avgThrustN > bogJet.avgThrustN * 1.4, "Ozonite boost (${boostedJet.avgThrustN}) should beat unboosted jet (${bogJet.avgThrustN})")
+        assertTrue(boostedJet.avgThrustN > bogJet.avgThrustN * 1.15, "Ozonite boost (${boostedJet.avgThrustN}) should beat unboosted jet (${bogJet.avgThrustN})")
 
-        // 4) Stellane + Ozonite Vacuum Rocket via valve-metered T-junction (Ozonite is 12.8x denser than Stellane)
+        // 4) Stellane + Air Jet (meter dense Air or run pressurized Stellane) & Stellane + Ozonite Vacuum Rocket
+        val stellaneJet = runEngine(listOf(SupplySpec(HYDROGEN, 800_000.0), SupplySpec(AIR, 800_000.0, pipeRadius = 0.22)))
         val vacuumRocket = runEngine(
-            supplies = listOf(SupplySpec(HYDROGEN, 500_000.0), SupplySpec(OZONITE, 500_000.0, pipeRadius = 0.05)),
+            supplies = listOf(SupplySpec(HYDROGEN, 1_000_000.0), SupplySpec(OZONITE, 1_000_000.0, pipeRadius = 0.22)),
             ambientP = 0.0,
         )
-        assertTrue(vacuumRocket.avgThrustN > 100_000.0, "Stellane + Ozonite rocket should produce strong vacuum thrust (avg=${vacuumRocket.avgThrustN})")
-        assertTrue(vacuumRocket.endCombustorT > 750.0, "Stellane + Ozonite rocket should sustain combustion (${vacuumRocket.endCombustorT} K)")
-
-        // 5) Phlogiston Monopropellant Vacuum Rocket (single supply directly into rear inlet)
-        val monopropRocket = runEngine(listOf(SupplySpec(PHLOGISTON, 500_000.0)), ambientP = 0.0)
-        assertTrue(monopropRocket.avgThrustN > 100_000.0, "Phlogiston monopropellant should produce strong vacuum thrust (avg=${monopropRocket.avgThrustN})")
-        assertTrue(monopropRocket.endCombustorT > 1000.0, "Phlogiston monopropellant should sustain combustion (${monopropRocket.endCombustorT} K)")
+        val monopropRocket = runEngine(listOf(SupplySpec(PHLOGISTON, 1_000_000.0)), ambientP = 0.0)
+        val phlogOzoniteRocket = runEngine(
+            supplies = listOf(SupplySpec(PHLOGISTON, 1_000_000.0), SupplySpec(OZONITE, 1_000_000.0)),
+            ambientP = 0.0,
+        )
+        assertTrue(stellaneJet.avgThrustN > bogJet.avgThrustN, "Stellane+Air jet (${stellaneJet.avgThrustN}, T=${stellaneJet.endCombustorT}K) should beat Bog+Air jet (${bogJet.avgThrustN}, T=${bogJet.endCombustorT}K)")
+        assertTrue(vacuumRocket.avgThrustN > 1_200_000.0, "Stellane + Ozonite rocket should produce high vacuum thrust (avg=${vacuumRocket.avgThrustN})")
+        assertTrue(vacuumRocket.endCombustorT in 1200.0..1550.0, "Stellane + Ozonite rocket should burn near 1450 K (${vacuumRocket.endCombustorT} K)")
+        assertTrue(monopropRocket.avgThrustN > 1_000_000.0, "Phlogiston monopropellant should produce strong vacuum thrust (avg=${monopropRocket.avgThrustN})")
+        assertTrue(monopropRocket.endCombustorT in 1150.0..1500.0, "Phlogiston monopropellant should burn near 1400 K (${monopropRocket.endCombustorT} K)")
+        assertTrue(vacuumRocket.avgThrustN > monopropRocket.avgThrustN, "At combustor flow cap, Stellane+Ozonite (${vacuumRocket.avgThrustN}) should beat Phlogiston mono (${monopropRocket.avgThrustN}) in peak vacuum thrust")
+        assertTrue(phlogOzoniteRocket.endCombustorT > monopropRocket.endCombustorT, "Phlogiston + Ozonite (${phlogOzoniteRocket.endCombustorT} K) should burn hotter than passive Phlogiston (${monopropRocket.endCombustorT} K)")
+        assertTrue(phlogOzoniteRocket.endCombustorT < GasCombustorBlock.COMBUSTOR_MAX_TEMPERATURE, "Phlogiston + Ozonite must stay safely below combustor rating (${phlogOzoniteRocket.endCombustorT} K)")
 
         // 6) Sub-atmospheric fuel supply (80 kPa Bog) into empty Combustor -> Thruster: fills with ambient air instead of clogging
         run {

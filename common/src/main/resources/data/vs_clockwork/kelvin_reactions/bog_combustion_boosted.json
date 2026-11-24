@@ -5,22 +5,21 @@
       "unit": "kg"
     },
     "vs_clockwork:ozonite": {
-      "amount": 0.00025,
+      "amount": 0.003,
       "unit": "kg"
     }
   },
   "requirements": {
-    "kelvin:min_temperature": 600,
-    "kelvin:max_temperature": 1300
+    "kelvin:min_temperature": 550
   },
-  "energy": 66352,
+  "energy": 6783,
   "result_gasses": {
     "vs_clockwork:exhaust": {
-      "amount": 0.000625,
+      "amount": 0.002,
       "unit": "kg"
     },
     "vs_clockwork:steam": {
-      "amount": 0.000625,
+      "amount": 0.002,
       "unit": "kg"
     }
   }

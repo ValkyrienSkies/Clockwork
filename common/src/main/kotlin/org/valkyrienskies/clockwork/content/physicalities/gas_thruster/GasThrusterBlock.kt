@@ -87,8 +87,10 @@ class GasThrusterBlock(properties: Properties) : DirectionalBlock(properties), I
         nodePlace(state, level, pos, oldState, isMoving)
     }
 
+    override fun getMaximumTemperature(): Double = THRUSTER_MAX_TEMPERATURE
+
     override fun createNode(pos: DuctNodePos): DuctNode {
-        return GasThrusterDuctNode(pos = pos, volume = getInternalVolume(), maxPressure = 16375049.0, maxTemperature = 1478.0)
+        return GasThrusterDuctNode(pos = pos, volume = getInternalVolume(), maxPressure = 16375049.0, maxTemperature = getMaximumTemperature())
     }
 
     override fun onRemove(
@@ -118,5 +120,9 @@ class GasThrusterBlock(properties: Properties) : DirectionalBlock(properties), I
     override fun getAdditionalInfoLines(): List<Component> {
         return listOf(Component.translatable("vs_clockwork.gas_thruster.function").withStyle(ChatFormatting.GRAY).withStyle(
             ChatFormatting.ITALIC))
+    }
+
+    companion object {
+        const val THRUSTER_MAX_TEMPERATURE = 1900.0
     }
 }

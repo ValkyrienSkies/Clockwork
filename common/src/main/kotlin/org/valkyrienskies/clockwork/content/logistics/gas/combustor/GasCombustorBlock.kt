@@ -68,7 +68,7 @@ class GasCombustorBlock(properties: Properties) :
 
     override fun getMaximumPressure(): Double = GasTransfer.MAX_PRESSURE
 
-    override fun getMaximumTemperature(): Double = GasTransfer.MAX_TEMPERATURE
+    override fun getMaximumTemperature(): Double = COMBUSTOR_MAX_TEMPERATURE
 
     override fun createNode(pos: DuctNodePos): DuctNode =
         CombustorDuctNode(
@@ -131,5 +131,9 @@ class GasCombustorBlock(properties: Properties) :
         nodeRemove(state, level, pos, newState, isMoving)
         IBE.onRemove(state, level, pos, newState)
         super.onRemove(state, level, pos, newState, isMoving)
+    }
+
+    companion object {
+        const val COMBUSTOR_MAX_TEMPERATURE = 1900.0
     }
 }
