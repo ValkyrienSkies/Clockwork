@@ -4,6 +4,7 @@ import com.simibubi.create.foundation.block.IBE
 import net.minecraft.core.BlockPos
 import net.minecraft.core.Direction
 import net.minecraft.network.chat.Component
+import net.minecraft.server.level.ServerLevel
 import net.minecraft.world.item.context.BlockPlaceContext
 import net.minecraft.world.level.BlockGetter
 import net.minecraft.world.level.Level
@@ -16,6 +17,8 @@ import net.minecraft.world.level.block.state.BlockState
 import net.minecraft.world.level.block.state.StateDefinition
 import org.valkyrienskies.clockwork.ClockworkConfig
 import org.valkyrienskies.clockwork.content.logistics.gas.duct.IDuct
+import org.valkyrienskies.clockwork.content.physicalities.steering.DrivingControlItem
+import org.valkyrienskies.clockwork.content.physicalities.steering.DrivingControlLinks
 import org.valkyrienskies.clockwork.util.gui.IHaveDuctStats
 import org.valkyrienskies.clockwork.util.kelvin.KNodeBlockEntity
 import org.valkyrienskies.kelvin.api.DuctNodePos
@@ -81,6 +84,8 @@ class GasProcessorBlock<T : KNodeBlockEntity>(
     }
 
     override fun onRemove(state: BlockState, level: Level, pos: BlockPos, newState: BlockState, isMoving: Boolean) {
+        if (level is ServerLevel && state.block != newState.block && DrivingControlItem.throttleTarget(state.block))
+            DrivingControlLinks.get(level).endpointRemoved(pos)
         nodeRemove(state, level, pos, newState, isMoving)
         IBE.onRemove(state, level, pos, newState)
         super.onRemove(state, level, pos, newState, isMoving)

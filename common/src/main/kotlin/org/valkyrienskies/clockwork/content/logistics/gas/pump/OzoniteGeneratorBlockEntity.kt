@@ -16,6 +16,7 @@ import org.valkyrienskies.clockwork.ClockworkMod
 import org.valkyrienskies.clockwork.content.logistics.gas.GasTransfer
 import org.valkyrienskies.kelvin.util.GasPhysics
 import org.valkyrienskies.mod.api.dimensionId
+import org.valkyrienskies.mod.common.getShipManagingPos
 import org.valkyrienskies.mod.common.shipObjectWorld
 import org.valkyrienskies.mod.common.toWorldCoordinates
 import kotlin.math.min
@@ -54,11 +55,16 @@ class OzoniteGeneratorBlockEntity private constructor(
 
         val intake = blockPos.relative(facing.opposite)
         if (!world.hasChunkAt(intake) || !world.getBlockState(intake).isAir) return
+        val intakeCenter = Vec3.atCenterOf(intake)
+        val worldIntakeCenter = world.getShipManagingPos(blockPos)?.toWorldCoordinates(intakeCenter) ?: intakeCenter
+        val outside = BlockPos.containing(worldIntakeCenter)
+        if (outside != intake && (!world.hasChunkAt(outside) || !world.getBlockState(outside).isAir)) return
+
         val network = ClockworkMod.getKelvin(world)
         val outlet = GasTransfer.port(network, getDuctNodePosition()) ?: return
         if (outlet.pressure >= MAX_OUTLET_PRESSURE) return
 
-        val y = world.toWorldCoordinates(Vec3.atCenterOf(intake)).y
+        val y = worldIntakeCenter.y
         val atmosphere = world.shipObjectWorld.aerodynamicUtils
         val density = atmosphere.getAirDensityForY(y, world.dimensionId)
         val temperature = atmosphere.getAirTemperatureForY(y, world.dimensionId)

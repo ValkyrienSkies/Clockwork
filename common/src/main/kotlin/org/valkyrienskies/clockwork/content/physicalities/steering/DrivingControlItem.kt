@@ -11,6 +11,7 @@ import net.minecraft.world.item.ItemStack
 import net.minecraft.world.item.context.UseOnContext
 import net.minecraft.world.level.Level
 import net.minecraft.world.level.block.Block
+import org.valkyrienskies.clockwork.ClockworkBlocks
 import org.valkyrienskies.clockwork.content.contraptions.phys.bearing.PhysBearingBlock
 import org.valkyrienskies.clockwork.content.contraptions.phys.hinge.HingeBlock
 import org.valkyrienskies.clockwork.content.contraptions.phys.linear.PhysicalPistonBlock
@@ -19,8 +20,11 @@ import org.valkyrienskies.clockwork.content.physicalities.gas_thruster.GasThrust
 import org.valkyrienskies.clockwork.content.physicalities.wheel.WheelHubBlock
 
 class DrivingControlItem(block: Block, properties: Properties) : BlockItem(block, properties) {
-    private fun accepts(target: Block) = if (block is HandbrakeBlock) brakeTarget(target) || target is SteeringWheelBlock
-        else steeringTarget(target)
+    private fun accepts(target: Block) = when (block) {
+        is HandbrakeBlock -> brakeTarget(target) || target is SteeringWheelBlock
+        is ThrottleLeverBlock -> throttleTarget(target) || target is SteeringWheelBlock
+        else -> steeringTarget(target)
+    }
 
     internal fun linkSelected(level: Level, pos: BlockPos, placer: LivingEntity?, stack: ItemStack) {
         if (level !is ServerLevel) return
@@ -48,7 +52,7 @@ class DrivingControlItem(block: Block, properties: Properties) : BlockItem(block
             val hubs = selected(stack, level).toMutableSet()
             val added = hubs.add(pos)
             if (!added) hubs.remove(pos)
-            else if (block is HandbrakeBlock && level.getBlockState(pos).block is SteeringWheelBlock)
+            else if (level.getBlockState(pos).block is SteeringWheelBlock)
                 hubs.removeIf { it != pos && level.hasChunkAt(it) && level.getBlockState(it).block is SteeringWheelBlock }
             writeSelection(stack, level, hubs)
             val key = if (added) "selected" else "deselected"
@@ -58,7 +62,10 @@ class DrivingControlItem(block: Block, properties: Properties) : BlockItem(block
     }
 
     companion object {
-        internal fun steeringTarget(block: Block) = block is WheelHubBlock || block is HandbrakeBlock || block is GasThrusterBlock
+        internal fun steeringTarget(block: Block) =
+            block is WheelHubBlock || block is HandbrakeBlock || block is GasThrusterBlock || block is ThrottleLeverBlock
+
+        internal fun throttleTarget(block: Block) = block === ClockworkBlocks.GAS_COMBUSTOR.get()
 
         internal fun brakeTarget(block: Block) = block is WheelHubBlock || block is PhysBearingBlock || block is HingeBlock ||
             block is PhysicalPistonBlock || block is PhysicalGantryBlock

@@ -33,7 +33,7 @@ open class PumpDuctBlockEntity(typeIn: BlockEntityType<*>, pos: BlockPos, state:
     override fun addBehaviours(behaviours: MutableList<BlockEntityBehaviour>) {
         super.addBehavioursDeferred(behaviours)
         if (mode == PumpDuctBlock.Mode.SMART) {
-            pressure = GasPressureSetting(this, 1000, 12000)
+            pressure = GasPressureSetting(this, 1000, 12000, BlockStateProperties.FACING)
             behaviours.add(pressure)
         }
     }

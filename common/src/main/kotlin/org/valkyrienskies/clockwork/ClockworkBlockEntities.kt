@@ -3,6 +3,8 @@ package org.valkyrienskies.clockwork
 import org.valkyrienskies.clockwork.content.physicalities.wheel.WheelHubBlockEntity
 import org.valkyrienskies.clockwork.content.physicalities.wheel.WheelHubRenderer
 import org.valkyrienskies.clockwork.content.physicalities.steering.HandbrakeBlockEntity
+import org.valkyrienskies.clockwork.content.physicalities.steering.ThrottleLeverBlockEntity
+import org.valkyrienskies.clockwork.content.physicalities.steering.ThrottleLeverRenderer
 import org.valkyrienskies.clockwork.content.physicalities.steering.SteeringWheelBlockEntity
 import org.valkyrienskies.clockwork.content.physicalities.steering.SteeringWheelRenderer
 
@@ -979,6 +981,13 @@ object ClockworkBlockEntities {
     val HANDBRAKE = ClockworkMod.REGISTRATE
         .blockEntity("handbrake", ::HandbrakeBlockEntity)
         .validBlocks(ClockworkBlocks.HANDBRAKE).register()
+
+    @JvmField
+    val THROTTLE_LEVER = ClockworkMod.REGISTRATE
+        .blockEntity("throttle_lever", ::ThrottleLeverBlockEntity)
+        .validBlocks(ClockworkBlocks.THROTTLE_LEVER)
+        .renderer { NonNullFunction { context: BlockEntityRendererProvider.Context -> ThrottleLeverRenderer(context) } }
+        .register()
 
     @JvmField
     val STEERING_WHEEL = ClockworkMod.REGISTRATE

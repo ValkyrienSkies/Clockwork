@@ -1,0 +1,49 @@
+{
+  "parent": "minecraft:block/block",
+  "textures": {
+    "base": "create:block/andesite_casing",
+    "bezel": "minecraft:block/cut_copper",
+    "track": "minecraft:block/polished_deepslate",
+    "shaft": "minecraft:block/iron_block",
+    "grip": "minecraft:block/redstone_block",
+    "particle": "#base"
+  },
+  "elements": [
+    {
+      "from": [3, 0, 1],
+      "to": [13, 3, 15],
+      "faces": {
+        "north": { "texture": "#base" },
+        "east": { "texture": "#base" },
+        "south": { "texture": "#base" },
+        "west": { "texture": "#base" },
+        "up": { "texture": "#base" },
+        "down": { "texture": "#base" }
+      }
+    },
+    {
+      "from": [6, 3, 4],
+      "to": [10, 5, 12],
+      "faces": {
+        "north": { "texture": "#bezel" },
+        "east": { "texture": "#bezel" },
+        "south": { "texture": "#bezel" },
+        "west": { "texture": "#bezel" },
+        "up": { "texture": "#bezel" },
+        "down": { "texture": "#bezel" }
+      }
+    },
+    {
+      "from": [7, 5, 4],
+      "to": [9, 5.25, 12],
+      "faces": {
+        "north": { "texture": "#track" },
+        "east": { "texture": "#track" },
+        "south": { "texture": "#track" },
+        "west": { "texture": "#track" },
+        "up": { "texture": "#track" },
+        "down": { "texture": "#track" }
+      }
+    }
+  ]
+}

@@ -36,6 +36,12 @@ internal class DrivingControlLinks : SavedData() {
         return if (level.hasChunkAt(pos)) level.getBlockEntity(pos) as? SteeringWheelBlockEntity else null
     }
 
+    fun linkedThrottle(level: ServerLevel, target: BlockPos): Double? {
+        val pos = controllers[target] ?: return null
+        if (!level.hasChunkAt(pos)) return 0.0
+        return (level.getBlockEntity(pos) as? ThrottleLeverBlockEntity)?.throttle ?: 0.0
+    }
+
     fun braked(level: ServerLevel, target: BlockPos): Boolean {
         val pos = brakeTargets[target] ?: return false
         if (!level.hasChunkAt(pos)) return pos in parked
@@ -115,8 +121,12 @@ internal class DrivingControlLinks : SavedData() {
             val target = level.getBlockState(hub).block
             val source = level.getBlockState(wheel).block
             val brake = entry.getBoolean("Brake")
-            val valid = if (brake) source is HandbrakeBlock && DrivingControlItem.brakeTarget(target)
-                else source is SteeringWheelBlock && DrivingControlItem.steeringTarget(target)
+            val valid = when {
+                brake -> source is HandbrakeBlock && DrivingControlItem.brakeTarget(target)
+                source is SteeringWheelBlock -> DrivingControlItem.steeringTarget(target)
+                source is ThrottleLeverBlock -> DrivingControlItem.throttleTarget(target)
+                else -> false
+            }
             if (valid) bind(hub, wheel, brake)
         }
     }

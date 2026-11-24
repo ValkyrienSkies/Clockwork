@@ -96,6 +96,12 @@ object ClockworkModClient {
     val HANDBRAKE_KEYBIND = KeyMapping("key.vs_clockwork.handbrake", InputConstants.Type.KEYSYM,
         InputConstants.KEY_B, "category.vs_clockwork.clockwork_keys")
 
+    val THROTTLE_UP_KEYBIND = KeyMapping("key.vs_clockwork.throttle_up", InputConstants.Type.KEYSYM,
+        InputConstants.KEY_PAGEUP, "category.vs_clockwork.clockwork_keys")
+
+    val THROTTLE_DOWN_KEYBIND = KeyMapping("key.vs_clockwork.throttle_down", InputConstants.Type.KEYSYM,
+        InputConstants.KEY_PAGEDOWN, "category.vs_clockwork.clockwork_keys")
+
     @JvmStatic
     val DEBUG_LIGHTNING_KEYBIND: KeyMapping = KeyMapping(
         "key.vs_clockwork.debug_lightning_toggle",
@@ -156,6 +162,8 @@ object ClockworkModClient {
 //        }
 
         KeyMappingRegistry.register(HANDBRAKE_KEYBIND)
+        KeyMappingRegistry.register(THROTTLE_UP_KEYBIND)
+        KeyMappingRegistry.register(THROTTLE_DOWN_KEYBIND)
         KeyMappingRegistry.register(AERONAUT_GOGGLE_KEYBIND)
         GravitronControlsClient.register()
         GatemakyrClient.register()

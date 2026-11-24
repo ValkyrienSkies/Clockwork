@@ -38,7 +38,9 @@ class SteeringWheelBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: B
     private var input = 0
     private var throttle = 0
     private var brakeInput = false
+    private var throttleInput = 0
     val handbrakeHeld get() = driver != null && brakeInput
+    val throttleAdjustment get() = if (driver != null) throttleInput else 0
     var driveThrottle = 0f
         private set
     private var lastInput = 0L
@@ -95,11 +97,12 @@ class SteeringWheelBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: B
         input = 0
         throttle = 0
         brakeInput = false
+        throttleInput = 0
         lastInput = level!!.gameTime
         sendData()
     }
 
-    fun control(player: Player, direction: Int, throttle: Int, braking: Boolean = false) {
+    fun control(player: Player, direction: Int, throttle: Int, braking: Boolean = false, throttleAdjustment: Int = 0) {
         if (driver != player.uuid || !canReach(player)) return
         if (direction == 2) {
             driver = null
@@ -108,6 +111,7 @@ class SteeringWheelBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: B
             sendData()
         } else {
             brakeInput = braking
+            throttleInput = throttleAdjustment.coerceIn(-1, 1)
             input = direction.coerceIn(-1, 1)
             val nextThrottle = throttle.coerceIn(-1, 1)
             if (this.throttle != nextThrottle) {

@@ -20,6 +20,7 @@ import org.valkyrienskies.clockwork.content.kinetics.combobulator.IThinkable
 import org.valkyrienskies.clockwork.content.kinetics.combobulator.ThinkableConnections
 import org.valkyrienskies.clockwork.content.logistics.gas.GasTransfer
 import org.valkyrienskies.clockwork.content.logistics.gas.IConnectable
+import org.valkyrienskies.clockwork.content.physicalities.steering.DrivingControlLinks
 import org.valkyrienskies.clockwork.util.kelvin.KNodeBlockEntity
 import org.valkyrienskies.kelvin.api.DuctNetwork
 import org.valkyrienskies.kelvin.api.GasType
@@ -71,8 +72,9 @@ class GasCombustorBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: Bl
         if (acceptsThinkable(side)) Component.translatable("thinkable.vs_clockwork.port.gas_throttle") else null
 
     private fun throttle(world: ServerLevel): Double {
-        val source = ThinkableConnections.inputSource(world, blockPos, Direction.UP)
-            ?: return world.getBestNeighborSignal(blockPos) / 15.0
+        val linkedThrottle = DrivingControlLinks.get(world).linkedThrottle(world, blockPos)
+        val source = ThinkableConnections.sourceAt(world, blockPos, Direction.UP, cableOnly = linkedThrottle != null)
+            ?: return linkedThrottle ?: world.getBestNeighborSignal(blockPos) / 15.0
         val device = source.device ?: return 0.0
         val reading = if (device.thinkableReadings(source.side).any { it.id() == "throttle" }) "throttle" else ""
         return device.thinkableValue(source.side, reading)?.takeIf { it.isFinite() }?.coerceIn(0.0, 1.0) ?: 0.0

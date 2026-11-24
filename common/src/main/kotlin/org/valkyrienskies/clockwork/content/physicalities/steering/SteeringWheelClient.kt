@@ -18,6 +18,7 @@ object SteeringWheelClient {
     private var lastInput = 0
     private var lastBrake = false
     private var lastThrottle = 0
+    private var lastThrottleAdjustment = 0
 
     fun use(pos: BlockPos) {
         val level = Minecraft.getInstance().level ?: return
@@ -30,6 +31,7 @@ object SteeringWheelClient {
         lastInput = 0
         lastBrake = false
         lastThrottle = 0
+        lastThrottleAdjustment = 0
     }
 
     fun tick() {
@@ -67,11 +69,16 @@ object SteeringWheelClient {
         val direction = (if (input.right) 1 else 0) - (if (input.left) 1 else 0)
         val throttle = (if (input.up) 1 else 0) - (if (input.down) 1 else 0)
         val braking = ClockworkModClient.HANDBRAKE_KEYBIND.isDown
-        if (direction != lastInput || throttle != lastThrottle || braking != lastBrake || world!!.gameTime - lastSent >= 5) {
-            ClockworkPackets.sendToServer(SteeringWheelInputPacket(pos, direction, throttle, braking))
+        val throttleAdjustment = (if (ClockworkModClient.THROTTLE_UP_KEYBIND.isDown) 1 else 0) -
+            (if (ClockworkModClient.THROTTLE_DOWN_KEYBIND.isDown) 1 else 0)
+        if (direction != lastInput || throttle != lastThrottle || throttleAdjustment != lastThrottleAdjustment ||
+            braking != lastBrake || world!!.gameTime - lastSent >= 5
+        ) {
+            ClockworkPackets.sendToServer(SteeringWheelInputPacket(pos, direction, throttle, braking, throttleAdjustment))
             lastBrake = braking
             lastInput = direction
             lastThrottle = throttle
+            lastThrottleAdjustment = throttleAdjustment
             lastSent = world!!.gameTime
         }
         input.left = false

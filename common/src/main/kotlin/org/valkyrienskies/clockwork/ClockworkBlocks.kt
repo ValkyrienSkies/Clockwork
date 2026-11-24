@@ -2,6 +2,7 @@ package org.valkyrienskies.clockwork
 
 import org.valkyrienskies.clockwork.content.physicalities.wheel.WheelHubBlock
 import org.valkyrienskies.clockwork.content.physicalities.steering.HandbrakeBlock
+import org.valkyrienskies.clockwork.content.physicalities.steering.ThrottleLeverBlock
 import org.valkyrienskies.clockwork.content.physicalities.steering.DrivingControlItem
 import org.valkyrienskies.clockwork.content.physicalities.steering.SteeringWheelBlock
 
@@ -918,6 +919,13 @@ object ClockworkBlocks {
     val HANDBRAKE = REGISTRATE.block("handbrake") { p: BlockBehaviour.Properties -> HandbrakeBlock(p) }
         .initialProperties { SharedProperties.softMetal() }.transform(axeOrPickaxe())
         .properties { it.noOcclusion() }
+        .item(::DrivingControlItem).tab(ClockworkMod.PHYSICAL_CREATIVE_TABINFO).build().register()
+
+    @JvmField
+    val THROTTLE_LEVER = REGISTRATE.block("throttle_lever") { p: BlockBehaviour.Properties -> ThrottleLeverBlock(p) }
+        .initialProperties { SharedProperties.softMetal() }.transform(axeOrPickaxe())
+        .properties { it.noOcclusion() }
+        .tag(AllTags.AllBlockTags.SAFE_NBT.tag)
         .item(::DrivingControlItem).tab(ClockworkMod.PHYSICAL_CREATIVE_TABINFO).build().register()
 
     @JvmField

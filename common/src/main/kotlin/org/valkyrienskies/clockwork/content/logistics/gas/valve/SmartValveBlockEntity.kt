@@ -21,7 +21,7 @@ class SmartValveBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: Bloc
     private lateinit var pressure: GasPressureSetting
 
     override fun addBehaviours(behaviours: MutableList<BlockEntityBehaviour>) {
-        pressure = GasPressureSetting(this, 400, 12000)
+        pressure = GasPressureSetting(this, 400, 12000, BlockStateProperties.HORIZONTAL_FACING)
         behaviours.add(pressure)
     }
 

@@ -10,6 +10,7 @@ object ClockworkPartials {
     val MEDIUM_WHEEL_RIM = block("wheel/rim_medium")
     val LARGE_WHEEL_RIM = block("wheel/rim_large")
     val STEERING_WHEEL = block("steering_wheel/wheel")
+    val THROTTLE_LEVER_HANDLE = block("throttle_lever/handle")
 
     val BEARING_TOP_FLAP = block("flap_bearing_top")
     val PHYS_GANTRY_WHEELS = block("phys_gantry/wheels")
