@@ -8,6 +8,7 @@ import net.minecraft.client.sounds.AudioStream
 import net.minecraft.sounds.SoundSource
 import net.minecraft.util.RandomSource
 import org.joml.Vector3d
+import org.valkyrienskies.clockwork.ClockworkGasses
 import org.valkyrienskies.clockwork.ClockworkSounds
 import org.valkyrienskies.clockwork.content.physicalities.gas_thruster.GasThrusterBlockEntity
 import org.valkyrienskies.clockwork.platform.ThrusterSoundFactory
@@ -45,9 +46,11 @@ abstract class GasThrusterSound(source: GasThrusterBlockEntity) :
 
     private fun updateControls(be: GasThrusterBlockEntity) {
         val flow = be.gasMassFlow.values.sum()
+        val exhaust = if (flow > 0) (be.gasMassFlow[ClockworkGasses.EXHAUST] ?: 0.0) / flow else 0.0
+        val steam = if (flow > 0) (be.gasMassFlow[ClockworkGasses.STEAM] ?: 0.0) / flow else 0.0
         controls = ThrusterControls(
             sqrt(flow / 0.004).coerceIn(0.0, 1.4), (be.velocity / 680.0).coerceIn(0.0, 1.4),
-            be.plumeHeat.toDouble(), be.steamFraction.toDouble(), be.exhaustFraction.toDouble(), be.expansion.toDouble()
+            be.normalizedTemperature * sqrt((4.0 * exhaust).coerceIn(0.0, 1.0)), steam, exhaust, be.expansion.toDouble()
         )
     }
 

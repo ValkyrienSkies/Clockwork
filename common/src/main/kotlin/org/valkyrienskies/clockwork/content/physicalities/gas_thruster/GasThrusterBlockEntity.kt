@@ -60,6 +60,8 @@ class GasThrusterBlockEntity(type: BlockEntityType<*>?, pos: BlockPos, state: Bl
         private const val DISCHARGE_COEFFICIENT = 0.8
         private const val NOZZLE_AREA_M2 = 0.00154
         private const val MAX_GIMBAL_PITCH = 30.0
+        private const val MIN_VISIBLE_GAS_KG_PER_TICK = 0.000001
+        private val AIR_ID = ResourceLocation("kelvin", "air")
     }
 
     @Volatile
@@ -74,6 +76,8 @@ class GasThrusterBlockEntity(type: BlockEntityType<*>?, pos: BlockPos, state: Bl
 
     var velocity = 0.0
     private var chamberHeat = 0.0
+    internal val normalizedTemperature get() = ((chamberHeat - 550.0) / 900.0).coerceIn(0.0, 1.0)
+    private var nonAirFlow = 0.0
     var expansion = 0f
         private set
     var plumeHeat = 0f
@@ -128,11 +132,12 @@ class GasThrusterBlockEntity(type: BlockEntityType<*>?, pos: BlockPos, state: Bl
         chamberHeat = tag.getDouble("PlumeTemperature")
         expansion = tag.getFloat("PlumeExpansion")
         gimbalPitch = if (clientPacket) tag.getDouble("GimbalPitch") else 0.0
-        val total = gasMassFlow.values.sum()
+        nonAirFlow = gasMassFlow.entries.sumOf { (gas, mass) -> if (gas.resourceLocation == AIR_ID) 0.0 else mass }
+        val total = nonAirFlow.takeIf { it >= MIN_VISIBLE_GAS_KG_PER_TICK } ?: 0.0
         steamFraction = if (total > 0) ((gasMassFlow[ClockworkGasses.STEAM] ?: 0.0) / total).toFloat() else 0f
         exhaustFraction = if (total > 0) ((gasMassFlow[ClockworkGasses.EXHAUST] ?: 0.0) / total).toFloat() else 0f
         vaporStrength = ((chamberHeat - 350.0) / 450.0).coerceIn(0.0, 1.0).toFloat() * steamFraction
-        plumeHeat = (((chamberHeat - 550.0) / 900.0).coerceIn(0.0, 1.0) *
+        plumeHeat = (normalizedTemperature *
             sqrt((4.0 * exhaustFraction).coerceIn(0.0, 1.0))).toFloat()
 
     }
@@ -186,8 +191,9 @@ class GasThrusterBlockEntity(type: BlockEntityType<*>?, pos: BlockPos, state: Bl
     fun clientTick() {
         val level = level ?: return
         previousLipGlow = lipGlow
-        val flow = gasMassFlow.values.sum()
-        val metalTarget = (((chamberHeat - 550.0) / 900.0).coerceIn(0.0, 1.0) *
+        val showAir = nonAirFlow < MIN_VISIBLE_GAS_KG_PER_TICK
+        val flow = if (showAir) gasMassFlow.values.sum() else nonAirFlow
+        val metalTarget = (normalizedTemperature *
             (1.0 - exp(-flow / 0.0015))).toFloat()
         lipGlow += (metalTarget - lipGlow) * if (metalTarget > lipGlow) 0.11f else 0.018f
         previousHeatSpread = heatSpread
@@ -210,6 +216,7 @@ class GasThrusterBlockEntity(type: BlockEntityType<*>?, pos: BlockPos, state: Bl
         val contact = impact?.let { Vector3d(mouth).fma(it.distance, exhaustDirection) }
         val jetStrength = max(plumeHeat, vaporStrength)
         for ((gas, mass) in gasMassFlow) {
+            if (!showAir && gas.resourceLocation == AIR_ID) continue
             val particleCount = mass / massPerParticle
             KelvinParticleHelper.spawnJetForGas(
                 level,
