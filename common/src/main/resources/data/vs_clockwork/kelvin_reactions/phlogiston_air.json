@@ -10,7 +10,7 @@
     }
   },
   "requirements": {
-    "kelvin:min_temperature": 500
+    "kelvin:min_temperature": 385
   },
   "energy": 4656,
   "result_gasses": {

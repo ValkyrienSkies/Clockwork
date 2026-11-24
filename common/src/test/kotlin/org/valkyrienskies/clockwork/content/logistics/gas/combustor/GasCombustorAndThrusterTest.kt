@@ -589,4 +589,80 @@ class GasCombustorAndThrusterTest {
         val plainAir = runEngine(listOf(SupplySpec(AIR, 300_000.0)))
         assertTrue(plainAir.endCombustorT < 360.0, "Plain air must not heat up into a free heater (${plainAir.endCombustorT} K)")
     }
+
+    @Test
+    fun `stellane and phlogiston mixes reliably kickstart and sustain on unvalved sea-level T-junctions`() {
+        fun runUnvalvedSeaLevel(supplies: List<Pair<GasType, Double>>): Pair<Double, Double> {
+            val network = DuctNetworkServer(disabled = false)
+            val solver = JacobiSeidelSolver()
+            val cPos = DuctNodePos(0.0, 0.0, 0.0, TEST_DIM)
+            val tPos = DuctNodePos(0.0, 0.0, -1.0, TEST_DIM)
+            val inPos = DuctNodePos(0.0, 0.0, 1.0, TEST_DIM)
+            val combustor = CombustorDuctNode(cPos, volume = 0.4, maxPressure = 16_375_049.0, maxTemperature = GasCombustorBlock.COMBUSTOR_MAX_TEMPERATURE).apply {
+                facing = Direction.NORTH
+                ambientPressure = 101_325.0
+                throttle = 1.0
+            }
+            val thruster = GasThrusterDuctNode(tPos, volume = 0.5, maxPressure = 16_375_049.0, maxTemperature = 1900.0).apply {
+                ambientPressure = 101_325.0
+                ambientTemperature = 293.15
+                ambientAirGas = AIR
+                nozzleOpenToAir = true
+                environmentValid = true
+            }
+            network.addNode(cPos, combustor)
+            network.addNode(tPos, thruster)
+            network.addNode(inPos, PipeDuctNode(inPos, volume = 0.4, maxPressure = 16_375_049.0, maxTemperature = 1478.0, heatCapacity = 44.9))
+            network.addEdge(cPos, tPos, DuctNetworkUtils.configureMetalDuctEdge(PipeDuctEdge(ConnectionType.PIPE, cPos, tPos, radius = 0.3125, length = 0.375)))
+            val inletEdge = PipeDuctEdge(ConnectionType.PIPE, inPos, cPos, radius = 0.3125, length = 0.375).apply {
+                wallThermalConductance = 0.0
+                thermalConductivityMultiplier = 0.0
+            }
+            network.addEdge(inPos, cPos, inletEdge)
+            combustor.insulateInletEdges()
+
+            val offsets = listOf(DuctNodePos(0.0, 0.0, 2.0, TEST_DIM), DuctNodePos(-1.0, 0.0, 1.0, TEST_DIM))
+            val supplyNodes = supplies.mapIndexed { idx, (gas, p) ->
+                val sPos = offsets[idx]
+                network.addNode(sPos, PipeDuctNode(sPos, volume = 10.0, maxPressure = 16_375_049.0, maxTemperature = 1478.0, heatCapacity = 44.9))
+                network.addEdge(sPos, inPos, PipeDuctEdge(ConnectionType.PIPE, sPos, inPos, radius = 0.3125, length = 0.375))
+                Triple(sPos, gas, p)
+            }
+
+            seedNode(network, cPos, mapOf(AIR to massForPressure(AIR, 101_325.0, 0.4, 293.15)), 293.15)
+            seedNode(network, tPos, mapOf(AIR to massForPressure(AIR, 101_325.0, 0.5, 293.15)), 293.15)
+
+            var sparkCd = 0
+            var lastThrust = 0.0
+            for (tick in 0 until 240) {
+                for ((sPos, gas, p) in supplyNodes) {
+                    seedNode(network, sPos, mapOf(gas to massForPressure(gas, p, 10.0, 293.15)), 293.15)
+                }
+                solver.step(network, 10)
+                runReactions(network, cPos)
+                runReactions(network, tPos)
+                if (sparkCd > 0) sparkCd--
+                if (sparkCd == 0 && network.getTemperatureAt(cPos) < 750.0 && network.getGasMassAt(cPos).values.sum() > 1e-4) {
+                    CombustionSpark.ignite(network, cPos, reactions = REACTIONS, requirementCheck = ::checkRequirement)
+                    sparkCd = GasCombustorBlockEntity.AUTO_SPARK_COOLDOWN_TICKS
+                }
+                lastThrust = thruster.drainTickSummary().averageRawThrust * 2000.0
+            }
+            return network.getTemperatureAt(cPos) to lastThrust
+        }
+
+        val cases = listOf(
+            "Stellane + Air @ 300 kPa" to listOf(HYDROGEN to 300_000.0, AIR to 300_000.0),
+            "Stellane + Air @ 1 MPa" to listOf(HYDROGEN to 1_000_000.0, AIR to 1_000_000.0),
+            "Stellane + Ozonite @ 300 kPa" to listOf(HYDROGEN to 300_000.0, OZONITE to 300_000.0),
+            "Stellane + Ozonite @ 1 MPa" to listOf(HYDROGEN to 1_000_000.0, OZONITE to 1_000_000.0),
+            "Phlogiston + Air @ 300 kPa" to listOf(PHLOGISTON to 300_000.0, AIR to 300_000.0),
+            "Phlogiston + Air @ 1 MPa" to listOf(PHLOGISTON to 1_000_000.0, AIR to 1_000_000.0),
+        )
+        for ((name, supplies) in cases) {
+            val (endT, endThrust) = runUnvalvedSeaLevel(supplies)
+            assertTrue(endT > 1000.0, "$name should kickstart and sustain > 1000 K (got $endT K)")
+            assertTrue(endThrust > 500_000.0, "$name should sustain > 500 kN steady thrust (got $endThrust N)")
+        }
+    }
 }
