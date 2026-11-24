@@ -723,7 +723,6 @@
   "vs_clockwork.creative_generator.function2": "Can be configured using its GUI.",
   "vs_clockwork.valve_duct.function": "Restricts gas flow based on its angle.",
   "vs_clockwork.gas_thruster.function": "Produces thrust from escaping gas. Link a Steering Wheel or send a Thinkable pitch angle to tilt the jet.",
-  "vs_clockwork.gas_thruster.nozzle": "Nozzle Area",
   "vs_clockwork.gas_control.pressure": "Outlet Pressure",
   "vs_clockwork.gas_combustor.fuel": "Fuel",
   "vs_clockwork.gas_combustor.fuel.bog": "Bog",

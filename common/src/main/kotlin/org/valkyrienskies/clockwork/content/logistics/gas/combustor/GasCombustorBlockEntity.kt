@@ -110,7 +110,7 @@ class GasCombustorBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: Bl
         val network = ClockworkMod.getKelvin(world)
         val position = getDuctNodePosition()
         val chamber = GasTransfer.port(network, position) ?: return
-        if (chamber.pressure >= CHAMBER_TARGET_PRESSURE) return
+        if (chamber.pressure >= BOOST_TARGET_PRESSURE) return
         val selected = fuelSetting.get()
         val fuel = selected.gas()
         val air = GasTypeRegistry.getGasType("kelvin", "air") ?: return
@@ -118,7 +118,7 @@ class GasCombustorBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: Bl
         var remainingAmbient = ambient?.mass ?: 0.0
         val fuelLimit = throttle * FUEL_PER_TICK
         var remainingFuel = fuelLimit
-        var ignition = Double.POSITIVE_INFINITY
+        var ignition: Ignition? = null
 
         for (mix in selected.mixtures) {
             if (remainingFuel <= GasTransfer.MIN_MASS) break
@@ -126,12 +126,14 @@ class GasCombustorBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: Bl
             val burn = burn(world, network, output, mix, fuel, air, ambient, remainingFuel, remainingAmbient) ?: continue
             remainingFuel -= burn.fuel
             remainingAmbient -= burn.ambientAir
-            ignition = min(ignition, burn.ignition)
+            val candidate = burn.ignition
+            if (candidate != null && candidate.temperature < (ignition?.temperature ?: Double.POSITIVE_INFINITY))
+                ignition = candidate
         }
 
-        if (remainingFuel == fuelLimit && ignition.isFinite()) {
-            val heat = min(STARTER_JOULES, (ignition + 5.0 - chamber.temperature) * chamber.capacity)
-            val fraction = chamber.allowedFraction(emptyMap(), heat, CHAMBER_TARGET_PRESSURE, GasTransfer.MAX_TEMPERATURE)
+        if (remainingFuel == fuelLimit && ignition != null) {
+            val heat = min(STARTER_JOULES, (ignition.temperature + 5.0 - chamber.temperature) * chamber.capacity)
+            val fraction = chamber.allowedFraction(emptyMap(), heat, ignition.pressureLimit, GasTransfer.MAX_TEMPERATURE)
             network.modHeatEnergy(position, heat * fraction)
         }
     }
@@ -142,6 +144,9 @@ class GasCombustorBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: Bl
     ): Burn? {
         val recipe = KelvinReactionDataLoader.gas_reactions[mix.recipeId] ?: return null
         if (abs(recipe.gasses.values.sum() - recipe.result.values.sum()) > 1e-9) return null
+        val boosted = ClockworkGasses.OZONITE in recipe.gasses
+        val targetPressure = if (boosted) BOOST_TARGET_PRESSURE else CHAMBER_TARGET_PRESSURE
+        if (output.pressure >= targetPressure) return null
         val fuelPerBatch = recipe.gasses[fuel]?.takeIf { it > 0.0 } ?: return null
         val workingAirPerBatch = mix.workingAirPerFuel * fuelPerBatch
         val airPerBatch = workingAirPerBatch + (recipe.gasses[air] ?: 0.0)
@@ -184,7 +189,7 @@ class GasCombustorBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: Bl
         if (batches * fuelPerBatch <= GasTransfer.MIN_MASS) return null
 
         val ignition = recipe.requirements[DefaultKelvinRequirements.minTemperature]?.asDouble ?: 0.0
-        if (output.temperature < ignition) return Burn(ignition = ignition)
+        if (output.temperature < ignition) return Burn(ignition = Ignition(ignition, targetPressure))
 
         val state = output.reactionState()
         if (!recipe.requirements.all { (test, value) -> test.apply_requirement(world, state, value) }) return null
@@ -207,9 +212,8 @@ class GasCombustorBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: Bl
             else GasPhysics.mixtureCapacity(mapOf(air to remainingAir)) * ambient.temperature
         val energy = recipe.energy * batches + ambientEnergy +
             meteredFeeds.sumOf { GasPhysics.mixtureCapacity(it.gases) * it.port.temperature }
-        val fraction = output.allowedFraction(
-            products, energy, CHAMBER_PRESSURE_LIMIT, maxTemperature
-        )
+        val pressureLimit = if (boosted) BOOST_PRESSURE_LIMIT else CHAMBER_PRESSURE_LIMIT
+        val fraction = output.allowedFraction(products, energy, pressureLimit, maxTemperature)
         val fuelBurned = fuelPerBatch * batches * fraction
         if (fuelBurned <= GasTransfer.MIN_MASS) return null
 
@@ -221,7 +225,8 @@ class GasCombustorBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: Bl
     private data class AmbientAir(val pressure: Double, val mass: Double, val temperature: Double)
     private data class AirInlet(val port: GasTransfer.Port, val mass: Double)
     private data class Feed(val port: GasTransfer.Port, val gases: Map<GasType, Double>)
-    private data class Burn(val fuel: Double = 0.0, val ambientAir: Double = 0.0, val ignition: Double = Double.POSITIVE_INFINITY)
+    private data class Ignition(val temperature: Double, val pressureLimit: Double)
+    private data class Burn(val fuel: Double = 0.0, val ambientAir: Double = 0.0, val ignition: Ignition? = null)
 
     private class Mixture(recipe: String, val workingAirPerFuel: Double) {
         val recipeId = ClockworkMod.asResource(recipe)
@@ -247,6 +252,8 @@ class GasCombustorBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: Bl
         private const val FUEL_PER_TICK = 0.008 / 20.0
         private const val CHAMBER_TARGET_PRESSURE = 300000.0
         private const val CHAMBER_PRESSURE_LIMIT = 400000.0
+        private const val BOOST_TARGET_PRESSURE = 600000.0
+        private const val BOOST_PRESSURE_LIMIT = 700000.0
         private const val STARTER_JOULES = 5000.0
         private const val COMPRESSOR_AIR_PER_TICK = 0.006
         private const val COMPRESSOR_PRESSURE_RATIO = 3.0

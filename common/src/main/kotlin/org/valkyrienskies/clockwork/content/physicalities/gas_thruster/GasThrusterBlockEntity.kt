@@ -1,8 +1,6 @@
 package org.valkyrienskies.clockwork.content.physicalities.gas_thruster
 
 import com.simibubi.create.foundation.blockEntity.behaviour.BlockEntityBehaviour
-import com.simibubi.create.foundation.blockEntity.behaviour.ValueBoxTransform
-import com.simibubi.create.foundation.blockEntity.behaviour.scrollValue.ScrollValueBehaviour
 import net.minecraft.client.multiplayer.ClientLevel
 import net.minecraft.core.BlockPos
 import net.minecraft.core.Direction
@@ -15,7 +13,6 @@ import net.minecraft.world.level.block.state.BlockState
 import net.minecraft.world.level.block.state.properties.BlockStateProperties
 import net.minecraft.world.level.ClipContext
 import net.minecraft.world.phys.HitResult
-import net.minecraft.world.phys.Vec3
 import org.joml.Vector3d
 import org.valkyrienskies.mod.common.getLoadedShipManagingPos
 import org.valkyrienskies.mod.common.util.toMinecraft
@@ -61,11 +58,7 @@ class GasThrusterBlockEntity(type: BlockEntityType<*>?, pos: BlockPos, state: Bl
         internal const val NOZZLE_LENGTH = 1.0 - NOZZLE_PIVOT
         private const val TICK_SECONDS = 0.05 // 20 game ticks per second
         private const val DISCHARGE_COEFFICIENT = 0.8
-        private const val SQUARE_METRE_PER_SQUARE_MILLIMETRE = 1e-6
-        private const val NOZZLE_STEP_MM2 = 5
-        private const val DEFAULT_NOZZLE = 1540 / NOZZLE_STEP_MM2
-        private const val MAX_NOZZLE = 18800 / NOZZLE_STEP_MM2
-        private const val LEGACY_NOZZLE_STEP = 1175 / NOZZLE_STEP_MM2
+        private const val NOZZLE_AREA_M2 = 0.00154
         private const val MAX_GIMBAL_PITCH = 30.0
     }
 
@@ -104,7 +97,6 @@ class GasThrusterBlockEntity(type: BlockEntityType<*>?, pos: BlockPos, state: Bl
 
     val gasMassFlow = HashMap<GasType, Double>()
     val massPerParticle = 0.005
-    private lateinit var nozzle: ScrollValueBehaviour
 
     override fun write(tag: CompoundTag, clientPacket: Boolean) {
 
@@ -145,27 +137,7 @@ class GasThrusterBlockEntity(type: BlockEntityType<*>?, pos: BlockPos, state: Bl
 
     }
 
-    override fun addBehaviours(behaviours: MutableList<BlockEntityBehaviour>) {
-        nozzle = object : ScrollValueBehaviour(Component.translatable("vs_clockwork.gas_thruster.nozzle"), this, NozzleSlot()) {
-            override fun write(tag: CompoundTag, clientPacket: Boolean) {
-                super.write(tag, clientPacket)
-                tag.remove("ScrollValue")
-                tag.putInt("NozzleAreaMm2", value * NOZZLE_STEP_MM2)
-            }
-
-            override fun read(tag: CompoundTag, clientPacket: Boolean) {
-                super.read(tag, clientPacket)
-                value = when {
-                    tag.contains("NozzleAreaMm2") -> (tag.getInt("NozzleAreaMm2") / NOZZLE_STEP_MM2).coerceIn(1, MAX_NOZZLE)
-                    tag.contains("ScrollValue") -> value.coerceIn(1, 16) * LEGACY_NOZZLE_STEP
-                    else -> DEFAULT_NOZZLE
-                }
-            }
-        }.between(1, MAX_NOZZLE).withFormatter { "${it * NOZZLE_STEP_MM2} mm²" }
-        nozzle.setValue(DEFAULT_NOZZLE)
-        nozzle.requiresWrench()
-        behaviours.add(nozzle)
-    }
+    override fun addBehaviours(behaviours: MutableList<BlockEntityBehaviour>) {}
 
     override fun acceptsThinkable(side: Direction) = side == gimbalSide
 
@@ -316,9 +288,6 @@ class GasThrusterBlockEntity(type: BlockEntityType<*>?, pos: BlockPos, state: Bl
             gamma <= 1.0 || specificGasConstant <= 0.0
         ) return clearMassFlow()
 
-        val nozzleArea = nozzle.value * NOZZLE_STEP_MM2 * SQUARE_METRE_PER_SQUARE_MILLIMETRE
-        if (!nozzleArea.isFinite() || nozzleArea <= 0.0) return clearMassFlow()
-
         val criticalRatio = (2.0 / (gamma + 1.0)).pow(gamma / (gamma - 1.0))
         val ambientRatio = (ambientPressure / chamberPressure).coerceIn(0.0, 1.0)
         val choked = ambientRatio <= criticalRatio
@@ -328,12 +297,12 @@ class GasThrusterBlockEntity(type: BlockEntityType<*>?, pos: BlockPos, state: Bl
         val theoreticalMassFlow = if (choked) {
             GasPhysics.mdotChoked(
                 gasMasses, chamberPressure, chamberTemperature,
-                sqrt(nozzleArea / PI), DISCHARGE_COEFFICIENT
+                sqrt(NOZZLE_AREA_M2 / PI), DISCHARGE_COEFFICIENT
             )
         } else {
             val expansion = (2.0 * gamma / (specificGasConstant * chamberTemperature * (gamma - 1.0))) *
                 (ambientRatio.pow(2.0 / gamma) - ambientRatio.pow((gamma + 1.0) / gamma))
-            DISCHARGE_COEFFICIENT * nozzleArea * chamberPressure * sqrt(expansion.coerceAtLeast(0.0))
+            DISCHARGE_COEFFICIENT * NOZZLE_AREA_M2 * chamberPressure * sqrt(expansion.coerceAtLeast(0.0))
         }
         if (!theoreticalMassFlow.isFinite() || theoreticalMassFlow <= 0.0) return clearMassFlow()
 
@@ -360,7 +329,7 @@ class GasThrusterBlockEntity(type: BlockEntityType<*>?, pos: BlockPos, state: Bl
         val actualMassFlow = expelledMass / 0.05
 
         val flowFraction = (actualMassFlow / theoreticalMassFlow).coerceIn(0.0, 1.0)
-        val pressureThrust = (exitPressure - ambientPressure) * nozzleArea * flowFraction
+        val pressureThrust = (exitPressure - ambientPressure) * NOZZLE_AREA_M2 * flowFraction
         val rawThrust = actualMassFlow * exhaustVelocity + pressureThrust
 
         velocity = exhaustVelocity
@@ -388,10 +357,4 @@ class GasThrusterBlockEntity(type: BlockEntityType<*>?, pos: BlockPos, state: Bl
             thrustDirection().mul(this.thrust))
     }
 
-    private class NozzleSlot : ValueBoxTransform.Sided() {
-        override fun isSideActive(state: BlockState, side: Direction): Boolean =
-            side.axis.isHorizontal && side.axis != state.getValue(BlockStateProperties.FACING).axis
-
-        override fun getSouthLocation() = Vec3(0.5, 0.5, 0.8)
-    }
 }
