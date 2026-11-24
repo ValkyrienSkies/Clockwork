@@ -8,18 +8,24 @@ import com.mojang.blaze3d.vertex.VertexBuffer
 import com.mojang.blaze3d.vertex.VertexFormat
 import com.mojang.blaze3d.vertex.VertexConsumer
 import com.simibubi.create.AllPartialModels
+import net.createmod.catnip.client.render.model.BakedModelBufferer
+import net.createmod.catnip.client.render.model.ShadeSeparatedBufferSource
+import net.createmod.catnip.levelWrappers.SchematicLevel
 import net.createmod.catnip.render.CachedBuffers
 import net.minecraft.client.Minecraft
 import net.minecraft.client.renderer.MultiBufferSource
 import net.minecraft.core.BlockPos
-import net.minecraft.core.Direction
 import net.minecraft.nbt.CompoundTag
+import net.minecraft.world.level.Level
+import net.minecraft.world.level.block.entity.BlockEntity
+import net.minecraft.world.level.block.state.BlockState
 import net.minecraft.world.level.block.state.properties.BlockStateProperties
-import net.minecraft.util.RandomSource
+import net.minecraft.world.level.levelgen.structure.BoundingBox
 import net.minecraft.world.phys.Vec3
 import org.joml.Matrix4f
 import org.joml.Quaternionf
 import org.joml.Vector3d
+import org.valkyrienskies.clockwork.ClockworkMod
 import org.valkyrienskies.clockwork.ClockworkPartials
 import org.valkyrienskies.clockwork.content.physicalities.wheel.LayeredTireRenderer
 import org.valkyrienskies.clockwork.content.physicalities.wheel.TireMesh
@@ -37,9 +43,37 @@ import kotlin.math.cos
 import kotlin.math.sin
 
 object VdexBlueprintPreview {
+    private class PreviewLevel(level: Level, ship: VdexBlueprintData.Ship) : SchematicLevel(level) {
+        private val savedEntities = HashMap<BlockPos, CompoundTag>()
+
+        init {
+            renderMode = true
+            setBounds(BoundingBox(0, 0, 0, ship.size.x - 1, ship.size.y - 1, ship.size.z - 1))
+            for (entry in ship.blocks) {
+                blockMap[entry.pos] = entry.state
+                entry.nbt?.let { savedEntities[entry.pos] = it }
+            }
+        }
+
+        override fun getBlockEntity(pos: BlockPos): BlockEntity? {
+            val entity = super.getBlockEntity(pos) ?: return null
+            val tag = savedEntities.remove(pos) ?: return entity
+            try {
+                entity.load(tag.copy())
+            } catch (e: RuntimeException) {
+                ClockworkMod.LOGGER.warn("Could not read blueprint preview data for ${entity.blockState} at $pos", e)
+            }
+            return entity
+        }
+
+        override fun processBlockStateForPrinting(state: BlockState) = state
+        override fun getMinBuildHeight() = 0
+        override fun getHeight() = 256
+    }
+
     internal class Mesh(val data: VdexBlueprintData) : AutoCloseable {
         private val builder = BufferBuilder(262144)
-        private val occupied = data.ships.map { ship -> ship.blocks.associateBy { it.pos } }
+        private var previewLevel: PreviewLevel? = null
         private var ship = 0
         private var block = 0
         private var processed = 0
@@ -60,33 +94,28 @@ object VdexBlueprintPreview {
 
         fun advance(budget: Int) {
             if (buffer != null) return
-            val mc = Minecraft.getInstance()
-            val random = RandomSource.create(42)
-            repeat(budget) {
-                if (ship >= data.ships.size) return@repeat
+            val level = Minecraft.getInstance().level ?: return
+            var remaining = budget
+            val atlas = MeshConsumer(true)
+            val buffers = ShadeSeparatedBufferSource { _, _ -> atlas }
+            while (remaining > 0 && ship < data.ships.size) {
                 val source = data.ships[ship]
-                val entry = source.blocks[block++]
-                processed++
-                val model = mc.blockRenderer.getBlockModel(entry.state)
-                for (face in Direction.values().toList() + listOf(null)) {
-                    if (face != null && occupied[ship][entry.pos.relative(face)]?.state?.canOcclude() == true) continue
-                    random.setSeed(entry.state.getSeed(entry.pos))
-                    for (quad in model.getQuads(entry.state, face, random)) {
-                        if (quads >= 300000) continue
-                        val tint = if (quad.isTinted) mc.blockColors.getColor(entry.state, null, null, quad.tintIndex) else -1
-                        val n = Vector3d(quad.direction.stepX.toDouble(), quad.direction.stepY.toDouble(), quad.direction.stepZ.toDouble()).rotate(source.entry.relativeRot)
-                        val stride = quad.vertices.size / 4
-                        for (i in 0..3) {
-                            val j = i * stride
-                            val p = source.relativePoint(Vector3d(Float.fromBits(quad.vertices[j]).toDouble() + entry.pos.x,
-                                Float.fromBits(quad.vertices[j + 1]).toDouble() + entry.pos.y, Float.fromBits(quad.vertices[j + 2]).toDouble() + entry.pos.z))
-                            vertex(p, n, Float.fromBits(quad.vertices[j + 4]), Float.fromBits(quad.vertices[j + 5]), tint)
-                        }
-                        quads++
-                    }
+                val count = minOf(remaining, source.blocks.size - block)
+                if (quads < 300000) {
+                    val world = previewLevel ?: PreviewLevel(level, source).also { previewLevel = it }
+                    val batch = source.blocks.subList(block, block + count)
+                    val pose = shipPose(source)
+                    BakedModelBufferer.bufferBlocks(batch.asSequence().map { it.pos }.iterator(), world, pose, false, buffers)
+                    for (entry in batch) wheel(source, entry)
                 }
-                wheel(source, entry)
-                if (block == source.blocks.size) { ship++; block = 0 }
+                processed += count
+                block += count
+                remaining -= count
+                if (block == source.blocks.size) {
+                    ship++
+                    block = 0
+                    previewLevel = null
+                }
             }
             if (ship == data.ships.size) {
                 buffer = VertexBuffer(VertexBuffer.Usage.STATIC).also { it.bind(); it.upload(builder.end()); VertexBuffer.unbind() }
@@ -98,17 +127,23 @@ object VdexBlueprintPreview {
             }
         }
 
-        private fun wheel(source: VdexBlueprintData.Ship, entry: VdexBlueprintData.Block) {
-            val wheel = entry.wheelSize() ?: return
-            val tire = entry.tire(wheel)
-            val facing = entry.state.getValue(BlockStateProperties.FACING)
+        private fun shipPose(source: VdexBlueprintData.Ship): PoseStack {
             val pose = PoseStack()
             pose.translate(source.entry.relativePos.x(), source.entry.relativePos.y(), source.entry.relativePos.z())
             pose.mulPose(Quaternionf(source.entry.relativeRot))
             val scale = source.entry.scale.toFloat()
             pose.scale(scale, scale, scale)
-            pose.translate(entry.pos.x - source.pivot.x, entry.pos.y - source.pivot.y, entry.pos.z - source.pivot.z)
-            val atlas = WheelConsumer(true)
+            pose.translate(-source.pivot.x, -source.pivot.y, -source.pivot.z)
+            return pose
+        }
+
+        private fun wheel(source: VdexBlueprintData.Ship, entry: VdexBlueprintData.Block) {
+            val wheel = entry.wheelSize() ?: return
+            val tire = entry.tire(wheel)
+            val facing = entry.state.getValue(BlockStateProperties.FACING)
+            val pose = shipPose(source)
+            pose.translate(entry.pos.x.toDouble(), entry.pos.y.toDouble(), entry.pos.z.toDouble())
+            val atlas = MeshConsumer(true)
             CachedBuffers.partialFacing(AllPartialModels.SHAFT_HALF, entry.state, facing.opposite).renderInto(pose, atlas)
             pose.translate(.5, .5, .5)
             pose.mulPose(Quaternionf(WheelSize.axleRotation(facing.stepX.toDouble(), facing.stepY.toDouble(), facing.stepZ.toDouble())))
@@ -116,7 +151,7 @@ object VdexBlueprintPreview {
             val wood = WheelItem.wood(entry.nbt)
             if (tire != null) {
                 if (WheelVisuals.treadTexture(tire.type, wood) != null)
-                    TireMesh.render(tire, emptyList(), pose, WheelConsumer(false), 0, 0)
+                    TireMesh.render(tire, emptyList(), pose, MeshConsumer(false), 0, 0)
                 else LayeredTireRenderer.render(null, null, tire, emptyList(), pose, buffers, 0, 0, 0f,
                     if (tire.type == TireType.WOOD) WheelVisuals.planks(wood) else null)
                 LayeredTireRenderer.cleats(tire, pose, buffers, 0, 0)
@@ -132,7 +167,7 @@ object VdexBlueprintPreview {
                 WheelVisuals.rimBuffer(atlas, tire?.type, wood))
         }
 
-        private inner class WheelConsumer(private val textured: Boolean) : VertexConsumer {
+        private inner class MeshConsumer(private val textured: Boolean) : VertexConsumer {
             private val point = Vector3d()
             private val normal = Vector3d()
             private var u = -1f
