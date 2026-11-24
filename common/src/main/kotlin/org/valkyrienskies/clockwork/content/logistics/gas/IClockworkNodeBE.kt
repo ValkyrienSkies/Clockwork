@@ -38,14 +38,12 @@ interface IClockworkNodeBE: INodeBlockEntity, IHaveGoggleInformation {
     }
 
     fun writeNodeData(level: Level?, tag: CompoundTag) {
-        if (level == null || (level.isClientSide && level is PonderLevel)) {
-            val pending = dataToLoad?.get("kelvin_node_data")
-            if (pending != null) {
-                tag.put("kelvin_node_data", pending.copy())
-            } else if (level is PonderLevel) {
-                ClockworkModClient.ponderNetworks[level]?.saveNodeData(getDuctNodePosition(), tag)
-            }
-        } else if (ensureNodeExists()) {
+        val pending = dataToLoad?.get("kelvin_node_data")
+        if (pending != null) {
+            tag.put("kelvin_node_data", pending.copy())
+        } else if (level is PonderLevel && level.isClientSide) {
+            ClockworkModClient.ponderNetworks[level]?.saveNodeData(getDuctNodePosition(), tag)
+        } else if (level != null && ensureNodeExists()) {
             saveData(tag, getDuctNodePosition())
         }
     }

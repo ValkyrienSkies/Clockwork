@@ -70,7 +70,7 @@ abstract class GasFilterScreen(
     }
 
     private inner class GasGrid(x: Int, y: Int) : ScrollingFrame(x, y, 203, 47, 3) {
-        private val gases = GasTypeRegistry.GAS_TYPES.values.sortedBy { it.resourceLocation.toString() }
+        private val gases = GasTypeRegistry.getGasTypes().sortedBy { it.resourceLocation.toString() }
         override var scrollSpeed = 20.0
 
         init {

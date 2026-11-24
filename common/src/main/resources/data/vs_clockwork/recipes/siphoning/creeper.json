@@ -1,0 +1,6 @@
+{
+  "type": "vs_clockwork:siphoning",
+  "entity": "minecraft:creeper",
+  "gas": "vs_clockwork:bog",
+  "kg_per_tick_at_64_rpm": 0.002
+}

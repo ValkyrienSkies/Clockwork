@@ -12,8 +12,6 @@ import org.valkyrienskies.clockwork.platform.api.network.C2SCWPacket
 import org.valkyrienskies.clockwork.platform.api.network.ServerNetworkContext
 import org.valkyrienskies.core.util.readVec3d
 import org.valkyrienskies.core.util.writeVec3d
-import org.valkyrienskies.kelvin.api.edges.SmartEdge
-import org.valkyrienskies.kelvin.api.edges.SmartEdge.FilterType
 import org.valkyrienskies.kelvin.impl.registry.GasTypeRegistry
 import org.valkyrienskies.kelvin.util.KelvinExtensions.toDuctNodePos
 import org.valkyrienskies.kelvin.util.KelvinExtensions.toMinecraft

@@ -6,7 +6,6 @@ import net.createmod.catnip.math.Pointing
 import net.createmod.ponder.api.scene.SceneBuilder
 import net.createmod.ponder.api.scene.SceneBuildingUtil
 import net.minecraft.core.Direction
-import net.minecraft.resources.ResourceLocation
 import net.minecraft.world.entity.EquipmentSlot
 import net.minecraft.world.entity.decoration.ArmorStand
 import net.minecraft.world.item.ItemStack
@@ -69,7 +68,7 @@ object GasBacktankPonder {
             stand.setItemSlot(EquipmentSlot.MAINHAND, ItemStack.EMPTY)
             stand.setItemSlot(EquipmentSlot.HEAD, AllItems.COPPER_DIVING_HELMET.asStack())
         }
-        val air = GasTypeRegistry.GAS_TYPES.getValue(ResourceLocation("kelvin", "air"))
+        val air = GasTypeRegistry.getGasType("kelvin", "air")!!
         scene.overlay().showControls(util.vector().topOf(inlet.east()), Pointing.DOWN, 115).withGas(air)
         scene.overlay().showText(115)
             .text("Fill the Backtank with Air to breathe underwater with a Diving Helmet")

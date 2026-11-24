@@ -36,9 +36,16 @@ include("fabric")
 val kelvinTasksRequested = gradle.startParameter.taskNames.any { it.removePrefix(":").startsWith("kelvin:") }
 if (kelvinTasksRequested || providers.gradleProperty("includeKelvin").orNull.toBoolean()) {
     val kelvin = file("Kelvin")
-    if (kelvin.resolve("settings.gradle.kts").isFile || kelvin.resolve("settings.gradle").isFile) {
-        includeBuild(kelvin.canonicalFile) {
-            name = "kelvin"
+    require(kelvin.resolve("settings.gradle.kts").isFile || kelvin.resolve("settings.gradle").isFile) {
+        "Initialize the Kelvin submodule before building with includeKelvin=true."
+    }
+    includeBuild(kelvin.canonicalFile) {
+        name = "kelvin"
+        dependencySubstitution {
+            for (platform in listOf("common", "fabric", "forge")) {
+                val kelvinModule = "org.valkyrienskies.kelvin:kelvin-$platform"
+                substitute(module(kelvinModule)).using(project(":$platform"))
+            }
         }
     }
 }

@@ -16,6 +16,7 @@ import org.valkyrienskies.clockwork.ClockworkMod.MOD_ID
 import org.valkyrienskies.clockwork.content.contraptions.propeller.blades.item.CraftingTableBladeRecipe
 import org.valkyrienskies.clockwork.content.contraptions.propeller.blades.item.CuttingBladeRecipe
 import org.valkyrienskies.clockwork.content.logistics.gas.crafter.GasCraftingRecipe
+import org.valkyrienskies.clockwork.content.curiosities.harpoon.SiphoningRecipe
 import org.valkyrienskies.clockwork.content.physicalities.wheel.WoodenWheelRecipe
 import java.util.function.Supplier
 
@@ -38,6 +39,7 @@ object ClockworkRecipes {
     ) : IRecipeTypeInfo {
 
         GAS_CRAFTING(ProcessingRecipeBuilder.ProcessingRecipeFactory(::GasCraftingRecipe)),
+        SIPHONING(Supplier { SiphoningRecipe.Serializer }),
         BLADE_CUTTING(ProcessingRecipeBuilder.ProcessingRecipeFactory(::CuttingBladeRecipe));
 
         val serializer = RECIPE_SERIALIZERS.register(id, serializerSupplier)

@@ -6,7 +6,6 @@ import org.valkyrienskies.clockwork.content.curiosities.spring.SpringItem
 
 import org.valkyrienskies.clockwork.client.render.goggles.AeronautGoggleOverlayRenderer
 import com.mojang.blaze3d.vertex.PoseStack
-import com.mojang.blaze3d.vertex.VertexConsumer
 import net.createmod.catnip.render.CachedBuffers
 import net.createmod.catnip.render.SuperByteBuffer
 import net.minecraft.client.Minecraft
@@ -21,8 +20,10 @@ import net.minecraft.client.renderer.texture.OverlayTexture
 import net.minecraft.core.BlockPos
 import net.minecraft.nbt.CompoundTag
 import net.minecraft.nbt.Tag
+import net.minecraft.resources.ResourceLocation
 import net.minecraft.world.item.ItemDisplayContext
 import net.minecraft.world.item.ItemStack
+import net.minecraft.world.level.Level
 import net.minecraft.world.level.block.Blocks
 import net.minecraft.world.phys.AABB
 import net.minecraft.world.phys.Vec3
@@ -40,6 +41,7 @@ import org.valkyrienskies.clockwork.content.curiosities.tools.wanderwand.WandRop
 import org.valkyrienskies.clockwork.content.curiosities.spring.SpringSettings
 import org.valkyrienskies.clockwork.content.kinetics.combobulator.ThinkableItem
 import org.valkyrienskies.clockwork.content.kinetics.combobulator.ThinkablePulse
+import org.valkyrienskies.clockwork.content.physicalities.extendon.ExtendonRenderer
 import org.valkyrienskies.core.api.ships.ClientShip
 import org.valkyrienskies.mod.common.shipObjectWorld
 import java.util.UUID
@@ -70,7 +72,7 @@ class RopeKnotEntityRenderer(context: EntityRendererProvider.Context) : EntityRe
         val link = RopeKnotRenderer.link(entity.linkId) ?: return
         val anchor = if (entity.end == 0) link.a else link.b
         val point = (if (link.harpoon && entity.end == 0) RopeKnotRenderer.harpoonStart(level, anchor)
-            else anchor.world(level, true)) ?: return
+            else anchor.world(level, true, partialTick)) ?: return
         val origin = entity.getPosition(partialTick)
         val tint = RopeKnotRenderer.stressColor(link, partialTick)
         if (link.harpoon) {
@@ -79,7 +81,7 @@ class RopeKnotEntityRenderer(context: EntityRendererProvider.Context) : EntityRe
             RopeKnotRenderer.knot(level, anchor, point.subtract(origin), ms, buffers)
         }
         if (entity.end == 0) {
-            val other = link.b.world(level, true) ?: return
+            val other = link.b.world(level, true, partialTick) ?: return
             if (link.thinkable) {
                 val pulse = link.pulse.progress(RopeKnotRenderer.animationTicks, partialTick)
                 SpringRenderer.renderThinkable(level, link.a, link.b, link.length, pulse, origin, ms, buffers, tint)
@@ -91,7 +93,7 @@ class RopeKnotEntityRenderer(context: EntityRendererProvider.Context) : EntityRe
             else {
                 val end = if (link.harpoon) RopeKnotRenderer.harpoonTail(level, link.b, other) else other
                 val length = if (link.harpoon) RopeKnotRenderer.harpoonRopeLength(link.length) else link.length
-                RopeKnotRenderer.rope(level, WandRopeCurve(point, end, length), origin, ms, buffers, tint, link.grounding)
+                RopeKnotRenderer.rope(level, WandRopeCurve(point, end, length), origin, ms, buffers, tint, link.grounding, link.material)
             }
         }
         super.render(entity, yaw, partialTick, ms, buffers, light)
@@ -100,17 +102,26 @@ class RopeKnotEntityRenderer(context: EntityRendererProvider.Context) : EntityRe
 
 object RopeKnotRenderer {
     val TEXTURE = ClockworkMod.asResource("textures/entity/rope.png")
-    private val type = RenderType.entityCutoutNoCull(TEXTURE)
+    internal enum class Material(texture: ResourceLocation, val radius: Double) {
+        ROPE(TEXTURE, RopeGrounding.RADIUS),
+        HOSE(ExtendonRenderer.texture, 2.0 / 16.0);
+
+        val renderType: RenderType = RenderType.entityCutoutNoCull(texture)
+    }
+
+    private fun material(tag: CompoundTag) = if (tag.getBoolean("hose")) Material.HOSE else Material.ROPE
+
     internal data class Link(val a: WandAnchor, val b: WandAnchor, val length: Double, val spring: Boolean, var stress: Float,
                     var stressUpdated: Long, val settings: CompoundTag, val appliedLength: Double, val lengthUpdated: Long,
                     val frameA: Quaterniond, val frameB: Quaterniond, val thinkable: Boolean,
-                    val pulse: ThinkablePulse, val harpoon: Boolean) {
+                    val pulse: ThinkablePulse, val harpoon: Boolean, val material: Material) {
         var previousStress = stress.takeIf { it.isFinite() }?.coerceIn(0f, 1f) ?: 0f
         var displayStress = previousStress
-        var grounding = RopeGrounding()
+        var grounding = RopeGrounding(material.radius)
     }
-    private data class Snap(val curve: WandRopeCurve, val born: Long, val untied: Boolean)
-    private data class Flight(val source: WandAnchor, val previous: Vec3, val position: Vec3, val updated: Double) {
+    private data class Snap(val curve: WandRopeCurve, val born: Long, val untied: Boolean, val material: Material)
+    private data class Flight(val source: WandAnchor, val previous: Vec3, val position: Vec3, val updated: Double,
+                              val material: Material) {
         fun point(time: Double): Vec3 = previous.lerp(position, (time - updated).coerceIn(0.0, 1.0))
         fun direction(start: Vec3, end: Vec3): Vec3 =
             (position.subtract(previous).takeIf { it.lengthSqr() > 1e-8 } ?: end.subtract(start)).normalize()
@@ -170,7 +181,7 @@ object RopeKnotRenderer {
                     val tip = flight.point(time)
                     val end = tip.subtract(flight.direction(start, tip).scale(HARPOON_LENGTH))
                     if (snaps.size >= 32) snaps.removeAt(0)
-                    snaps.add(Snap(flightCurve(start, end), level.gameTime, false))
+                    snaps.add(Snap(flightCurve(start, end), level.gameTime, false, flight.material))
                 }
                 return
             }
@@ -179,7 +190,7 @@ object RopeKnotRenderer {
             if (!point.x.isFinite() || !point.y.isFinite() || !point.z.isFinite()) return
             val previous = flights[id]?.point(time) ?: point
             if (id !in flights && flights.size >= 256) flights.remove(flights.keys.first())
-            flights[id] = Flight(WandAnchor.load(data.getCompound("source")), previous, point, time)
+            flights[id] = Flight(WandAnchor.load(data.getCompound("source")), previous, point, time, material(data))
             return
         }
         var brokenLink: Link? = null
@@ -212,10 +223,10 @@ object RopeKnotRenderer {
                     length, tag.getBoolean("spring"), tag.getFloat("stress"), level.gameTime, tag.getCompound("settings"),
                     WandLinks.readAppliedLength(tag, length), level.gameTime,
                     WandLinks.loadPoseRotation(tag.getCompound("pose0")), WandLinks.loadPoseRotation(tag.getCompound("pose1")),
-                    tag.getBoolean("thinkable"), pulse, tag.getBoolean("harpoon")).also { next ->
+                    tag.getBoolean("thinkable"), pulse, tag.getBoolean("harpoon"), material(tag)).also { next ->
                         previous[id]?.let {
                             next.previousStress = it.previousStress; next.displayStress = it.displayStress
-                            next.grounding = it.grounding
+                            if (next.material == it.material) next.grounding = it.grounding
                         }
                     }
             }
@@ -244,7 +255,7 @@ object RopeKnotRenderer {
             val b = brokenLink?.takeIf { it.harpoon }?.let { harpoonTail(level, it.b, tip) } ?: tip
             val length = data.getDouble("length").let { if (brokenLink?.harpoon == true) harpoonRopeLength(it) else it }
             if (snaps.size >= 32) snaps.removeAt(0)
-            snaps.add(Snap(WandRopeCurve(a, b, length), level.gameTime, data.getBoolean("untied")))
+            snaps.add(Snap(WandRopeCurve(a, b, length), level.gameTime, data.getBoolean("untied"), brokenLink?.material ?: material(data)))
         }
     }
 
@@ -321,12 +332,14 @@ object RopeKnotRenderer {
     }
 
     internal fun rope(level: ClientLevel, curve: WandRopeCurve, origin: Vec3, ms: PoseStack, buffers: MultiBufferSource,
-                      tint: Int = 0xFFFFFF, grounding: RopeGrounding = previewGrounding) {
-        strand(level, grounding.points(level, curve), origin, ms, buffers.getBuffer(type), RopeGrounding.RADIUS, tint)
+                      tint: Int = 0xFFFFFF, grounding: RopeGrounding = previewGrounding, material: Material = Material.ROPE) {
+        strand(level, grounding.points(level, curve), origin, ms, buffers, material, tint = tint)
     }
 
-    private fun strand(level: ClientLevel, points: List<Vec3>, origin: Vec3, ms: PoseStack, vc: VertexConsumer, radius: Double, tint: Int = 0xFFFFFF) {
+    internal fun strand(level: Level, points: List<Vec3>, origin: Vec3, ms: PoseStack, buffers: MultiBufferSource,
+                        material: Material, radius: Double = material.radius, tint: Int = 0xFFFFFF, packedLight: Int? = null) {
         if (points.size < 2) return
+        val vc = buffers.getBuffer(material.renderType)
         val horizontal = points.last().subtract(points.first()).cross(Vec3(0.0, 1.0, 0.0))
         val side = if (horizontal.lengthSqr() > 1e-6) horizontal.normalize() else Vec3(1.0, 0.0, 0.0)
         val rings = points.mapIndexed { i, p ->
@@ -338,22 +351,23 @@ object RopeKnotRenderer {
         var u = 0f
         for (i in 0 until points.lastIndex) {
             val nextU = u + points[i].distanceTo(points[i + 1]).toFloat()
-            val light = LevelRenderer.getLightColor(level, BlockPos.containing(points[i]))
+            val light = packedLight ?: LevelRenderer.getLightColor(level, BlockPos.containing(points[i]))
             for (face in 0..3) {
                 val next = (face + 1) % 4
-                val v0 = (4 + face * 2) / 16f
-                val v1 = v0 + 2 / 16f
                 val normal = rings[i][face].add(rings[i][next]).scale(0.5).subtract(points[i]).normalize()
-                fun vertex(p: Vec3, texU: Float, texV: Float) {
+                fun vertex(p: Vec3, along: Float, across: Float) {
                     val v = p.subtract(origin)
-                    vc.vertex(ms.last().pose(), v.x.toFloat(), v.y.toFloat(), v.z.toFloat()).color(tint shr 16 and 255, tint shr 8 and 255, tint and 255, 255)
-                        .uv(texU, texV).overlayCoords(OverlayTexture.NO_OVERLAY).uv2(light)
+                    vc.vertex(ms.last().pose(), v.x.toFloat(), v.y.toFloat(), v.z.toFloat())
+                        .color(tint shr 16 and 255, tint shr 8 and 255, tint and 255, 255)
+                    if (material == Material.HOSE) vc.uv(across, along * 9f / (15f * 2f * material.radius.toFloat()))
+                    else vc.uv(along, (4 + (face + across) * 2) / 16f)
+                    vc.overlayCoords(OverlayTexture.NO_OVERLAY).uv2(light)
                         .normal(ms.last().normal(), normal.x.toFloat(), normal.y.toFloat(), normal.z.toFloat()).endVertex()
                 }
-                vertex(rings[i][face], u, v0)
-                vertex(rings[i + 1][face], nextU, v0)
-                vertex(rings[i + 1][next], nextU, v1)
-                vertex(rings[i][next], u, v1)
+                vertex(rings[i][face], u, 0f)
+                vertex(rings[i][next], u, 1f)
+                vertex(rings[i + 1][next], nextU, 1f)
+                vertex(rings[i + 1][face], nextU, 0f)
             }
             u = nextU
         }
@@ -379,7 +393,7 @@ object RopeKnotRenderer {
             val segments = ceil(distance * 2).toInt().coerceIn(8, 128)
             // Airborne tether uses the same material as attached ropes, without terrain grounding.
             val points = (0..segments).map { curve.point(it.toDouble() / segments) }
-            strand(level, points, camera, ms, buffers.getBuffer(type), RopeGrounding.RADIUS)
+            strand(level, points, camera, ms, buffers, flight.material)
             harpoon(level, tip, direction, camera, ms, buffers)
         }
     }
@@ -392,10 +406,16 @@ object RopeKnotRenderer {
         // The supplied model points up, with its tip at (8, 13, 8) pixels.
         ms.mulPose(attachedRotation ?: Quaternionf().rotationTo(0f, 1f, 0f,
             direction.x.toFloat(), direction.y.toFloat(), direction.z.toFloat()))
-        ms.translate(-0.5, -HARPOON_LENGTH, -0.5)
         val litPosition = position.subtract(direction.scale(HARPOON_LENGTH * 0.5))
+        harpoonModel(ms, buffers, LevelRenderer.getLightColor(level, BlockPos.containing(litPosition)))
+        ms.popPose()
+    }
+
+    internal fun harpoonModel(ms: PoseStack, buffers: MultiBufferSource, light: Int) {
+        ms.pushPose()
+        ms.translate(-0.5, -HARPOON_LENGTH, -0.5)
         CachedBuffers.partial(ClockworkPartials.HARPOON, Blocks.AIR.defaultBlockState())
-            .light<SuperByteBuffer>(LevelRenderer.getLightColor(level, BlockPos.containing(litPosition)))
+            .light<SuperByteBuffer>(light)
             .renderInto(ms, buffers.getBuffer(RenderType.cutoutMipped()))
         ms.popPose()
     }
@@ -434,13 +454,13 @@ object RopeKnotRenderer {
                     val p = snap.curve.point(if (end == 0) along else 1 - along)
                     p.add(0.0, -0.016 * age * age * t - sin(t * PI) * sin(age * 0.85) * (if (snap.untied) 0.08 else 0.3), 0.0)
                 }
-                strand(level, points, camera, ms, buffers.getBuffer(type), 0.0625 * (1 - progress * progress))
-                if (!snap.untied && progress < 0.7) {
+                strand(level, points, camera, ms, buffers, snap.material, snap.material.radius * (1 - progress * progress))
+                if (snap.material == Material.ROPE && !snap.untied && progress < 0.7) {
                     val tip = points.last()
                     for (fiber in 0..3) {
                         val angle = fiber * PI / 2 + age * 0.12
                         val tail = tip.add(cos(angle) * 0.15, -0.12 - progress * 0.3, sin(angle) * 0.15)
-                        strand(level, listOf(tip, tail), camera, ms, buffers.getBuffer(type), 0.009 * (1 - progress))
+                        strand(level, listOf(tip, tail), camera, ms, buffers, Material.ROPE, 0.009 * (1 - progress))
                     }
                 }
             }

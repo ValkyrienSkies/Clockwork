@@ -13,13 +13,15 @@ import net.minecraft.core.Direction
 import net.minecraft.world.level.block.state.properties.BlockStateProperties
 import org.valkyrienskies.clockwork.ClockworkPartials
 
-class HarpoonRenderer(context: BlockEntityRendererProvider.Context) : KineticBlockEntityRenderer<HarpoonBlockEntity>(context) {
-    override fun renderSafe(be: HarpoonBlockEntity, partialTicks: Float, ms: PoseStack, buffers: MultiBufferSource,
+class HarpoonRenderer<T : HarpoonBlockEntity>(context: BlockEntityRendererProvider.Context) : KineticBlockEntityRenderer<T>(context) {
+    override fun renderSafe(be: T, partialTicks: Float, ms: PoseStack, buffers: MultiBufferSource,
                             light: Int, overlay: Int) {
         val facing = be.blockState.getValue(BlockStateProperties.FACING)
-        val shaft = CachedBuffers.partialFacing(AllPartialModels.SHAFT_HALF, be.blockState, facing.opposite)
-        standardKineticRotationTransform(shaft, be, light)
-            .overlay<SuperByteBuffer>(overlay).renderInto(ms, buffers.getBuffer(RenderType.solid()))
+        if (be !is SiphonHarpoonBlockEntity) {
+            val shaft = CachedBuffers.partialFacing(AllPartialModels.SHAFT_HALF, be.blockState, facing.opposite)
+            standardKineticRotationTransform(shaft, be, light)
+                .overlay<SuperByteBuffer>(overlay).renderInto(ms, buffers.getBuffer(RenderType.solid()))
+        }
 
         // The supplied models face up: keep rotation and recoil in their local coordinates.
         ms.pushPose()

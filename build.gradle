@@ -24,16 +24,27 @@ if (project.hasProperty("CustomReleaseVersion")) {
     version = mod_version + '+' + (gitRevision.length() >= 10 ? gitRevision.substring(0, 10) : gitRevision)
 }
 
-tasks.register("updateKelvin", GradleBuild) {
-    dir = file("Kelvin").canonicalFile
-    buildName = "updateKelvinBuild"
-    tasks = [":common:writeVersion", ":common:publishToMavenLocal",
-             ":fabric:publishToMavenLocal", ":forge:publishToMavenLocal"]
-    startParameter.projectProperties = gradle.startParameter.projectProperties
-    onlyIf { new File(dir, "settings.gradle.kts").isFile() || new File(dir, "settings.gradle").isFile() }
+def kelvinPublishTasks = [":common:writeVersion", ":common:publishToMavenLocal",
+                          ":fabric:publishToMavenLocal", ":forge:publishToMavenLocal"]
+def localKelvin = gradle.includedBuilds.find { it.name == "kelvin" }
+ext.useLocalKelvin = localKelvin != null
+if (localKelvin != null) {
+    tasks.register("updateKelvin") {
+        dependsOn kelvinPublishTasks.collect { localKelvin.task(it) }
+    }
+} else {
+    tasks.register("updateKelvin", GradleBuild) {
+        dir = file("Kelvin").canonicalFile
+        buildName = "updateKelvinBuild"
+        tasks = kelvinPublishTasks
+        startParameter.projectProperties = gradle.startParameter.projectProperties
+        onlyIf { new File(dir, "settings.gradle.kts").isFile() || new File(dir, "settings.gradle").isFile() }
+    }
+}
 
+tasks.named("updateKelvin") {
     doLast {
-        def kelvinVersion = new File(dir, "common/build/version.txt").text.trim()
+        def kelvinVersion = file("Kelvin/common/build/version.txt").text.trim()
         def gradleProperties = file("gradle.properties")
         def properties = gradleProperties.text
         def updated = properties.replaceFirst("(?m)^kelvin_version=.*", "kelvin_version=" + kelvinVersion)

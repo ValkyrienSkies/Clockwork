@@ -10,7 +10,6 @@ import net.createmod.ponder.api.scene.SceneBuilder
 import net.createmod.ponder.api.scene.SceneBuildingUtil
 import net.minecraft.core.BlockPos
 import net.minecraft.core.Direction
-import net.minecraft.resources.ResourceLocation
 import net.minecraft.world.item.ItemStack
 import net.minecraft.world.item.Items
 import org.valkyrienskies.clockwork.ClockworkGasses
@@ -28,7 +27,7 @@ import org.valkyrienskies.clockwork.content.logistics.gas.duct.IDuct.Companion.S
 import org.valkyrienskies.clockwork.content.logistics.gas.generation.creative_generator.CreativeGeneratorBlockEntity
 import org.valkyrienskies.kelvin.api.DuctEdge
 import org.valkyrienskies.kelvin.api.edges.FilteredEdge
-import org.valkyrienskies.kelvin.api.edges.SmartEdge
+import org.valkyrienskies.clockwork.content.logistics.gas.smart.ClockworkSmartEdge
 import org.valkyrienskies.kelvin.impl.recipe.KelvinGasRecipeSerializer
 import org.valkyrienskies.kelvin.impl.registry.GasTypeRegistry
 import org.valkyrienskies.kelvin.util.KelvinExtensions.toDuctNodePos
@@ -141,8 +140,8 @@ object GasProcessingPonders {
             .text("Right-click to set a condition on the receiving side. Try a pressure above 100 kPa")
             .pointAt(receiver).placeNearTarget()
         configureConnection(scene, duct, DuctEdgeType.SMART) {
-            (it as SmartEdge).apply {
-                filter = SmartEdge.FilterType.PRESSURE
+            (it as ClockworkSmartEdge).apply {
+                filter = ClockworkSmartEdge.FilterType.PRESSURE
                 comparisonValue = 100_000.0
                 moreThan = true
             }
@@ -154,7 +153,7 @@ object GasProcessingPonders {
             .pointAt(outlet).placeNearTarget()
         scene.idle(135)
 
-        configureConnection(scene, duct, DuctEdgeType.SMART) { (it as SmartEdge).moreThan = false }
+        configureConnection(scene, duct, DuctEdgeType.SMART) { (it as ClockworkSmartEdge).moreThan = false }
         scene.overlay().showText(115).attachKeyFrame().colored(PonderPalette.GREEN)
             .text("Switch to below 100 kPa and the whole mixture can flow again")
             .pointAt(outlet).placeNearTarget()
@@ -192,7 +191,7 @@ object GasProcessingPonders {
             .pointAt(util.vector().topOf(bogSource)).placeNearTarget()
         scene.idle(115)
         scene.world().showSection(util.select().position(airSource), Direction.SOUTH)
-        val air = GasTypeRegistry.GAS_TYPES.getValue(ResourceLocation("kelvin", "air"))
+        val air = GasTypeRegistry.getGasType("kelvin", "air")!!
         scene.world().modifyBlockEntity(airSource, CreativeGeneratorBlockEntity::class.java) {
             it.gasValues[air] = 60
             it.temperature = 300.0

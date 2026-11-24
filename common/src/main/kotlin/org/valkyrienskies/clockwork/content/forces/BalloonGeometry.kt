@@ -11,7 +11,7 @@ import org.valkyrienskies.clockwork.util.AABBHelper.mergeAdjacentFast
 import java.util.PriorityQueue
 
 /** Cached membership and boundary geometry. */
-internal class BalloonGeometry(regions: List<AABBic>) {
+internal class BalloonGeometry(regions: List<AABBic>, val sealed: Boolean = false) {
     val cells = HashSet<BlockPos>()
     val boundary = HashSet<BlockPos>()
     val enclosure = HashSet<BlockPos>()
@@ -28,11 +28,23 @@ internal class BalloonGeometry(regions: List<AABBic>) {
                 val neighbor = pos.relative(direction)
                 if (neighbor !in cells) {
                     boundary.add(neighbor)
-                    if (direction != Direction.DOWN) enclosure.add(neighbor)
+                    if (sealed || direction != Direction.DOWN) enclosure.add(neighbor)
                 }
             }
         }
         if (cells.isNotEmpty()) center.div(cells.size.toDouble())
+    }
+
+    fun isCompletelySealed(level: Level, onUnloaded: (BlockPos) -> Unit = {}): Boolean {
+        if (boundary.isEmpty()) return false
+        for (pos in boundary) {
+            if (!level.isLoaded(pos)) {
+                onUnloaded(pos)
+                return false
+            }
+            if (!level.getBlockState(pos).isValidBalloonEnclosure(level, pos)) return false
+        }
+        return true
     }
 
     fun airComponents(level: Level): List<Set<BlockPos>>? {
@@ -62,6 +74,43 @@ internal class BalloonGeometry(regions: List<AABBic>) {
         fun regions(cells: Collection<BlockPos>): List<AABBic> = mergeAdjacentFast(cells.map { it.toAABBic() })
 
         private data class Visit(val pos: BlockPos, val floor: Int)
+
+        /** 6-neighbor BFS flood-fill requiring a completely enclosed shell on all sides. */
+        fun fillSealed(
+            seed: BlockPos,
+            level: Level,
+            limit: Int,
+            bounds: BalloonController.ShellInfo? = null,
+            onUnloaded: (BlockPos) -> Unit = {}
+        ): List<AABBic> {
+            if (limit < 1) return emptyList()
+            if (bounds != null && (seed.x !in bounds.minX..bounds.maxX || seed.y !in bounds.minY..bounds.maxY || seed.z !in bounds.minZ..bounds.maxZ)) {
+                return emptyList()
+            }
+            if (!level.isLoaded(seed)) { onUnloaded(seed); return emptyList() }
+            if (level.getBlockState(seed).isValidBalloonEnclosure(level, seed)) return emptyList()
+            val visited = HashSet<BlockPos>()
+            val queue = ArrayDeque<BlockPos>()
+            val start = seed.immutable()
+            visited.add(start)
+            queue.add(start)
+            while (queue.isNotEmpty()) {
+                val pos = queue.removeFirst()
+                for (direction in Direction.values()) {
+                    val next = pos.relative(direction)
+                    if (next in visited) continue
+                    if (bounds != null && (next.x !in bounds.minX..bounds.maxX || next.y !in bounds.minY..bounds.maxY || next.z !in bounds.minZ..bounds.maxZ)) {
+                        return emptyList()
+                    }
+                    if (!level.isLoaded(next)) { onUnloaded(next); return emptyList() }
+                    if (level.getBlockState(next).isValidBalloonEnclosure(level, next)) continue
+                    if (visited.size >= limit) return emptyList()
+                    visited.add(next)
+                    queue.add(next)
+                }
+            }
+            return regions(visited)
+        }
 
         /** The highest escape path sets the open bottom. */
         fun fill(shell: BalloonController.ShellInfo, seed: BlockPos, level: Level, limit: Int, onUnloaded: (BlockPos) -> Unit = {}): List<AABBic> {

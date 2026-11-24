@@ -66,6 +66,7 @@ import org.valkyrienskies.clockwork.content.curiosities.debug.DebugLightningArce
 import org.valkyrienskies.clockwork.content.curiosities.grippad.GripPadBlock
 import org.valkyrienskies.clockwork.content.curiosities.meteor.MeteorTestBlock
 import org.valkyrienskies.clockwork.content.curiosities.harpoon.HarpoonBlock
+import org.valkyrienskies.clockwork.content.curiosities.harpoon.SiphonHarpoonBlock
 import org.valkyrienskies.clockwork.content.curiosities.rope.RopeWinchBlock
 import org.valkyrienskies.clockwork.content.curiosities.sensor.distance.DistanceSensorBlock
 import org.valkyrienskies.clockwork.content.curiosities.sensor.impact.ImpactSensorBlock
@@ -96,6 +97,7 @@ import org.valkyrienskies.clockwork.content.logistics.gas.heater.GasHeaterBlock
 import org.valkyrienskies.clockwork.content.logistics.gas.thermal.HeatExchangerBlock
 import org.valkyrienskies.clockwork.content.logistics.gas.thermal.RadiatorBlock
 import org.valkyrienskies.clockwork.content.logistics.gas.hoseport.HosePortBlock
+import org.valkyrienskies.clockwork.content.logistics.gas.pockets.blimp.BlimpPortBlock
 import org.valkyrienskies.clockwork.content.logistics.gas.pockets.nozzle.GasNozzleBlock
 import org.valkyrienskies.clockwork.content.logistics.gas.pump.PumpDuctBlock
 import org.valkyrienskies.clockwork.content.logistics.gas.redstone.RedstoneDuctBlock
@@ -759,6 +761,22 @@ object ClockworkBlocks {
             .register()
 
     @JvmField
+    val BLIMP_PORT: BlockEntry<BlimpPortBlock> =
+        REGISTRATE.block("blimp_port") { properties: BlockBehaviour.Properties? ->
+            BlimpPortBlock(properties!!)
+        }
+            .initialProperties { SharedProperties.netheriteMetal() }
+            .transform(axeOrPickaxe())
+            .properties { it.noOcclusion() }
+            .addLayer { Supplier { RenderType.cutout() } }
+            .tag(AllTags.AllBlockTags.SAFE_NBT.tag)
+            .transform(displaySource(ClockworkDisplaySources.BLIMP_PORT))
+            .item()
+            .tab(ClockworkMod.GAS_CREATIVE_TABINFO)
+            .build()
+            .register()
+
+    @JvmField
     val STEAM_GENERATOR: BlockEntry<SteamGeneratorBlock> =
         REGISTRATE.block("steam_generator") { properties: BlockBehaviour.Properties? ->
             SteamGeneratorBlock(properties!!)
@@ -982,6 +1000,13 @@ object ClockworkBlocks {
         .transform(axeOrPickaxe()).properties { it.noOcclusion() }
         .addLayer { Supplier { RenderType.cutout() } }
         .item().tab(ClockworkMod.BASE_CREATIVE_TABINFO).build().register()
+
+    @JvmField
+    val SIPHON_HARPOON = REGISTRATE.block("siphon_harpoon", ::SiphonHarpoonBlock)
+        .initialProperties { SharedProperties.softMetal() }
+        .transform(axeOrPickaxe()).properties { it.noOcclusion() }
+        .addLayer { Supplier { RenderType.cutout() } }
+        .item().tab(ClockworkMod.GAS_CREATIVE_TABINFO).build().register()
 
     @JvmField
     val ROPE_WINCH = REGISTRATE.block("rope_winch") { p: BlockBehaviour.Properties ->

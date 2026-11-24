@@ -2,7 +2,9 @@ package org.valkyrienskies.clockwork.content.forces
 
 import io.mockk.every
 import io.mockk.mockk
+import io.mockk.mockkObject
 import io.mockk.spyk
+import io.mockk.unmockkObject
 import io.mockk.verify
 import com.fasterxml.jackson.annotation.JsonAutoDetect
 import com.fasterxml.jackson.annotation.PropertyAccessor
@@ -23,7 +25,9 @@ import org.joml.Vector3dc
 import org.joml.primitives.AABBi
 import org.joml.primitives.AABBic
 import org.junit.jupiter.api.Assertions.*
+import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeAll
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.valkyrienskies.clockwork.ClockworkConfig
 import org.valkyrienskies.clockwork.content.forces.data.BalloonData
@@ -41,6 +45,18 @@ import org.valkyrienskies.mod.common.IShipObjectWorldServerProvider
 import org.valkyrienskies.mod.common.util.DimensionIdProvider
 
 class BalloonRegressionTest {
+    private val gasRegistry = HashMap<ResourceLocation, GasType>()
+
+    @BeforeEach fun setUpGasRegistry() {
+        mockkObject(GasTypeRegistry)
+        every { GasTypeRegistry.getGasType(any<ResourceLocation>()) } answers { gasRegistry[firstArg<ResourceLocation>()] }
+        every { GasTypeRegistry.getGasTypes() } answers { gasRegistry.values }
+    }
+
+    @AfterEach fun restoreGasRegistry() {
+        unmockkObject(GasTypeRegistry)
+    }
+
     companion object {
         @BeforeAll @JvmStatic fun bootstrap() {
             SharedConstants.tryDetectVersion()
@@ -403,7 +419,7 @@ class BalloonRegressionTest {
 
     @Test fun `hot gas at ambient pressure is not mistaken for a cooled balloon`() {
         val w = World(true); val c = BalloonController(); serverShip(w,c)
-        val air = gas(); GasTypeRegistry.GAS_TYPES[air.resourceLocation] = air
+        val air = gas(); gasRegistry[air.resourceLocation] = air
         val b = balloon(AABBi(0,0,0,3,3,3))
         val mass = air.molesToMass(101325.0*27.0/(DuctNetwork.idealGasConstant*600.0))
         b.gasMasses[air.resourceLocation.toString()] = mass
@@ -447,7 +463,7 @@ class BalloonRegressionTest {
         val w = World(true).apply { box() }
         val c = BalloonController(); val ship = serverShip(w,c)
         val air = gas()
-        val oldAir = GasTypeRegistry.GAS_TYPES.put(air.resourceLocation,air)
+        val oldAir = gasRegistry.put(air.resourceLocation,air)
         try {
             val b = balloon(AABBi(1,1,1,4,5,4))
             b.validate(w.level); c.addBalloon(b)
@@ -476,8 +492,8 @@ class BalloonRegressionTest {
                 assertTrue(BalloonThermodynamics.isValidState(b.resolvedMasses(),b.currentEnergy))
             }
         } finally {
-            if (oldAir == null) GasTypeRegistry.GAS_TYPES.remove(air.resourceLocation)
-            else GasTypeRegistry.GAS_TYPES[air.resourceLocation] = oldAir
+            if (oldAir == null) gasRegistry.remove(air.resourceLocation)
+            else gasRegistry[air.resourceLocation] = oldAir
         }
     }
 
@@ -485,9 +501,9 @@ class BalloonRegressionTest {
         val w = World(true).apply { box() }
         val c = BalloonController(); val ship = serverShip(w,c)
         val air = gas()
-        val oldAir = GasTypeRegistry.GAS_TYPES.put(air.resourceLocation,air)
+        val oldAir = gasRegistry.put(air.resourceLocation,air)
         val badId = ResourceLocation("audit","invalid_thermal_state")
-        val oldBad = GasTypeRegistry.GAS_TYPES[badId]
+        val oldBad = gasRegistry[badId]
         try {
             val b = balloon(AABBi(1,1,1,4,5,4))
             b.validate(w.level)
@@ -498,7 +514,7 @@ class BalloonRegressionTest {
                 air.copy(resourceLocation=badId,density=Double.MIN_VALUE)
             )
             for (gas in gases) {
-                GasTypeRegistry.GAS_TYPES[badId] = gas
+                gasRegistry[badId] = gas
                 b.gasMasses.clear(); b.gasMasses[badId.toString()] = 1.0
                 b.currentEnergy = 1000000.0
                 assertFalse(b.tick(w.level as ServerLevel,ship))
@@ -508,10 +524,10 @@ class BalloonRegressionTest {
                 assertTrue(b.tick(w.level,ship))
             }
         } finally {
-            if (oldAir == null) GasTypeRegistry.GAS_TYPES.remove(air.resourceLocation)
-            else GasTypeRegistry.GAS_TYPES[air.resourceLocation] = oldAir
-            if (oldBad == null) GasTypeRegistry.GAS_TYPES.remove(badId)
-            else GasTypeRegistry.GAS_TYPES[badId] = oldBad
+            if (oldAir == null) gasRegistry.remove(air.resourceLocation)
+            else gasRegistry[air.resourceLocation] = oldAir
+            if (oldBad == null) gasRegistry.remove(badId)
+            else gasRegistry[badId] = oldBad
         }
     }
 

@@ -271,12 +271,12 @@ object ClockworkSounds {
         .attenuationDistance(16)
         .build()
 
-    val GAS_NOZZLE_START = create("gas_nozzle_start").subtitle("Gas Nozzle starting")
+    val GAS_NOZZLE_START = create("gas_nozzle_start").subtitle("Balloon Burner starting")
         .category(SoundSource.BLOCKS)
         .attenuationDistance(32)
         .build()
 
-    val GAS_NOZZLE_LOOP = create("gas_nozzle_loop").subtitle("Gas Nozzle operating")
+    val GAS_NOZZLE_LOOP = create("gas_nozzle_loop").subtitle("Balloon Burner operating")
         .category(SoundSource.BLOCKS)
         .attenuationDistance(16)
         .build()

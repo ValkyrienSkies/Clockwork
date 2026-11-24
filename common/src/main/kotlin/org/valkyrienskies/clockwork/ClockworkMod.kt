@@ -178,7 +178,7 @@ object ClockworkMod {
         LifecycleEvent.SERVER_STARTED.register {
             ClockworkAugmentations.registerComponentAvgAugmentation("heatEnergy", it.shipObjectWorld)
             ClockworkAugmentations.registerComponentAvgAugmentation("pressure", it.shipObjectWorld)
-            for (gas in GasTypeRegistry.GAS_TYPES.values) {
+            for (gas in GasTypeRegistry.getGasTypes()) {
                 ClockworkAugmentations.registerComponentAvgAugmentation("gas/${gas.resourceLocation}", it.shipObjectWorld)
             }
             //println("augments ${ClockworkAugmentations.componentAugmentKeys}")
@@ -193,6 +193,7 @@ object ClockworkMod {
             GripPadController.clear()
             HarpoonProjectiles.clear()
             GatemakyrServer.clear()
+            BalloonPocketGasEffects.clear()
         }
 
         TickEvent.SERVER_LEVEL_POST.register {
@@ -213,6 +214,7 @@ object ClockworkMod {
                 //ship.getAttachment(PocketForcesController::class.java)?.gameTick(it, ship.id)
                 ship.getAttachment(BalloonController::class.java)?.gameTick(it, ship)
             }
+            BalloonPocketGasEffects.tick(it)
 
             if (ClockworkConfig.CLIENT.debug.debugRender) AirpocketRenderer.tick(it)
             CollisionSoundEffectHandler.tick(it)

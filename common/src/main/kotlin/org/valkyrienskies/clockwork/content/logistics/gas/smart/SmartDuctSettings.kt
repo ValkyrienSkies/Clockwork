@@ -2,7 +2,7 @@ package org.valkyrienskies.clockwork.content.logistics.gas.smart
 
 import net.minecraft.network.FriendlyByteBuf
 import org.valkyrienskies.kelvin.api.GasType
-import org.valkyrienskies.kelvin.api.edges.SmartEdge.FilterType
+import org.valkyrienskies.clockwork.content.logistics.gas.smart.ClockworkSmartEdge.FilterType
 import org.valkyrienskies.kelvin.impl.registry.GasTypeRegistry
 
 

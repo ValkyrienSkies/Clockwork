@@ -6,14 +6,22 @@ import net.minecraft.nbt.CompoundTag
 import net.minecraft.server.level.ServerLevel
 import net.minecraft.sounds.SoundEvents
 import net.minecraft.sounds.SoundSource
+import net.minecraft.world.entity.Entity
+import net.minecraft.world.entity.EntityType
+import net.minecraft.world.entity.boss.enderdragon.EnderDragon
+import net.minecraft.world.level.ClipContext
 import net.minecraft.world.level.block.state.properties.BlockStateProperties
 import net.minecraft.world.phys.Vec3
+import net.minecraft.world.phys.AABB
+import net.minecraft.world.phys.EntityHitResult
+import net.minecraft.world.phys.HitResult
 import org.joml.Vector3d
 import org.joml.Vector3dc
 import org.valkyrienskies.clockwork.ClockworkConfig
 import org.valkyrienskies.clockwork.ClockworkMod
 import org.valkyrienskies.clockwork.ClockworkPackets
 import org.valkyrienskies.clockwork.ClockworkSounds
+import org.valkyrienskies.clockwork.content.curiosities.rope.RopeKnotEntity
 import org.valkyrienskies.clockwork.content.curiosities.tools.wanderwand.WandAnchor
 import org.valkyrienskies.clockwork.content.curiosities.tools.wanderwand.WandLinks
 import org.valkyrienskies.clockwork.content.curiosities.tools.wanderwand.WanderwandServer
@@ -23,12 +31,13 @@ import org.valkyrienskies.core.api.util.GameTickOnly
 import org.valkyrienskies.mod.common.dimensionId
 import org.valkyrienskies.mod.common.getShipManagingPos
 import org.valkyrienskies.mod.common.shipObjectWorld
+import org.valkyrienskies.mod.common.world.clipIncludeShips
 
 /** Owns transient projectiles on the game thread. VS queues contact events from its physics thread. */
 @OptIn(GameTickOnly::class)
 object HarpoonProjectiles {
     private data class Shot(val level: ServerLevel, val launcher: HarpoonBlockEntity,
-                            val source: WandAnchor, val born: Long, var position: Vec3)
+                            val source: WandAnchor, val born: Long, var position: Vec3, var sweepFrom: Vec3)
     private val shots = linkedMapOf<ParticleId, Shot>()
     private const val PARTICLE_TAG = 0x434C4B4852504EL // "CLKHRPN", reserved for transient harpoons.
 
@@ -77,7 +86,7 @@ object HarpoonProjectiles {
             level.shipObjectWorld.deleteParticle(particle.id)
             return false
         }
-        val shot = Shot(level, launcher, source, level.gameTime, Vec3(position.x, position.y, position.z))
+        val shot = Shot(level, launcher, source, level.gameTime, Vec3(position.x, position.y, position.z), origin)
         shots[particle.id] = shot
         launcher.projectileLaunched(velocity.length())
         syncFlight(particle.id, shot)
@@ -126,7 +135,8 @@ object HarpoonProjectiles {
             val shot = shots[event.particle] ?: continue
             if (event.other !is ParticleContactOther.Body) continue
             // A rejected contact must not consume the projectile before a valid impact arrives.
-            if (attach(shot, event)) remove(event.particle)
+            val p = event.position
+            if (attachEntity(shot, Vec3(p.x(), p.y(), p.z())) || attach(shot, event)) remove(event.particle)
         }
         for ((id, shot) in shots.toMap()) {
             if (shot.level !== level) continue
@@ -139,6 +149,11 @@ object HarpoonProjectiles {
             }
             val p = particle.position
             shot.position = Vec3(p.x(), p.y(), p.z())
+            if (attachEntity(shot, shot.position)) {
+                remove(id)
+                continue
+            }
+            shot.sweepFrom = shot.position
             if (level.gameTime - shot.born > lifetimeTicks ||
                 p.distance(Vector3d(origin.x, origin.y, origin.z)) > maxRange) {
                 remove(id, snap = true)
@@ -153,6 +168,40 @@ object HarpoonProjectiles {
         shot.level.hasChunkAt(shot.launcher.blockPos) &&
         shot.level.getBlockEntity(shot.launcher.blockPos) === shot.launcher &&
         shot.level.hasNeighborSignal(shot.launcher.blockPos)
+
+    private fun attachEntity(shot: Shot, end: Vec3): Boolean {
+        if (shot.launcher !is SiphonHarpoonBlockEntity || !valid(shot) || shot.level.gameTime - shot.born > lifetimeTicks) return false
+        val start = shot.sweepFrom
+        val travel = end.subtract(start)
+        val length = travel.length()
+        if (!length.isFinite()) return false
+        val to = if (length > maxRange * 2) start.add(travel.scale(maxRange * 2 / length)) else end
+        val padding = radius
+        var closest: EntityHitResult? = null
+        var distance = Double.POSITIVE_INFINITY
+        val swept = AABB(start, to).inflate(padding)
+        // Dragon parts can stick out past the main hitbox.
+        for (entity in shot.level.getEntities(null as Entity?, swept.inflate(EntityType.ENDER_DRAGON.width / 2.0)) {
+            it.boundingBox.intersects(swept) && !it.isSpectator && it !is RopeKnotEntity && canHitEntity(it)
+        }) {
+            val box = entity.boundingBox.inflate(padding)
+            val point = if (box.contains(start)) start else box.clip(start, to).orElse(null) ?: continue
+            val d = start.distanceToSqr(point)
+            if (d < distance) {
+                distance = d
+                closest = EntityHitResult(entity, point)
+            }
+        }
+        val hit = closest ?: return false
+        val block = shot.level.clipIncludeShips(ClipContext(start, hit.location, ClipContext.Block.COLLIDER, ClipContext.Fluid.NONE, hit.entity))
+        if (block.type != HitResult.Type.MISS && start.distanceToSqr(block.location) <= distance) return false
+        val normal = if (length > 0.0) Direction.getNearest(-travel.x, -travel.y, -travel.z) else shot.source.face.opposite
+        return attach(shot, WandAnchor.onEntity(hit.entity, hit.location, normal))
+    }
+
+    private fun canHitEntity(entity: Entity) = entity.canBeHitByProjectile() ||
+        (entity is EnderDragon && entity.isAlive && entity.isNoAi &&
+            entity.subEntities.none { it.boundingBox.intersects(entity.boundingBox) })
 
     private fun attach(shot: Shot, event: ParticleEvent): Boolean {
         if (!valid(shot)) return false
@@ -179,12 +228,18 @@ object HarpoonProjectiles {
         val face = Direction.getNearest(normal.x, normal.y, normal.z)
         val target = WandAnchor(pos, face, targetShip?.id ?: -1,
             offset = Vec3(point.x - pos.x - 0.5, point.y - pos.y - 0.5, point.z - pos.z - 0.5))
+        return attach(shot, target)
+    }
+
+    private fun attach(shot: Shot, target: WandAnchor): Boolean {
+        val level = shot.level
         val a = shot.source.world(level) ?: return false
         val b = target.world(level) ?: return false
         val distance = a.distanceTo(b)
         if (distance > maxRange) return false
         val link = WandLinks.get(level).add(level, shot.source, target, true,
             (distance + 0.25).coerceAtMost(maxRange), physical = true, harpoon = true) ?: return false
+        link.hose = shot.launcher.usesHose
         shot.launcher.ropeId = link.id
         shot.launcher.setChanged()
         shot.launcher.sendData()
@@ -202,6 +257,7 @@ object HarpoonProjectiles {
             it.putBoolean("active", active)
             it.putBoolean("snap", snap)
             if (active) {
+                it.putBoolean("hose", shot.launcher.usesHose)
                 it.put("source", shot.source.save())
                 it.putDouble("x", shot.position.x); it.putDouble("y", shot.position.y); it.putDouble("z", shot.position.z)
             }

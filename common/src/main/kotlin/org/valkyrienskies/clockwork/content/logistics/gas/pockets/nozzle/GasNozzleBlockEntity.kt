@@ -272,10 +272,18 @@ class GasNozzleBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: Block
         val ship = serverLevel.getLoadedShipManagingPos(blockPos) ?: return 0.0 to 0.0
         val center = balloon.getCenter()
         val yInWorld = ship.transform.positionToWorld(Vector3d(center.x(), center.y(), center.z())).y
-        val atmoDensity = serverLevel.shipObjectWorld.aerodynamicUtils.getAirDensityForY(yInWorld, serverLevel.dimensionId)
+        val atmosphere = serverLevel.shipObjectWorld.aerodynamicUtils
+        val atmoDensity = atmosphere.getAirDensityForY(yInWorld, serverLevel.dimensionId)
 
         val internalMass = pocketGasMass.values.sum()
-        val hotAir = max(0.0, atmoDensity * volume - internalMass)
+        val effectiveVolume = if (balloon.sealed) {
+            val atmoPressure = atmosphere.getAirPressureForY(yInWorld, serverLevel.dimensionId)
+            val internalPressure = BalloonThermodynamics.pressure(pocketGasMass, balloon.currentEnergy, volume)
+            BalloonThermodynamics.effectiveVolume(volume, internalPressure, atmoPressure)
+        } else {
+            volume
+        }
+        val hotAir = max(0.0, atmoDensity * effectiveVolume - internalMass)
         val atmosphericMass = atmoDensity * volume
         val fullness = if (atmosphericMass > 1e-9) (hotAir / atmosphericMass).coerceIn(0.0, 1.0) else 0.0
         return hotAir to fullness
@@ -311,6 +319,9 @@ class GasNozzleBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: Block
         if (!this.pointer.value.isFinite() || this.pointer.value <= 0) return
         if (balloon.isLeaking || balloon.shouldValidate || balloon.shouldReScan || balloon.shouldRemove) return
 
+        val kelvin = ClockworkMod.getKelvin(level)
+        if (balloon.sealed) balloon.pullFromKelvin(kelvin)
+
         var pocketGasMass: HashMap<GasType, Double> = HashMap()
         for ((key, value) in balloon.gasMasses) {
             val gasType = GasTypeRegistry.getGasType(ResourceLocation(key)) ?: continue
@@ -319,10 +330,10 @@ class GasNozzleBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: Block
         val pocketHeatEnergy = balloon.currentEnergy
         if (!BalloonThermodynamics.isValidState(pocketGasMass, pocketHeatEnergy)) return
 
-        val gasMass = ClockworkMod.getKelvin(level).getGasMassAt(getDuctNodePosition())
+        val gasMass = kelvin.getGasMassAt(getDuctNodePosition())
         val gasMassTotal = gasMass.values.sum()
         if (!gasMassTotal.isFinite() || gasMassTotal <= 1e-9 || gasMass.values.any { !it.isFinite() || it < 0.0 }) return
-        val heatEnergy = temporaryHeatEnergyCalc(ClockworkMod.getKelvin(level), getDuctNodePosition())
+        val heatEnergy = temporaryHeatEnergyCalc(kelvin, getDuctNodePosition())
 
         val pocketCapacity = BalloonThermodynamics.capacity(pocketGasMass)
         if (!heatEnergy.isFinite() || heatEnergy <= 0.0) return
@@ -336,11 +347,8 @@ class GasNozzleBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: Block
         val usedEnergy = min(heatEnergy, energyToAdd) * pointer.value
         if (!usedUpMass.isFinite() || !usedEnergy.isFinite() || usedEnergy <= 0.0 || !(pocketHeatEnergy + usedEnergy).isFinite()) return
 
-//        pocketTemperature = (pocketHeatEnergy + usedEnergy) / pocketCapacity
-//        balloonVolume = balloon.currentVolume
-//        currentIdealOutput = balloon.missingExternalPositions.toDouble() // this is cursed but i made it without reloading the game so variable reuse lesgo
-
         balloon.currentEnergy = pocketHeatEnergy + usedEnergy
+        if (balloon.sealed) balloon.pushToKelvin(kelvin)
 
         gasMass.forEach {
             KelvinMod.getKelvin().removeGas(getDuctNodePosition(), it.key,usedUpMass * it.value / gasMassTotal)

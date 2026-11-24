@@ -59,6 +59,7 @@ import org.valkyrienskies.clockwork.content.curiosities.debug.DebugLightningArce
 import org.valkyrienskies.clockwork.content.curiosities.grippad.GripPadBlockEntity
 import org.valkyrienskies.clockwork.content.curiosities.grippad.GripPadRenderer
 import org.valkyrienskies.clockwork.content.curiosities.harpoon.HarpoonBlockEntity
+import org.valkyrienskies.clockwork.content.curiosities.harpoon.SiphonHarpoonBlockEntity
 import org.valkyrienskies.clockwork.content.curiosities.harpoon.HarpoonRenderer
 import org.valkyrienskies.clockwork.content.curiosities.rope.RopeWinchBlockEntity
 import org.valkyrienskies.clockwork.content.curiosities.rope.RopeWinchRenderer
@@ -96,6 +97,9 @@ import org.valkyrienskies.clockwork.content.logistics.gas.thermal.HeatExchangerB
 import org.valkyrienskies.clockwork.content.logistics.gas.thermal.RadiatorBlockEntity
 import org.valkyrienskies.clockwork.content.logistics.gas.hoseport.HosePortRenderer
 import org.valkyrienskies.clockwork.content.logistics.gas.hoseport.HosePortBlockEntity
+import org.valkyrienskies.clockwork.content.logistics.gas.pockets.blimp.BlimpPortBlockEntity
+import org.valkyrienskies.clockwork.content.logistics.gas.pockets.blimp.BlimpPortRenderer
+import org.valkyrienskies.clockwork.content.logistics.gas.pockets.blimp.BlimpPortVisual
 import org.valkyrienskies.clockwork.content.logistics.gas.pockets.nozzle.GasNozzleBlockEntity
 import org.valkyrienskies.clockwork.content.logistics.gas.pockets.nozzle.GasNozzleRenderer
 import org.valkyrienskies.clockwork.content.logistics.gas.pump.PumpDuctBlockEntity
@@ -712,6 +716,30 @@ object ClockworkBlockEntities {
         .register()
 
     @JvmField
+    val BLIMP_PORT: BlockEntityEntry<BlimpPortBlockEntity> = (ClockworkMod.REGISTRATE
+        .blockEntity("blimp_port") { type: BlockEntityType<*>, pos: BlockPos, state: BlockState ->
+            BlimpPortBlockEntity(
+                type,
+                pos,
+                state
+            )
+        } as ClockworkBlockEntityBuilder)
+        .clockworkVisual {
+            ClockworkSimpleBlockEntityVisualFactory { ctx, blockEntity, partialTick ->
+                BlimpPortVisual(ctx, blockEntity, partialTick)
+            }
+        }
+        .validBlocks(ClockworkBlocks.BLIMP_PORT)
+        .renderer {
+            NonNullFunction { context: BlockEntityRendererProvider.Context? ->
+                BlimpPortRenderer(
+                    context!!
+                )
+            }
+        }
+        .register()
+
+    @JvmField
     val GAS_THRUSTER: BlockEntityEntry<GasThrusterBlockEntity> = ClockworkMod.REGISTRATE
         .blockEntity("gas_thruster") { type: BlockEntityType<*>, pos: BlockPos, state: BlockState ->
             GasThrusterBlockEntity(
@@ -1013,6 +1041,14 @@ object ClockworkBlockEntities {
         .renderer { NonNullFunction { context: BlockEntityRendererProvider.Context ->
             HarpoonRenderer(context)
         } }.register()
+
+    @JvmField
+    val SIPHON_HARPOON = ClockworkMod.REGISTRATE
+        .blockEntity("siphon_harpoon") { type: BlockEntityType<SiphonHarpoonBlockEntity>, pos: BlockPos, state: BlockState ->
+            SiphonHarpoonBlockEntity(type, pos, state)
+        }.validBlocks(ClockworkBlocks.SIPHON_HARPOON)
+        .renderer { NonNullFunction { context: BlockEntityRendererProvider.Context -> HarpoonRenderer(context) } }
+        .register()
 
     @JvmField
     val ROPE_WINCH = ClockworkMod.REGISTRATE

@@ -2,7 +2,6 @@ package org.valkyrienskies.clockwork.content.forces
 
 import com.fasterxml.jackson.annotation.JsonAutoDetect
 import com.fasterxml.jackson.annotation.JsonIgnore
-import net.minecraft.resources.ResourceLocation
 import net.minecraft.server.level.ServerLevel
 import org.joml.Vector3d
 import org.joml.Vector3dc
@@ -172,7 +171,7 @@ class PocketForcesController: ShipPhysicsListener {
                 var newTemperature = newHeatEnergy / newCapacity
 
                 // Gas leak entering
-                val air = GasTypeRegistry.GAS_TYPES[ResourceLocation("kelvin","air")]!!
+                val air = GasTypeRegistry.getGasType("kelvin", "air")!!
                 val newMoles = gasMasses.entries.sumOf { it.key.massToMoles(it.value) }
                 val newPressure = newMoles * DuctNetwork.idealGasConstant * newTemperature / volume
                 val addMoles = max(0.0, atmoPressure - newPressure) * volume / (newTemperature * DuctNetwork.idealGasConstant)

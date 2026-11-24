@@ -22,7 +22,7 @@ import kotlin.math.abs
 import kotlin.math.PI
 import kotlin.math.floor
 
-class HarpoonBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: BlockState) : KineticBlockEntity(type, pos, state) {
+open class HarpoonBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: BlockState) : KineticBlockEntity(type, pos, state) {
     var loadedHarpoon: ItemStack = ItemStack.EMPTY
         private set
     var charge = 0.0
@@ -39,6 +39,7 @@ class HarpoonBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: BlockSt
     private var cogAngle = 0.0
     private var previousCogAngle = 0.0
     private var chargingSoundActive = false
+    internal open val usesHose = false
 
     val isCharging: Boolean get() = !loadedHarpoon.isEmpty && !hasDeployedHarpoon && charge < 1.0 &&
         !isOverStressed && getSpeed().isFinite() && getSpeed() != 0f
@@ -141,15 +142,14 @@ class HarpoonBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: BlockSt
         val rpm = if (isOverStressed) 0.0 else getSpeed().toDouble()
         val rope = links.links[ropeId]
         if (rope != null) {
-            // Upgrade ropes fired before harpoons acquired their own, non-adjustable rope kind.
-            if (!rope.harpoon) {
+            if (!rope.harpoon || rope.hose != usesHose) {
                 rope.harpoon = true
+                rope.hose = usesHose
                 links.setDirty()
                 WanderwandServer.syncLinks(world)
             }
-            // Release first on a falling edge; an attached rope uses shaft power to reel instead of charge.
             redstoneChanged()
-            if (ropeId == rope.id && !rope.suspended) {
+            if (!usesHose && ropeId == rope.id && !rope.suspended) {
                 val length = RopeWinchBlockEntity.nextLength(rope.length, -abs(rpm), HarpoonProjectiles.maxRange.toInt())
                 if (length != rope.length) links.resizeRope(world, rope, length)
             }
@@ -205,7 +205,7 @@ class HarpoonBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: BlockSt
         sendData()
     }
 
-    fun release() {
+    open fun release() {
         val world = level as? ServerLevel ?: return
         HarpoonProjectiles.detach(world, this)
     }
@@ -221,15 +221,11 @@ class HarpoonBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: BlockSt
     }
 
     override fun addToGoggleTooltip(tooltip: MutableList<Component>, isPlayerSneaking: Boolean): Boolean {
-        ClockworkLang.translate("gui.harpoon.title").forGoggles(tooltip)
+        ClockworkLang.blockName(blockState).forGoggles(tooltip)
         if (hasDeployedHarpoon) {
             ClockworkLang.translate("gui.harpoon.${if (ropeId != null) "attached" else "in_flight"}")
                 .style(if (ropeId != null) ChatFormatting.GREEN else ChatFormatting.GOLD).forGoggles(tooltip)
-            if (ropeId != null) {
-                ClockworkLang.translate("gui.harpoon.rope_length", ClockworkLang.number(ropeLength).component())
-                    .style(ChatFormatting.AQUA).forGoggles(tooltip, 1)
-                ClockworkLang.translate("gui.harpoon.reel").style(ChatFormatting.GRAY).forGoggles(tooltip)
-            }
+            if (ropeId != null) addAttachedTooltip(tooltip, ropeLength)
             ClockworkLang.translate("gui.harpoon.release").style(ChatFormatting.GRAY).forGoggles(tooltip)
         } else if (loadedHarpoon.isEmpty) {
             ClockworkLang.translate("gui.harpoon.load").style(ChatFormatting.GRAY).forGoggles(tooltip)
@@ -255,6 +251,12 @@ class HarpoonBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: BlockSt
             tooltip.addAll(kineticTooltip)
         }
         return true
+    }
+
+    protected open fun addAttachedTooltip(tooltip: MutableList<Component>, length: Double) {
+        ClockworkLang.translate("gui.harpoon.rope_length", ClockworkLang.number(length))
+            .style(ChatFormatting.AQUA).forGoggles(tooltip, 1)
+        ClockworkLang.translate("gui.harpoon.reel").style(ChatFormatting.GRAY).forGoggles(tooltip)
     }
 
     override fun write(tag: CompoundTag, clientPacket: Boolean) {

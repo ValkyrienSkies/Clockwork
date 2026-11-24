@@ -1,0 +1,23 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "C",
+    "W",
+    "P"
+  ],
+  "key": {
+    "C": {
+      "item": "minecraft:crossbow"
+    },
+    "W": {
+      "item": "vs_clockwork:rope_winch"
+    },
+    "P": {
+      "item": "vs_clockwork:pump_duct"
+    }
+  },
+  "result": {
+    "item": "vs_clockwork:siphon_harpoon"
+  }
+}

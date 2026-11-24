@@ -63,6 +63,7 @@ class ClockworkPonderPlugin : PonderPlugin {
             .add(ClockworkBlocks.HEAT_EXCHANGER)
             .add(ClockworkItems.GAS_BANKTANK)
             .add(ClockworkBlocks.GAS_HEATER)
+            .add(ClockworkBlocks.SIPHON_HARPOON)
     }
 
     companion object {

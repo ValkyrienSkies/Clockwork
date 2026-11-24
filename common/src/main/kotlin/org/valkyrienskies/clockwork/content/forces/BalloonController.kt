@@ -16,8 +16,10 @@ import org.joml.Vector3d
 import org.joml.Vector3dc
 import org.joml.primitives.AABBic
 import org.valkyrienskies.clockwork.ClockworkConfig
+import org.valkyrienskies.clockwork.ClockworkMod
 import org.valkyrienskies.clockwork.content.forces.data.BalloonData
 import org.valkyrienskies.clockwork.content.forces.data.BalloonData.PhysBalloonData
+import org.valkyrienskies.clockwork.content.logistics.gas.pockets.blimp.BlimpPortBlock
 import org.valkyrienskies.core.api.VsBeta
 import org.valkyrienskies.core.api.ships.LoadedServerShip
 import org.valkyrienskies.core.api.ships.PhysShip
@@ -25,6 +27,7 @@ import org.valkyrienskies.core.api.ships.ShipPhysicsListener
 import org.valkyrienskies.core.api.util.PhysTickOnly
 import org.valkyrienskies.core.api.world.PhysLevel
 import org.valkyrienskies.core.impl.game.ships.PhysShipImpl
+import org.valkyrienskies.kelvin.api.DuctNetwork
 import org.valkyrienskies.mod.common.dimensionId
 import java.util.concurrent.ConcurrentHashMap
 import kotlin.math.abs
@@ -211,7 +214,7 @@ class BalloonController: ShipPhysicsListener {
         if (indexedAt(pos).any { balloons[it]?.touchesPosition(pos) == true }) pendingChanges.add(pos.immutable())
     }
 
-    internal fun processBlockChanges(level: Level) {
+    internal fun processBlockChanges(level: Level, kelvin: DuctNetwork<*>? = null) {
         if (pendingChanges.isEmpty()) return
         val changes = pendingChanges.toList()
         pendingChanges.clear()
@@ -230,7 +233,7 @@ class BalloonController: ShipPhysicsListener {
                 if (connected.size > 1) {
                     val base = connected.first().second
                     for ((_, other) in connected.drop(1)) {
-                        base.mergeWith(other, level)
+                        base.mergeWith(other, level, kelvin)
                         other.shouldRemove = true
                     }
                     val cells = HashSet(base.geometry.cells).apply { add(pos) }
@@ -250,9 +253,18 @@ class BalloonController: ShipPhysicsListener {
     }
 
     fun gameTick(level: ServerLevel, ship: LoadedServerShip) {
+        val kelvin = if (balloons.values.any { it.sealed || it.kelvinNodePos != null }) {
+            ClockworkMod.getKelvin(level)
+        } else {
+            null
+        }
+        gameTick(level, ship, kelvin)
+    }
+
+    fun gameTick(level: ServerLevel, ship: LoadedServerShip, kelvin: DuctNetwork<*>?) {
         if (level.dimensionId != ship.chunkClaimDimension) return
-        removeInvalidBalloons()
-        processBlockChanges(level)
+        removeInvalidBalloons(kelvin)
+        processBlockChanges(level, kelvin)
         for ((_, balloon) in balloons.entries.toList()) {
             if (balloon.shouldRemove) continue
             if (balloon.validationRetryTicks > 0) {
@@ -266,14 +278,14 @@ class BalloonController: ShipPhysicsListener {
                     balloon.waitForChunk(unloaded)
                     continue
                 }
-                val (changed, additional) = balloon.trySplit(level)
+                val (changed, additional) = balloon.trySplit(level, kelvin)
                 if (changed) indexDirty = true
                 additional.forEach {
                     it.shouldReScan = true
                     addBalloon(it)
                 }
                 if (balloon.shouldRemove) continue
-                if (!rescan(balloon, level)) continue
+                if (!rescan(balloon, level, kelvin)) continue
                 balloon.shouldReScan = false
             }
             if (balloon.shouldValidate) {
@@ -284,7 +296,7 @@ class BalloonController: ShipPhysicsListener {
         val forces = ArrayList<PhysBalloonData>()
         for ((_, balloon) in balloons) {
             if (balloon.shouldRemove || balloon.shouldValidate || balloon.shouldReScan || balloon.enclosureStatus == BalloonData.EnclosureStatus.UNKNOWN) continue
-            if (balloon.tick(level, ship)) {
+            if (balloon.tick(level, ship, kelvin)) {
                 if (balloon.isLeaking && balloon.isNearlyAtmospheric(level)) {
                     balloon.shouldRemove = true
                 } else {
@@ -293,24 +305,33 @@ class BalloonController: ShipPhysicsListener {
                 }
             }
         }
-        removeInvalidBalloons()
+        removeInvalidBalloons(kelvin)
         // Publish one complete physics snapshot.
         forcefulBalloons = forces.toList()
     }
 
-    private fun removeInvalidBalloons() {
-        for ((id, balloon) in balloons) if (balloon.shouldRemove && balloons.remove(id, balloon)) indexDirty = true
+    private fun removeInvalidBalloons(kelvin: DuctNetwork<*>? = null) {
+        for ((id, balloon) in balloons) {
+            if (balloon.shouldRemove && balloons.remove(id, balloon)) {
+                balloon.removeKelvinNode(kelvin)
+                indexDirty = true
+            }
+        }
     }
 
-    private fun rescan(balloon: BalloonData, level: Level): Boolean {
+    private fun rescan(balloon: BalloonData, level: Level, kelvin: DuctNetwork<*>? = null): Boolean {
         val seed = balloon.interiorSeed(level) ?: return true
         val start = balloon.getFirstValidExternalPosition(level) ?: return true
         var unavailable = false
         val onUnloaded: (BlockPos) -> Unit = { pos -> unavailable = true; balloon.waitForChunk(pos) }
         val shell = scanShell(start, level, ClockworkConfig.SERVER.balloons.hotAirBalloonMaxScanSurface.toInt(), onUnloaded) ?: return !unavailable
-        val filled = tryFillBalloonFromShell(shell, seed, level, onUnloaded)
+        val filled = if (balloon.sealed) {
+            BalloonGeometry.fillSealed(seed, level, ClockworkConfig.SERVER.balloons.hotAirBalloonMaxScanVolume.toInt(), shell, onUnloaded)
+        } else {
+            tryFillBalloonFromShell(shell, seed, level, onUnloaded)
+        }
         if (filled.isEmpty()) return !unavailable
-        val geometry = BalloonGeometry(filled)
+        val geometry = BalloonGeometry(filled, balloon.sealed)
         // Preserve the envelope while leaking.
         if (!geometry.cells.containsAll(balloon.geometry.cells)) return true
         val candidateIds = HashSet<Int>()
@@ -324,7 +345,7 @@ class BalloonController: ShipPhysicsListener {
         }
         if (others.any { !geometry.cells.containsAll(it.geometry.cells) }) return true
         for (other in others) {
-            balloon.mergeWith(other, level)
+            balloon.mergeWith(other, level, kelvin)
             other.shouldRemove = true
             indexDirty = true
         }
@@ -344,6 +365,127 @@ class BalloonController: ShipPhysicsListener {
     fun addBalloon(balloonData: BalloonData) {
         balloons[nextBalloonID] = balloonData
         indexDirty = true
+    }
+
+    enum class SealedScanResult {
+        LINKED,
+        NOT_SEALED,
+        BLOCKED,
+        UNLOADED,
+    }
+
+    /**
+     * Links to or scans a completely 6-sided sealed blimp envelope starting from the interior [seedPos].
+     *
+     * - If an existing sealed balloon already contains [seedPos], returns it.
+     * - If an existing unsealed balloon contains [seedPos] and its shell is fully enclosed on all 6 sides,
+     *   upgrades it to sealed (preserving its gas contents) and returns it.
+     * - Otherwise scans the enclosing shell to bound the search, performs a 6-neighbor floodfill,
+     *   and creates a new empty sealed [BalloonData].
+     */
+    fun tryGetOrCreateSealedBalloon(
+        seedPos: BlockPos,
+        level: Level,
+        shellSeed: BlockPos? = null
+    ): Pair<Int, SealedScanResult> {
+        if (!level.isLoaded(seedPos)) return -1 to SealedScanResult.UNLOADED
+        if (level.getBlockState(seedPos).isValidBalloonEnclosure(level, seedPos)) {
+            return -1 to SealedScanResult.BLOCKED
+        }
+
+        val existingId = getExistingBalloon(seedPos)
+        if (existingId != -1) {
+            val existing = getBalloonById(existingId)
+            if (existing != null) {
+                if (existing.sealed) return existingId to SealedScanResult.LINKED
+                return if (existing.upgradeToSealed(level)) {
+                    indexDirty = true
+                    existingId to SealedScanResult.LINKED
+                } else {
+                    -1 to SealedScanResult.NOT_SEALED
+                }
+            }
+        }
+
+        var unloaded = false
+        val onUnloaded: (BlockPos) -> Unit = { unloaded = true }
+        val hullStart = findSealedHullStart(seedPos, level, shellSeed, onUnloaded)
+        if (unloaded) return -1 to SealedScanResult.UNLOADED
+        if (hullStart == null) return -1 to SealedScanResult.NOT_SEALED
+
+        val shell = scanShell(
+            hullStart,
+            level,
+            ClockworkConfig.SERVER.balloons.hotAirBalloonMaxScanSurface.toInt(),
+            onUnloaded
+        )
+        if (unloaded) return -1 to SealedScanResult.UNLOADED
+        if (shell == null) return -1 to SealedScanResult.NOT_SEALED
+
+        val filled = BalloonGeometry.fillSealed(
+            seedPos,
+            level,
+            ClockworkConfig.SERVER.balloons.hotAirBalloonMaxScanVolume.toInt(),
+            bounds = shell,
+            onUnloaded = onUnloaded
+        )
+        if (unloaded) return -1 to SealedScanResult.UNLOADED
+        if (filled.isEmpty()) return -1 to SealedScanResult.NOT_SEALED
+
+        val newBalloonId = nextBalloonID
+        val newBalloon = BalloonData(
+            regions = ArrayList(filled),
+            gasMasses = hashMapOf(),
+            currentEnergy = 0.0,
+            currentVolume = 0.0,
+            isLeaking = false,
+            sealed = true
+        )
+        newBalloon.recalculateVolume()
+        if (newBalloon.validate(level) != BalloonData.EnclosureStatus.VALID) {
+            return -1 to SealedScanResult.NOT_SEALED
+        }
+        addBalloon(newBalloon)
+        return newBalloonId to SealedScanResult.LINKED
+    }
+
+    private fun findSealedHullStart(
+        seedPos: BlockPos,
+        level: Level,
+        shellSeed: BlockPos?,
+        onUnloaded: (BlockPos) -> Unit
+    ): BlockPos? {
+        if (shellSeed != null) {
+            if (!level.isLoaded(shellSeed)) {
+                onUnloaded(shellSeed)
+                return null
+            }
+            if (level.getBlockState(shellSeed).isValidBalloonEnclosure(level, shellSeed)) {
+                return shellSeed
+            }
+        }
+        for (dir in Direction.values()) {
+            val neighbor = seedPos.relative(dir)
+            if (!level.isLoaded(neighbor)) {
+                onUnloaded(neighbor)
+                return null
+            }
+            if (level.getBlockState(neighbor).isValidBalloonEnclosure(level, neighbor)) {
+                return neighbor
+            }
+        }
+        val maxDist = ClockworkConfig.SERVER.balloons.hotAirBalloonMaxRaycastDistance.toInt().coerceAtLeast(1)
+        for (dy in 1..maxDist) {
+            val candidate = seedPos.above(dy)
+            if (!level.isLoaded(candidate)) {
+                onUnloaded(candidate)
+                return null
+            }
+            if (level.getBlockState(candidate).isValidBalloonEnclosure(level, candidate)) {
+                return candidate
+            }
+        }
+        return null
     }
 
     fun tryGetOrCreateBalloon(startPos: BlockPos, level: Level): Int {
@@ -449,12 +591,12 @@ class BalloonController: ShipPhysicsListener {
 
         @JvmStatic
         fun BlockState.isValidBalloonEnclosure(level: Level, pos: BlockPos): Boolean {
-            return !this.isAir && this.isCollisionShapeFullBlock(level, pos)
+            return this.block is BlimpPortBlock || (!this.isAir && this.isCollisionShapeFullBlock(level, pos))
         }
 
         @JvmStatic
         fun BlockState.isValidBalloonEnclosureDirectional(level: Level, pos: BlockPos, direction: Direction): Boolean {
-            return !this.isAir && this.isFaceSturdy(level, pos, direction.opposite)
+            return this.block is BlimpPortBlock || (!this.isAir && this.isFaceSturdy(level, pos, direction.opposite))
         }
     }
 }

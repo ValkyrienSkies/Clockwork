@@ -26,6 +26,7 @@
     "vs_clockwork:radiator",
     "vs_clockwork:heat_exchanger",
     "vs_clockwork:gas_nozzle",
+    "vs_clockwork:blimp_port",
     "vs_clockwork:gas_thruster",
     "vs_clockwork:gas_combustor",
     "vs_clockwork:smart_gas_pump",

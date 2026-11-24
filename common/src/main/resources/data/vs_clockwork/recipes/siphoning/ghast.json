@@ -1,0 +1,6 @@
+{
+  "type": "vs_clockwork:siphoning",
+  "entity": "minecraft:ghast",
+  "gas": "vs_clockwork:stellane",
+  "kg_per_tick_at_64_rpm": 0.004
+}

@@ -8,12 +8,17 @@ import org.valkyrienskies.clockwork.content.contraptions.propeller.copter.Copter
 import org.valkyrienskies.clockwork.content.curiosities.altmeter.AltMeterDisplaySource
 import org.valkyrienskies.clockwork.content.kinetics.combobulator.CombobulatorDisplaySource
 import org.valkyrienskies.clockwork.content.logistics.gas.duct.KNodeDisplaySource
+import org.valkyrienskies.clockwork.content.logistics.gas.pockets.blimp.BlimpPortDisplaySource
 import org.valkyrienskies.clockwork.content.logistics.gas.pockets.nozzle.GasNozzleDisplaySource
 
 object ClockworkDisplaySources {
     @JvmField
     val GAS_NOZZLE: RegistryEntry<GasNozzleDisplaySource> =
         REGISTRATE.displaySource("gas_nozzle", ::GasNozzleDisplaySource).register()
+
+    @JvmField
+    val BLIMP_PORT: RegistryEntry<BlimpPortDisplaySource> =
+        REGISTRATE.displaySource("blimp_port", ::BlimpPortDisplaySource).register()
 
     @JvmField
     val FLAP_BEARING: RegistryEntry<FlapBearingDisplaySource> =

@@ -1,3 +1,4 @@
 [submodule "Kelvin"]
 	path = Kelvin
 	url = https://github.com/ValkyrienSkies/Kelvin.git
+	branch = 1.20.x/solver-interfaces

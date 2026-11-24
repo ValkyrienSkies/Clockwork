@@ -9,7 +9,9 @@ import kotlin.math.max
 import kotlin.math.min
 
 /** Client-only support for the visual strand; never changes the rope's constraint length. */
-internal class RopeGrounding {
+internal class RopeGrounding(radius: Double = RADIUS) {
+    private val clearance = radius + 0.002
+    private val horizontalClearance = radius * 1.4142135623730951 + 0.002
     private var sampledCurve: WandRopeCurve? = null
     private var sampledTick = Long.MIN_VALUE
     private var refreshTick = Long.MIN_VALUE
@@ -54,10 +56,10 @@ internal class RopeGrounding {
             // Sweeping the whole segment also catches ledges between rendered vertices.
             val ceiling = min(straightStart.y, straightEnd.y) + 0.001
             val bounds = AABB(
-                min(start.x, end.x) - HORIZONTAL_CLEARANCE, min(start.y, end.y) - CLEARANCE,
-                min(start.z, end.z) - HORIZONTAL_CLEARANCE,
-                max(start.x, end.x) + HORIZONTAL_CLEARANCE, max(straightStart.y, straightEnd.y) + CLEARANCE,
-                max(start.z, end.z) + HORIZONTAL_CLEARANCE
+                min(start.x, end.x) - horizontalClearance, min(start.y, end.y) - clearance,
+                min(start.z, end.z) - horizontalClearance,
+                max(start.x, end.x) + horizontalClearance, max(straightStart.y, straightEnd.y) + clearance,
+                max(start.z, end.z) + horizontalClearance
             )
             var floor = Double.NEGATIVE_INFINITY
             for (shape in level.getBlockCollisions(null, bounds)) {
@@ -66,7 +68,7 @@ internal class RopeGrounding {
                     // Inspect individual boxes so stairs and slabs retain their actual surface height.
                     if (maxY <= ceiling && maxX > bounds.minX && minX < bounds.maxX &&
                         maxZ > bounds.minZ && minZ < bounds.maxZ) {
-                        floor = max(floor, maxY + CLEARANCE)
+                        floor = max(floor, maxY + clearance)
                     }
                 }
             }
@@ -82,9 +84,6 @@ internal class RopeGrounding {
 
     companion object {
         const val RADIUS = 0.0625
-        private const val CLEARANCE = RADIUS + 0.002
-        // A tilted square strand can extend sqrt(2) radii horizontally.
-        private const val HORIZONTAL_CLEARANCE = RADIUS * 1.4142135623730951 + 0.002
         private const val REFRESH_TICKS = 5
         private var nextPhase = 0
     }

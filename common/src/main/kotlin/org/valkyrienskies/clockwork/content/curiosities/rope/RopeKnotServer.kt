@@ -62,7 +62,7 @@ object RopeKnotServer {
         WanderwandServer.syncLinks(level)
     }
 
-    private fun valid(level: ServerLevel, anchor: WandAnchor) = level.hasChunkAt(anchor.pos) &&
+    private fun valid(level: ServerLevel, anchor: WandAnchor) = anchor.entityId == null && level.hasChunkAt(anchor.pos) &&
         !level.getBlockState(anchor.pos).isAir && anchor.world(level) != null
 
     fun ensureKnots(level: ServerLevel, link: WandLinks.Link) {
@@ -88,10 +88,11 @@ object RopeKnotServer {
         val link = knot.linkId?.let { data.links[it] }?.takeIf { it.physical } ?: return false
         val anchor = if (knot.end == 0) link.a else link.b
         val point = anchor.world(level) ?: return false
-        if (!level.mayInteract(player, anchor.pos) || point.distanceToSqr(player.eyePosition) > 36) return false
+        val interactionPos = if (anchor.entityId == null) anchor.pos else BlockPos.containing(point)
+        if (!level.mayInteract(player, interactionPos) || point.distanceToSqr(player.eyePosition) > 36) return false
         val hit = level.clipIncludeShips(ClipContext(player.eyePosition, point,
             ClipContext.Block.COLLIDER, ClipContext.Fluid.NONE, player), true)
-        if (hit.type != HitResult.Type.MISS && hit.blockPos != anchor.pos &&
+        if (hit.type != HitResult.Type.MISS && (anchor.entityId != null || hit.blockPos != anchor.pos) &&
             hit.location.distanceTo(player.eyePosition) + 0.3 < point.distanceTo(player.eyePosition)) return false
         val stack = player.mainHandItem
         val cutting = stack.`is`(ItemTags.SWORDS) || stack.`is`(ItemTags.AXES)
@@ -135,6 +136,7 @@ object RopeKnotServer {
             it.putDouble("length", if (link.spring) link.appliedLength else link.length)
             it.putBoolean("untied", untied); it.putBoolean("spring", link.spring)
             it.putBoolean("thinkable", link.thinkable)
+            if (link.hose) it.putBoolean("hose", true)
         }
         for (player in level.players()) if (minOf(a.distanceToSqr(player.position()), b.distanceToSqr(player.position())) < 192 * 192)
             ClockworkPackets.sendTo(WanderwandStatePacket(tag), player)

@@ -75,6 +75,9 @@ object ClockworkConfig {
         @ConfigCategory(title = "Harpoon")
         val harpoon = Harpoon()
 
+        @ConfigCategory(title = "Siphon Harpoon")
+        val siphonHarpoon = SiphonHarpoon()
+
         @ConfigCategory(title = "Heat Exchanger")
         val heatExchanger = HeatExchanger()
 
@@ -184,6 +187,9 @@ object ClockworkConfig {
     class Balloons {
         @ConfigEntry(description = "Sets the gas retention efficiency of the balloon material; lower values simulate airtight rubber/synthetic, while higher values represent porous fabrics. Default 0.001.", min = 0.0, max = 1.0)
         var permeabilityConstant = 0.01
+
+        @ConfigEntry(description = "Passive outward gas permeation constant for intact sealed blimp envelopes. Much smaller than permeabilityConstant so blimps slowly lose lifting gas over time.", min = 0.0, max = 1.0)
+        var blimpPermeabilityConstant = 1e-6
 
         @ConfigEntry(description = "Controls how fast air pocket temperature equalizes with the ambient temperature; lower values simulate thick insulation, while higher values cause rapid cooling or heating. Default 0.001", min = 0.0, max = 1.0)
         var heatTransferCoefficient = 0.01
@@ -334,6 +340,26 @@ object ClockworkConfig {
 
         @ConfigEntry(description = "Maximum range (in blocks) the survival gravitron will interact with ships", min = 1.0, max = 1000.0)
         var survivalGravitronMaxRange = 20.0
+    }
+
+    class SiphonHarpoon {
+        @ConfigEntry(description = "Multiplier for gas yields from siphoning recipes", min = 0.0)
+        var yieldMultiplier = 1.0
+
+        @ConfigEntry(description = "Maximum RPM for siphoning a creature without hurting it", min = 0.0)
+        var safeRpm = 64.0
+
+        @ConfigEntry(description = "Damage accumulated per tick for each RPM above the safe speed", min = 0.0)
+        var damagePerExcessRpm = 0.01
+
+        @ConfigEntry(description = "Ticks above the safe speed between damage hits on the attached creature", min = 1.0)
+        var damageIntervalTicks = 20
+
+        @ConfigEntry(description = "Pressure added toward the launcher per RPM when pumping from a node, in Pa", min = 0.0)
+        var pumpPressurePerRpm = 4000.0
+
+        @ConfigEntry(description = "Temperature of gas taken from a creature, in K", min = 1.0)
+        var gasTemperature = 293.15
     }
 
     class Harpoon {

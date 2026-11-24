@@ -9,12 +9,14 @@ import org.valkyrienskies.clockwork.content.contraptions.flap.FlapBearingBlockEn
 import org.valkyrienskies.clockwork.content.contraptions.phys.bearing.PhysBearingBlockEntity
 import org.valkyrienskies.clockwork.content.contraptions.propeller.PropellerBearingBlockEntity
 import org.valkyrienskies.clockwork.content.curiosities.altmeter.AltMeterBlockEntity
+import org.valkyrienskies.clockwork.content.logistics.gas.pockets.blimp.BlimpPortBlockEntity
 import org.valkyrienskies.clockwork.content.logistics.gas.pockets.nozzle.GasNozzleBlockEntity
 import org.valkyrienskies.clockwork.content.logistics.gas.valve.ValveDuctBlockEntity
 
 val PERIPHERALS = mapOf<BlockEntityType<*>, (BlockEntity, Direction?) -> IPeripheral>(
     ClockworkBlockEntities.PHYS_BEARING.get() to {be, _ -> PhysBearingPeripheral(be as PhysBearingBlockEntity)},
     ClockworkBlockEntities.GAS_NOZZLE.get() to {be, _ -> GasNozzlePeripheral(be as GasNozzleBlockEntity)},
+    ClockworkBlockEntities.BLIMP_PORT.get() to {be, _ -> BlimpPortPeripheral(be as BlimpPortBlockEntity)},
     ClockworkBlockEntities.FLAP_BEARING.get() to {be, _ -> FlapBearingPeripheral(be as FlapBearingBlockEntity)},
     ClockworkBlockEntities.SMART_FLAP_BEARING.get() to {be, _ -> FlapBearingPeripheral(be as FlapBearingBlockEntity)},
     ClockworkBlockEntities.ALT_METER.get() to {be, _ -> AltMeterPeripheral(be as AltMeterBlockEntity)},

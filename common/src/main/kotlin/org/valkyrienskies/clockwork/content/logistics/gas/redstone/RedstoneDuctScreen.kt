@@ -159,7 +159,7 @@ class RedstoneDuctScreen(val be: RedstoneDuctBlockEntity) : AbstractSimiScreen(C
     inner class GasFilterWidget(x: Int, y: Int, w: Int, h: Int) : AbstractSimiWidget(x,y,w,h), GuiEventListener {
 
         private var scroll = 0.0
-        private val allGases = GasTypeRegistry.GAS_TYPES.values.toList()
+        private val allGases = GasTypeRegistry.getGasTypes().toList()
         private val iconSize = 18
         private val cols = 9
         private val rows = ceil(allGases.size.toDouble() / cols).toInt()
