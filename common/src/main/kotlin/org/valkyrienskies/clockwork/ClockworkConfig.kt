@@ -308,7 +308,7 @@ object ClockworkConfig {
 
     class GasThruster {
         @ConfigEntry(min = 0.0)
-        var gasThrusterForceMul = 1000.0
+        var gasThrusterForceMul = 2000.0
     }
 
     class Gimbal {

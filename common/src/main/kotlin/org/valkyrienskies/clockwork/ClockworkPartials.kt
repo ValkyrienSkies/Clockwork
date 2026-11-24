@@ -4,6 +4,7 @@ import dev.engine_room.flywheel.lib.model.baked.PartialModel
 
 object ClockworkPartials {
 
+    val GAS_THRUSTER_NOZZLE = block("gas_thruster/nozzle")
     val AIR_PUMP_HANDLE = item("air_pump/handle")
     val WHEEL_RIM = block("wheel/rim")
     val MEDIUM_WHEEL_RIM = block("wheel/rim_medium")

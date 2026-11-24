@@ -419,6 +419,7 @@
     "sounds": [
       {
         "name": "vs_clockwork:thruster",
+        "stream": true,
         "type": "file",
         "attenuation_distance": 32
       }

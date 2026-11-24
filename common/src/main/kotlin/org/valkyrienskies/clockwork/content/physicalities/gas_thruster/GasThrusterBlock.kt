@@ -19,6 +19,7 @@ import net.minecraft.world.level.block.state.StateDefinition
 import net.minecraft.world.level.block.state.properties.BooleanProperty
 import org.valkyrienskies.clockwork.ClockworkBlockEntities
 import org.valkyrienskies.clockwork.content.logistics.gas.duct.DuctPipeNode
+import org.valkyrienskies.clockwork.content.physicalities.steering.DrivingControlLinks
 import org.valkyrienskies.clockwork.util.gui.IHaveDuctStats
 import org.valkyrienskies.kelvin.api.DuctNode
 import org.valkyrienskies.kelvin.api.DuctNodePos
@@ -98,6 +99,7 @@ class GasThrusterBlock(properties: Properties) : DirectionalBlock(properties), I
         pNewState: BlockState,
         pIsMoving: Boolean
     ) {
+        if (pLevel is ServerLevel && pState.block != pNewState.block) DrivingControlLinks.get(pLevel).endpointRemoved(pPos)
         nodeRemove(pState, pLevel, pPos, pNewState, pIsMoving)
         IBE.onRemove(pState, pLevel, pPos, pNewState)
     }

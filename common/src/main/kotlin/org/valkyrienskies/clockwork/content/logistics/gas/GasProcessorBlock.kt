@@ -24,7 +24,7 @@ import org.valkyrienskies.kelvin.api.nodes.PipeDuctNode
 class GasProcessorBlock<T : KNodeBlockEntity>(
     properties: Properties,
     private val entityClass: Class<T>,
-    private val hasOxidizerInlet: Boolean = false,
+    private val hasSideInlets: Boolean = false,
     private val entityType: () -> BlockEntityType<out T>,
 ) : HorizontalDirectionalBlock(properties), IBE<T>, IDuct, IHaveDuctStats, MeteredGasInlet {
     init {
@@ -53,7 +53,7 @@ class GasProcessorBlock<T : KNodeBlockEntity>(
 
     override fun isMeteredInlet(state: BlockState, side: Direction): Boolean {
         val outlet = state.getValue(FACING)
-        return side == outlet.opposite || hasOxidizerInlet && side == outlet.clockWise
+        return side == outlet.opposite || hasSideInlets && side.axis.isHorizontal && side.axis != outlet.axis
     }
 
     override fun getAdditionalInfoLines() =

@@ -70,7 +70,9 @@ object KelvinParticleHelper {
         speedMagnitude: Double,
         particleCount: Double,
         radius: Double = DEFAULT_DISK_RADIUS,
-        outwardOffset: Double = 0.5
+        outwardOffset: Double = 0.5,
+        jetDirection: Vector3dc? = null,
+        adjustSample: ((Vector3d, Vector3d) -> Unit)? = null
     ) {
         val n = stochasticCount(particleCount, level.random)
         if (n <= 0) return
@@ -78,7 +80,8 @@ object KelvinParticleHelper {
         val pos = Vector3d()
         val vel = Vector3d()
         repeat(n) {
-            sampleJet(blockCenter, outward, speedMagnitude, radius, outwardOffset, level.random, pos, vel)
+            sampleJet(blockCenter, outward, speedMagnitude, radius, outwardOffset, level.random, pos, vel, jetDirection)
+            adjustSample?.invoke(pos, vel)
             network.createGasParticle(level, gas, ductNodePos, pos.x, pos.y, pos.z, vel.x, vel.y, vel.z)
         }
     }
@@ -101,7 +104,8 @@ object KelvinParticleHelper {
         outwardOffset: Double,
         random: RandomSource,
         outPos: Vector3d,
-        outVel: Vector3d
+        outVel: Vector3d,
+        jetDirection: Vector3dc? = null
     ) {
         val (axis1, axis2) = perpendicularAxes(outward)
         // r = R * sqrt(u) gives uniform area distribution on the disk; uniform u alone clusters at center.
@@ -113,14 +117,13 @@ object KelvinParticleHelper {
         // batches blend into a continuous stream instead of stroboscopic rings.
         val trajectoryJitter = random.nextDouble() * speedMagnitude
         val totalForward = outwardOffset + trajectoryJitter
-        val nx = outward.normal.x.toDouble()
-        val ny = outward.normal.y.toDouble()
-        val nz = outward.normal.z.toDouble()
+        if (jetDirection != null) outVel.set(jetDirection)
+        else outVel.set(outward.stepX.toDouble(), outward.stepY.toDouble(), outward.stepZ.toDouble())
         outPos.set(blockCenter)
-            .add(nx * totalForward, ny * totalForward, nz * totalForward)
+            .fma(totalForward, outVel)
             .add(axis1.x() * u, axis1.y() * u, axis1.z() * u)
             .add(axis2.x() * v, axis2.y() * v, axis2.z() * v)
-        outVel.set(nx * speedMagnitude, ny * speedMagnitude, nz * speedMagnitude)
+        outVel.mul(speedMagnitude)
     }
 
     private fun perpendicularAxes(facing: Direction): Pair<Vector3dc, Vector3dc> {

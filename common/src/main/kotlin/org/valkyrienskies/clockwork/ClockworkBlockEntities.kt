@@ -113,6 +113,7 @@ import org.valkyrienskies.clockwork.content.physicalities.ClockworkWheelVisual
 import org.valkyrienskies.clockwork.content.physicalities.extendon.ExtendonBlockEntity
 import org.valkyrienskies.clockwork.content.physicalities.extendon.ExtendonRenderer
 import org.valkyrienskies.clockwork.content.physicalities.gas_thruster.GasThrusterBlockEntity
+import org.valkyrienskies.clockwork.content.physicalities.gas_thruster.GasThrusterRenderer
 import org.valkyrienskies.clockwork.content.physicalities.goo.GooBlockEntity
 import org.valkyrienskies.clockwork.content.physicalities.goo.GooBlockEntityRenderer
 import org.valkyrienskies.clockwork.content.physicalities.gyro.GyroBlockEntity
@@ -718,6 +719,7 @@ object ClockworkBlockEntities {
             )
         }
         .validBlocks(ClockworkBlocks.GAS_THRUSTER)
+        .renderer { NonNullFunction { GasThrusterRenderer() } }
         .register()
 
     @JvmField

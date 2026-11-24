@@ -697,7 +697,7 @@ object ClockworkBlocks {
 
     @JvmField
     val GAS_COMBUSTOR: BlockEntry<GasProcessorBlock<GasCombustorBlockEntity>> = REGISTRATE.block("gas_combustor") { p: BlockBehaviour.Properties ->
-        GasProcessorBlock(p, GasCombustorBlockEntity::class.java, hasOxidizerInlet = true) { ClockworkBlockEntities.GAS_COMBUSTOR.get() }
+        GasProcessorBlock(p, GasCombustorBlockEntity::class.java, hasSideInlets = true) { ClockworkBlockEntities.GAS_COMBUSTOR.get() }
     }.initialProperties { SharedProperties.netheriteMetal() }
         .transform(displaySource(ClockworkDisplaySources.KNODE))
         .tag(AllTags.AllBlockTags.SAFE_NBT.tag)

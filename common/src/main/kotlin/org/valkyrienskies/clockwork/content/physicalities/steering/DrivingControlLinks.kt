@@ -7,7 +7,6 @@ import net.minecraft.server.level.ServerLevel
 import net.minecraft.world.level.saveddata.SavedData
 import org.valkyrienskies.clockwork.content.contraptions.phys.hinge.HingeBlock
 import org.valkyrienskies.clockwork.content.contraptions.phys.hinge.HingeLinks
-import org.valkyrienskies.clockwork.content.physicalities.wheel.WheelHubBlock
 import org.valkyrienskies.mod.common.getShipManagingPos
 
 internal class DrivingControlLinks : SavedData() {
@@ -117,7 +116,7 @@ internal class DrivingControlLinks : SavedData() {
             val source = level.getBlockState(wheel).block
             val brake = entry.getBoolean("Brake")
             val valid = if (brake) source is HandbrakeBlock && DrivingControlItem.brakeTarget(target)
-                else source is SteeringWheelBlock && (target is WheelHubBlock || target is HandbrakeBlock)
+                else source is SteeringWheelBlock && DrivingControlItem.steeringTarget(target)
             if (valid) bind(hub, wheel, brake)
         }
     }

@@ -136,6 +136,18 @@
       }
     },
     {
+      "from": [0, 5, 5],
+      "to": [1, 11, 11],
+      "faces": {
+        "north": {"texture": "#port"},
+        "south": {"texture": "#port"},
+        "east": {"texture": "#port"},
+        "west": {"texture": "#port"},
+        "up": {"texture": "#port"},
+        "down": {"texture": "#port"}
+      }
+    },
+    {
       "from": [
         6,
         15,

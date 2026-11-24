@@ -15,11 +15,12 @@ import org.valkyrienskies.clockwork.content.contraptions.phys.bearing.PhysBearin
 import org.valkyrienskies.clockwork.content.contraptions.phys.hinge.HingeBlock
 import org.valkyrienskies.clockwork.content.contraptions.phys.linear.PhysicalPistonBlock
 import org.valkyrienskies.clockwork.content.contraptions.phys.linear.PhysicalGantryBlock
+import org.valkyrienskies.clockwork.content.physicalities.gas_thruster.GasThrusterBlock
 import org.valkyrienskies.clockwork.content.physicalities.wheel.WheelHubBlock
 
 class DrivingControlItem(block: Block, properties: Properties) : BlockItem(block, properties) {
     private fun accepts(target: Block) = if (block is HandbrakeBlock) brakeTarget(target) || target is SteeringWheelBlock
-        else target is WheelHubBlock || target is HandbrakeBlock
+        else steeringTarget(target)
 
     internal fun linkSelected(level: Level, pos: BlockPos, placer: LivingEntity?, stack: ItemStack) {
         if (level !is ServerLevel) return
@@ -57,6 +58,8 @@ class DrivingControlItem(block: Block, properties: Properties) : BlockItem(block
     }
 
     companion object {
+        internal fun steeringTarget(block: Block) = block is WheelHubBlock || block is HandbrakeBlock || block is GasThrusterBlock
+
         internal fun brakeTarget(block: Block) = block is WheelHubBlock || block is PhysBearingBlock || block is HingeBlock ||
             block is PhysicalPistonBlock || block is PhysicalGantryBlock
 

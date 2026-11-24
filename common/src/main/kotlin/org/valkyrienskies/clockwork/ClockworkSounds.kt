@@ -178,7 +178,7 @@ object ClockworkSounds {
         .category(SoundSource.BLOCKS)
         .attenuationDistance(32)
         .build()
-    val THRUSTER = create("thruster").subtitle("Gas thruster roar")
+    val THRUSTER = create("thruster").streaming().subtitle("Gas thruster roar")
         .category(SoundSource.BLOCKS)
         .attenuationDistance(32)
         .build()
@@ -350,6 +350,13 @@ object ClockworkSounds {
             return this
         }
 
+        private var streamed = false
+
+        fun streaming(): SoundEntryBuilder {
+            streamed = true
+            return this
+        }
+
         fun noSubtitle(): SoundEntryBuilder {
             subtitle = null
             return this
@@ -385,7 +392,7 @@ object ClockworkSounds {
                 variants,
                 subtitle,
                 category,
-                attenuationDistance
+                attenuationDistance, streamed
             ) else WrappedSoundEntry(
                 id, subtitle!!, wrappedEvents, category, attenuationDistance
             )
@@ -539,7 +546,7 @@ object ClockworkSounds {
 
     private class CustomSoundEntry(
         id: ResourceLocation, protected var variants: List<ResourceLocation>, subtitle: String?,
-        category: SoundSource, attenuationDistance: Int
+        category: SoundSource, attenuationDistance: Int, private val streamed: Boolean
     ) :
         SoundEntry(id, subtitle, category, attenuationDistance) {
         override var mainEvent: SoundEvent? = null
@@ -560,12 +567,14 @@ object ClockworkSounds {
             var s = JsonObject()
             s.addProperty("name", id.toString())
             s.addProperty("type", "file")
+            if (streamed) s.addProperty("stream", true)
             if (attenuationDistance != 0) s.addProperty("attenuation_distance", attenuationDistance)
             list.add(s)
             for (variant in variants) {
                 s = JsonObject()
                 s.addProperty("name", variant.toString())
                 s.addProperty("type", "file")
+                if (streamed) s.addProperty("stream", true)
                 if (attenuationDistance != 0) s.addProperty("attenuation_distance", attenuationDistance)
                 list.add(s)
             }

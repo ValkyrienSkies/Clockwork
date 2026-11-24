@@ -49,6 +49,30 @@ class ClockworkRenderTypes(
         private val BEAM_TEX = ResourceLocation(ClockworkMod.MOD_ID, "textures/effects/beam.png")
 
         val SKID_MARKS = tireMarks(TEX)
+        val NOZZLE_HEAT: RenderType = create(
+            "nozzle_heat", DefaultVertexFormat.POSITION_COLOR_TEX, VertexFormat.Mode.QUADS, 4096, false, false,
+            CompositeState.builder().setShaderState(ShaderStateShard { ClockworkShaders.nozzleHeat })
+                .setTransparencyState(LIGHTNING_TRANSPARENCY).setCullState(NO_CULL)
+                .setWriteMaskState(COLOR_WRITE).createCompositeState(false)
+        )
+        val THRUSTER_PLUME: RenderType = create(
+            "thruster_plume", DefaultVertexFormat.POSITION_COLOR_TEX_LIGHTMAP, VertexFormat.Mode.QUADS, 16384, false, false,
+            CompositeState.builder().setShaderState(ShaderStateShard { ClockworkShaders.thrusterPlume })
+                .setTransparencyState(TRANSLUCENT_TRANSPARENCY).setCullState(NO_CULL)
+                .setWriteMaskState(COLOR_WRITE).createCompositeState(false)
+        )
+        val THRUSTER_PLUME_GLOW: RenderType = create(
+            "thruster_plume_glow", DefaultVertexFormat.POSITION_COLOR_TEX_LIGHTMAP, VertexFormat.Mode.QUADS, 16384, false, false,
+            CompositeState.builder().setShaderState(ShaderStateShard { ClockworkShaders.thrusterPlumeGlow })
+                .setTransparencyState(LIGHTNING_TRANSPARENCY).setCullState(NO_CULL)
+                .setWriteMaskState(COLOR_WRITE).createCompositeState(false)
+        )
+        val THRUSTER_VAPOR: RenderType = create(
+            "thruster_vapor", DefaultVertexFormat.POSITION_COLOR, VertexFormat.Mode.QUADS, 16384, false, true,
+            CompositeState.builder().setShaderState(POSITION_COLOR_SHADER)
+                .setTransparencyState(TRANSLUCENT_TRANSPARENCY).setCullState(NO_CULL)
+                .setWriteMaskState(COLOR_WRITE).createCompositeState(false)
+        )
         val AERONAUT_GUIDES: RenderType = create("aeronaut_guides", DefaultVertexFormat.POSITION_COLOR,
             VertexFormat.Mode.QUADS, 4096, false, false, CompositeState.builder()
                 .setShaderState(POSITION_COLOR_SHADER)

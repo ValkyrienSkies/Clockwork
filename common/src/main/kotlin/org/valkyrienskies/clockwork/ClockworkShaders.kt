@@ -13,6 +13,15 @@ import java.io.IOException
 
 object ClockworkShaders {
 
+    var thrusterPlumeGlow: ShaderInstance? = null
+        private set
+
+    var thrusterPlume: ShaderInstance? = null
+        private set
+
+    var nozzleHeat: ShaderInstance? = null
+        private set
+
     var gateSurface: ShaderInstance? = null
         private set
 
@@ -83,6 +92,9 @@ object ClockworkShaders {
     fun init() {
         ClientReloadShadersEvent.EVENT.register { resourceProvider: ResourceProvider, shadersSink: ClientReloadShadersEvent.ShadersSink ->
             try {
+                shadersSink.registerShader(ShaderInstance(resourceProvider, "clockwork_thruster_plume", DefaultVertexFormat.POSITION_COLOR_TEX_LIGHTMAP)) { thrusterPlume = it }
+                shadersSink.registerShader(ShaderInstance(resourceProvider, "clockwork_thruster_plume_glow", DefaultVertexFormat.POSITION_COLOR_TEX_LIGHTMAP)) { thrusterPlumeGlow = it }
+                shadersSink.registerShader(ShaderInstance(resourceProvider, "clockwork_nozzle_heat", DefaultVertexFormat.POSITION_COLOR_TEX)) { nozzleHeat = it }
                 shadersSink.registerShader(ShaderInstance(resourceProvider, "clockwork_gate_surface", DefaultVertexFormat.POSITION_TEX)) {
                     gateSurface = it
                     GatemakyrView.clear()
