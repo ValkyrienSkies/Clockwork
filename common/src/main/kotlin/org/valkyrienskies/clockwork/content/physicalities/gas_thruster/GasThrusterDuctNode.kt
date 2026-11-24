@@ -1,5 +1,6 @@
 package org.valkyrienskies.clockwork.content.physicalities.gas_thruster
 
+import org.valkyrienskies.clockwork.content.logistics.gas.thermal.ThermalTransfer
 import org.valkyrienskies.kelvin.api.DuctNodePos
 import org.valkyrienskies.kelvin.api.GasType
 import org.valkyrienskies.kelvin.api.nodes.INodeSimulationStep
@@ -10,6 +11,7 @@ import org.valkyrienskies.kelvin.api.simulation.NodeStepContext
 import org.valkyrienskies.kelvin.api.simulation.NodeStepResult
 import org.valkyrienskies.kelvin.util.GasPhysics
 import kotlin.math.PI
+import kotlin.math.abs
 import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.pow
@@ -45,6 +47,7 @@ class GasThrusterDuctNode(
     @Volatile var ambientAirGas: GasType? = null
     @Volatile var nozzleOpenToAir: Boolean = false
     @Volatile var environmentValid: Boolean = false
+    @Volatile var ambientHeatTransferCoefficient: Double = DEFAULT_AMBIENT_HEAT_TRANSFER_COEFFICIENT
 
     /** Exhaust-column inertia flow rate in kg/s (Kadenacy effect). */
     var exhaustMomentumFlow: Double = 0.0
@@ -121,6 +124,19 @@ class GasThrusterDuctNode(
             if (mass.isFinite() && mass > 0.0) availableMass += mass
         }
 
+        // Ambient air thermal equalization (like a radiator, scaled by air pressure so vacuum is thermally insulated)
+        val tAmb = ambientTemperature
+        val ambientHeatDelta = if (pAmb > 0.0 && tAmb.isFinite() && tAmb > 0.0 && ambientHeatTransferCoefficient > 0.0) {
+            val airScale = (pAmb / SEA_LEVEL_PRESSURE_PA).coerceIn(0.0, 1.0)
+            val nodeCapacity = GasPhysics.nodeHeatCapacity(gasMasses, heatCapacity)
+            val delta = ThermalTransfer.equalize(
+                state.heatEnergy, nodeCapacity, tAmb, ambientHeatTransferCoefficient * airScale, dt,
+            )
+            if (abs(delta) > 1e-9) delta else 0.0
+        } else {
+            0.0
+        }
+
         // 1) Pressure-driven isentropic nozzle outflow (choked or subsonic)
         var nozzleMdot = 0.0
         var exitPressure = pAmb
@@ -192,53 +208,56 @@ class GasThrusterDuctNode(
             pendingExitPressure = exitPressure
             pendingExhaustVelocity = exhaustVelocity
             pendingChamberTemp = chamberTemp
-            return NodeStateChange(deltas, -energyRemoved)
+            return NodeStateChange(deltas, -energyRemoved + ambientHeatDelta)
         }
 
         // 3b) Open-mouth atmospheric refill + passive exchange of stagnant non-air gas up to ambient pressure
         val air = ambientAirGas
-        val tAmb = ambientTemperature
         if (pAmb > 0.0 && nozzleOpenToAir &&
             tAmb.isFinite() && tAmb > 0.0 && air != null && state.volume > 0.0
         ) {
             val airCv = air.specificHeatCapacity * 1000.0 / air.adiabaticIndex
             val airR = (air.adiabaticIndex - 1.0) * airCv
-            if (airR <= 1e-12) return NodeStateChange.NONE
+            if (airR > 1e-12) {
+                val deltas = HashMap<GasType, Double>(gasMasses.size + 1)
+                var energyDelta = ambientHeatDelta
+                var removedPressure = 0.0
 
-            val deltas = HashMap<GasType, Double>(gasMasses.size + 1)
-            var energyDelta = 0.0
-            var removedPressure = 0.0
+                // Passive diffusion/buoyant exchange at the open mouth purges stagnant fuel/exhaust when not jetting.
+                val exchangeFrac = min(0.5, dt / OPEN_MOUTH_EXCHANGE_TAU_S)
+                for ((gas, mass) in gasMasses) {
+                    if (gas == air || !mass.isFinite() || mass <= 1e-12) continue
+                    val dmOut = mass * exchangeFrac
+                    if (dmOut <= 1e-12) continue
+                    val gasCv = gas.specificHeatCapacity * 1000.0 / gas.adiabaticIndex
+                    val gasR = (gas.adiabaticIndex - 1.0) * gasCv
+                    deltas[gas] = -dmOut
+                    energyDelta -= dmOut * gasCv * chamberTemp
+                    removedPressure += dmOut * gasR * chamberTemp / state.volume
+                }
 
-            // Passive diffusion/buoyant exchange at the open mouth purges stagnant fuel/exhaust when not jetting.
-            val exchangeFrac = min(0.5, dt / OPEN_MOUTH_EXCHANGE_TAU_S)
-            for ((gas, mass) in gasMasses) {
-                if (gas == air || !mass.isFinite() || mass <= 1e-12) continue
-                val dmOut = mass * exchangeFrac
-                if (dmOut <= 1e-12) continue
-                val gasCv = gas.specificHeatCapacity * 1000.0 / gas.adiabaticIndex
-                val gasR = (gas.adiabaticIndex - 1.0) * gasCv
-                deltas[gas] = -dmOut
-                energyDelta -= dmOut * gasCv * chamberTemp
-                removedPressure += dmOut * gasR * chamberTemp / state.volume
-            }
+                val effectivePressure = (chamberPressure - removedPressure).coerceAtLeast(0.0)
+                if (effectivePressure < pAmb) {
+                    val rhoAmb = pAmb / (airR * tAmb)
+                    val mdotIn = DISCHARGE_COEFFICIENT * (NOZZLE_AREA_M2 * REFILL_AREA_MULTIPLIER) *
+                        sqrt(2.0 * rhoAmb * (pAmb - effectivePressure))
+                    val maxMassToAmbient = (pAmb - effectivePressure) * state.volume / (airR * tAmb)
+                    val dmIn = min(mdotIn * dt, max(0.0, maxMassToAmbient))
+                    if (dmIn > 1e-12 && dmIn.isFinite()) {
+                        deltas[air] = dmIn
+                        energyDelta += dmIn * airCv * tAmb
+                    }
+                }
 
-            val effectivePressure = (chamberPressure - removedPressure).coerceAtLeast(0.0)
-            if (effectivePressure < pAmb) {
-                val rhoAmb = pAmb / (airR * tAmb)
-                val mdotIn = DISCHARGE_COEFFICIENT * (NOZZLE_AREA_M2 * REFILL_AREA_MULTIPLIER) *
-                    sqrt(2.0 * rhoAmb * (pAmb - effectivePressure))
-                val maxMassToAmbient = (pAmb - effectivePressure) * state.volume / (airR * tAmb)
-                val dmIn = min(mdotIn * dt, max(0.0, maxMassToAmbient))
-                if (dmIn > 1e-12 && dmIn.isFinite()) {
-                    deltas[air] = dmIn
-                    energyDelta += dmIn * airCv * tAmb
+                if ((deltas.isNotEmpty() || abs(energyDelta) > 1e-9) && energyDelta.isFinite()) {
+                    pendingMode = StepMode.REFILL
+                    return NodeStateChange(deltas, energyDelta)
                 }
             }
+        }
 
-            if (deltas.isNotEmpty() && energyDelta.isFinite()) {
-                pendingMode = StepMode.REFILL
-                return NodeStateChange(deltas, energyDelta)
-            }
+        if (ambientHeatDelta != 0.0) {
+            return NodeStateChange(emptyMap(), ambientHeatDelta)
         }
 
         return NodeStateChange.NONE
@@ -298,5 +317,9 @@ class GasThrusterDuctNode(
         // Open-mouth ambient air refill and passive stagnant-gas exchange
         private const val REFILL_AREA_MULTIPLIER = 25.0
         private const val OPEN_MOUTH_EXCHANGE_TAU_S = 1.5
+
+        // Ambient air thermal equalization (W/K at sea level, matching Radiator default)
+        private const val SEA_LEVEL_PRESSURE_PA = 101_325.0
+        const val DEFAULT_AMBIENT_HEAT_TRANSFER_COEFFICIENT = 5.0
     }
 }

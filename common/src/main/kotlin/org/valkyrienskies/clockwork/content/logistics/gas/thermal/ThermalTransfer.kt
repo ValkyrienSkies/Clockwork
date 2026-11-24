@@ -16,6 +16,14 @@ object ThermalTransfer {
         return excess * fraction(coefficient, seconds, capacity)
     }
 
+    /** Signed joules to add to the node to equalize toward [ambient] temperature. */
+    fun equalize(energy: Double, capacity: Double, ambient: Double, coefficient: Double, seconds: Double): Double {
+        if (!validNode(energy, capacity) || !ambient.isFinite() || ambient < 0.0) return 0.0
+        val target = max(capacity * ambient, MIN_ENERGY)
+        val delta = (target - energy) * fraction(coefficient, seconds, capacity)
+        return if (delta.isFinite()) delta else 0.0
+    }
+
     /** Signed joules from A to B, limited to their heat-capacity-weighted equilibrium. */
     fun exchange(
         energyA: Double, capacityA: Double,

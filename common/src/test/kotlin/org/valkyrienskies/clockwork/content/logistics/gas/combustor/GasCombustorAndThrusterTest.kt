@@ -364,11 +364,25 @@ class GasCombustorAndThrusterTest {
         assertTrue(peakThrust > 100.0, "Hot high-pressure blast must produce thrust")
         assertTrue(minPressure < 92_000.0, "Kadenacy exhaust inertia should dip pressure below ambient (min=$minPressure Pa)")
 
-        // 5) Vacuum: never sucks air or triggers Kadenacy
+        // 5) Ambient air thermal equalization: hot thruster cools toward air temp, cold thruster warms toward air temp
+        thruster.ambientPressure = 101_325.0
+        thruster.ambientTemperature = 293.15
+        thruster.nozzleOpenToAir = false
+        seedNode(network, pos, emptyMap(), 900.0)
+        repeat(200) { solver.step(network, 10) }
+        assertTrue(network.getTemperatureAt(pos) < 550.0, "Hot thruster in air should cool toward ambient (got ${network.getTemperatureAt(pos)} K)")
+
+        seedNode(network, pos, emptyMap(), 150.0)
+        repeat(200) { solver.step(network, 10) }
+        assertTrue(network.getTemperatureAt(pos) > 230.0, "Cold thruster in air should warm toward ambient (got ${network.getTemperatureAt(pos)} K)")
+
+        // 6) Vacuum: never sucks air, triggers Kadenacy, or conducts heat to nonexistent air
         thruster.ambientPressure = 0.0
-        seedNode(network, pos, emptyMap(), 293.15)
-        repeat(10) { solver.step(network, 10) }
+        thruster.nozzleOpenToAir = true
+        seedNode(network, pos, emptyMap(), 800.0)
+        repeat(40) { solver.step(network, 10) }
         assertEquals(0.0, network.getPressureAt(pos), 1e-6, "Vacuum thruster must stay empty")
+        assertEquals(800.0, network.getTemperatureAt(pos), 1e-3, "Vacuum thruster must not lose heat to nonexistent air")
     }
 
     @Test
