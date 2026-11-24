@@ -23,6 +23,7 @@ import net.minecraft.nbt.Tag
 import net.minecraft.resources.ResourceLocation
 import net.minecraft.world.item.ItemDisplayContext
 import net.minecraft.world.item.ItemStack
+import net.minecraft.world.level.Level
 import net.minecraft.world.level.block.Blocks
 import net.minecraft.world.phys.AABB
 import net.minecraft.world.phys.Vec3
@@ -335,7 +336,7 @@ object RopeKnotRenderer {
         strand(level, grounding.points(level, curve), origin, ms, buffers, material, tint = tint)
     }
 
-    internal fun strand(level: ClientLevel, points: List<Vec3>, origin: Vec3, ms: PoseStack, buffers: MultiBufferSource,
+    internal fun strand(level: Level, points: List<Vec3>, origin: Vec3, ms: PoseStack, buffers: MultiBufferSource,
                         material: Material, radius: Double = material.radius, tint: Int = 0xFFFFFF, packedLight: Int? = null) {
         if (points.size < 2) return
         val vc = buffers.getBuffer(material.renderType)

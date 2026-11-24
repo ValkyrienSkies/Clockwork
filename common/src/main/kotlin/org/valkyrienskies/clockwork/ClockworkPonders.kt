@@ -18,6 +18,7 @@ import net.minecraft.world.phys.Vec3
 import org.valkyrienskies.clockwork.content.ponders.GasBacktankPonder
 import org.valkyrienskies.clockwork.content.ponders.GasMachineryPonders
 import org.valkyrienskies.clockwork.content.ponders.GasProcessingPonders
+import org.valkyrienskies.clockwork.content.ponders.SiphonHarpoonPonder
 import org.valkyrienskies.clockwork.content.ponders.ThermalGasPonders
 import org.valkyrienskies.clockwork.content.ponders.KelvinPonders.duct
 import org.valkyrienskies.clockwork.content.ponders.KineticPonders.redstoneResistor
@@ -103,6 +104,8 @@ object ClockworkPonders {
             .addStoryBoard("heat_exchanger", ThermalGasPonders::heatExchanger)
         HELPER.forComponents(ClockworkItems.GAS_BANKTANK)
             .addStoryBoard("gas_backtank", GasBacktankPonder::backtank)
+        HELPER.forComponents(ClockworkBlocks.SIPHON_HARPOON)
+            .addStoryBoard("siphon_harpoon", SiphonHarpoonPonder::siphoning)
         HELPER.forComponents(ClockworkBlocks.GAS_HEATER)
             .addStoryBoard("gas_heater", ThermalGasPonders::gasHeater)
     }
