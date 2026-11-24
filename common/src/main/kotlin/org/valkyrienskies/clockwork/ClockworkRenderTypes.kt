@@ -67,6 +67,11 @@ class ClockworkRenderTypes(
                 .setTransparencyState(LIGHTNING_TRANSPARENCY).setCullState(NO_CULL)
                 .setWriteMaskState(COLOR_WRITE).createCompositeState(false)
         )
+        val THRUSTER_PLUME_DEPTH: RenderType = create(
+            "thruster_plume_depth", DefaultVertexFormat.POSITION_COLOR_TEX_LIGHTMAP, VertexFormat.Mode.QUADS, 16384, false, false,
+            CompositeState.builder().setShaderState(ShaderStateShard { ClockworkShaders.thrusterPlume })
+                .setCullState(NO_CULL).setWriteMaskState(DEPTH_WRITE).createCompositeState(false)
+        )
         val THRUSTER_VAPOR: RenderType = create(
             "thruster_vapor", DefaultVertexFormat.POSITION_COLOR, VertexFormat.Mode.QUADS, 16384, false, true,
             CompositeState.builder().setShaderState(POSITION_COLOR_SHADER)

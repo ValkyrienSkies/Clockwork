@@ -21,6 +21,7 @@ import org.valkyrienskies.clockwork.content.physicalities.gas_thruster.GasThrust
 
 class GasThrusterRenderer : SafeBlockEntityRenderer<GasThrusterBlockEntity>() {
     companion object {
+        private const val OPAQUE_PLUME_ALPHA = 150f / 255f
         private val mouthX = floatArrayOf(-1f, 1f, 1f, -1f)
         private val mouthZ = floatArrayOf(-1f, -1f, 1f, 1f)
     }
@@ -61,13 +62,14 @@ class GasThrusterRenderer : SafeBlockEntityRenderer<GasThrusterBlockEntity>() {
         }
         pose.translate(0.0, -0.16, 0.0)
         val matrix = pose.last().pose()
+        val stellar = be.stellarSteam
         val time = (((be.level?.gameTime ?: 0L) % 4096) / 2 * 2 + be.blockPos.asLong() % 197) * 0.7f
         if (be.vaporStrength > 0.01f) {
             val vapor = buffers.getBuffer(ClockworkRenderTypes.THRUSTER_VAPOR)
             val strength = be.vaporStrength
             val length = be.plumeLength
             drawSleeve(vapor, matrix, normal, contact, 0.10f, 0.16f + 0.48f * length, 0.27f,
-                0.56f * strength, 0f, 0.78f, 0.85f, 0.89f)
+                0.56f * strength, 0f, 0.78f + 0.22f * stellar, 0.85f, 0.89f - 0.45f * stellar)
             val tick = (be.level?.gameTime ?: 0L) + be.blockPos.asLong() % 32
             for (i in 0 until 4) {
                 val age = (Math.floorMod(tick + i * 8, 32L) + partialTicks) / 32f
@@ -76,10 +78,11 @@ class GasThrusterRenderer : SafeBlockEntityRenderer<GasThrusterBlockEntity>() {
                 val depth = width * 0.65f
                 val opacity = strength * (1f - age)
                 drawSleeve(vapor, matrix, normal, contact, center - depth, center + depth, width,
-                    opacity * 0.40f, opacity * 0.24f, 0.77f, 0.84f, 0.89f)
+                    opacity * 0.40f, opacity * 0.24f, 0.77f + 0.20f * stellar,
+                    0.84f - 0.45f * stellar, 0.89f + 0.11f * stellar)
             }
         }
-        if (heat >= 0.01f) {
+        if (heat >= 0.01f || stellar >= 0.01f) {
 
             val colorHeat = heat
             val blueShift = ((colorHeat - 0.90f) / 0.10f).coerceIn(0f, 1f)
@@ -93,17 +96,36 @@ class GasThrusterRenderer : SafeBlockEntityRenderer<GasThrusterBlockEntity>() {
             val swing = 0.30f * pulse * heat * heat * dryExhaust
             val length = 0.16f + be.plumeLength * (1f + 0.16f * swing)
             val base = (4.5f + 0.48f * swing) / 16f
-            fun sleeves(type: RenderType) {
+            val violet = be.violetExhaust
+            fun sleeves(type: RenderType, minAlpha: Float = 0.01f) {
                 val vertices = buffers.getBuffer(type)
+                val seed = (be.blockPos.asLong() and 15L).toInt()
+                if (stellar >= minAlpha) {
+                    drawSleeve(vertices, matrix, normal, contact, 0.10f, 0.16f + 0.72f * be.plumeLength,
+                        0.14f, stellar, stellar, 1f, 0.72f, 0.22f, 2, seed)
+                    drawSleeve(vertices, matrix, normal, contact, 0.10f, 0.16f + 0.52f * be.plumeLength,
+                        0.10f, stellar, stellar, 1f, 0.95f, 0.80f, 4, seed)
+                }
+                if (heat < 0.01f || intensity < minAlpha) return
                 for (layer in 0 until 5) {
                     val radius = base * (1f - 0.208f * layer)
                     val stop = 0.10f + (length - 0.10f) * (0.24f + 0.19f * layer)
                     drawSleeve(vertices, matrix, normal, contact, 0.10f, stop, radius, intensity, intensity,
-                        red, green, blue, layer, (be.blockPos.asLong() and 15L).toInt())
+                        red + (0.64f - red) * violet, green + (0.21f - green) * violet, blue, layer, seed)
+                }
+                if (violet >= 0.01f && intensity * violet >= minAlpha) {
+                    for (corner in mouthX.indices) {
+                        drawSleeve(vertices, matrix, normal, contact, 0.10f, 0.10f + 0.42f * (length - 0.10f),
+                            0.065f, intensity * violet, intensity * violet, 0.77f, 0.20f, 1f, 1, seed + corner,
+                            mouthX[corner] * base * 1.45f, mouthZ[corner] * base * 1.45f)
+                    }
                 }
             }
             sleeves(ClockworkRenderTypes.THRUSTER_PLUME)
             sleeves(ClockworkRenderTypes.THRUSTER_PLUME_GLOW)
+            if (maxOf(stellar, intensity) >= OPAQUE_PLUME_ALPHA) {
+                sleeves(ClockworkRenderTypes.THRUSTER_PLUME_DEPTH, OPAQUE_PLUME_ALPHA)
+            }
         }
         pose.popPose()
     }
@@ -145,7 +167,8 @@ class GasThrusterRenderer : SafeBlockEntityRenderer<GasThrusterBlockEntity>() {
 
     private fun drawSleeve(vertices: VertexConsumer, matrix: Matrix4f, normal: Vector3f?, contact: Float,
                           start: Float, end: Float, width: Float, alpha: Float, endAlpha: Float,
-                          red: Float, green: Float, blue: Float, layer: Int = -1, seed: Int = 0) {
+                          red: Float, green: Float, blue: Float, layer: Int = -1, seed: Int = 0,
+                          tipX: Float = 0f, tipZ: Float = 0f) {
         for (i in mouthX.indices) {
             val next = (i + 1) % mouthX.size
             val shade = when (i % 4) {
@@ -157,9 +180,9 @@ class GasThrusterRenderer : SafeBlockEntityRenderer<GasThrusterBlockEntity>() {
                 val radius = width
                 val distance = start + (end - start) * t
                 val opacity = alpha + (endAlpha - alpha) * t
-                var x = mouthX[side] * radius
+                var x = mouthX[side] * radius + tipX * t
                 var y = distance
-                var z = mouthZ[side] * radius
+                var z = mouthZ[side] * radius + tipZ * t
                 if (normal != null) {
                     val depth = 0.018f - (normal.x * x + normal.y * (y - contact) + normal.z * z)
                     if (depth > 0f) {
@@ -183,7 +206,7 @@ class GasThrusterRenderer : SafeBlockEntityRenderer<GasThrusterBlockEntity>() {
                 if (normal == null) return 1f
                 val radial = normal.x * mouthX[side] + normal.z * mouthZ[side]
                 val from = radial * width + normal.y * (start - contact) - 0.018f
-                val to = radial * width + normal.y * (end - contact) - 0.018f
+                val to = radial * width + normal.y * (end - contact) + normal.x * tipX + normal.z * tipZ - 0.018f
                 return if (from * to < 0f) from / (from - to) else 1f
             }
             fun strip(from: Float, to: Float) {

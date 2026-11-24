@@ -72,6 +72,10 @@ class GasThrusterBlockEntity(type: BlockEntityType<*>?, pos: BlockPos, state: Bl
     var velocity = 0.0
     private var chamberHeat = 0.0
     internal val normalizedTemperature get() = ((chamberHeat - 550.0) / 900.0).coerceIn(0.0, 1.0)
+    internal val stellarSteam get() = ((chamberHeat - 1025.0) / 75.0).coerceIn(0.0, 1.0).toFloat() *
+        (steamFraction - exhaustFraction).coerceAtLeast(0f)
+    internal val violetExhaust get() = ((chamberHeat - 1480.0) / 140.0).coerceIn(0.0, 1.0).toFloat() *
+        (exhaustFraction - 8f * steamFraction).coerceAtLeast(0f)
     private var nonAirFlow = 0.0
     var expansion = 0f
         private set
