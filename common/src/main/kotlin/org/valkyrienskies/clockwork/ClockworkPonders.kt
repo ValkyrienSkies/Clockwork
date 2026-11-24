@@ -15,6 +15,10 @@ import net.minecraft.network.chat.Component
 import net.minecraft.resources.ResourceLocation
 import net.minecraft.world.phys.AABB
 import net.minecraft.world.phys.Vec3
+import org.valkyrienskies.clockwork.content.ponders.GasBacktankPonder
+import org.valkyrienskies.clockwork.content.ponders.GasMachineryPonders
+import org.valkyrienskies.clockwork.content.ponders.GasProcessingPonders
+import org.valkyrienskies.clockwork.content.ponders.ThermalGasPonders
 import org.valkyrienskies.clockwork.content.ponders.KelvinPonders.duct
 import org.valkyrienskies.clockwork.content.ponders.KineticPonders.redstoneResistor
 import org.valkyrienskies.clockwork.content.ponders.OtherPonders.solid_delivery
@@ -74,9 +78,33 @@ object ClockworkPonders {
                 "solid_delivery", ::solid_delivery
             )
 
-        HELPER.forComponents(ClockworkBlocks.DUCT).addStoryBoard(
-            "duct", ::duct
-        )
+        HELPER.forComponents(ClockworkBlocks.DUCT)
+            .addStoryBoard("duct", ::duct)
+            .addStoryBoard("duct_filter", GasProcessingPonders::filterEdge)
+            .addStoryBoard("duct", GasProcessingPonders::smartEdge)
+            .addStoryBoard("gas_reactions", GasProcessingPonders::gasReactions)
+        HELPER.forComponents(ClockworkBlocks.GAS_CRAFTER)
+            .addStoryBoard("gas_crafter", GasProcessingPonders::gasCrafter)
+        HELPER.forComponents(ClockworkBlocks.GAS_ENGINE)
+            .addStoryBoard("gas_engine", GasMachineryPonders::gasEngine)
+        HELPER.forComponents(ClockworkBlocks.STERLING_ENGINE)
+            .addStoryBoard("sterling_engine", GasMachineryPonders::sterlingEngine)
+        HELPER.forComponents(ClockworkBlocks.AIR_COMPRESSOR)
+            .addStoryBoard("air_compressor", GasMachineryPonders::airCompressor)
+        HELPER.forComponents(ClockworkBlocks.VALVE_DUCT)
+            .addStoryBoard("gas_valve", GasMachineryPonders::gasValve)
+        HELPER.forComponents(ClockworkBlocks.PUMP_DUCT)
+            .addStoryBoard("gas_pump", GasMachineryPonders::gasPump)
+        HELPER.forComponents(ClockworkBlocks.STEAM_GENERATOR)
+            .addStoryBoard("steam_extractor", ThermalGasPonders::steamExtractor)
+        HELPER.forComponents(ClockworkBlocks.RADIATOR)
+            .addStoryBoard("radiator", ThermalGasPonders::radiator)
+        HELPER.forComponents(ClockworkBlocks.HEAT_EXCHANGER)
+            .addStoryBoard("heat_exchanger", ThermalGasPonders::heatExchanger)
+        HELPER.forComponents(ClockworkItems.GAS_BANKTANK)
+            .addStoryBoard("gas_backtank", GasBacktankPonder::backtank)
+        HELPER.forComponents(ClockworkBlocks.GAS_HEATER)
+            .addStoryBoard("gas_heater", ThermalGasPonders::gasHeater)
     }
 
 }

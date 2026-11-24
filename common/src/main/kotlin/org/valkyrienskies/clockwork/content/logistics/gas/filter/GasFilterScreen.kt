@@ -10,8 +10,6 @@ import org.valkyrienskies.clockwork.util.gui.ScrollingFrame
 import org.valkyrienskies.kelvin.api.GasType
 import org.valkyrienskies.kelvin.impl.registry.GasTypeRegistry
 import kotlin.math.floor
-import kotlin.math.max
-import kotlin.math.roundToInt
 
 abstract class GasFilterScreen(
     title: Component,
@@ -71,19 +69,12 @@ abstract class GasFilterScreen(
         }
     }
 
-    private inner class GasGrid(x: Int, y: Int) : ScrollingFrame(x, y, 200, 47) {
+    private inner class GasGrid(x: Int, y: Int) : ScrollingFrame(x, y, 203, 47, 3) {
         private val gases = GasTypeRegistry.GAS_TYPES.values.sortedBy { it.resourceLocation.toString() }
         override var scrollSpeed = 20.0
 
         init {
             scrollingElements = gases.chunked(COLUMNS).map { row -> GasRow(row) }.toMutableList()
-            minScroll = -max(scrollingElements.size * CELL_SIZE - height, 0).toDouble()
-        }
-
-        override fun mouseScrolled(mouseX: Double, mouseY: Double, delta: Double): Boolean {
-            if (!isMouseOver(mouseX, mouseY)) return false
-            super.mouseScrolled(mouseX, mouseY, delta)
-            return true
         }
 
         override fun onClick(mouseX: Double, mouseY: Double) {
@@ -92,24 +83,18 @@ abstract class GasFilterScreen(
         }
 
         fun gasAt(mouseX: Double, mouseY: Double): GasType? {
-            if (!isMouseOver(mouseX, mouseY)) return null
+            if (!isMouseOverContent(mouseX, mouseY)) return null
             val localX = mouseX - x
-            val localY = mouseY - y - currentScroll
+            val localY = mouseY - y - renderedScroll
             if (localY < 0.0) return null
             val column = floor(localX / CELL_SIZE).toInt()
             val row = floor(localY / CELL_SIZE).toInt()
             return gases.getOrNull(row * COLUMNS + column)
         }
 
-        override fun renderWidget(graphics: GuiGraphics, mouseX: Int, mouseY: Int, partialTicks: Float) {
-            super.renderWidget(graphics, mouseX, mouseY, partialTicks)
-            if (minScroll < 0.0) {
-                val contentHeight = scrollingElements.size * CELL_SIZE
-                val thumbHeight = max(6, height * height / contentHeight)
-                val thumbY = y + ((height - thumbHeight) * currentScroll / minScroll).roundToInt()
-                graphics.fill(x + width + 1, y, x + width + 3, y + height, 0xFF49443C.toInt())
-                graphics.fill(x + width + 1, thumbY, x + width + 3, thumbY + thumbHeight, 0xFFDDD5C3.toInt())
-            }
+        override fun renderScrollbar(graphics: GuiGraphics) {
+            graphics.fill(x + contentWidth + 1, y, x + contentWidth + 3, y + height, 0xFF49443C.toInt())
+            graphics.fill(x + contentWidth + 1, thumbY, x + contentWidth + 3, thumbY + thumbHeight, 0xFFDDD5C3.toInt())
         }
 
         private inner class GasRow(private val gases: List<GasType>) : ScrollingElement() {

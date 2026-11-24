@@ -3,6 +3,7 @@ package org.valkyrienskies.clockwork.content.logistics.gas.duct
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.registerKotlinModule
 import com.simibubi.create.foundation.blockEntity.behaviour.BlockEntityBehaviour
+import net.createmod.ponder.api.level.PonderLevel
 import net.minecraft.core.BlockPos
 import net.minecraft.core.Direction
 import net.minecraft.nbt.CompoundTag
@@ -12,6 +13,7 @@ import net.minecraft.world.phys.AABB
 import org.valkyrienskies.clockwork.ClockworkMod
 import org.valkyrienskies.clockwork.ClockworkPackets
 import org.valkyrienskies.clockwork.util.DuctNetworkUtils.configureMetalDuctEdge
+import org.valkyrienskies.clockwork.util.DuctNetworkUtils.simulatesGas
 import org.valkyrienskies.clockwork.util.kelvin.KNodeBlockEntity
 import org.valkyrienskies.kelvin.api.DuctNodePos
 import org.valkyrienskies.kelvin.util.INodeBlockEntity
@@ -36,6 +38,15 @@ class DuctBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: BlockState
         super.addBehavioursDeferred(behaviours)
     }
 
+    override fun tick() {
+        super.tick()
+        val level = level
+        if (level?.isClientSide == true && level is PonderLevel && level.random.nextInt(4) == 0) {
+            val state = level.getBlockState(blockPos)
+            (state.block as? DuctBlock)?.animateTick(state, level, blockPos, level.random)
+        }
+    }
+
     override fun lazyTick() {
         super.lazyTick()
         val level = level ?: return
@@ -58,7 +69,7 @@ class DuctBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: BlockState
             }
         }
         if (clientPacket) return
-        if (level != null) ClockworkMod.getKelvin(level).markLoaded(this.blockPos.toDuctNodePos(level!!.dimension().location()))
+        if (level?.isClientSide == false) ClockworkMod.getKelvin(level).markLoaded(this.blockPos.toDuctNodePos(level!!.dimension().location()))
 
         val edgeDataTag = tag.get("edgeData") as? CompoundTag ?: return
         edgeDataTag.allKeys.forEach {
@@ -113,7 +124,7 @@ class DuctBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: BlockState
     }
 
     fun setEdgeType(dir: Direction, otherDuctNodePos: DuctNodePos, edgeType: DuctEdgeType, clientPacket: Boolean, silent: Boolean = false, forced: Boolean = false) {
-        if (this.level?.isClientSide != false && !clientPacket) return
+        if (level?.simulatesGas != true && !clientPacket) return
 
         val previousType = this.DIR_TO_CONNECTION_TYPE[dir]!!
         this.DIR_TO_CONNECTION_TYPE[dir] = edgeType
@@ -139,7 +150,7 @@ class DuctBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: BlockState
     }
 
     fun clearEdgeType(dir: Direction) {
-        if (this.level?.isClientSide != false) {
+        if (level?.simulatesGas != true) {
             return
         }
         this.DIR_TO_CONNECTION_TYPE[dir] = DuctEdgeType.NONE

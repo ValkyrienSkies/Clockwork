@@ -2,27 +2,35 @@ package org.valkyrienskies.clockwork.util.render
 
 import it.unimi.dsi.fastutil.objects.Object2DoubleOpenHashMap
 import net.createmod.ponder.api.level.PonderLevel
-import net.minecraft.client.multiplayer.ClientLevel
+import net.minecraft.core.BlockPos
+import net.minecraft.core.Direction
+import net.minecraft.nbt.CompoundTag
 import net.minecraft.resources.ResourceLocation
-import net.minecraft.server.level.ServerLevel
 import net.minecraft.world.entity.player.Player
 import net.minecraft.world.level.Level
+import org.valkyrienskies.clockwork.ClockworkConfig
+import org.valkyrienskies.clockwork.content.logistics.gas.IClockworkNodeBE
+import org.valkyrienskies.clockwork.content.logistics.gas.IConnectable
+import org.valkyrienskies.clockwork.content.logistics.gas.duct.DuctBlock
+import org.valkyrienskies.clockwork.content.logistics.gas.storage.tank.DuctTankBlock
+import org.valkyrienskies.clockwork.content.logistics.gas.storage.tank.DuctTankBlockEntity
 import org.valkyrienskies.kelvin.KelvinMod.KELVINLOGGER
 import org.valkyrienskies.kelvin.api.*
 import org.valkyrienskies.kelvin.api.nodes.ILeakNode
+import org.valkyrienskies.kelvin.api.recipe.GasBaseRecipe
 import org.valkyrienskies.kelvin.impl.DuctNodeInfo
 import org.valkyrienskies.kelvin.impl.client.ClientKelvinInfo
 import org.valkyrienskies.kelvin.impl.recipe.KelvinReactionDataLoader
 import org.valkyrienskies.kelvin.impl.registry.GasParticlePickerRegistry
-import org.valkyrienskies.kelvin.impl.solvers.JacobiSeidelSolver
+import org.valkyrienskies.kelvin.impl.registry.GasTypeRegistry
+import org.valkyrienskies.kelvin.serialization.NodeNBTUtil
 import org.valkyrienskies.kelvin.util.GasExplosionDamageCalculator
+import org.valkyrienskies.kelvin.util.INodeBlock
 import org.valkyrienskies.kelvin.util.KelvinChunkPos
 import org.valkyrienskies.kelvin.util.KelvinDamageSources
 import org.valkyrienskies.kelvin.util.KelvinExtensions.toChunkPos
+import org.valkyrienskies.kelvin.util.KelvinExtensions.toDuctNodePos
 import org.valkyrienskies.kelvin.util.KelvinExtensions.toMinecraft
-import java.util.concurrent.ConcurrentLinkedQueue
-import kotlin.collections.isNotEmpty
-import kotlin.collections.set
 import kotlin.math.abs
 import kotlin.math.max
 import kotlin.math.min
@@ -36,7 +44,85 @@ class VirtualDuctNetwork(
     override val nodesInDimension: HashMap<ResourceLocation, HashSet<DuctNodePos>> = HashMap(),
     override val unloadedNodes: HashSet<DuctNodePos> = HashSet(),
 ) : DuctNetwork<PonderLevel> {
-    var solver: KelvinSolver = JacobiSeidelSolver()
+    var solver: KelvinSolver = ClockworkConfig.KELVIN.kelvinSolver.getSolver()
+    internal var sceneReactions: Collection<GasBaseRecipe>? = null
+    private val pendingBlocks = linkedSetOf<BlockPos>()
+
+    fun queueUpdate(pos: BlockPos) {
+        pendingBlocks.add(pos.immutable())
+    }
+
+    internal fun updateBlocks(level: PonderLevel) {
+        if (pendingBlocks.isEmpty()) return
+        val changed = pendingBlocks.toList()
+        pendingBlocks.clear()
+
+        val reconnect = linkedSetOf<BlockPos>()
+        for (pos in changed) {
+            reconnect.add(pos)
+            Direction.entries.forEach { reconnect.add(pos.relative(it)) }
+            val block = level.getBlockState(pos).block as? INodeBlock ?: continue
+            val be = level.getBlockEntity(pos)
+            val nodePos = pos.toDuctNodePos(level.dimension().location())
+            if (be is DuctTankBlockEntity && !be.isController) continue
+            if (nodePos !in nodes) {
+                val node = if (block is DuctTankBlock && be is DuctTankBlockEntity) {
+                    block.createTankNode(nodePos, (be.width * be.width * be.height).toDouble())
+                } else block.createNode(nodePos)
+                addNode(nodePos, node)
+            }
+            if (be is IClockworkNodeBE) {
+                be.dataToLoad?.let { loadNodeData(nodePos, it) }
+                be.dataToLoad = null
+            }
+            nodes[nodePos]?.nodeEdges?.toList()?.forEach { removeEdge(it.nodeA, it.nodeB) }
+        }
+
+        for (pos in reconnect) {
+            val state = level.getBlockState(pos)
+            val block = state.block
+            if (block is DuctBlock) {
+                val connected = block.getConnectedState(level, state, pos)
+                if (connected != null && connected != state) level.setBlockAndUpdate(pos, connected)
+            } else if (block is INodeBlock) {
+                (level.getBlockEntity(pos) as? IConnectable)?.refreshConnections(level, pos)
+            }
+        }
+    }
+
+    fun saveNodeData(pos: DuctNodePos, tag: CompoundTag) {
+        val info = nodeInfo[pos] ?: return
+        val data = CompoundTag()
+        NodeNBTUtil.serializeNode(pos, this, data)
+        data.putDouble("KelvinVolume", info.totalVolume)
+        data.putDouble("KelvinPressure", info.currentPressure)
+        data.putDouble("KelvinEnergy", info.currentEnergy)
+        tag.put("kelvin_node_data", data)
+    }
+
+    private fun loadNodeData(pos: DuctNodePos, tag: CompoundTag) {
+        val data = tag.getCompound("kelvin_node_data")
+        if (data.isEmpty) return
+        val info = nodeInfo.getValue(pos)
+        info.currentGasMasses.clear()
+        for ((id, gas) in GasTypeRegistry.GAS_TYPES) {
+            if (data.contains(id.toString())) info.currentGasMasses[gas] = data.getDouble(id.toString())
+        }
+        if (data.contains("KelvinTemperature")) info.currentTemperature = data.getDouble("KelvinTemperature")
+        info.currentPressure = data.getDouble("KelvinPressure")
+        info.previousPressure = info.currentPressure
+        val volume = data.getDouble("KelvinVolume")
+        if (volume > 0.0) {
+            info.totalVolume = volume
+            info.volumeChange = volume - nodes.getValue(pos).volume
+            info.previousVolumeChange = info.volumeChange
+        }
+        info.currentEnergy = if (data.contains("KelvinEnergy") && !data.contains("KelvinWallTemperature")) {
+            data.getDouble("KelvinEnergy")
+        } else {
+            getNodeHeatCapacity(pos) * info.currentTemperature
+        }
+    }
 
     override fun createGasParticle(
         level: PonderLevel, gasType: GasType, pos: DuctNodePos,
@@ -49,43 +135,25 @@ class VirtualDuctNetwork(
     }
 
     override fun markLoaded(pos: DuctNodePos) {
-        if (!nodes.contains(pos)) {
-            return
-        }
-        unloadedNodes.remove(pos)
-        for (edge in edges.keys) {
-            if (edge.first == pos || edge.second == pos) {
-                edges[edge]!!.unloaded = false
-            }
+        if (!unloadedNodes.remove(pos)) return
+        nodes[pos]?.nodeEdges?.forEach { edge ->
+            edge.unloaded = edge.nodeA in unloadedNodes || edge.nodeB in unloadedNodes
         }
     }
 
     override fun markUnloaded(pos: DuctNodePos) {
-        if (!nodes.contains(pos)) {
-            return
-        }
-        val edgesToRemove = HashSet<Pair<DuctNodePos, DuctNodePos>>()
-        for (edge in edges.keys) {
-            if (edge.first == pos || edge.second == pos) {
-                if (edges[edge]!!.unloaded) {
-                    edgesToRemove.add(edge)
-                } else {
-                    edges[edge]!!.unloaded = true
-                }
+        val node = nodes[pos] ?: return
+        if (!unloadedNodes.add(pos)) return
+        for (edge in node.nodeEdges.toList()) {
+            val other = if (edge.nodeA == pos) edge.nodeB else edge.nodeA
+            if (other in unloadedNodes) {
+                removeEdge(pos, other)
+                if (nodes[other]?.nodeEdges?.isEmpty() == true) removeNode(other)
+            } else {
+                edge.unloaded = true
             }
         }
-        for (edge in edgesToRemove) {
-            edges.remove(edge)
-            val toCheck = if (edge.first == pos) edge.second else edge.first
-            if (edges.keys.none { it.first == toCheck || it.second == toCheck }) {
-                removeNode(toCheck)
-            }
-        }
-        if (edges.keys.none { it.first == pos || it.second == pos }) {
-            removeNode(pos)
-        } else {
-            unloadedNodes.add(pos)
-        }
+        if (node.nodeEdges.isEmpty()) removeNode(pos)
     }
 
     override fun markChunkLoaded(pos: KelvinChunkPos) {
@@ -120,19 +188,6 @@ class VirtualDuctNetwork(
         return nodeInfo[node]?.currentGasMasses ?: emptyMap()
     }
 
-    override fun getNodeState(nodePos: DuctNodePos): DuctNodeState? {
-        val info = nodeInfo[nodePos] ?: return null
-        val volume = (nodes[nodePos]?.volume ?: info.totalVolume) + info.volumeChange
-        return DuctNodeState(
-            nodePos,
-            getTemperatureAt(nodePos),
-            getPressureAt(nodePos),
-            HashMap<GasType, Double>(info.currentGasMasses),
-            info.currentEnergy,
-            volume
-        )
-    }
-
     override fun getEdgeBetween(from: DuctNodePos, to: DuctNodePos): DuctEdge? {
         return edges[Pair(from, to)] ?: edges[Pair(to, from)]
     }
@@ -142,54 +197,36 @@ class VirtualDuctNetwork(
     }
 
     override fun addNode(pos: DuctNodePos, node: DuctNode) {
-        if (nodes[pos]?.javaClass == node.javaClass && !unloadedNodes.contains(pos)) {
-            KELVINLOGGER.debug("Node already exists at {}", pos)
-            return
-        } else if (unloadedNodes.contains(pos)) {
+        if (nodes[pos]?.javaClass == node.javaClass) {
             markLoaded(pos)
+            return
         }
+        if (pos in nodes) removeNode(pos)
         nodes[pos] = node
         // Seed wall thermal energy at ambient (273.15K) so a fresh node doesn't act as a
         // 0K cold sink for the first gas to enter. Combined energy = wallCap * T_ambient.
         nodeInfo[pos] = DuctNodeInfo(273.15, 0.0, Object2DoubleOpenHashMap(), node.volume, currentEnergy = node.heatCapacity * 273.15)
-        if (nodesInDimension[pos.dimensionId] == null) {
-            nodesInDimension[pos.dimensionId] = hashSetOf()
-        }
-        nodesInDimension[pos.dimensionId]!!.add(pos)
-        nodesByChunk[KelvinChunkPos(pos.x.toInt() shr 4, pos.z.toInt() shr 4)]?.add(pos)
+        nodesInDimension.getOrPut(pos.dimensionId) { hashSetOf() }.add(pos)
+        nodesByChunk.getOrPut(pos.toChunkPos()) { hashSetOf() }.add(pos)
         KELVINLOGGER.debug("Added node at {}", pos)
     }
 
     override fun removeNode(pos: DuctNodePos) {
-        val node = nodes.remove(pos)
+        nodes[pos]?.nodeEdges?.toList()?.forEach { removeEdge(it.nodeA, it.nodeB) }
+        nodes.remove(pos)
         nodeInfo.remove(pos)
-
-        if (unloadedNodes.contains(pos)) {
-            unloadedNodes.remove(pos)
-        }
-        if (nodesInDimension[pos.dimensionId] != null) {
-            nodesInDimension[pos.dimensionId]!!.remove(pos)
-        }
-        if (node != null) KELVINLOGGER.debug("Removed node at {}", pos)
+        unloadedNodes.remove(pos)
+        nodesInDimension[pos.dimensionId]?.remove(pos)
+        nodesByChunk[pos.toChunkPos()]?.remove(pos)
     }
 
     override fun addEdge(posA: DuctNodePos, posB: DuctNodePos, edge: DuctEdge) {
-        if (getEdgeBetween(posA, posB) != null && getEdgeBetween(posA, posB)!!.type == edge.type && !getEdgeBetween(posA, posB)!!.unloaded) {
-            KELVINLOGGER.debug("Edge already exists between {} and {}", posA, posB)
-            return
-        }
-        if (posA == posB) {
-            return
-        }
-        if (unloadedNodes.contains(posA) || unloadedNodes.contains(posB)) {
-            edge.unloaded = true
-        } else if (!unloadedNodes.contains(posA) && !unloadedNodes.contains(posB) && edge.unloaded && nodes.containsKey(posA) && nodes.containsKey(posB)) {
-            edge.unloaded = false
-        }
-        edges[Pair(posA, posB)] = edge
-        nodes[posA]?.nodeEdges?.add(edge)
-        nodes[posB]?.nodeEdges?.add(edge)
-        KELVINLOGGER.debug("Added edge between {} and {}", posA, posB)
+        if (posA == posB || posA !in nodes || posB !in nodes) return
+        removeEdge(posA, posB)
+        edge.unloaded = posA in unloadedNodes || posB in unloadedNodes
+        edges[posA to posB] = edge
+        nodes.getValue(posA).nodeEdges.add(edge)
+        nodes.getValue(posB).nodeEdges.add(edge)
     }
 
     override fun removeEdge(posA: DuctNodePos, posB: DuctNodePos) {
@@ -299,26 +336,10 @@ class VirtualDuctNetwork(
     override fun tick(level: PonderLevel, subSteps: Int) {
         if (disabled) return
 
-        val dimensionNodes = if (nodesInDimension[level.dimension().location()] != null) {
-            nodesInDimension[level.dimension().location()]!!
-        } else {
-            nodesInDimension[level.dimension().location()] = hashSetOf()
-            nodesInDimension[level.dimension().location()]!!
-        }
-
-        if (dimensionNodes.isEmpty()) {
-            return
-        }
-
-
-        val invalidEdges = edges.keys.filter { (it.first !in nodes || it.second !in nodes) && !edges[it]!!.unloaded }
-        for (edge in invalidEdges) {
-            edges.remove(edge)
-        }
-
-        // Moved into separate method for readability and testability
-        // todo: make classic behavior vs new impl configurable?
-        solver.step(this, subSteps) // simulateClassic(subSteps)
+        updateBlocks(level)
+        val dimensionNodes = nodesInDimension[level.dimension().location()] ?: return
+        if (dimensionNodes.isEmpty()) return
+        solver.step(this, subSteps)
 
         val explnodes = HashMap<DuctNodePos, Double>()
         val melted = HashSet<DuctNodePos>()
@@ -361,7 +382,7 @@ class VirtualDuctNetwork(
         }
 
 
-        val reactions = KelvinReactionDataLoader.gas_reactions
+        val reactions = sceneReactions ?: KelvinReactionDataLoader.gas_reactions.values
         // Process recipes
         for (node in dimensionNodes) {
             val gasMasses = getGasMassAt(node)
@@ -369,7 +390,7 @@ class VirtualDuctNetwork(
 
             val state = getNodeState(node) ?: continue
 
-            for (reaction in reactions.values) {
+            for (reaction in reactions) {
                 var con = false
                 reaction.requirements.forEach {if (!it.key.apply_requirement(level, state, it.value)) { con = true; return@forEach }}
                 if (con) continue
@@ -409,6 +430,9 @@ class VirtualDuctNetwork(
         nodeInfo.clear()
 
         unloadedNodes.clear()
+        nodesByChunk.clear()
+        nodesInDimension.clear()
+        pendingBlocks.clear()
 
         KELVINLOGGER.info("Dumped PonderKelvin information. Now get out!")
     }

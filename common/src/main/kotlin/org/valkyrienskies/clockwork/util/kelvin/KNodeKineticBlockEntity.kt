@@ -9,7 +9,6 @@ import net.minecraft.world.level.block.entity.BlockEntityType
 import net.minecraft.world.level.block.state.BlockState
 import org.valkyrienskies.clockwork.ClockworkConfig
 import org.valkyrienskies.clockwork.ClockworkMod
-import org.valkyrienskies.clockwork.ClockworkModClient
 import org.valkyrienskies.clockwork.ClockworkPackets
 import org.valkyrienskies.clockwork.content.logistics.gas.IConnectable
 import org.valkyrienskies.clockwork.content.logistics.gas.IClockworkNodeBE
@@ -21,7 +20,7 @@ import org.valkyrienskies.mod.common.toWorldCoordinates
 
 abstract class KNodeKineticBlockEntity(typeIn: BlockEntityType<*>, pos: BlockPos, state: BlockState) : KineticBlockEntity(typeIn, pos, state), IClockworkNodeBE {
 
-    var dataToLoad: CompoundTag? = null
+    override var dataToLoad: CompoundTag? = null
     private var refreshConnectionsPending = true
 
     override fun lazyTick() {
@@ -78,20 +77,13 @@ abstract class KNodeKineticBlockEntity(typeIn: BlockEntityType<*>, pos: BlockPos
     }
 
     override fun write(tag: CompoundTag, clientPacket: Boolean) {
-        if (!clientPacket && ensureNodeExists()) {
-            saveData(tag, this.getDuctNodePosition(), clientPacket)
-        }
+        if (!clientPacket) writeNodeData(level, tag)
         super.write(tag, clientPacket)
     }
 
     override fun read(tag: CompoundTag, clientPacket: Boolean) {
         super.read(tag, clientPacket)
-        if (!clientPacket && ensureNodeExists()) {
-            //if (!clientPacket) println("node exists, loading")
-            loadData(tag, this.getDuctNodePosition(), clientPacket)
-        } else {
-            if (!clientPacket) dataToLoad = tag
-        }
+        if (!clientPacket) readNodeData(level, tag)
     }
 
     override fun getDuctNodePosition(): DuctNodePos {
@@ -112,7 +104,7 @@ abstract class KNodeKineticBlockEntity(typeIn: BlockEntityType<*>, pos: BlockPos
 
     override fun remove() {
         if (level?.isClientSide == true)
-            ClockworkModClient.getKelvin().removeNode(getDuctNodePosition())
+            ClockworkMod.getKelvin(level).removeNode(getDuctNodePosition())
 
         super.remove()
     }

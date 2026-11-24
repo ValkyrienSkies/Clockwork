@@ -41,12 +41,10 @@ import org.valkyrienskies.core.api.world.PhysLevel
 import org.valkyrienskies.core.api.world.properties.DimensionId
 import org.valkyrienskies.core.internal.world.VsiServerShipWorld
 import org.valkyrienskies.clockwork.util.kelvin.KelvinParticleHelper
-import org.valkyrienskies.kelvin.api.DuctNodePos
 import org.valkyrienskies.kelvin.api.GasType
 import org.valkyrienskies.kelvin.impl.registry.GasTypeRegistry
 import org.valkyrienskies.kelvin.util.GasPhysics
 import org.valkyrienskies.kelvin.util.GasPhysics.mixtureCapacity
-import org.valkyrienskies.kelvin.util.KelvinExtensions.toDuctNodePos
 import org.valkyrienskies.mod.api.BlockEntityPhysicsListener
 import org.valkyrienskies.mod.api.dimensionId
 import org.valkyrienskies.mod.common.shipObjectWorld
@@ -169,13 +167,6 @@ class GasThrusterBlockEntity(type: BlockEntityType<*>?, pos: BlockPos, state: Bl
         behaviours.add(nozzle)
     }
 
-    override fun getDuctNodePosition(): DuctNodePos {
-        if (level != null && !level!!.isClientSide()) {
-            return blockPos.toDuctNodePos(level!!.dimension().location())
-        }
-        return blockPos.toDuctNodePos()
-    }
-
     override fun acceptsThinkable(side: Direction) = side == gimbalSide
 
     override fun thinkablePortName(side: Direction): Component? =
@@ -221,6 +212,7 @@ class GasThrusterBlockEntity(type: BlockEntityType<*>?, pos: BlockPos, state: Bl
     }
 
     fun clientTick() {
+        val level = level ?: return
         previousLipGlow = lipGlow
         val flow = gasMassFlow.values.sum()
         val metalTarget = (((chamberHeat - 550.0) / 900.0).coerceIn(0.0, 1.0) *
@@ -231,7 +223,7 @@ class GasThrusterBlockEntity(type: BlockEntityType<*>?, pos: BlockPos, state: Bl
         plumeImpact = null
         if (gasMassFlow.isEmpty() || velocity == 0.0) return
 
-        GasThrusterSound.start(this)
+        if (level is ClientLevel) GasThrusterSound.start(this)
 
         // Handle particles
         val outward = facing.opposite
@@ -239,16 +231,16 @@ class GasThrusterBlockEntity(type: BlockEntityType<*>?, pos: BlockPos, state: Bl
         val speed = (abs(velocity) / 950.0).coerceAtMost(1.15)
         val mouth = blockPos.toJOMLD().add(0.5, 0.5, 0.5).fma(NOZZLE_PIVOT, outward.normal.toJOMLD())
             .fma(NOZZLE_LENGTH, exhaustDirection)
-        val ductNodePos = blockPos.toDuctNodePos(level!!.dimension().location())
+        val ductNodePos = getDuctNodePosition()
 
-        val impact = tracePlume(level as ClientLevel, mouth, exhaustDirection)
+        val impact = (level as? ClientLevel)?.let { tracePlume(it, mouth, exhaustDirection) }
         plumeImpact = impact
         val contact = impact?.let { Vector3d(mouth).fma(it.distance, exhaustDirection) }
         val jetStrength = max(plumeHeat, vaporStrength)
         for ((gas, mass) in gasMassFlow) {
             val particleCount = mass / massPerParticle
             KelvinParticleHelper.spawnJetForGas(
-                level as ClientLevel,
+                level,
                 ductNodePos,
                 gas,
                 mouth,

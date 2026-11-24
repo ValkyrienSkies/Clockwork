@@ -99,10 +99,10 @@ class GasBacktankBlock(properties: Properties) : HorizontalDirectionalBlock(prop
         if (item is BacktankItem.BacktankBlockItem) item = item.actualItem
 
         val stack = ItemStack(item, 1)
-        val be = blockGetter.getBlockEntity(pos) ?: return stack
+        val level = blockGetter.getBlockEntity(pos)?.level ?: return stack
 
         val tag = CompoundTag()
-        NodeNBTUtil.serializeNodeServer(pos.toDuctNodePos(be.level!!.dimension().location()), tag)
+        NodeNBTUtil.serializeNode(pos.toDuctNodePos(level.dimension().location()), ClockworkMod.getKelvin(level), tag)
         tag.putFloat("Air",(tag.getDouble("kelvin:air")*AirKgsToAirTicks).toFloat())
         stack.tag = tag
 

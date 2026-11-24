@@ -1,5 +1,7 @@
 package org.valkyrienskies.clockwork.util
 
+import net.createmod.ponder.api.level.PonderLevel
+import net.minecraft.world.level.Level
 import org.valkyrienskies.clockwork.ClockworkConfig
 import org.valkyrienskies.clockwork.content.logistics.gas.smart.ClockworkSmartEdge
 import org.valkyrienskies.clockwork.content.logistics.gas.filter.edges.ClockworkFilteredDuctEdge
@@ -13,6 +15,8 @@ import org.valkyrienskies.kelvin.api.nodes.PipeDuctNode
 import org.valkyrienskies.kelvin.api.nodes.PumpDuctNode
 
 object DuctNetworkUtils {
+    val Level.simulatesGas: Boolean get() = !isClientSide || this is PonderLevel
+
     fun createPipeNode(pos: DuctNodePos): PipeDuctNode {
         return PipeDuctNode(pos, volume = 0.25, maxPressure = 16375049.0, maxTemperature = 1478.0, heatCapacity = 44.9)
     }

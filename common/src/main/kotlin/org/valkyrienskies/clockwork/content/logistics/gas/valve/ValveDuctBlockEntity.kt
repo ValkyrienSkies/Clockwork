@@ -14,6 +14,7 @@ import org.valkyrienskies.clockwork.ClockworkMod
 import org.valkyrienskies.clockwork.content.kinetics.combobulator.IThinkable
 import org.valkyrienskies.clockwork.content.kinetics.combobulator.ThinkableConnections
 import org.valkyrienskies.clockwork.content.logistics.gas.IConnectable
+import org.valkyrienskies.clockwork.util.DuctNetworkUtils.simulatesGas
 import org.valkyrienskies.clockwork.util.kelvin.KNodeKineticBlockEntity
 import org.valkyrienskies.kelvin.api.ConnectionType
 import org.valkyrienskies.kelvin.api.DuctEdge
@@ -48,10 +49,11 @@ class ValveDuctBlockEntity(typeIn: BlockEntityType<*>, pos: BlockPos, state: Blo
 
     override fun tick() {
         super.tick()
-        if (level?.isClientSide == false) updateTarget()
+        val level = level ?: return
+        if (level.simulatesGas) updateTarget()
         pointer.tickChaser()
 
-        if (level == null || level!!.isClientSide || blockState.block !is ValveDuctBlock) return
+        if (!level.simulatesGas || blockState.block !is ValveDuctBlock) return
 
         val valveNode = ClockworkMod.getKelvin(level).getNodeAt(getDuctNodePosition()) as? ValveDuctNode ?: return
         valveNode.radius = pointer.value.toDouble().coerceIn(0.0, 1.0) * ValveDuctBlock.MAX_FLOW_RADIUS

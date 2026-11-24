@@ -4,8 +4,10 @@ import com.mojang.blaze3d.vertex.PoseStack
 import com.simibubi.create.AllSoundEvents
 import com.simibubi.create.content.kinetics.base.KineticBlockEntityRenderer
 import com.simibubi.create.foundation.particle.AirParticleData
+import net.createmod.catnip.animation.AnimationTickHolder
 import net.createmod.catnip.render.CachedBuffers
 import net.createmod.catnip.render.SuperByteBuffer
+import net.createmod.ponder.api.level.PonderLevel
 import net.minecraft.client.Minecraft
 import net.minecraft.client.renderer.LevelRenderer
 import net.minecraft.client.renderer.MultiBufferSource
@@ -59,8 +61,16 @@ class AirCompressorRenderer(context: BlockEntityRendererProvider.Context?) : Kin
         standardKineticRotationTransform(axisPartial, be, lightBelow).renderInto(ms, vb)
 
 
-        updateClientSize(be, partialTicks)
-        handleParticleSpawning(be, level)
+        if (level is PonderLevel) {
+            val stroke = AnimationTickHolder.getRenderTime(level) * abs(be.speed) * SPEED_TO_SIZE_FACTOR % 2f
+            be.clientSize = if (be.active) 1f - abs(1f - stroke) else 0f
+            val deflating = be.active && stroke >= 1f
+            if (deflating && !be.clientParticles) spawnAirBurstParticles(blockPos, level)
+            be.clientParticles = deflating
+        } else {
+            updateClientSize(be, partialTicks)
+            handleParticleSpawning(be, level)
+        }
 
 
         val fabricPartial = CachedBuffers.partial(ClockworkPartials.COMPRESSOR_FABRIC, be.blockState)

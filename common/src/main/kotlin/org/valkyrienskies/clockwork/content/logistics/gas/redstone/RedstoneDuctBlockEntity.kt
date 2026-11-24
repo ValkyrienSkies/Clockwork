@@ -13,6 +13,7 @@ import net.minecraft.world.level.block.state.BlockState
 import org.valkyrienskies.clockwork.ClockworkMod
 import org.valkyrienskies.clockwork.content.kinetics.combobulator.IThinkable
 import org.valkyrienskies.clockwork.content.logistics.gas.IConnectable
+import org.valkyrienskies.clockwork.util.DuctNetworkUtils.simulatesGas
 import org.valkyrienskies.clockwork.util.kelvin.KNodeBlockEntity
 
 class RedstoneDuctBlockEntity(type: BlockEntityType<*>?, pos: BlockPos, state: BlockState) : KNodeBlockEntity(type, pos, state), IConnectable, IThinkable {
@@ -21,7 +22,7 @@ class RedstoneDuctBlockEntity(type: BlockEntityType<*>?, pos: BlockPos, state: B
     override fun thinkablePortName(side: Direction): Component? = if (providesThinkable(side))
         Component.translatable("thinkable.vs_clockwork.port.gas.${conditional?.type?.name?.lowercase() ?: "none"}") else null
     override fun thinkableValue(side: Direction): Double? {
-        if (level?.isClientSide != false || !providesThinkable(side)) return null
+        if (level?.simulatesGas != true || !providesThinkable(side)) return null
         return conditional?.measurement(ClockworkMod.getKelvin(level), getDuctNodePosition())
     }
 
@@ -34,7 +35,7 @@ class RedstoneDuctBlockEntity(type: BlockEntityType<*>?, pos: BlockPos, state: B
 
         val oldPower = blockState.getValue(RedstoneDuctBlock.POWER)
 
-        if (level == null || level!!.isClientSide) return
+        if (level?.simulatesGas != true) return
 
         val power = getPower()
         if (oldPower != power) {
@@ -52,6 +53,7 @@ class RedstoneDuctBlockEntity(type: BlockEntityType<*>?, pos: BlockPos, state: B
     }
 
     override fun write(tag: CompoundTag, clientPacket: Boolean) {
+        super.write(tag, clientPacket)
         if (conditional != null)
         tag.put("Conditional", conditional!!.serialize(CompoundTag()))
     }
@@ -61,7 +63,5 @@ class RedstoneDuctBlockEntity(type: BlockEntityType<*>?, pos: BlockPos, state: B
 
         if (tag.contains("Conditional"))
         conditional = RedstoneDuctConditional.deserialize(tag.get("Conditional") as CompoundTag)
-
-        super.write(tag, clientPacket)
     }
 }

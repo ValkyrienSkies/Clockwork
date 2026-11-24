@@ -6,7 +6,6 @@ import com.simibubi.create.foundation.blockEntity.behaviour.BlockEntityBehaviour
 import dev.architectury.platform.Platform
 import net.createmod.ponder.api.level.PonderLevel
 import net.minecraft.client.Minecraft
-import net.minecraft.client.multiplayer.ClientLevel
 import net.minecraft.core.BlockPos
 import net.minecraft.nbt.CompoundTag
 import net.minecraft.network.chat.Component
@@ -19,6 +18,7 @@ import org.valkyrienskies.clockwork.ClockworkConfig
 import org.valkyrienskies.clockwork.ClockworkMod
 import org.valkyrienskies.clockwork.ClockworkModClient
 import org.valkyrienskies.clockwork.content.logistics.gas.IConnectable
+import org.valkyrienskies.clockwork.util.DuctNetworkUtils.simulatesGas
 import org.valkyrienskies.clockwork.util.kelvin.KNodeBlockEntity
 import org.valkyrienskies.clockwork.util.kelvin.KelvinParticleHelper
 import kotlin.math.ceil
@@ -41,13 +41,12 @@ class GasEngineBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: Block
         super.lazyTick()
 
         val level = level ?: return
-        if (level.isClientSide || blockState.block !is GasEngineBlock) return
+        if (!level.simulatesGas || blockState.block !is GasEngineBlock) return
 
         updateEngineEfficiency()
     }
 
     private fun updateEngineEfficiency() {
-        if (level!!.isClientSide) return
         val components = GasEngineLogic.calculateEfficiencyComponents(
             level!!,
             blockPos,
@@ -73,7 +72,7 @@ class GasEngineBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: Block
     }
 
     override fun tick() {
-        if (level!!.isClientSide) return super.tick()
+        if (level?.simulatesGas != true) return super.tick()
         if (attachedEngines > 0 && heatLoss > 0.0) {
             ClockworkMod.getKelvin(level).modHeatEnergy(getDuctNodePosition(), -heatLoss)
         }
@@ -99,9 +98,8 @@ class GasEngineBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: Block
         return ceil(stressCapacity / fullEngineCapacity).toInt()
     }
 
-    //todo: this doesnt work on dedicated servers you moron
     fun spawnParticles(level: Level, pos: Vector3dc, speed: Vector3dc) {
-        KelvinParticleHelper.spawnParticleWithRatio(level as ClientLevel, getDuctNodePosition(), pos, speed)
+        if (level.isClientSide) KelvinParticleHelper.spawnParticleWithRatio(level, getDuctNodePosition(), pos, speed)
     }
 
     override fun addToGoggleTooltip(tooltip: List<Component>?, isPlayerSneaking: Boolean): Boolean {

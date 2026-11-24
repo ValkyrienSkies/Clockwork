@@ -10,6 +10,7 @@ import net.minecraft.world.level.block.state.BlockState
 import org.valkyrienskies.clockwork.ClockworkConfig
 import org.valkyrienskies.clockwork.ClockworkMod
 import org.valkyrienskies.clockwork.content.logistics.gas.IConnectable
+import org.valkyrienskies.clockwork.util.DuctNetworkUtils.simulatesGas
 import org.valkyrienskies.clockwork.util.kelvin.KNodeBlockEntity
 import org.valkyrienskies.kelvin.util.INodeBlock
 import org.valkyrienskies.kelvin.util.INodeBlockEntity
@@ -22,24 +23,29 @@ class RadiatorBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: BlockS
     KNodeBlockEntity(type, pos, state), IConnectable {
 
     private val tickPhase = Math.floorMod(pos.hashCode(), TRANSFER_INTERVAL)
+    private var ponderTicks = 0L
 
     override fun addBehaviours(behaviours: MutableList<BlockEntityBehaviour>) {}
 
     override fun tick() {
         super.tick()
-        val serverLevel = level as? ServerLevel ?: return
-        if (dataToLoad != null || (serverLevel.gameTime + tickPhase) % TRANSFER_INTERVAL != 0L) return
-        transferHeat(serverLevel)
+        val level = level ?: return
+        if (!level.simulatesGas || dataToLoad != null) return
+        val time = if (level.isClientSide) ponderTicks++ else level.gameTime
+        if ((time + tickPhase) % TRANSFER_INTERVAL != 0L) return
+        transferHeat(level)
     }
 
-    private fun transferHeat(level: ServerLevel) {
+    private fun transferHeat(level: Level) {
         val coefficient = ClockworkConfig.SERVER.radiator.radiatorHeatTransferCoefficient
         if (coefficient <= 0.0) return
         val kelvin = ClockworkMod.getKelvin(level)
         val nodePos = getDuctNodePosition()
         if (kelvin.getNodeAt(nodePos) == null || nodePos in kelvin.unloadedNodes) return
-        val worldPos = level.toWorldCoordinates(blockPos)
-        val ambient = level.shipObjectWorld.aerodynamicUtils.getAirTemperatureForY(worldPos.y, level.dimensionId)
+        val ambient = if (level is ServerLevel) {
+            val worldPos = level.toWorldCoordinates(blockPos)
+            level.shipObjectWorld.aerodynamicUtils.getAirTemperatureForY(worldPos.y, level.dimensionId)
+        } else PONDER_AMBIENT_TEMPERATURE
         val cooling = ThermalTransfer.cooling(
             kelvin.getHeatEnergy(nodePos), kelvin.getNodeHeatCapacity(nodePos), ambient, coefficient, TRANSFER_SECONDS
         )
@@ -47,7 +53,7 @@ class RadiatorBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: BlockS
     }
 
     override fun updateConnection(level: Level, blockPos: BlockPos, direction: Direction) {
-        if (level.isClientSide) return
+        if (!level.simulatesGas) return
         val neighbor = blockPos.relative(direction)
         if (!level.hasChunkAt(neighbor)) return
         val selfBlock = level.getBlockState(blockPos).block as? INodeBlock ?: return
@@ -63,6 +69,7 @@ class RadiatorBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: BlockS
     }
 
     companion object {
+        private const val PONDER_AMBIENT_TEMPERATURE = 293.15
         const val TRANSFER_INTERVAL = 10
         const val TRANSFER_SECONDS = TRANSFER_INTERVAL / 20.0
     }

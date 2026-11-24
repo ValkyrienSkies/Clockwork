@@ -155,7 +155,6 @@ object ClockworkModClient {
                 ?.filterIsInstance<ClientShip>()
                 ?: return@Client
             MeteorRenderer.clientTick(level, clientShips)
-            ponderNetworks.forEach { (level, network) -> network.tick(level, 10) }
         })
 //        VSGameEvents.postRenderShip.on {
 //            MeteorRenderer.onShipRender(it)
@@ -231,6 +230,9 @@ object ClockworkModClient {
     fun getKelvin(): DuctNetworkClient {
         return KelvinMod.getClientKelvin() as DuctNetworkClient
     }
+
+    @JvmStatic
+    fun getKelvin(level: PonderLevel): VirtualDuctNetwork = ponderNetworks.getOrPut(level) { VirtualDuctNetwork() }
 
     fun tickDebugLightningNodes(mc: Minecraft) {
         val level = mc.level ?: return

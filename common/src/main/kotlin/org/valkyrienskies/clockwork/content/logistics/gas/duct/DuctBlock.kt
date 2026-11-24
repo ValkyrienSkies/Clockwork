@@ -39,10 +39,9 @@ import org.joml.Vector3d
 import org.valkyrienskies.clockwork.ClockworkBlockEntities
 import org.valkyrienskies.clockwork.ClockworkConfig
 import org.valkyrienskies.clockwork.ClockworkMod
-import org.valkyrienskies.clockwork.content.logistics.gas.MeteredGasInlet
-import org.valkyrienskies.clockwork.ClockworkModClient
 import org.valkyrienskies.clockwork.ClockworkSoundScapes
 import org.valkyrienskies.clockwork.content.curiosities.tools.screwdriver.IScrewdrivable
+import org.valkyrienskies.clockwork.content.logistics.gas.MeteredGasInlet
 import org.valkyrienskies.clockwork.content.logistics.gas.duct.IDuct.Companion.DOWN_CONNECTION
 import org.valkyrienskies.clockwork.content.logistics.gas.duct.IDuct.Companion.EAST_CONNECTION
 import org.valkyrienskies.clockwork.content.logistics.gas.duct.IDuct.Companion.NORTH_CONNECTION
@@ -50,6 +49,7 @@ import org.valkyrienskies.clockwork.content.logistics.gas.duct.IDuct.Companion.S
 import org.valkyrienskies.clockwork.content.logistics.gas.duct.IDuct.Companion.UP_CONNECTION
 import org.valkyrienskies.clockwork.content.logistics.gas.duct.IDuct.Companion.WEST_CONNECTION
 import org.valkyrienskies.clockwork.util.ClockworkCopyableBlock
+import org.valkyrienskies.clockwork.util.DuctNetworkUtils.simulatesGas
 import org.valkyrienskies.clockwork.util.kelvin.KelvinParticleHelper
 import org.valkyrienskies.clockwork.util.MathFunctions.isWithin
 import org.valkyrienskies.clockwork.util.MathFunctions.removeAxis
@@ -228,7 +228,7 @@ class DuctBlock(properties: Properties) : Block(properties), INodeBlock, IDuct, 
             else -> DuctConnectionType.NONE
         }
 
-        if ((level as? Level)?.isClientSide != false || isConnectedEdgeBlock) return finalConnection
+        if (level !is Level || !level.simulatesGas || isConnectedEdgeBlock) return finalConnection
 
         val blockEntity = level.getBlockEntity(currentPos) as? DuctBlockEntity ?: return finalConnection
 
@@ -451,12 +451,13 @@ class DuctBlock(properties: Properties) : Block(properties), INodeBlock, IDuct, 
 
         val be = level.getBlockEntity(pos) as? DuctBlockEntity ?: return
         val ductNodePos = be.getDuctNodePosition()
-        val pressure = ClockworkModClient.getKelvin().getPressureAt(ductNodePos)
+        val network = ClockworkMod.getKelvin(level)
+        val pressure = network.getPressureAt(ductNodePos)
         if (pressure < 1000) return
 
         // Handle hissing sound
         val maxPressure = 16375049.0
-        if (pressure > 0.7 * maxPressure ) {
+        if (level is ClientLevel && pressure > 0.7 * maxPressure) {
             val pitch = 2 * pressure / maxPressure
             val scape = ClockworkSoundScapes.AmbienceGroup.GAS_HISS
             ClockworkSoundScapes.play(scape, pos, pitch.toFloat())
@@ -465,24 +466,20 @@ class DuctBlock(properties: Properties) : Block(properties), INodeBlock, IDuct, 
         // Handle leaking particles
         for (dir in Direction.entries) {
             if (state.getValue(DIR_TO_CONNECTION[dir]!!) != DuctConnectionType.LEAK) continue
-            val normal = dir.normal.toJOMLD()
-            val speed = normal.add(Vector3d(random.nextDouble()-0.5, random.nextDouble()-0.5, random.nextDouble()-0.5)).mul(0.1)
-            val position = pos.toJOMLD().add(Vector3d(0.5+normal.x, 0.5+normal.y, 0.5+normal.z))
-
-            for (i in 0..5)
-            KelvinParticleHelper.spawnParticleWithRatio(level as ClientLevel, ductNodePos, position, speed )
+            KelvinParticleHelper.spawnJetWithRatio(
+                level, ductNodePos, pos.toJOMLD().add(0.5, 0.5, 0.5), dir,
+                speedMagnitude = 0.1, particleCount = 6.0, radius = 0.15, outwardOffset = 0.375
+            )
         }
-
 
         // Handle gas movement particles
         if (!ClockworkConfig.CLIENT.ducts.renderDuctParticles) return
 
-        val network = ClockworkModClient.getKelvin()
         val node = network.nodeInfo.get(ductNodePos) ?: return
         if (node.currentPressure - node.previousPressure < 250) return
 
         val speed = Vector3d(random.nextDouble()-0.5, random.nextDouble()-0.5, random.nextDouble()-0.5).mul(0.1)
-        KelvinParticleHelper.spawnParticleWithRatio(level as ClientLevel, ductNodePos, pos.toJOMLD().add(Vector3d(0.5, 0.5, 0.5)), speed )
+        KelvinParticleHelper.spawnParticleWithRatio(level, ductNodePos, pos.toJOMLD().add(Vector3d(0.5, 0.5, 0.5)), speed )
 
     }
 

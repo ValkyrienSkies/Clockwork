@@ -1,16 +1,26 @@
 package org.valkyrienskies.clockwork
 
 import com.tterrag.registrate.util.entry.RegistryEntry
+import net.createmod.ponder.api.level.PonderLevel
 import net.createmod.ponder.api.registration.PonderPlugin
 import net.createmod.ponder.api.registration.PonderSceneRegistrationHelper
 import net.createmod.ponder.api.registration.PonderTagRegistrationHelper
 import net.minecraft.network.chat.Component
 import net.minecraft.resources.ResourceLocation
+import org.valkyrienskies.kelvin.util.INodeBlock
 
 class ClockworkPonderPlugin : PonderPlugin {
 
     override fun getModId(): String {
         return ClockworkMod.MOD_ID
+    }
+
+    override fun onPonderLevelRestore(ponderLevel: PonderLevel) {
+        ClockworkModClient.ponderNetworks.remove(ponderLevel)
+        for ((pos, state) in ponderLevel.blockMap) {
+            if (state.block is INodeBlock) ClockworkModClient.getKelvin(ponderLevel).queueUpdate(pos.offset(ponderLevel.anchor))
+        }
+        ClockworkModClient.ponderNetworks[ponderLevel]?.updateBlocks(ponderLevel)
     }
 
     override fun registerScenes(helper: PonderSceneRegistrationHelper<ResourceLocation>) {
@@ -42,6 +52,17 @@ class ClockworkPonderPlugin : PonderPlugin {
             .add(ClockworkBlocks.DELIVERY_CANNON)
             .add(ClockworkBlocks.DELIVERY_CHUTE)
             .add(ClockworkBlocks.DUCT)
+            .add(ClockworkBlocks.GAS_CRAFTER)
+            .add(ClockworkBlocks.GAS_ENGINE)
+            .add(ClockworkBlocks.STERLING_ENGINE)
+            .add(ClockworkBlocks.AIR_COMPRESSOR)
+            .add(ClockworkBlocks.VALVE_DUCT)
+            .add(ClockworkBlocks.PUMP_DUCT)
+            .add(ClockworkBlocks.STEAM_GENERATOR)
+            .add(ClockworkBlocks.RADIATOR)
+            .add(ClockworkBlocks.HEAT_EXCHANGER)
+            .add(ClockworkItems.GAS_BANKTANK)
+            .add(ClockworkBlocks.GAS_HEATER)
     }
 
     companion object {

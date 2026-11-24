@@ -14,6 +14,7 @@ import org.valkyrienskies.clockwork.content.logistics.gas.GasPressureSetting
 import org.valkyrienskies.clockwork.content.logistics.gas.GasTransfer
 import org.valkyrienskies.clockwork.content.logistics.gas.IConnectable
 import org.valkyrienskies.clockwork.util.ClockworkUtils
+import org.valkyrienskies.clockwork.util.DuctNetworkUtils.simulatesGas
 import org.valkyrienskies.clockwork.util.kelvin.KNodeKineticBlockEntity
 import org.valkyrienskies.kelvin.api.nodes.PumpDuctNode
 import kotlin.math.abs
@@ -66,7 +67,7 @@ open class PumpDuctBlockEntity(typeIn: BlockEntityType<*>, pos: BlockPos, state:
 
     fun updatePumpNode() {
         val level = level ?: return
-        if (level.isClientSide) return
+        if (!level.simulatesGas) return
         val node = ClockworkMod.getKelvin(level).getNodeAt(getDuctNodePosition()) as? PumpDuctNode ?: return
         val outlet = blockPos.relative(facing)
         node.pumpTarget = ClockworkUtils.getDuctNodePos(outlet, level)

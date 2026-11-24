@@ -1,0 +1,11 @@
+{
+  "type": "vs_clockwork:tar_pit",
+  "config": {
+    "state": {
+      "Name": "vs_clockwork:tar",
+      "Properties": {
+        "level": "0"
+      }
+    }
+  }
+}

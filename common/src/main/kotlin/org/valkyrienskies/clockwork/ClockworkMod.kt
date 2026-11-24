@@ -59,7 +59,6 @@ import org.valkyrienskies.clockwork.content.physicalities.gyro.GyroShipControl
 import org.valkyrienskies.clockwork.integration.cc.GenericPeripheralsCommon
 import org.valkyrienskies.clockwork.util.builder.ClockworkExpandedCreateRegistrate
 import org.valkyrienskies.clockwork.util.gui.DuctStats
-import org.valkyrienskies.clockwork.util.render.VirtualDuctNetwork
 import org.valkyrienskies.core.api.VsBeta
 import org.valkyrienskies.core.api.world.PhysLevel
 import org.valkyrienskies.core.api.world.properties.DimensionId
@@ -280,8 +279,8 @@ object ClockworkMod {
 
     @JvmStatic
     fun getKelvin(level: Level?): DuctNetwork<*> {
-        if (level is PonderLevel) {
-            return ClockworkModClient.ponderNetworks.getOrPut(level) { VirtualDuctNetwork() }
+        if (level?.isClientSide == true) {
+            return if (level is PonderLevel) ClockworkModClient.getKelvin(level) else ClockworkModClient.getKelvin()
         }
         return getKelvin()
     }

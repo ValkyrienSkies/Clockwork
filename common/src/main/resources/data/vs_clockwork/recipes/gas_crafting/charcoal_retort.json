@@ -1,0 +1,33 @@
+{
+  "type": "vs_clockwork:gas_crafting",
+  "ingredients": [
+    {
+      "tag": "minecraft:logs_that_burn"
+    }
+  ],
+  "input_gasses": {
+    "vs_clockwork:steam": {
+      "amount": 0.025,
+      "unit": "kg"
+    }
+  },
+  "result_gasses": {
+    "vs_clockwork:bog": {
+      "amount": 0.015,
+      "unit": "kg"
+    }
+  },
+  "results": [
+    {
+      "item": "minecraft:charcoal"
+    }
+  ],
+  "requirements": {
+    "kelvin:min_temperature": 350.0,
+    "kelvin:inhibited_by": {
+      "gas": "kelvin:air",
+      "ratio": 0.1
+    }
+  },
+  "processingTime": 100
+}

@@ -7,6 +7,7 @@ import net.minecraft.world.level.block.entity.BlockEntityType
 import net.minecraft.world.level.block.state.BlockState
 import org.joml.Math.clamp
 import org.valkyrienskies.clockwork.ClockworkMod
+import org.valkyrienskies.clockwork.util.DuctNetworkUtils.simulatesGas
 import org.valkyrienskies.clockwork.content.logistics.gas.IConnectable
 import org.valkyrienskies.clockwork.util.kelvin.KNodeBlockEntity
 import org.valkyrienskies.kelvin.impl.registry.GasTypeRegistry
@@ -38,7 +39,7 @@ class SteamGeneratorBlockEntity(type: BlockEntityType<*>?, pos: BlockPos, state:
 
     override fun tick() {
         super.tick()
-        if (level?.isClientSide != false) return
+        if (level?.simulatesGas != true) return
         if (steamGas == null) return ClockworkMod.LOGGER.error("SteamGeneratorBlockEntity can't get GasType 'vs_clockwork:steam'. Did something go wrong?")
 
         val tank = getTank() ?: return

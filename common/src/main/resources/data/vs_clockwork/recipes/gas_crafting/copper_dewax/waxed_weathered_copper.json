@@ -1,0 +1,28 @@
+{
+  "type": "vs_clockwork:gas_crafting",
+  "ingredients": [
+    {
+      "item": "minecraft:waxed_weathered_copper"
+    }
+  ],
+  "input_gasses": {
+    "vs_clockwork:steam": {
+      "amount": 0.025,
+      "unit": "kg"
+    }
+  },
+  "result_gasses": {},
+  "results": [
+    {
+      "item": "minecraft:weathered_copper"
+    },
+    {
+      "item": "minecraft:honeycomb",
+      "chance": 0.25
+    }
+  ],
+  "requirements": {
+    "kelvin:min_temperature": 350.0
+  },
+  "processingTime": 60
+}

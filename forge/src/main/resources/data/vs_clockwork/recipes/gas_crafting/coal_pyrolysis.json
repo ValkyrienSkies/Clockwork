@@ -17,7 +17,12 @@
       "unit": "g"
     }
   },
-  "results": [],
+  "results": [
+    {
+      "fluid": "vs_clockwork:tar",
+      "amount": 100
+    }
+  ],
   "requirements": {
     "kelvin:inhibited_by": {
       "gas": "kelvin:air",

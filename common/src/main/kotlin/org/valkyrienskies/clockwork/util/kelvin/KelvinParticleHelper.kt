@@ -1,10 +1,13 @@
 package org.valkyrienskies.clockwork.util.kelvin
 
+import net.createmod.ponder.api.level.PonderLevel
 import net.minecraft.client.multiplayer.ClientLevel
+import net.minecraft.world.level.Level
 import net.minecraft.core.Direction
 import net.minecraft.util.RandomSource
 import org.joml.Vector3d
 import org.joml.Vector3dc
+import org.valkyrienskies.clockwork.ClockworkMod
 import org.valkyrienskies.clockwork.ClockworkModClient
 import org.valkyrienskies.kelvin.api.DuctNodePos
 import org.valkyrienskies.kelvin.api.GasType
@@ -22,27 +25,29 @@ object KelvinParticleHelper {
     private val AXIS_Y: Vector3dc = Vector3d(0.0, 1.0, 0.0)
     private val AXIS_Z: Vector3dc = Vector3d(0.0, 0.0, 1.0)
 
-    fun spawnParticleWithRatio(level: ClientLevel, ductNodePos: DuctNodePos, pos: Vector3dc, speed: Vector3dc) {
-        val network = ClockworkModClient.getKelvin()
-        val gasMasses = network.getGasMassAt(ductNodePos)
-
-        if (gasMasses.isEmpty()) return
-        val sum = gasMasses.values.sum()
-        var cumulative = 0.0
-        var particleGas = gasMasses.keys.first()
-        for ((gas, value) in gasMasses) {
-            cumulative += value
-            if (level.random.nextDouble() <= cumulative/sum) {
-                particleGas = gas
-                break
+    fun spawnParticleWithRatio(level: Level, ductNodePos: DuctNodePos, pos: Vector3dc, speed: Vector3dc) {
+        val masses = ClockworkMod.getKelvin(level).getGasMassAt(ductNodePos)
+        val total = masses.values.sum()
+        if (total <= 0.0) return
+        var sample = level.random.nextDouble() * total
+        for ((gas, mass) in masses) {
+            sample -= mass
+            if (sample < 0.0) {
+                spawnGasParticle(level, gas, ductNodePos, pos, speed)
+                return
             }
         }
+    }
 
-        network.createGasParticle(level, particleGas, ductNodePos, pos.x(), pos.y(), pos.z(), speed.x(), speed.y(), speed.z())
+    private fun spawnGasParticle(level: Level, gas: GasType, node: DuctNodePos, pos: Vector3dc, vel: Vector3dc) {
+        when (level) {
+            is PonderLevel -> ClockworkModClient.getKelvin(level).createGasParticle(level, gas, node, pos.x(), pos.y(), pos.z(), vel.x(), vel.y(), vel.z())
+            is ClientLevel -> ClockworkModClient.getKelvin().createGasParticle(level, gas, node, pos.x(), pos.y(), pos.z(), vel.x(), vel.y(), vel.z())
+        }
     }
 
     fun spawnJetWithRatio(
-        level: ClientLevel,
+        level: Level,
         ductNodePos: DuctNodePos,
         blockCenter: Vector3dc,
         outward: Direction,
@@ -62,7 +67,7 @@ object KelvinParticleHelper {
     }
 
     fun spawnJetForGas(
-        level: ClientLevel,
+        level: Level,
         ductNodePos: DuctNodePos,
         gas: GasType,
         blockCenter: Vector3dc,
@@ -76,13 +81,12 @@ object KelvinParticleHelper {
     ) {
         val n = stochasticCount(particleCount, level.random)
         if (n <= 0) return
-        val network = ClockworkModClient.getKelvin()
         val pos = Vector3d()
         val vel = Vector3d()
         repeat(n) {
             sampleJet(blockCenter, outward, speedMagnitude, radius, outwardOffset, level.random, pos, vel, jetDirection)
             adjustSample?.invoke(pos, vel)
-            network.createGasParticle(level, gas, ductNodePos, pos.x, pos.y, pos.z, vel.x, vel.y, vel.z)
+            spawnGasParticle(level, gas, ductNodePos, pos, vel)
         }
     }
 

@@ -1,0 +1,33 @@
+{
+  "type": "vs_clockwork:gas_crafting",
+  "ingredients": [
+    {
+      "item": "minecraft:exposed_cut_copper_slab"
+    }
+  ],
+  "input_gasses": {
+    "vs_clockwork:stellane": {
+      "amount": 0.01,
+      "unit": "kg"
+    }
+  },
+  "result_gasses": {
+    "vs_clockwork:steam": {
+      "amount": 0.005,
+      "unit": "kg"
+    }
+  },
+  "results": [
+    {
+      "item": "minecraft:cut_copper_slab"
+    }
+  ],
+  "requirements": {
+    "kelvin:min_temperature": 400.0,
+    "kelvin:inhibited_by": {
+      "gas": "kelvin:air",
+      "ratio": 0.1
+    }
+  },
+  "processingTime": 60
+}

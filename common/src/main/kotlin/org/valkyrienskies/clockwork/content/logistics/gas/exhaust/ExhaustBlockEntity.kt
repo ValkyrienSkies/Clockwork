@@ -5,7 +5,6 @@ import com.simibubi.create.content.kinetics.fan.IAirCurrentSource
 import com.simibubi.create.foundation.blockEntity.behaviour.BlockEntityBehaviour
 import com.simibubi.create.infrastructure.config.AllConfigs
 import net.createmod.ponder.api.level.PonderLevel
-import net.minecraft.client.multiplayer.ClientLevel
 import net.minecraft.core.BlockPos
 import net.minecraft.core.Direction
 import net.minecraft.util.Mth
@@ -14,7 +13,7 @@ import net.minecraft.world.level.block.entity.BlockEntityType
 import net.minecraft.world.level.block.state.BlockState
 import net.minecraft.world.level.block.state.properties.BlockStateProperties
 import org.valkyrienskies.clockwork.ClockworkMod
-import org.valkyrienskies.clockwork.ClockworkModClient
+import org.valkyrienskies.clockwork.util.DuctNetworkUtils.simulatesGas
 import org.valkyrienskies.clockwork.content.logistics.gas.IConnectable
 import org.valkyrienskies.clockwork.mixinduck.MixinAirCurrentDuck
 import org.valkyrienskies.clockwork.util.kelvin.KNodeBlockEntity
@@ -63,48 +62,46 @@ class ExhaustBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: BlockSt
     override fun tick() {
         super.tick()
 
-        // Kelvin behavior
-        val network = if (level is PonderLevel) {
-            ClockworkMod.getKelvin(level)
-        } else if (level?.isClientSide != true) {
-            ClockworkMod.getKelvin()
-        } else {
-            ClockworkModClient.getKelvin()
-        }
-        val gasses = network.getGasMassAt(getDuctNodePosition())
-        val pressure = network.getPressureAt(getDuctNodePosition())
-        if (gasses.isEmpty()) return super.tick()
+        val level = level ?: return
+        val network = ClockworkMod.getKelvin(level)
+        val nodePos = getDuctNodePosition()
+        val gasses = network.getGasMassAt(nodePos)
+        if (gasses.isEmpty()) return
 
-        if (level!!.isClientSide) {
-
-            val state = level!!.getBlockState(blockPos)
+        if (level.isClientSide) {
+            val pressure = network.getPressureAt(nodePos)
+            val state = level.getBlockState(blockPos)
             if (state.block !is ExhaustBlock) return
             val facing = state.getValue(BlockStateProperties.FACING)
 
             val particleCount = gasses.values.sum() / MASS_PER_EXHAUST
             val speed = Mth.clamp(0.0005 * pressure.pow(0.4), 0.02, 0.5)
             KelvinParticleHelper.spawnJetWithRatio(
-                level as ClientLevel,
-                getDuctNodePosition(),
+                level,
+                nodePos,
                 blockPos.toJOMLD().add(0.5, 0.5, 0.5),
                 facing,
                 speed,
                 particleCount,
                 outwardOffset = 0.3
             )
-        } else {
+        }
+        if (level.simulatesGas) {
             for ((gas, value) in gasses) {
-                network.removeGas(getDuctNodePosition(), gas, value)
+                network.removeGas(nodePos, gas, value)
             }
         }
 
         updateAirCurrent()
     }
 
-    fun updateAirCurrent() {
-        if (airCurrent == null) return
+    private fun airflowNetwork() = if (level?.isClientSide == true && level is PonderLevel) {
+        ClockworkMod.getKelvin(level)
+    } else KelvinMod.getKelvinByPlatform()
 
-        val network = KelvinMod.getKelvinByPlatform() ?: return
+    fun updateAirCurrent() {
+        val network = airflowNetwork() ?: return
+        if (airCurrent == null) return
 
         if (AllConfigs.server() != null && airCurrentUpdateCooldown-- <= 0) {
             airCurrentUpdateCooldown = AllConfigs.server().kinetics.fanBlockCheckRate.get();
@@ -137,7 +134,7 @@ class ExhaustBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: BlockSt
     }
 
     override fun getSpeed(): Float {
-        val network = KelvinMod.getKelvinByPlatform() ?: return 0F
+        val network = airflowNetwork() ?: return 0F
         val pressure = network.getPressureAt(getDuctNodePosition())
         return min(
             (pressure * PRESSURE_TO_SPEED).toFloat(),
