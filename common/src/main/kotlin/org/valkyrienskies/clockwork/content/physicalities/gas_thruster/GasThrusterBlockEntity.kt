@@ -281,10 +281,11 @@ class GasThrusterBlockEntity(type: BlockEntityType<*>?, pos: BlockPos, state: Bl
         val exhaustNeighbor = blockPos.relative(facing.opposite)
         val worldExhaustCenter = currentLevel.toWorldCoordinates(Vec3.atCenterOf(exhaustNeighbor))
         val worldExhaustPos = BlockPos.containing(worldExhaustCenter)
-        val nozzleOpenToAir = currentLevel.hasChunkAt(exhaustNeighbor) &&
-            currentLevel.getBlockState(exhaustNeighbor).isAir &&
-            currentLevel.hasChunkAt(worldExhaustPos) &&
-            currentLevel.getBlockState(worldExhaustPos).isAir
+        val localState = if (currentLevel.hasChunkAt(exhaustNeighbor)) currentLevel.getBlockState(exhaustNeighbor) else null
+        val worldState = if (currentLevel.hasChunkAt(worldExhaustPos)) currentLevel.getBlockState(worldExhaustPos) else null
+        val nozzleOpenToAir = localState != null && worldState != null &&
+            localState.fluidState.isEmpty && localState.getCollisionShape(currentLevel, exhaustNeighbor).isEmpty &&
+            worldState.fluidState.isEmpty && worldState.getCollisionShape(currentLevel, worldExhaustPos).isEmpty
 
         node.ambientPressure = ambientPressure
         node.ambientTemperature = ambientTemperature?.takeIf { it.isFinite() && it > 0.0 } ?: 293.15

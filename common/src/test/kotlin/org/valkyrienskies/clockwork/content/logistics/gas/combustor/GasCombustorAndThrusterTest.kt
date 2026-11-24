@@ -338,7 +338,19 @@ class GasCombustorAndThrusterTest {
         }
         assertTrue(network.getPressureAt(pos) in 99_000.0..101_326.0, "Open thruster should fill up to ambient pressure (got ${network.getPressureAt(pos)} Pa)")
 
-        // 3) High-pressure blast builds Kadenacy exhaust inertia and briefly dips pressure below ambient!
+        // 3) Sub-atmospheric / ambient fuel-clogged open thruster purges stagnant fuel and fills with ambient air (zero thrust!)
+        seedNode(network, pos, mapOf(METHANE to massForPressure(METHANE, 80_000.0, 0.5, 293.15)), 293.15)
+        repeat(100) {
+            solver.step(network, 10)
+            val summary = thruster.drainTickSummary()
+            assertEquals(0.0, summary.averageRawThrust, 1e-9, "Passive fuel purge/refill must produce zero thrust")
+        }
+        val purgedMasses = network.getGasMassAt(pos)
+        assertTrue((purgedMasses[AIR] ?: 0.0) > 0.45, "Open thruster should draw in fresh air even when clogged with fuel (air=${purgedMasses[AIR]})")
+        assertTrue((purgedMasses[METHANE] ?: 0.0) < 0.02, "Stagnant fuel should passively purge from open thruster (bog=${purgedMasses[METHANE]})")
+        assertTrue(network.getPressureAt(pos) in 99_000.0..101_326.0, "Purged thruster should settle at ambient pressure (got ${network.getPressureAt(pos)} Pa)")
+
+        // 4) High-pressure blast builds Kadenacy exhaust inertia and briefly dips pressure below ambient!
         seedNode(network, pos, mapOf(EXHAUST to massForPressure(EXHAUST, 400_000.0, 0.5, 1200.0)), 1200.0)
         var minPressure = Double.POSITIVE_INFINITY
         var peakThrust = 0.0
@@ -352,7 +364,7 @@ class GasCombustorAndThrusterTest {
         assertTrue(peakThrust > 100.0, "Hot high-pressure blast must produce thrust")
         assertTrue(minPressure < 92_000.0, "Kadenacy exhaust inertia should dip pressure below ambient (min=$minPressure Pa)")
 
-        // 4) Vacuum: never sucks air or triggers Kadenacy
+        // 5) Vacuum: never sucks air or triggers Kadenacy
         thruster.ambientPressure = 0.0
         seedNode(network, pos, emptyMap(), 293.15)
         repeat(10) { solver.step(network, 10) }
@@ -376,6 +388,7 @@ class GasCombustorAndThrusterTest {
             ambientP: Double = 101_325.0,
             throttle: Double = 1.0,
             ticks: Int = 240,
+            startEmpty: Boolean = false,
         ): RunStats {
             val network = DuctNetworkServer(disabled = false)
             val solver = JacobiSeidelSolver()
@@ -385,6 +398,7 @@ class GasCombustorAndThrusterTest {
 
             val combustor = CombustorDuctNode(cPos, volume = 0.4, maxPressure = 16_375_049.0, maxTemperature = 1478.0).apply {
                 facing = Direction.NORTH
+                ambientPressure = ambientP
                 this.throttle = throttle
             }
             val thruster = GasThrusterDuctNode(tPos, volume = 0.5, maxPressure = 16_375_049.0, maxTemperature = 1478.0).apply {
@@ -423,7 +437,7 @@ class GasCombustorAndThrusterTest {
             network.addEdge(inPos, cPos, inletEdge)
             combustor.insulateInletEdges()
 
-            if (ambientP > 0.0) {
+            if (ambientP > 0.0 && !startEmpty) {
                 seedNode(network, cPos, mapOf(AIR to massForPressure(AIR, ambientP, 0.4, 293.15)), 293.15)
                 seedNode(network, tPos, mapOf(AIR to massForPressure(AIR, ambientP, 0.5, 293.15)), 293.15)
             }
@@ -480,10 +494,10 @@ class GasCombustorAndThrusterTest {
             )
         }
 
-        // 1) Bog-only Valved Pulsejet (no air pipe!): Kadenacy pulls pressure below ambient and repeats pulses!
-        val pulsejet = runEngine(listOf(SupplySpec(METHANE, 250_000.0)), ticks = 280)
+        // 1) Bog-only Valved Pulsejet starting completely empty (0 Pa, freshly placed blocks!): draws air without clogging with Bog!
+        val pulsejet = runEngine(listOf(SupplySpec(METHANE, 250_000.0)), ticks = 280, startEmpty = true)
         assertTrue(pulsejet.minThrusterP < 95_000.0, "Pulsejet must create sub-ambient Kadenacy suction (minP=${pulsejet.minThrusterP})")
-        assertTrue(pulsejet.pulses >= 2, "Pulsejet must fire multiple pulses (pulses=${pulsejet.pulses})")
+        assertTrue(pulsejet.pulses >= 2, "Pulsejet must fire multiple pulses from empty start (pulses=${pulsejet.pulses})")
         assertTrue(pulsejet.avgThrustN > 10_000.0, "Pulsejet must produce meaningful thrust (avg=${pulsejet.avgThrustN})")
 
         // 2) Bog + Air Continuous Jet via upstream T-junction into the single rear inlet
@@ -508,7 +522,45 @@ class GasCombustorAndThrusterTest {
         assertTrue(monopropRocket.avgThrustN > 100_000.0, "Phlogiston monopropellant should produce strong vacuum thrust (avg=${monopropRocket.avgThrustN})")
         assertTrue(monopropRocket.endCombustorT > 1000.0, "Phlogiston monopropellant should sustain combustion (${monopropRocket.endCombustorT} K)")
 
-        // 6) Plain Air only (no fuel): stays cold, zero heater exploit
+        // 6) Sub-atmospheric fuel supply (80 kPa Bog) into empty Combustor -> Thruster: fills with ambient air instead of clogging
+        run {
+            val net = DuctNetworkServer(disabled = false)
+            val sol = JacobiSeidelSolver()
+            val sPos = DuctNodePos(0.0, 0.0, 1.0, TEST_DIM)
+            val cPos = DuctNodePos(0.0, 0.0, 0.0, TEST_DIM)
+            val tPos = DuctNodePos(0.0, 0.0, -1.0, TEST_DIM)
+            val c = CombustorDuctNode(cPos, volume = 0.4, maxPressure = 16_375_049.0, maxTemperature = 1478.0).apply {
+                facing = Direction.NORTH
+                ambientPressure = 101_325.0
+                throttle = 1.0
+            }
+            val t = GasThrusterDuctNode(tPos, volume = 0.5, maxPressure = 16_375_049.0, maxTemperature = 1478.0).apply {
+                ambientPressure = 101_325.0
+                ambientTemperature = 293.15
+                ambientAirGas = AIR
+                nozzleOpenToAir = true
+                environmentValid = true
+            }
+            net.addNode(sPos, PipeDuctNode(sPos, volume = 10.0, maxPressure = 16_375_049.0, maxTemperature = 1478.0, heatCapacity = 44.9))
+            net.addNode(cPos, c)
+            net.addNode(tPos, t)
+            net.addEdge(sPos, cPos, PipeDuctEdge(ConnectionType.PIPE, sPos, cPos, radius = 0.3125, length = 0.375))
+            net.addEdge(cPos, tPos, DuctNetworkUtils.configureMetalDuctEdge(PipeDuctEdge(ConnectionType.PIPE, cPos, tPos, radius = 0.3125, length = 0.375)))
+            c.insulateInletEdges()
+
+            repeat(120) {
+                seedNode(net, sPos, mapOf(METHANE to massForPressure(METHANE, 80_000.0, 10.0, 293.15)), 293.15)
+                sol.step(net, 10)
+                t.drainTickSummary()
+            }
+            val tMasses = net.getGasMassAt(tPos)
+            val cMasses = net.getGasMassAt(cPos)
+            assertTrue((tMasses[AIR] ?: 0.0) > 0.45, "Thruster with sub-atmospheric fuel supply must fill with air (air=${tMasses[AIR]}, bog=${tMasses[METHANE]})")
+            assertTrue((tMasses[METHANE] ?: 0.0) < 0.02, "Thruster must purge stagnant fuel instead of clogging (bog=${tMasses[METHANE]})")
+            assertTrue((cMasses[AIR] ?: 0.0) > 0.35, "Combustor behind open thruster must receive ambient air (air=${cMasses[AIR]}, bog=${cMasses[METHANE]})")
+        }
+
+        // 7) Plain Air only (no fuel): stays cold, zero heater exploit
         val plainAir = runEngine(listOf(SupplySpec(AIR, 300_000.0)))
         assertTrue(plainAir.endCombustorT < 360.0, "Plain air must not heat up into a free heater (${plainAir.endCombustorT} K)")
     }

@@ -163,7 +163,8 @@ class GasThrusterDuctNode(
                 exhaustMomentumFlow += (jetTarget - exhaustMomentumFlow) * min(1.0, dt / KADENACY_CHARGE_TAU_S)
             } else if (exhaustMomentumFlow > 0.0) {
                 val backpressureDecel = KADENACY_INERTANCE * max(pAmb - chamberPressure, 0.0)
-                exhaustMomentumFlow = max(0.0, exhaustMomentumFlow - (backpressureDecel + KADENACY_DRAG * exhaustMomentumFlow) * dt)
+                val nextMomentum = exhaustMomentumFlow - (backpressureDecel + KADENACY_DRAG * exhaustMomentumFlow) * dt
+                exhaustMomentumFlow = if (nextMomentum < KADENACY_STOP_FLOW_KG_S) 0.0 else nextMomentum
             }
         } else {
             exhaustMomentumFlow = 0.0
@@ -194,23 +195,49 @@ class GasThrusterDuctNode(
             return NodeStateChange(deltas, -energyRemoved)
         }
 
-        // 3b) Ambient air refill through the open nozzle up to ambient pressure
+        // 3b) Open-mouth atmospheric refill + passive exchange of stagnant non-air gas up to ambient pressure
         val air = ambientAirGas
         val tAmb = ambientTemperature
-        if (pAmb > 0.0 && nozzleOpenToAir && chamberPressure < pAmb &&
+        if (pAmb > 0.0 && nozzleOpenToAir &&
             tAmb.isFinite() && tAmb > 0.0 && air != null && state.volume > 0.0
         ) {
             val airCv = air.specificHeatCapacity * 1000.0 / air.adiabaticIndex
             val airR = (air.adiabaticIndex - 1.0) * airCv
             if (airR <= 1e-12) return NodeStateChange.NONE
-            val rhoAmb = pAmb / (airR * tAmb)
-            val mdotIn = DISCHARGE_COEFFICIENT * (NOZZLE_AREA_M2 * REFILL_AREA_MULTIPLIER) *
-                sqrt(2.0 * rhoAmb * (pAmb - chamberPressure))
-            val maxMassToAmbient = (pAmb - chamberPressure) * state.volume / (airR * tAmb)
-            val dmIn = min(mdotIn * dt, max(0.0, maxMassToAmbient))
-            if (dmIn > 1e-12 && dmIn.isFinite()) {
+
+            val deltas = HashMap<GasType, Double>(gasMasses.size + 1)
+            var energyDelta = 0.0
+            var removedPressure = 0.0
+
+            // Passive diffusion/buoyant exchange at the open mouth purges stagnant fuel/exhaust when not jetting.
+            val exchangeFrac = min(0.5, dt / OPEN_MOUTH_EXCHANGE_TAU_S)
+            for ((gas, mass) in gasMasses) {
+                if (gas == air || !mass.isFinite() || mass <= 1e-12) continue
+                val dmOut = mass * exchangeFrac
+                if (dmOut <= 1e-12) continue
+                val gasCv = gas.specificHeatCapacity * 1000.0 / gas.adiabaticIndex
+                val gasR = (gas.adiabaticIndex - 1.0) * gasCv
+                deltas[gas] = -dmOut
+                energyDelta -= dmOut * gasCv * chamberTemp
+                removedPressure += dmOut * gasR * chamberTemp / state.volume
+            }
+
+            val effectivePressure = (chamberPressure - removedPressure).coerceAtLeast(0.0)
+            if (effectivePressure < pAmb) {
+                val rhoAmb = pAmb / (airR * tAmb)
+                val mdotIn = DISCHARGE_COEFFICIENT * (NOZZLE_AREA_M2 * REFILL_AREA_MULTIPLIER) *
+                    sqrt(2.0 * rhoAmb * (pAmb - effectivePressure))
+                val maxMassToAmbient = (pAmb - effectivePressure) * state.volume / (airR * tAmb)
+                val dmIn = min(mdotIn * dt, max(0.0, maxMassToAmbient))
+                if (dmIn > 1e-12 && dmIn.isFinite()) {
+                    deltas[air] = dmIn
+                    energyDelta += dmIn * airCv * tAmb
+                }
+            }
+
+            if (deltas.isNotEmpty() && energyDelta.isFinite()) {
                 pendingMode = StepMode.REFILL
-                return NodeStateChange(mapOf(air to dmIn), dmIn * airCv * tAmb)
+                return NodeStateChange(deltas, energyDelta)
             }
         }
 
@@ -266,8 +293,10 @@ class GasThrusterDuctNode(
         private const val KADENACY_CHARGE_TAU_S = 0.05
         private const val KADENACY_INERTANCE = 1.5e-5
         private const val KADENACY_DRAG = 0.35
+        private const val KADENACY_STOP_FLOW_KG_S = 0.02
 
-        // Open-mouth ambient air refill scaling
+        // Open-mouth ambient air refill and passive stagnant-gas exchange
         private const val REFILL_AREA_MULTIPLIER = 25.0
+        private const val OPEN_MOUTH_EXCHANGE_TAU_S = 1.5
     }
 }

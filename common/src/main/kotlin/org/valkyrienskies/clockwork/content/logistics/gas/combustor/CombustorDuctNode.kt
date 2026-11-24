@@ -37,6 +37,12 @@ class CombustorDuctNode(
     var facing: Direction = Direction.NORTH
 
     @Volatile
+    var ambientPressure: Double = 0.0
+        set(value) {
+            field = if (value.isFinite() && value >= 0.0) value else 0.0
+        }
+
+    @Volatile
     var throttle: Double = 0.0
         set(value) {
             field = if (value.isFinite()) value.coerceIn(0.0, 1.0) else 0.0
@@ -97,8 +103,11 @@ class CombustorDuctNode(
             PortKind.INLET -> {
                 if (flowRate >= 0.0 || throttle <= 0.0) return 0.0
                 val heatOpen = ((context.node.temperature - PILOT_RAMP_START_K) / PILOT_RAMP_SPAN_K).coerceIn(0.0, 1.0)
-                val vacuumCharge = ((VACUUM_CHARGE_PRESSURE_PA - context.node.pressure) / VACUUM_CHARGE_PRESSURE_PA)
+                val lowAmbient = ((VACUUM_CHARGE_PRESSURE_PA - ambientPressure) / VACUUM_CHARGE_PRESSURE_PA)
                     .coerceIn(0.0, 1.0)
+                val vacuumCharge = lowAmbient *
+                    ((VACUUM_CHARGE_PRESSURE_PA - context.node.pressure) / VACUUM_CHARGE_PRESSURE_PA)
+                        .coerceIn(0.0, 1.0)
                 val openness = max(heatOpen * heatOpen, vacuumCharge * VACUUM_CHARGE_MAX_OPEN)
                 val actualRateCap = (INLET_PILOT_RATE_KG_S + INLET_LIT_EXTRA_RATE_KG_S * openness) * throttle
                 if (actualRateCap <= 0.0) return 0.0

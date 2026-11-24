@@ -21,7 +21,11 @@ import org.valkyrienskies.clockwork.content.logistics.gas.IConnectable
 import org.valkyrienskies.clockwork.content.physicalities.steering.DrivingControlLinks
 import org.valkyrienskies.clockwork.util.DuctNetworkUtils.configureMetalDuctEdge
 import org.valkyrienskies.clockwork.util.kelvin.KNodeBlockEntity
+import org.valkyrienskies.core.api.util.GameTickOnly
+import org.valkyrienskies.core.internal.world.VsiServerShipWorld
 import org.valkyrienskies.kelvin.api.DuctNodePos
+import org.valkyrienskies.mod.api.dimensionId
+import org.valkyrienskies.mod.common.shipObjectWorld
 import org.valkyrienskies.mod.common.toWorldCoordinates
 import org.valkyrienskies.mod.common.util.toJOMLD
 
@@ -61,6 +65,7 @@ class GasCombustorBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: Bl
         kelvin.addEdge(nodeA, nodeB, edge)
     }
 
+    @OptIn(GameTickOnly::class)
     internal fun syncNodeState(throttleValue: Double? = null) {
         val world = level as? ServerLevel ?: return
         val network = ClockworkMod.getKelvin(world)
@@ -69,6 +74,10 @@ class GasCombustorBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: Bl
         val facingChanged = node.facing != facing || lastSyncedFacing != facing
         node.facing = facing
         lastSyncedFacing = facing
+        val worldPos = world.toWorldCoordinates(blockPos.toJOMLD().add(0.5, 0.5, 0.5))
+        val aero = (world.shipObjectWorld as? VsiServerShipWorld)?.aerodynamicUtils
+        node.ambientPressure = aero?.getAirPressureForY(worldPos.y, world.dimensionId)
+            ?.takeIf { it.isFinite() && it >= 0.0 } ?: 0.0
         if (throttleValue != null) {
             node.throttle = throttleValue
         }
