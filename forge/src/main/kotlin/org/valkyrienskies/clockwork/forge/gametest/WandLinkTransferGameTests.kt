@@ -30,6 +30,7 @@ import org.valkyrienskies.mod.util.relocateBlock
 import java.nio.file.Files
 import java.nio.file.Path
 import java.util.UUID
+import kotlin.math.abs
 
 @GameTestHolder(ClockworkMod.MOD_ID)
 @PrefixGameTestTemplate(false)
@@ -139,7 +140,10 @@ class WandLinkTransferGameTests {
         @JvmStatic @GameTest(template = TEMPLATE, batch = "wand_link_transfer", timeoutTicks = 240)
         fun vdexCopiesSameBodyVisualSprings(helper: GameTestHelper) = schematic(helper, true, true, true, sameBody = true)
 
-        private fun schematic(helper: GameTestHelper, rope: Boolean, physical: Boolean, spring: Boolean, sameBody: Boolean = false, winch: Boolean = false) {
+        @JvmStatic @GameTest(template = TEMPLATE, batch = "wand_link_transfer", timeoutTicks = 240)
+        fun vdexCopiesRigidStrut(helper: GameTestHelper) = schematic(helper, false, true, false, strut = true)
+
+        private fun schematic(helper: GameTestHelper, rope: Boolean, physical: Boolean, spring: Boolean, sameBody: Boolean = false, winch: Boolean = false, strut: Boolean = false) {
             val level = helper.level
             val base = base(helper)
             if (winch) {
@@ -161,13 +165,18 @@ class WandLinkTransferGameTests {
                 if (!sameBody) other.isStatic = false
                 val a = WandAnchor(anchor(root), if (winch) Direction.DOWN else Direction.NORTH, root.id, winch)
                 val b = WandAnchor(if (sameBody) a.pos.east() else anchor(other), Direction.NORTH, other.id)
-                source = data.add(level, a, b, rope, if (sameBody) 1.0 else 4.0, physical, spring)
+                source = data.add(level, a, b, rope, if (sameBody) 1.0 else 4.0, physical, spring, strut = strut)
                 helper.assertTrue(source != null, "Could not create schematic fixture link")
                 links.add(source!!.id)
             }.thenWaitUntil {
                 helper.assertTrue(sameBody || (source!!.jointId != null && (!spring || source!!.alignmentId != null)),
                     "Source joints have not been created")
             }.thenIdle(10).thenExecute {
+                if (strut) {
+                    val link = source!!
+                    val span = link.a.world(level)!!.distanceTo(link.b.world(level)!!)
+                    helper.assertTrue(abs(span - 4.0) < .05, "Loaded strut drifted under gravity: $span")
+                }
                 VdexWrapper.saveShip(level, root, filename)
                 val saved = VdexIO.read(file)
                 helper.assertTrue(saved.nbtData.containsKey(WandLinkSchematics.ENTRY), "VDex omitted Clockwork link data")
@@ -186,7 +195,7 @@ class WandLinkTransferGameTests {
                 val link = restored!!
                 links.add(link.id)
                 helper.assertTrue(link.id != source!!.id && data.links[source!!.id] === source, "Pasting changed the source link")
-                helper.assertTrue(link.rope == rope && link.physical == physical && link.spring == spring,
+                helper.assertTrue(link.rope == rope && link.physical == physical && link.spring == spring && link.strut == strut,
                     "Pasting changed the connection type")
                 helper.assertTrue(link.length == source!!.length && link.save().getCompound("settings") == source!!.save().getCompound("settings"),
                     "Pasting lost the connection settings")

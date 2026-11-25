@@ -23,6 +23,7 @@ import net.minecraft.world.level.block.state.StateDefinition
 import net.minecraft.world.level.block.state.properties.BooleanProperty
 import net.minecraft.world.level.block.state.properties.BlockStateProperties
 import net.minecraft.world.level.block.state.properties.IntegerProperty
+import net.minecraft.world.level.block.state.properties.EnumProperty
 import net.minecraft.world.phys.BlockHitResult
 import net.minecraft.world.phys.shapes.CollisionContext
 import net.minecraft.world.phys.shapes.Shapes
@@ -30,8 +31,20 @@ import net.minecraft.world.phys.shapes.VoxelShape
 import org.joml.Vector3d
 import org.valkyrienskies.clockwork.content.physicalities.steering.DrivingControlLinks
 import org.valkyrienskies.clockwork.ClockworkBlockEntities
+import org.valkyrienskies.clockwork.ClockworkBlocks
 
-class HingeBlock(properties: Properties, val attachment: Boolean = false) : WrenchableDirectionalBlock(properties), IBE<HingeBlockEntity>, TransformableBlock {
+class HingeAttachmentBlock(properties: Properties) : HingeBlock(properties, true) {
+    init { registerDefaultState(defaultBlockState().setValue(SEAT, HingeSeat.CENTER)) }
+
+    override fun createBlockStateDefinition(builder: StateDefinition.Builder<Block, BlockState>) =
+        super.createBlockStateDefinition(builder.add(SEAT))
+
+    companion object {
+        val SEAT: EnumProperty<HingeSeat> = EnumProperty.create("seat", HingeSeat::class.java)
+    }
+}
+
+open class HingeBlock(properties: Properties, val attachment: Boolean = false) : WrenchableDirectionalBlock(properties), IBE<HingeBlockEntity>, TransformableBlock {
     init { registerDefaultState(defaultBlockState().setValue(ROLL, 0).setValue(ASSEMBLED, false)) }
 
     override fun createBlockStateDefinition(builder: StateDefinition.Builder<Block, BlockState>) {
@@ -45,8 +58,19 @@ class HingeBlock(properties: Properties, val attachment: Boolean = false) : Wren
     }
 
     override fun use(state: BlockState, level: Level, pos: BlockPos, player: Player, hand: InteractionHand, hit: BlockHitResult): InteractionResult {
-        if (!player.mayBuild() || player.isSpectator || hand != InteractionHand.MAIN_HAND || !player.getItemInHand(hand).isEmpty)
+        if (!player.mayBuild() || player.isSpectator || hand != InteractionHand.MAIN_HAND)
             return InteractionResult.PASS
+        val held = player.getItemInHand(hand)
+        if (held.`is`(ClockworkBlocks.HINGE.asItem()) && state.getValue(ASSEMBLED) &&
+            hit.direction.axis == HingeGeometry.axis(state).axis) {
+            if (player is ServerPlayer) {
+                val error = HingeAssembly.extend(player.serverLevel(), pos, hit.direction)
+                if (error != null) player.displayClientMessage(Component.translatable("message.vs_clockwork.hinge.$error"), true)
+                else if (!player.isCreative) held.shrink(1)
+            }
+            return InteractionResult.sidedSuccess(level.isClientSide)
+        }
+        if (!held.isEmpty) return InteractionResult.PASS
         if (!level.isClientSide && player is ServerPlayer) {
             val error = HingeAssembly.use(player.serverLevel(), pos)
             if (error != null) player.displayClientMessage(Component.translatable("message.vs_clockwork.hinge.$error"), true)

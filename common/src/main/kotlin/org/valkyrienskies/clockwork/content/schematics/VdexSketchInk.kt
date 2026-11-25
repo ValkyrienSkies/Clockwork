@@ -27,7 +27,7 @@ import kotlin.math.cos
 import kotlin.math.sin
 
 object VdexSketchInk {
-    enum class Kind { SPRING, ROPE, THINKABLE, BIND, ATTACHMENT, UNIVERSAL_SHAFT, EXTENDON, HOSE }
+    enum class Kind { STRUT, SPRING, ROPE, THINKABLE, BIND, ATTACHMENT, UNIVERSAL_SHAFT, EXTENDON, HOSE }
     data class Stroke(val points: List<Vec3>, val color: Int, val width: Float, val alpha: Float = .85f)
     data class Symbol(val anchor: Vec3, val points: List<Vector2f>, val color: Int, val width: Float = .65f, val toward: Vec3? = null)
     data class Drawing(val strokes: List<Stroke>, val symbols: List<Symbol>)
@@ -62,6 +62,7 @@ object VdexSketchInk {
             val a = point(link.a) ?: return@mapNotNull null
             val b = point(link.b) ?: return@mapNotNull null
             val kind = when {
+                link.strut -> Kind.STRUT
                 link.spring -> Kind.SPRING
                 link.thinkable -> Kind.THINKABLE
                 link.rope -> if (link.physical) Kind.ROPE else Kind.BIND
@@ -147,6 +148,13 @@ object VdexSketchInk {
                         0xA29873, .6f, curve.point(t + .01)))
                 }
                 symbols.add(ring(a, color, 2f)); symbols.add(ring(b, color, 2f))
+            }
+            Kind.STRUT -> {
+                for (sign in listOf(-1, 1)) {
+                    val offset = side.scale(sign * .11)
+                    strokes.add(Stroke(listOf(a.add(offset), b.add(offset)), 0x626774, .8f))
+                }
+                for (p in listOf(a, b)) strokes.add(Stroke(listOf(p.add(side.scale(-.17)), p.add(side.scale(.17))), 0x464B55, 1.4f))
             }
             Kind.SPRING -> {
                 val turns = (distance * 1.6).coerceIn(4.0, 14.0)

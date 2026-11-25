@@ -1,6 +1,11 @@
 package org.valkyrienskies.clockwork.content.curiosities.rope
 
 import org.valkyrienskies.clockwork.content.curiosities.spring.SpringRenderer
+import org.valkyrienskies.clockwork.content.curiosities.strut.StrutAdjustPacket
+import org.valkyrienskies.clockwork.content.curiosities.strut.StrutItem
+import org.valkyrienskies.clockwork.content.curiosities.strut.StrutRenderer
+import org.valkyrienskies.clockwork.content.curiosities.tools.wanderwand.WandRopeRiding
+import net.minecraft.world.entity.player.Player
 
 import org.valkyrienskies.clockwork.content.curiosities.spring.SpringItem
 
@@ -77,12 +82,14 @@ class RopeKnotEntityRenderer(context: EntityRendererProvider.Context) : EntityRe
         val tint = RopeKnotRenderer.stressColor(link, partialTick)
         if (link.harpoon) {
             if (entity.end == 1) RopeKnotRenderer.attachedHarpoon(level, anchor, point, origin, ms, buffers)
-        } else if (!link.spring && !link.thinkable) {
+        } else if (!link.spring && !link.thinkable && !link.strut) {
             RopeKnotRenderer.knot(level, anchor, point.subtract(origin), ms, buffers)
         }
         if (entity.end == 0) {
             val other = link.b.world(level, true, partialTick) ?: return
-            if (link.thinkable) {
+            if (link.strut) {
+                StrutRenderer.render(level, link.a.shipId, point, other, origin, ms, buffers, tint)
+            } else if (link.thinkable) {
                 val pulse = link.pulse.progress(RopeKnotRenderer.animationTicks, partialTick)
                 SpringRenderer.renderThinkable(level, link.a, link.b, link.length, pulse, origin, ms, buffers, tint)
             } else if (link.spring) {
@@ -114,7 +121,7 @@ object RopeKnotRenderer {
     internal data class Link(val a: WandAnchor, val b: WandAnchor, val length: Double, val spring: Boolean, var stress: Float,
                     var stressUpdated: Long, val settings: CompoundTag, val appliedLength: Double, val lengthUpdated: Long,
                     val frameA: Quaterniond, val frameB: Quaterniond, val thinkable: Boolean,
-                    val pulse: ThinkablePulse, val harpoon: Boolean, val material: Material) {
+                    val pulse: ThinkablePulse, val harpoon: Boolean, val material: Material, val strut: Boolean) {
         var previousStress = stress.takeIf { it.isFinite() }?.coerceIn(0f, 1f) ?: 0f
         var displayStress = previousStress
         var grounding = RopeGrounding(material.radius)
@@ -163,6 +170,23 @@ object RopeKnotRenderer {
 
 
     internal fun link(id: UUID?): Link? { world(); return links[id] }
+    internal fun targetedStrut(player: Player): Map.Entry<UUID, Link>? {
+        if (world() == null || links.values.none { it.strut }) return null
+        val range = WandRopeRiding.visibleRange(player)
+        var closest: Map.Entry<UUID, Link>? = null
+        var distance = Double.POSITIVE_INFINITY
+        for (entry in links.entries) {
+            val link = entry.value
+            if (!link.strut) continue
+            val hit = StrutAdjustPacket.pick(player, link.a, link.b, range) ?: continue
+            if (hit < distance) {
+                distance = hit
+                closest = entry
+            }
+        }
+        return closest
+    }
+
     internal fun winchLink(pos: BlockPos): Link? {
         world()
         return links.values.firstOrNull { (it.a.winch && it.a.pos == pos) || (it.b.winch && it.b.pos == pos) }
@@ -223,7 +247,7 @@ object RopeKnotRenderer {
                     length, tag.getBoolean("spring"), tag.getFloat("stress"), level.gameTime, tag.getCompound("settings"),
                     WandLinks.readAppliedLength(tag, length), level.gameTime,
                     WandLinks.loadPoseRotation(tag.getCompound("pose0")), WandLinks.loadPoseRotation(tag.getCompound("pose1")),
-                    tag.getBoolean("thinkable"), pulse, tag.getBoolean("harpoon"), material(tag)).also { next ->
+                    tag.getBoolean("thinkable"), pulse, tag.getBoolean("harpoon"), material(tag), tag.getBoolean("strut")).also { next ->
                         previous[id]?.let {
                             next.previousStress = it.previousStress; next.displayStress = it.displayStress
                             if (next.material == it.material) next.grounding = it.grounding
@@ -263,7 +287,7 @@ object RopeKnotRenderer {
         stressSounds.keys.toList().filter { it !in links }.forEach { stressSounds.remove(it)?.stopNow() }
         for ((id, link) in links) {
             if (!link.stress.isFinite() || link.stress < LinkStressWarning.START || stressSounds[id]?.isStopped == false) continue
-            val sound = LinkStressSoundInstance(link.spring, link.thinkable) {
+            val sound = LinkStressSoundInstance(link.spring, link.thinkable, link.strut) {
                 val current = links[id]
                 val player = Minecraft.getInstance().player
                 if (Minecraft.getInstance().level !== level || current == null || player == null ||
@@ -431,7 +455,9 @@ object RopeKnotRenderer {
         val start = anchor?.world(level, true)
         if (start != null && start.distanceToSqr(player.position()) <= 128 * 128) {
             val hand = player.getEyePosition(partialTick).add(player.getViewVector(partialTick).scale(0.45)).add(0.0, -0.4, 0.0)
-            if (stack?.item is SpringItem || stack?.item is ThinkableItem) {
+            if (stack?.item is StrutItem) {
+                StrutRenderer.render(level, anchor.shipId, start, hand, camera, ms, buffers)
+            } else if (stack?.item is SpringItem || stack?.item is ThinkableItem) {
                 SpringRenderer.preview(level, anchor, hand, camera, ms, buffers, thinkable = stack.item is ThinkableItem)
             } else {
             knot(level, anchor, start.subtract(camera), ms, buffers)

@@ -1,6 +1,7 @@
 package org.valkyrienskies.clockwork.content.curiosities.rope
 
 import org.valkyrienskies.clockwork.content.curiosities.spring.SpringItem
+import org.valkyrienskies.clockwork.content.curiosities.strut.StrutItem
 
 import net.minecraft.core.BlockPos
 import net.minecraft.core.Direction
@@ -32,7 +33,9 @@ object RopeKnotServer {
         val level = player.serverLevel()
         if (!player.mayBuild() || player.isSpectator || stack.item !is RopeKnotItem || stack.isEmpty ||
             !valid(level, anchor) || !level.mayInteract(player, anchor.pos)) return
-        val candidate = if (stack.item !is SpringItem && !anchor.winch &&
+        val strut = stack.item is StrutItem
+        if (strut && anchor.winch) { tie(player, stack, anchor.copy(winch = false)); return }
+        val candidate = if (!strut && stack.item !is SpringItem && !anchor.winch &&
             level.getBlockEntity(anchor.pos) is RopeWinchBlockEntity &&
             WandLinks.get(level).links.values.none { (it.a.winch && it.a.pos == anchor.pos) || (it.b.winch && it.b.pos == anchor.pos) })
             anchor.copy(face = Direction.DOWN, winch = true) else anchor
@@ -42,24 +45,34 @@ object RopeKnotServer {
         val first = RopeKnotItem.start(stack, level)
         if (first == null) {
             RopeKnotItem.setStart(stack, level, anchor)
-            (if (spring) ClockworkSounds.SPRING_ATTACH_START else ClockworkSounds.ROPE_TIE).play(level, null, end, 0.75f, 1f)
+            attachSound(strut, spring).play(level, null, end, 0.75f, 1f)
             return
         }
         if (!valid(level, first)) {
             RopeKnotItem.clearStart(stack)
-            message(player, "missing", spring)
+            message(player, "missing", stack)
             return
         }
         val start = first.world(level) ?: return
-        if (start.distanceTo(end) > 128.0) { message(player, "long", spring); return }
+        val distance = start.distanceTo(end)
+        if (distance > 128.0) { message(player, "long", stack); return }
         if (!level.mayInteract(player, first.pos)) return
-        val link = WandLinks.get(level).add(level, first, anchor, true,
-            (if (spring) start.distanceTo(end).coerceAtLeast(0.5) else RopeKnotPhysics.placedLength(start.distanceTo(end))), physical = true, spring = spring)
-        if (link == null) { message(player, "duplicate", spring); return }
+        if (strut && distance < 0.5) { message(player, "short", stack); return }
+        val length = if (spring || strut) distance.coerceAtLeast(0.5) else RopeKnotPhysics.placedLength(distance)
+        val link = WandLinks.get(level).add(level, first, anchor, !strut, length, physical = true, spring = spring, strut = strut)
+        if (link == null) { message(player, "duplicate", stack); return }
         RopeKnotItem.clearStart(stack)
         if (!player.abilities.instabuild) stack.shrink(1)
-        (if (spring) ClockworkSounds.SPRING_ATTACH_END else ClockworkSounds.ROPE_TIE).play(level, null, end, 1f, 1f)
+        attachSound(strut, spring, finished = true).play(level, null, end, 1f, 1f)
         WanderwandServer.syncLinks(level)
+    }
+
+    private fun attachSound(strut: Boolean, spring: Boolean, thinkable: Boolean = false, finished: Boolean = false) = when {
+        strut -> ClockworkSounds.STRUT_ATTACH
+        thinkable -> ClockworkSounds.THINKABLE_ATTACH
+        spring && finished -> ClockworkSounds.SPRING_ATTACH_END
+        spring -> ClockworkSounds.SPRING_ATTACH_START
+        else -> ClockworkSounds.ROPE_TIE
     }
 
     private fun valid(level: ServerLevel, anchor: WandAnchor) = anchor.entityId == null && level.hasChunkAt(anchor.pos) &&
@@ -101,14 +114,19 @@ object RopeKnotServer {
         link.lastHit = level.gameTime
         link.hits++
         if (!RopeKnotPhysics.breaksOnHit(link.hits, cutting)) {
-            (if (link.thinkable) ClockworkSounds.THINKABLE_ATTACH else if (link.spring) ClockworkSounds.SPRING_ATTACH_START else ClockworkSounds.ROPE_TIE)
+            attachSound(link.strut, link.spring, link.thinkable)
                 .play(level, null, point, 0.4f, 0.8f + link.hits * 0.12f)
             return true
         }
         data.remove(level, link)
         if (cutting) stack.hurtAndBreak(1, player) { it.broadcastBreakEvent(InteractionHand.MAIN_HAND) }
         else if (!player.abilities.instabuild && !link.thinkable) {
-            val drop = ItemEntity(level, point.x, point.y, point.z, ItemStack(if (link.spring) ClockworkItems.SPRING.get() else ClockworkItems.ROPE_KNOT.get()))
+            val item = when {
+                link.strut -> ClockworkItems.STRUT
+                link.spring -> ClockworkItems.SPRING
+                else -> ClockworkItems.ROPE_KNOT
+            }
+            val drop = ItemEntity(level, point.x, point.y, point.z, ItemStack(item.get()))
             drop.setDefaultPickUpDelay()
             level.addFreshEntity(drop)
         }
@@ -121,13 +139,18 @@ object RopeKnotServer {
         val a = link.a.world(level)
         val b = link.b.world(level)
         val point = soundPosition ?: a ?: b ?: return
-        val snapSound = if (link.thinkable) ClockworkSounds.THINKABLE_SNAP else if (link.spring) ClockworkSounds.SPRING_SNAP else ClockworkSounds.ROPE_SNAP
-        if (untied) (if (link.thinkable) ClockworkSounds.THINKABLE_ATTACH else if (link.spring) ClockworkSounds.SPRING_ATTACH_END else ClockworkSounds.ROPE_TIE)
+        val snapSound = when {
+            link.strut -> ClockworkSounds.STRUT_BREAK
+            link.thinkable -> ClockworkSounds.THINKABLE_SNAP
+            link.spring -> ClockworkSounds.SPRING_SNAP
+            else -> ClockworkSounds.ROPE_SNAP
+        }
+        if (untied) attachSound(link.strut, link.spring, link.thinkable, finished = true)
             .play(level, null, point, 0.85f, 0.8f)
         else snapSound.play(level, null, point, 1f, 0.9f + level.random.nextFloat() * 0.2f)
         if (soundPosition == null && b != null && b.distanceToSqr(point) > 16 * 16)
             snapSound.play(level, null, b, 1f, 0.9f + level.random.nextFloat() * 0.2f)
-        if (a == null || b == null) return
+        if (a == null || b == null || link.strut) return
         val tag = CompoundTag().also {
             it.putString("kind", "physical_rope_break"); it.putUUID("id", link.id)
             it.putDouble("ax", a.x); it.putDouble("ay", a.y); it.putDouble("az", a.z)
@@ -142,6 +165,6 @@ object RopeKnotServer {
             ClockworkPackets.sendTo(WanderwandStatePacket(tag), player)
     }
 
-    private fun message(player: ServerPlayer, key: String, spring: Boolean = false) =
-        player.displayClientMessage(Component.translatable("message.vs_clockwork.${if (spring) "spring" else "rope_knot"}.$key"), true)
+    private fun message(player: ServerPlayer, key: String, stack: ItemStack) =
+        player.displayClientMessage(Component.translatable("message.vs_clockwork.${stack.descriptionId.substringAfterLast('.')}.$key"), true)
 }

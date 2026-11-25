@@ -14,7 +14,11 @@ import net.minecraft.world.phys.EntityHitResult
 import org.valkyrienskies.clockwork.ClockworkPackets
 import org.valkyrienskies.clockwork.content.curiosities.rope.RopeKnotEntity
 import org.valkyrienskies.clockwork.content.curiosities.rope.RopeKnotRenderer
+import net.minecraft.world.item.ItemStack
+import org.valkyrienskies.clockwork.content.curiosities.strut.StrutAdjustPacket
+import org.valkyrienskies.clockwork.content.curiosities.strut.StrutPhysics
 import java.util.Locale
+import java.util.UUID
 
 object SpringToolClient {
     private fun target(): RopeKnotEntity? {
@@ -24,7 +28,7 @@ object SpringToolClient {
         val endpoint = ((mc.hitResult as? EntityHitResult)?.entity as? RopeKnotEntity)
             ?.takeIf { !it.winch && it.distanceToSqr(player) <= 36 } ?: return null
         val link = RopeKnotRenderer.link(endpoint.linkId) ?: return null
-        if (link.harpoon) return null
+        if (link.harpoon || link.strut) return null
         if (!(endpoint.spring && SpringClipboard.isClipboard(player.mainHandItem)) &&
             !SpringControls.isTool(player.mainHandItem, endpoint.spring) &&
             !SpringControls.isTool(player.offhandItem, endpoint.spring)) return null
@@ -33,7 +37,12 @@ object SpringToolClient {
 
     fun scroll(delta: Double): Boolean {
         if (!delta.isFinite() || delta == 0.0) return false
-        val endpoint = target() ?: return false
+        val endpoint = target()
+        if (endpoint == null) {
+            val strut = strutTarget() ?: return false
+            ClockworkPackets.sendToServer(StrutAdjustPacket(strut.key, if (delta > 0) 1 else -1))
+            return true
+        }
         if (endpoint.spring && Minecraft.getInstance().player?.mainHandItem?.let(SpringClipboard::isClipboard) == true) return false
         ClockworkPackets.sendToServer(SpringAdjustPacket(endpoint.id, if (delta > 0) 1 else -1))
         return true
@@ -42,7 +51,26 @@ object SpringToolClient {
     fun render(graphics: GuiGraphics) {
         val mc = Minecraft.getInstance()
         if (mc.options.hideGui) return
-        val endpoint = target() ?: return
+        val endpoint = target()
+        if (endpoint == null) {
+            val link = strutTarget()?.value ?: return
+            val player = mc.player ?: return
+            val tool = player.mainHandItem.takeIf { SpringControls.isTool(it) } ?: player.offhandItem
+            val tooltip = mutableListOf<Component>()
+            CreateLang.builder().add(Component.translatable("item.vs_clockwork.strut")).style(ChatFormatting.WHITE).forGoggles(tooltip)
+            val mode = when {
+                link.a.shipId == link.b.shipId -> Component.translatable("strut.vs_clockwork.shared_body")
+                SpringControls.isWrench(tool) -> Component.translatable("spring.vs_clockwork.length", String.format(Locale.ROOT, "%.4f", link.length).trimEnd('0').trimEnd('.'))
+                else -> {
+                    val axis = StrutPhysics.axis(player.level(), link.a, player.lookAngle)
+                    val name = (if (axis.axisDirection.step > 0) "+" else "−") + axis.axis.name
+                    Component.translatable(if (player.isShiftKeyDown) "strut.vs_clockwork.turn" else "strut.vs_clockwork.move", name)
+                }
+            }
+            CreateLang.builder().add(mode).style(ChatFormatting.GOLD).forGoggles(tooltip, 1)
+            draw(graphics, tool, tooltip)
+            return
+        }
         val link = RopeKnotRenderer.link(endpoint.linkId) ?: return
         val player = mc.player ?: return
         val stack = player.mainHandItem.takeIf { (endpoint.spring && SpringClipboard.isClipboard(it)) ||
@@ -77,6 +105,19 @@ object SpringToolClient {
                     .style(if (selected == i) ChatFormatting.GOLD else ChatFormatting.GRAY).forGoggles(tooltip, 1)
             }
         }
+        draw(graphics, stack, tooltip)
+    }
+
+    private fun strutTarget(): Map.Entry<UUID, RopeKnotRenderer.Link>? {
+        val mc = Minecraft.getInstance()
+        val player = mc.player ?: return null
+        if (mc.screen != null || !player.mayBuild() || player.isSpectator ||
+            (!SpringControls.isTool(player.mainHandItem) && !SpringControls.isTool(player.offhandItem))) return null
+        return RopeKnotRenderer.targetedStrut(player)
+    }
+
+    private fun draw(graphics: GuiGraphics, stack: ItemStack, tooltip: List<Component>) {
+        val mc = Minecraft.getInstance()
         val width = mc.window.guiScaledWidth
         val height = mc.window.guiScaledHeight
         val textWidth = tooltip.maxOf { mc.font.width(it) }

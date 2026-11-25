@@ -1,6 +1,8 @@
 package org.valkyrienskies.clockwork.content.contraptions.phys.hinge
 
 import net.minecraft.core.Direction
+import net.minecraft.core.BlockPos
+import net.minecraft.util.StringRepresentable
 import net.minecraft.world.level.block.state.BlockState
 import org.joml.Quaterniond
 import org.joml.Vector3d
@@ -9,6 +11,14 @@ import org.valkyrienskies.core.internal.joints.VSJointMaxForceTorque
 import org.valkyrienskies.core.internal.joints.VSJointPose
 import java.util.EnumMap
 import kotlin.math.atan2
+
+enum class HingeSeat(val offset: Int) : StringRepresentable {
+    CENTER(0), POSITIVE(1), NEGATIVE(-1);
+
+    override fun getSerializedName() = name.lowercase()
+    fun pivot(pos: BlockPos, state: BlockState): BlockPos =
+        if (this == CENTER) pos else pos.relative(HingeGeometry.axis(state), offset)
+}
 
 object HingeGeometry {
     const val MAX_FORCE = 100_000_000f

@@ -17,7 +17,9 @@ import net.minecraft.world.level.block.state.properties.DoubleBlockHalf
 import org.valkyrienskies.clockwork.ClockworkItems
 import org.valkyrienskies.clockwork.content.curiosities.tools.wanderwand.WandLinkSchematics
 import org.valkyrienskies.clockwork.content.curiosities.tools.wanderwand.WandLinks
-import org.valkyrienskies.clockwork.content.contraptions.phys.hinge.HingeBlock
+import org.valkyrienskies.clockwork.ClockworkBlocks
+import org.valkyrienskies.clockwork.content.contraptions.phys.hinge.HingeAttachmentBlock
+import org.valkyrienskies.clockwork.content.contraptions.phys.hinge.HingeSeat
 
 class VdexBuildPlan(val blueprint: VdexBlueprintData, level: ServerLevel) {
     data class Step(val ship: Int, val block: VdexBlueprintData.Block? = null, val entity: CompoundTag? = null,
@@ -75,6 +77,7 @@ class VdexBuildPlan(val blueprint: VdexBlueprintData, level: ServerLevel) {
         linkCount = links.size
         val connections = links.mapIndexed { index, link ->
             Step(0, link = index, requirement = when {
+                link.strut -> ItemRequirement(ItemRequirement.ItemUseType.CONSUME, ClockworkItems.STRUT.get())
                 link.spring -> ItemRequirement(ItemRequirement.ItemUseType.CONSUME, ClockworkItems.SPRING.get())
                 link.thinkable -> ItemRequirement(ItemRequirement.ItemUseType.CONSUME, ClockworkItems.THINKABLE.get())
                 link.physical -> ItemRequirement(ItemRequirement.ItemUseType.CONSUME, ClockworkItems.ROPE_KNOT.get())
@@ -95,7 +98,9 @@ class VdexBuildPlan(val blueprint: VdexBlueprintData, level: ServerLevel) {
 
         fun requirement(block: VdexBlueprintData.Block): ItemRequirement {
             val state = block.state
-            if ((state.block as? HingeBlock)?.attachment == true || state.block is PistonHeadBlock ||
+            if (state.block is HingeAttachmentBlock) return if (state.getValue(HingeAttachmentBlock.SEAT) == HingeSeat.CENTER)
+                ItemRequirement.NONE else ItemRequirement(ItemRequirement.ItemUseType.CONSUME, ClockworkBlocks.HINGE.asItem())
+            if (state.block is PistonHeadBlock ||
                 state.hasProperty(BlockStateProperties.DOUBLE_BLOCK_HALF) && state.getValue(BlockStateProperties.DOUBLE_BLOCK_HALF) == DoubleBlockHalf.UPPER ||
                 state.hasProperty(BlockStateProperties.BED_PART) && state.getValue(BlockStateProperties.BED_PART) == BedPart.HEAD) return ItemRequirement.NONE
             val be = (state.block as? EntityBlock)?.newBlockEntity(block.pos, state)

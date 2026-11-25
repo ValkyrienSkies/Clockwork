@@ -197,7 +197,7 @@ class VdexCannonBuild(val saved: CompoundTag) {
             cannon.positionNotLoaded = false
             require(data.links.containsKey(link.id) || data.restore(level, link)) { "Could not attach schematic connection: ${listOf(link.a, link.b).map { "${it.pos}: loaded=${level.hasChunkAt(it.pos)}, state=${level.getBlockState(it.pos)}" }}" }
             WanderwandServer.syncLinks(level)
-            val sound = if (link.spring) ClockworkSounds.SPRING_ATTACH_END else ClockworkSounds.ROPE_TIE
+            val sound = if (link.strut) ClockworkSounds.STRUT_ATTACH else if (link.spring) ClockworkSounds.SPRING_ATTACH_END else ClockworkSounds.ROPE_TIE
             link.a.world(level)?.let { level.playSound(null, it.x, it.y, it.z, sound.mainEvent!!, SoundSource.BLOCKS, 1f, 1f) }
             val a = link.a.world(level) ?: position; val b = link.b.world(level) ?: position
             VdexBuildEffectPacket.send(level, cannon.blockPos, a, b, step.requirement.requiredItems.firstOrNull()?.stack ?: ItemStack.EMPTY, 10, true)

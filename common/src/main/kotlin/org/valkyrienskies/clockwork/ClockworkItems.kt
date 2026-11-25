@@ -12,6 +12,7 @@ import org.valkyrienskies.clockwork.content.physicalities.wheel.WheelItemRendere
 
 import org.valkyrienskies.clockwork.content.schematics.VdexBlueprintItem
 import org.valkyrienskies.clockwork.content.schematics.EmptyBlueprintItem
+import org.valkyrienskies.clockwork.content.curiosities.strut.StrutItem
 import org.valkyrienskies.clockwork.content.curiosities.spring.SpringItem
 
 import com.simibubi.create.AllTags
@@ -116,6 +117,11 @@ object ClockworkItems {
     val LUBRICANT = REGISTRATE.item<LubricantItem>("lubricant") {
         LubricantItem(it!!)
     }.properties { it.durability(256) }.tab(ClockworkMod.BASE_CREATIVE_TABINFO)
+        .model(AssetLookup.existingItemModel()).register()
+
+    @JvmField
+    val STRUT = REGISTRATE.item<StrutItem>("strut") { StrutItem(it!!) }
+        .properties { it.stacksTo(16) }.tab(ClockworkMod.BASE_CREATIVE_TABINFO)
         .model(AssetLookup.existingItemModel()).register()
 
     @JvmField

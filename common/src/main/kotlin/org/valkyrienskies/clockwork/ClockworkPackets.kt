@@ -28,6 +28,7 @@ import org.valkyrienskies.clockwork.client.render.BladeAngleSyncPacket
 import org.valkyrienskies.clockwork.content.curiosities.lubricant.LubricantSyncPacket
 import org.valkyrienskies.clockwork.content.curiosities.lubricant.LubricantRemovePacket
 import org.valkyrienskies.clockwork.content.curiosities.spring.SpringAdjustPacket
+import org.valkyrienskies.clockwork.content.curiosities.strut.StrutAdjustPacket
 import org.valkyrienskies.clockwork.content.curiosities.tools.gravitron.GravitronInputPacket
 import org.valkyrienskies.clockwork.client.render.airpocket.AirpocketSyncPacket
 import org.valkyrienskies.clockwork.content.contraptions.flap.smart_flap.FlapLinkedControllerBindPacket
@@ -150,7 +151,8 @@ enum class ClockworkPackets(
     GATEMAKYR_ENTITY_TRANSIT(GatemakyrEntityTransitPacket::class.java, ::GatemakyrEntityTransitPacket),
     GATEMAKYR_CHUNKS(GatemakyrChunkWatchPacket::class.java, ::GatemakyrChunkWatchPacket),
     HANDBRAKE_EFFECT(HandbrakeEffectPacket::class.java, ::HandbrakeEffectPacket),
-    RESIZE_TIRE(ResizeTirePacket::class.java, ::ResizeTirePacket);
+    RESIZE_TIRE(ResizeTirePacket::class.java, ::ResizeTirePacket),
+    ADJUST_STRUT(StrutAdjustPacket::class.java, ::StrutAdjustPacket);
 
     init {
         packetChannel.registerPacket(type as Class<CWPacket>, factory as Function<FriendlyByteBuf, CWPacket>)

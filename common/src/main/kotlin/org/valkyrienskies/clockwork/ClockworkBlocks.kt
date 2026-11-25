@@ -47,6 +47,7 @@ import org.valkyrienskies.clockwork.content.contraptions.flap.smart_flap.SmartFl
 import org.valkyrienskies.clockwork.content.contraptions.phys.bearing.PhysBearingBlock
 import org.valkyrienskies.clockwork.content.contraptions.phys.gimbal.GimbalBearingBlock
 import org.valkyrienskies.clockwork.content.contraptions.phys.hinge.HingeBlock
+import org.valkyrienskies.clockwork.content.contraptions.phys.hinge.HingeAttachmentBlock
 import org.valkyrienskies.clockwork.content.contraptions.phys.infuser.PhysicsInfuserBlock
 import org.valkyrienskies.clockwork.content.contraptions.phys.linear.PhysicalGantryBlock
 import org.valkyrienskies.clockwork.content.contraptions.phys.linear.PhysicalPistonBlock
@@ -970,7 +971,7 @@ object ClockworkBlocks {
 
     @JvmField
     val HINGE_ATTACHMENT = REGISTRATE.block("hinge_attachment") { p: BlockBehaviour.Properties ->
-        HingeBlock(p, true)
+        HingeAttachmentBlock(p)
     }.initialProperties { SharedProperties.softMetal() }
         .transform(axeOrPickaxe()).properties { it.noOcclusion().forceSolidOff() }
         .addLayer { Supplier { RenderType.cutout() } }

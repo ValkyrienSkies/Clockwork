@@ -12,9 +12,13 @@ import net.minecraft.network.chat.Component
 import net.minecraft.server.level.ServerLevel
 import net.minecraft.server.level.ServerPlayer
 import net.minecraft.nbt.CompoundTag
+import net.minecraft.world.InteractionHand
+import net.minecraft.world.item.ItemStack
 import net.minecraft.world.level.ChunkPos
 import net.minecraft.world.level.block.Blocks
 import net.minecraft.world.level.block.entity.BarrelBlockEntity
+import net.minecraft.world.phys.BlockHitResult
+import net.minecraft.world.phys.Vec3
 import net.minecraftforge.gametest.GameTestHolder
 import net.minecraftforge.gametest.PrefixGameTestTemplate
 import org.joml.Quaterniond
@@ -303,6 +307,67 @@ class HingeGameTests {
         }
 
         @JvmStatic @GameTest(template = TEMPLATE, batch = "hinges", timeoutTicks = 240)
+        fun sharedPinKeepsArmsIndependent(helper: GameTestHelper) {
+            val level = helper.level
+            val hinges = HingeLinks.get(level)
+            val player = ServerPlayer(level.server, level, GameProfile(UUID.randomUUID(), "hinge-builder"))
+            val arms = listOf(Direction.EAST, Direction.WEST).mapIndexed { index, face ->
+                val pos = base(helper).offset(index * 6, 0, 40)
+                level.removeBlock(pos, false)
+                place(level, pos)
+                helper.assertTrue(HingeAssembly.assemble(level, pos) == null, "Could not assemble center arm")
+                val center = hinges.at(pos)!!
+                remember(level, center)
+                val outerPos = pos.relative(face)
+                level.setBlockAndUpdate(outerPos, Blocks.STONE.defaultBlockState())
+                helper.assertTrue(HingeAssembly.extend(level, pos, face) == "blocked", "Installed a pin inside stone")
+                level.removeBlock(outerPos, false)
+                level.setBlockAndUpdate(outerPos.above(), Blocks.BARREL.defaultBlockState())
+                val clicked = if (index == 0) pos else center.b.pos
+                val held = ItemStack(ClockworkBlocks.HINGE.asItem(), 2)
+                player.setItemInHand(InteractionHand.MAIN_HAND, held)
+                level.getBlockState(clicked).use(level, player, InteractionHand.MAIN_HAND,
+                    BlockHitResult(Vec3.atCenterOf(clicked), face, clicked, false))
+                helper.assertTrue(held.count == 1, "Installing the $face arm did not consume exactly one hinge")
+                val outer = hinges.extension(pos)!!
+                remember(level, outer)
+                helper.assertTrue(HingeAssembly.extend(level, pos, face.opposite) == "occupied", "Installed a third arm")
+                (level.getBlockEntity(center.b.pos) as HingeBlockEntity).lower.setValue(25)
+                (level.getBlockEntity(outer.b.pos) as HingeBlockEntity).upper.setValue(55)
+                Triple(center, outer, outerPos)
+            }
+            helper.startSequence().thenIdle(25).thenExecute {
+                for ((center, outer, mount) in arms) {
+                    val originalJoint = center.jointId
+                    helper.assertTrue(originalJoint != null && outer.jointId != null && originalJoint != outer.jointId, "Missing independent joints")
+                    helper.assertTrue(center.lower == -25 && center.upper == 90 && outer.lower == -90 && outer.upper == 55,
+                        "Unexpected stops: center ${center.lower}..${center.upper}, outer ${outer.lower}..${outer.upper}")
+                    val joint = level.gtpa.getJointById(outer.jointId!!) as VSD6Joint
+                    helper.assertTrue(abs(joint.twistLimit!!.upperLimit - Math.toRadians(55.0)) < 1e-5, "Outer joint missed its stop")
+                    helper.assertTrue(HingeLinks.worldPoint(level, outer.a, mount)!!.distanceTo(HingeLinks.worldPoint(level, outer.b)!!) < .1, "Outer arm missed its pin")
+                    hinges.breakLink(level, outer)
+                    helper.assertTrue(HingeAssembly.connect(level, outer.b.pos, outer.a.pos) == null, "Broken outer arm did not reconnect")
+                    val repaired = hinges.extension(center.a.pos)!!
+                    remember(level, repaired)
+                    helper.assertTrue(repaired.seat == outer.seat && repaired.upper == 55, "Reconnection lost the outer seat or its limit")
+                    if (outer.seat == HingeSeat.NEGATIVE) {
+                        helper.assertTrue(HingeAssembly.disassemble(level, center) == null, "Could not fold the center arm first")
+                        helper.assertTrue(hinges.extension(center.a.pos) === repaired && repaired.connected,
+                            "Folding the center arm removed the outer arm")
+                        helper.assertTrue(HingeAssembly.use(level, center.a.pos) == null, "Could not reassemble the center arm")
+                        remember(level, hinges.at(center.a.pos)!!)
+                    }
+                    val error = HingeAssembly.disassemble(level, repaired)
+                    helper.assertTrue(error == null, "Could not fold the outer arm: $error")
+                    helper.assertTrue(level.getBlockState(mount).block == ClockworkBlocks.HINGE.get() &&
+                        level.getBlockState(mount.above()).block == Blocks.BARREL, "Second hinge or payload folded into the wrong cell")
+                    if (outer.seat == HingeSeat.POSITIVE)
+                        helper.assertTrue(center.connected && center.jointId == originalJoint && center.lower == -25, "Outer arm disturbed original joint")
+                }
+            }.thenSucceed()
+        }
+
+        @JvmStatic @GameTest(template = TEMPLATE, batch = "hinges", timeoutTicks = 240)
         fun assemblyAndVdexKeepHingeConnections(helper: GameTestHelper) {
             val level = helper.level
             val pos = base(helper)
@@ -310,6 +375,10 @@ class HingeGameTests {
             helper.assertTrue(HingeAssembly.assemble(level, pos) == null, "Hinge assembly failed")
             val link = HingeLinks.get(level).at(pos)!!
             remember(level, link)
+            helper.assertTrue(HingeAssembly.extend(level, pos, Direction.EAST) == null, "Second hinge arm failed")
+            val extension = HingeLinks.get(level).extension(pos)!!
+            remember(level, extension)
+            (level.getBlockEntity(extension.b.pos) as HingeBlockEntity).upper.setValue(48)
             var host: ServerShip? = null
             var pasted = emptySet<Long>()
             val filename = "clockwork-hinge-test-${UUID.randomUUID()}"
@@ -324,8 +393,8 @@ class HingeGameTests {
                 helper.assertTrue(link.connected && link.jointId != null, "Base assembly broke the hinge")
                 VdexWrapper.saveShip(level, host!!, filename)
                 val saved = VdexIO.read(file)
-                helper.assertTrue(saved.nbtData[WandLinkSchematics.ENTRY]?.getList("hinges", 10)?.size == 1,
-                    "VDex did not save the hinge")
+                helper.assertTrue(saved.nbtData[WandLinkSchematics.ENTRY]?.getList("hinges", 10)?.size == 2,
+                    "VDex did not save both arms")
                 helper.assertTrue(saved.metadata.constraints.isEmpty(), "VDex saved a duplicate native hinge joint")
                 val before = level.shipObjectWorld.allShips.mapTo(HashSet()) { it.id }
                 val paste = Vector3d(pos.x.toDouble(), 240.0, pos.z + 200.0)
@@ -336,10 +405,13 @@ class HingeGameTests {
                 pasted = added.mapTo(HashSet()) { it.id }
                 added.forEach { ships.add(it.id); force(level, it) }
             }.thenWaitUntil {
-                helper.assertTrue(HingeLinks.get(level).links.values.any { it.a.shipId in pasted && it.b.shipId in pasted && it.jointId != null },
-                    "Pasted hinge did not restore its joint")
+                helper.assertTrue(HingeLinks.get(level).links.values.count { it.a.shipId in pasted && it.b.shipId in pasted && it.jointId != null } == 2,
+                    "Pasted hinge did not restore both joints")
             }.thenExecute {
-                val copy = HingeLinks.get(level).links.values.single { it.a.shipId in pasted && it.b.shipId in pasted }
+                val copy = HingeLinks.get(level).links.values.single { it.a.shipId in pasted && it.b.shipId in pasted && it.seat == HingeSeat.CENTER }
+                val second = HingeLinks.get(level).extension(copy.a.pos)!!
+                helper.assertTrue(second.seat == extension.seat && second.upper == 48 && second.b.shipId != copy.b.shipId,
+                    "Pasting merged the two arms or lost the outer stop")
                 links.add(copy.id)
                 helper.assertTrue(copy.id != link.id && copy.connected && copy.lower == link.lower && copy.upper == link.upper,
                     "Pasting lost hinge state or reused its identity")

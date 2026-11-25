@@ -89,6 +89,12 @@ object WandLinkTransfer {
             data.resetJoints(level, link)
             if (a != null) { link.pose0 = pose(link.pose0, link.a, a); link.a = a.anchor }
             if (b != null) { link.pose1 = pose(link.pose1, link.b, b); link.b = b.anchor }
+            if (link.strut && link.a.shipId == link.b.shipId) {
+                link.pose0 = link.pose1
+                val start = link.a.world(level)
+                val end = link.b.world(level)
+                if (start != null && end != null) link.length = start.distanceTo(end)
+            }
             changed = true
         }
         for ((id, session) in data.sessions) {

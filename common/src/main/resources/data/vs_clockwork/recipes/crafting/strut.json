@@ -1,0 +1,9 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": ["N", "S", "N"],
+  "key": {
+    "N": { "item": "minecraft:iron_nugget" },
+    "S": { "item": "create:shaft" }
+  },
+  "result": { "item": "vs_clockwork:strut" }
+}
