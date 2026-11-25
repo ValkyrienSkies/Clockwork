@@ -150,11 +150,15 @@ object VdexSketchInk {
                 symbols.add(ring(a, color, 2f)); symbols.add(ring(b, color, 2f))
             }
             Kind.STRUT -> {
+                val inset = direction.scale(minOf(.11, distance * .2))
                 for (sign in listOf(-1, 1)) {
                     val offset = side.scale(sign * .11)
-                    strokes.add(Stroke(listOf(a.add(offset), b.add(offset)), 0x626774, .8f))
+                    strokes.add(Stroke(listOf(a, a.add(inset).add(offset), b.subtract(inset).add(offset), b), 0x626774, .8f))
                 }
-                for (p in listOf(a, b)) strokes.add(Stroke(listOf(p.add(side.scale(-.17)), p.add(side.scale(.17))), 0x464B55, 1.4f))
+                for (anchor in listOf(a, b)) {
+                    strokes.add(Stroke(listOf(anchor.add(side.scale(-.17)), anchor.add(side.scale(.17))), 0x464B55, 1.4f))
+                    symbols.add(ring(anchor, 0x464B55, 1.6f))
+                }
             }
             Kind.SPRING -> {
                 val turns = (distance * 1.6).coerceIn(4.0, 14.0)
