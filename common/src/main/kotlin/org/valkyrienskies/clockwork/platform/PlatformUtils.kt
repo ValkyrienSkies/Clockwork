@@ -4,6 +4,7 @@ import com.simibubi.create.AllCreativeModeTabs.TabInfo
 import com.simibubi.create.foundation.blockEntity.SmartBlockEntity
 import com.simibubi.create.foundation.blockEntity.behaviour.BehaviourType
 import dev.architectury.injectables.annotations.ExpectPlatform
+import net.minecraft.client.resources.model.BakedModel
 import net.minecraft.core.BlockPos
 import net.minecraft.core.particles.ParticleOptions
 import net.minecraft.nbt.CompoundTag
@@ -56,6 +57,12 @@ object PlatformUtils {
     @ExpectPlatform
     @JvmStatic
     fun getBlockReach(player: Player): Double {
+        throw AssertionError()
+    }
+
+    @ExpectPlatform
+    @JvmStatic
+    fun createDuctTankModel(originalModel: BakedModel): BakedModel {
         throw AssertionError()
     }
 

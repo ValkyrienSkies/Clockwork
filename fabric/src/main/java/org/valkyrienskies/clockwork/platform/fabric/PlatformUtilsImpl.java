@@ -12,6 +12,7 @@ import net.fabricmc.fabric.api.itemgroup.v1.FabricItemGroup;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.particle.ParticleEngine;
+import net.minecraft.client.resources.model.BakedModel;
 import net.minecraft.core.particles.ParticleOptions;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
@@ -26,6 +27,7 @@ import org.valkyrienskies.clockwork.ClockworkBlocks;
 import org.valkyrienskies.clockwork.ClockworkItems;
 import org.valkyrienskies.clockwork.ClockworkMod;
 import org.valkyrienskies.clockwork.ClockworkParticles;
+import org.valkyrienskies.clockwork.content.logistics.gas.storage.tank.DuctTankModel;
 import org.valkyrienskies.clockwork.fabric.ClockworkModFabric;
 import org.valkyrienskies.clockwork.fabric.FabricClockworkFluids;
 import org.valkyrienskies.clockwork.fabric.util.DuctStatsFabric;
@@ -58,6 +60,10 @@ public class PlatformUtilsImpl {
 
     public static double getBlockReach(Player player) {
         return getReachDistance(player);
+    }
+
+    public static BakedModel createDuctTankModel(BakedModel originalModel) {
+        return new DuctTankModel(originalModel);
     }
 
     public static Attribute getReachAttribute() {

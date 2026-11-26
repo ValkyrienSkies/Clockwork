@@ -104,7 +104,7 @@ import org.valkyrienskies.clockwork.content.logistics.gas.pump.PumpDuctBlock
 import org.valkyrienskies.clockwork.content.logistics.gas.redstone.RedstoneDuctBlock
 import org.valkyrienskies.clockwork.content.logistics.gas.storage.tank.DuctTankBlock
 import org.valkyrienskies.clockwork.content.logistics.gas.storage.tank.DuctTankItem
-import org.valkyrienskies.clockwork.content.logistics.gas.storage.tank.DuctTankModel
+import org.valkyrienskies.clockwork.platform.PlatformUtils
 import org.valkyrienskies.clockwork.content.logistics.gas.valve.SmartValveBlockEntity
 import org.valkyrienskies.clockwork.content.logistics.gas.valve.ValveDuctBlock
 import org.valkyrienskies.clockwork.content.logistics.solid.delivery.cannon.DeliveryCannonBlock
@@ -619,7 +619,7 @@ object ClockworkBlocks {
         .properties { it.noOcclusion() }
         .transform(displaySource(ClockworkDisplaySources.KNODE))
         //.onRegister(connectedTextures { DuctTankCTBehaviour(ClockworkSpriteShifts.DUCT_TANK, ClockworkSpriteShifts.DUCT_TANK_TOP, AllSpriteShifts.FLUID_TANK_INNER) })
-        .onRegister(ClockworkRegistrate.blockModel { NonNullFunction<BakedModel, BakedModel> { originalModel: BakedModel -> DuctTankModel(originalModel) } })
+        .onRegister(ClockworkRegistrate.blockModel { NonNullFunction<BakedModel, BakedModel> { originalModel: BakedModel -> PlatformUtils.createDuctTankModel(originalModel) } })
         .item(::DuctTankItem)
         .tab(ClockworkMod.GAS_CREATIVE_TABINFO)
         .build()

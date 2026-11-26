@@ -1,6 +1,7 @@
 package org.valkyrienskies.clockwork.platform.forge;
 
 import com.simibubi.create.foundation.blockEntity.SmartBlockEntity;
+import net.minecraft.client.resources.model.BakedModel;
 import net.minecraft.core.particles.ParticleOptions;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
@@ -20,6 +21,7 @@ import net.minecraftforge.network.NetworkHooks;
 import org.valkyrienskies.clockwork.ClockworkBlocks;
 import org.valkyrienskies.clockwork.ClockworkMod;
 import org.valkyrienskies.clockwork.ClockworkParticles;
+import org.valkyrienskies.clockwork.forge.client.ForgeDuctTankModel;
 import org.valkyrienskies.clockwork.forge.util.DuctStatsForge;
 import org.valkyrienskies.clockwork.util.gui.DuctStats;
 
@@ -50,6 +52,10 @@ public class PlatformUtilsImpl {
 
     public static double getBlockReach(Player player) {
         return player.getBlockReach();
+    }
+
+    public static BakedModel createDuctTankModel(BakedModel originalModel) {
+        return new ForgeDuctTankModel(originalModel);
     }
 
     public static Attribute getReachAttribute() {
