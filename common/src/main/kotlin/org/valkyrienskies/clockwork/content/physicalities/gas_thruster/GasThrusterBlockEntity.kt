@@ -13,17 +13,20 @@ import net.minecraft.world.level.block.state.BlockState
 import net.minecraft.world.level.block.state.properties.BlockStateProperties
 import net.minecraft.world.level.ClipContext
 import net.minecraft.world.phys.HitResult
+import net.minecraft.world.phys.AABB
 import net.minecraft.world.phys.Vec3
 import org.joml.Vector3d
 import org.valkyrienskies.mod.common.getLoadedShipManagingPos
 import org.valkyrienskies.mod.common.util.toMinecraft
-import org.valkyrienskies.mod.common.world.clipIncludeShips
 import org.valkyrienskies.clockwork.ClockworkConfig
 import org.valkyrienskies.clockwork.ClockworkGasses
 import org.valkyrienskies.clockwork.ClockworkMod
 import org.valkyrienskies.clockwork.content.curiosities.aeronaut.AeronautForceTelemetry
 import org.valkyrienskies.clockwork.content.curiosities.aeronaut.AeronautForceSource
 import org.valkyrienskies.clockwork.content.curiosities.aeronaut.AeronautForceAccumulator
+import org.valkyrienskies.clockwork.content.curiosities.tools.gatemakyr.GatemakyrHit
+import org.valkyrienskies.clockwork.content.curiosities.tools.gatemakyr.GatemakyrPassage
+import org.valkyrienskies.clockwork.content.curiosities.tools.gatemakyr.GatemakyrTarget
 import org.valkyrienskies.clockwork.content.kinetics.combobulator.IThinkable
 import org.valkyrienskies.clockwork.content.kinetics.combobulator.ThinkableConnections
 import org.valkyrienskies.clockwork.content.physicalities.steering.DrivingControlLinks
@@ -44,6 +47,7 @@ import org.valkyrienskies.mod.api.BlockEntityPhysicsListener
 import org.valkyrienskies.mod.api.dimensionId
 import org.valkyrienskies.mod.common.shipObjectWorld
 import org.valkyrienskies.mod.common.toWorldCoordinates
+import org.valkyrienskies.mod.common.world.clipIncludeShips
 import org.valkyrienskies.mod.common.util.toJOMLD
 import kotlin.math.*
 
@@ -57,7 +61,92 @@ class GasThrusterBlockEntity(type: BlockEntityType<*>?, pos: BlockPos, state: Bl
         private const val MAX_GIMBAL_PITCH = 30.0
         private const val MIN_VISIBLE_GAS_KG_PER_TICK = 0.000001
         private val AIR_ID = ResourceLocation("kelvin", "air")
+        private const val EPS = 0.00001
+        private const val CLEARANCE = 0.018
+
+        private val spawningExhaust = ThreadLocal<Boolean>()
+        @JvmStatic fun isSpawningExhaust() = spawningExhaust.get() == true
+
+        internal fun spawnExhaust(action: () -> Unit) {
+            spawningExhaust.set(true)
+            try { action() } finally { spawningExhaust.remove() }
+        }
+
+        @JvmStatic fun sweepExhaust(level: ClientLevel, origin: Vec3, delta: Vec3): ExhaustMotion? {
+            val path = castExhaust(level, origin, delta)
+            val last = path.lastOrNull() ?: return null
+            if (last.endNormal == null && path.size == 1) return null
+            val stopped = last.endNormal != null
+            return ExhaustMotion(last.end.add(last.endNormal?.scale(CLEARANCE) ?: Vec3.ZERO),
+                if (stopped) Vec3.ZERO else last.direction.scale(delta.length()), stopped, path.any { it.gate != null })
+        }
+
+        internal fun castExhaust(world: ClientLevel, start: Vec3, delta: Vec3): List<ExhaustSegment> {
+            val segments = ArrayList<ExhaustSegment>(2)
+            var remaining = delta.length()
+            var origin = start
+            var direction = delta.normalize()
+            var startNormal: Vec3? = null
+            var startRadius = Double.POSITIVE_INFINITY
+            var hops = 0
+            repeat(4) {
+                if (!remaining.isFinite() || remaining <= EPS) return segments
+                val end = origin.add(direction.scale(remaining))
+                val hit = world.clipIncludeShips(ClipContext(origin, end, ClipContext.Block.COLLIDER, ClipContext.Fluid.NONE, null), true)
+                val path = (hit as? GatemakyrHit)?.gatePath
+                if (path != null) for ((i, crossing) in path.crossings.withIndex()) {
+                    val (entry, exit) = crossing
+                    val gate = path.gates[i]
+                    val passage = gate.passage
+                    val length = origin.distanceTo(entry).coerceAtMost(remaining)
+                    val front = passage.entrance.normal.normalize()
+                    val normal = if (direction.dot(front) < 0) front else front.scale(-1.0)
+                    segments.add(ExhaustSegment(origin, direction, length, startNormal, normal, passage, startRadius,
+                        apertureRadius(entry, passage.entrance, gate.source)))
+                    if (++hops > 4 || !world.hasChunkAt(BlockPos.containing(exit))) return segments
+                    startRadius = apertureRadius(exit, passage.exit, gate.destination)
+                    origin = exit
+                    direction = passage.direction(direction).normalize()
+                    startNormal = passage.direction(normal).scale(-1.0)
+                    remaining = (remaining - length).coerceAtLeast(0.0)
+                }
+                if (hit.type == HitResult.Type.MISS) {
+                    val length = if (path == null) remaining else
+                        hit.location.subtract(origin).dot(direction).coerceIn(0.0, remaining)
+                    segments.add(ExhaustSegment(origin, direction, length, startNormal, null, startRadius = startRadius))
+                    return segments
+                }
+                val face = hit.direction.normal.toJOMLD()
+                world.getLoadedShipManagingPos(hit.blockPos)?.renderTransform?.shipToWorld?.transformDirection(face)
+                val normal = face.normalize().toMinecraft()
+                val length = hit.location.subtract(origin).dot(direction).coerceIn(0.0, remaining)
+                segments.add(ExhaustSegment(origin, direction, length, startNormal, normal, startRadius = startRadius))
+                val incidence = normal.dot(direction)
+                val tangent = direction.subtract(normal.scale(incidence))
+                if (length < EPS || incidence >= -EPS || tangent.lengthSqr() < EPS * EPS) return segments
+                remaining -= length + CLEARANCE
+                origin = hit.location.add(normal.scale(CLEARANCE))
+                direction = tangent.normalize()
+                startNormal = normal
+                startRadius = Double.POSITIVE_INFINITY
+            }
+            return segments
+        }
+
+        private fun apertureRadius(point: Vec3, frame: GatemakyrTarget.Frame, target: GatemakyrTarget): Double {
+            val offset = point.subtract(frame.position)
+            fun clearance(axis: Vec3, cells: Int) = axis.length() * cells / 2 - abs(offset.dot(axis.normalize()))
+            return minOf(clearance(frame.u, target.width), clearance(frame.v, target.height)).coerceAtLeast(0.0)
+        }
     }
+
+    internal data class ExhaustSegment(val origin: Vec3, val direction: Vec3, val length: Double,
+                                       val startNormal: Vec3?, val endNormal: Vec3?, val gate: GatemakyrPassage? = null,
+                                       val startRadius: Double = Double.POSITIVE_INFINITY, val endRadius: Double = Double.POSITIVE_INFINITY) {
+        val end get() = origin.add(direction.scale(length))
+    }
+
+    class ExhaustMotion(val position: Vec3, val velocity: Vec3, val stopped: Boolean, val crossedGate: Boolean)
 
     @Volatile
     override lateinit var dimension: DimensionId
@@ -163,29 +252,13 @@ class GasThrusterBlockEntity(type: BlockEntityType<*>?, pos: BlockPos, state: Bl
 
     internal fun exhaustDirection() = thrustDirection().negate()
 
-    internal data class PlumeImpact(val distance: Double, val normal: Vector3d)
-
-    internal var plumeImpact: PlumeImpact? = null
+    internal var plumeSegments: List<ExhaustSegment> = emptyList()
         private set
 
-    private fun tracePlume(world: ClientLevel, mouth: Vector3d, direction: Vector3d): PlumeImpact? {
-        val source = world.getLoadedShipManagingPos(blockPos)?.renderTransform
-        val start = Vector3d(mouth).fma(-0.40, direction)
-        val end = Vector3d(mouth).fma(plumeLength * 1.16 + 0.18, direction)
-        source?.shipToWorld?.transformPosition(start)
-        source?.shipToWorld?.transformPosition(end)
-        val hit = world.clipIncludeShips(ClipContext(start.toMinecraft(), end.toMinecraft(),
-            ClipContext.Block.COLLIDER, ClipContext.Fluid.NONE, null))
-        if (hit.type == HitResult.Type.MISS) return null
-        val point = Vector3d(hit.location.x, hit.location.y, hit.location.z)
-        val normal = hit.direction.normal.toJOMLD()
-        world.getLoadedShipManagingPos(hit.blockPos)?.renderTransform?.shipToWorld?.transformDirection(normal)
-        source?.worldToShip?.transformPosition(point)
-        source?.worldToShip?.transformDirection(normal)
-        normal.normalize()
-        if (normal.dot(direction) >= -0.0001) return null
-        return PlumeImpact(point.sub(mouth).dot(direction), normal)
-    }
+    internal var gateExits: List<Vec3> = emptyList()
+        private set
+    private var plumeBounds = AABB(pos)
+    override fun getRenderBoundingBox(): AABB = plumeBounds
 
     fun clientTick() {
         val level = level ?: return
@@ -197,7 +270,9 @@ class GasThrusterBlockEntity(type: BlockEntityType<*>?, pos: BlockPos, state: Bl
         lipGlow += (metalTarget - lipGlow) * if (metalTarget > lipGlow) 0.11f else 0.018f
         previousHeatSpread = heatSpread
         heatSpread += (lipGlow - heatSpread) * if (lipGlow > heatSpread) 0.026f else 0.045f
-        plumeImpact = null
+        plumeSegments = emptyList()
+        gateExits = emptyList()
+        plumeBounds = AABB(blockPos)
         if (gasMassFlow.isEmpty() || velocity == 0.0) return
 
         if (level is ClientLevel) GasThrusterSound.start(this)
@@ -210,9 +285,28 @@ class GasThrusterBlockEntity(type: BlockEntityType<*>?, pos: BlockPos, state: Bl
             .fma(NOZZLE_LENGTH, exhaustDirection)
         val ductNodePos = getDuctNodePosition()
 
-        val impact = (level as? ClientLevel)?.let { tracePlume(it, mouth, exhaustDirection) }
-        plumeImpact = impact
-        val contact = impact?.let { Vector3d(mouth).fma(it.distance, exhaustDirection) }
+        val source = (level as? ClientLevel)?.getLoadedShipManagingPos(blockPos)?.renderTransform
+        fun worldPoint(p: Vector3d) = (source?.shipToWorld?.transformPosition(p) ?: p).toMinecraft()
+        fun localPoint(p: Vec3) = Vector3d(p.x, p.y, p.z).also { source?.worldToShip?.transformPosition(it) }
+        fun localNormal(n: Vec3?) = n?.let { Vector3d(it.x, it.y, it.z) }?.also { source?.worldToShip?.transformDirection(it) }?.normalize()?.toMinecraft()
+        val start = Vector3d(mouth).fma(-0.40, exhaustDirection)
+        val worldStart = worldPoint(Vector3d(start))
+        val range = plumeLength * 1.16 + 0.58
+        val delta = worldPoint(Vector3d(start).fma(range, exhaustDirection)).subtract(worldStart)
+        val segments = if (level is ClientLevel) castExhaust(level, worldStart, delta)
+            else listOf(ExhaustSegment(worldStart, delta.normalize(), delta.length(), null, null))
+        gateExits = segments.zipWithNext().mapNotNull { (entry, exit) -> exit.origin.takeIf { entry.gate != null } }
+        plumeSegments = segments.map { segment ->
+            val origin = localPoint(segment.origin)
+            val end = localPoint(segment.end)
+            plumeBounds = plumeBounds.minmax(AABB(origin.toMinecraft(), end.toMinecraft()).inflate(0.5))
+            val axis = end.sub(origin)
+            val length = axis.length()
+            val direction = if (length > 0.0) axis.div(length) else exhaustDirection
+            ExhaustSegment(origin.sub(blockPos.toJOMLD()).toMinecraft(), direction.toMinecraft(), length,
+                localNormal(segment.startNormal), localNormal(segment.endNormal), segment.gate,
+                segment.startRadius * range / delta.length(), segment.endRadius * range / delta.length())
+        }
         val jetStrength = max(plumeHeat, vaporStrength)
         for ((gas, mass) in gasMassFlow) {
             if (!showAir && gas.resourceLocation == AIR_ID) continue
@@ -229,15 +323,18 @@ class GasThrusterBlockEntity(type: BlockEntityType<*>?, pos: BlockPos, state: Bl
                 outwardOffset = min(1f, jetStrength * 8f) * plumeLength * 0.55,
                 jetDirection = exhaustDirection
             ) { pos, vel ->
-                if (impact != null && contact != null) {
-                    val offset = Vector3d(pos).sub(contact)
-                    val gap = offset.dot(impact.normal)
-                    if (gap < 0.04) {
-                        pos.fma(0.04 - gap, impact.normal)
-                        offset.fma(-gap, impact.normal)
-                        vel.fma(-vel.dot(impact.normal), impact.normal)
-                        if (offset.lengthSquared() > 0.0001) vel.fma(speed * 0.55, offset.normalize())
+                if (level !is ClientLevel) true else {
+                    val sample = worldPoint(pos)
+                    val motion = sweepExhaust(level, worldStart, sample.subtract(worldStart))
+                    if (motion == null) {
+                        pos.set(sample.x, sample.y, sample.z)
+                        source?.shipToWorld?.transformDirection(vel)
+                    } else {
+                        pos.set(motion.position.x, motion.position.y, motion.position.z)
+                        vel.set(motion.velocity.x, motion.velocity.y, motion.velocity.z)
+                        if (!motion.stopped) vel.normalize(speed)
                     }
+                    motion?.stopped != true
                 }
             }
         }

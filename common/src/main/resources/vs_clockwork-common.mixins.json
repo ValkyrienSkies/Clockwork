@@ -69,6 +69,7 @@
     "content.schematics.MixinVdexCannonRemoval"
   ],
   "client": [
+    "content.exhaust.MixinThrusterParticle",
     "content.gatemakyr.MixinMinecraft",
     "content.gatemakyr.MixinGateClientLevel",
     "content.gatemakyr.MixinGateGameRenderer",

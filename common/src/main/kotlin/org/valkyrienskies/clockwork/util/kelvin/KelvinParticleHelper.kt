@@ -8,6 +8,7 @@ import net.minecraft.util.RandomSource
 import org.joml.Vector3d
 import org.joml.Vector3dc
 import org.valkyrienskies.clockwork.ClockworkMod
+import org.valkyrienskies.clockwork.content.physicalities.gas_thruster.GasThrusterBlockEntity
 import org.valkyrienskies.clockwork.ClockworkModClient
 import org.valkyrienskies.kelvin.api.DuctNodePos
 import org.valkyrienskies.kelvin.api.GasType
@@ -77,7 +78,7 @@ object KelvinParticleHelper {
         radius: Double = DEFAULT_DISK_RADIUS,
         outwardOffset: Double = 0.5,
         jetDirection: Vector3dc? = null,
-        adjustSample: ((Vector3d, Vector3d) -> Unit)? = null
+        adjustSample: ((Vector3d, Vector3d) -> Boolean)? = null
     ) {
         val n = stochasticCount(particleCount, level.random)
         if (n <= 0) return
@@ -85,8 +86,8 @@ object KelvinParticleHelper {
         val vel = Vector3d()
         repeat(n) {
             sampleJet(blockCenter, outward, speedMagnitude, radius, outwardOffset, level.random, pos, vel, jetDirection)
-            adjustSample?.invoke(pos, vel)
-            spawnGasParticle(level, gas, ductNodePos, pos, vel)
+            if (adjustSample?.invoke(pos, vel) == false) return@repeat
+            GasThrusterBlockEntity.spawnExhaust { spawnGasParticle(level, gas, ductNodePos, pos, vel) }
         }
     }
 
