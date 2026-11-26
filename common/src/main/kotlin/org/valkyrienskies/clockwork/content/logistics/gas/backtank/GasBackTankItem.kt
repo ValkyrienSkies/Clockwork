@@ -147,6 +147,19 @@ class GasBackTankItem(block: Block, properties: Properties) : BlockItem(block, p
             return true
         }
 
+        fun gaugeFraction(stack: ItemStack): Float {
+            val masses = readGasMasses(stack)
+            if (masses.isEmpty()) return 0f
+            val temperature = readTemperature(stack)
+            var pressureCapacity = 0.0
+            for ((gas, mass) in masses) {
+                val cv = gas.specificHeatCapacity / gas.adiabaticIndex * 1000.0
+                pressureCapacity += mass * (gas.adiabaticIndex - 1.0) * cv
+            }
+            val pressure = pressureCapacity / GasBacktankBlock.TANK_VOLUME * temperature
+            return GasBacktankBlockEntity.toGaugeFraction(pressure, GasBacktankBlock.MAX_PRESSURE)
+        }
+
         private val KELVIN_AIR = ResourceLocation("kelvin", "air")
         private const val DEFAULT_TEMPERATURE = 288.15
         val AirKgsToAirTicks = 100.0

@@ -31,7 +31,7 @@ open class GasBacktankArmorLayer<T : LivingEntity?, M : EntityModel<T>?>(rendere
         headPitch: Float
     ) {
         if (entity!!.pose == Pose.SLEEPING) return
-        GasBackTankItem.getWornBy(entity) ?: return
+        val wornStack = GasBackTankItem.getWornStack(entity) ?: return
         val entityModel = parentModel
         if (entityModel !is HumanoidModel<*>) return
 
@@ -51,6 +51,10 @@ open class GasBacktankArmorLayer<T : LivingEntity?, M : EntityModel<T>?>(rendere
         backtank
             .light<SuperByteBuffer>(light)
             .renderInto(ms, buffer.getBuffer(renderType))
+
+        GasBacktankRenderer.renderNeedle(
+            renderedState, GasBackTankItem.gaugeFraction(wornStack), light, ms, buffer.getBuffer(renderType)
+        )
 
 
         ms.popPose()
