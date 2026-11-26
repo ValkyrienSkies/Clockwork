@@ -137,7 +137,7 @@ public class ClockworkModForge {
     // 2. It allows us to override our own recipe files when TFG is installed
     // (can't override from normal resources because can't have duplicate files merged into the jar)
     public void addPackFinders(AddPackFindersEvent event) {
-        if (event.getPackType() != PackType.SERVER_DATA) {
+        if (event.getPackType() != PackType.SERVER_DATA || !ModList.get().isLoaded("tfg")) {
             return;
         }
 
