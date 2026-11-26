@@ -394,8 +394,7 @@ class PhysBearingBlockEntity(type: BlockEntityType<*>?, pos: BlockPos?, state: B
         if (otherShip == null) {
             val selection: DenseBlockPosSet
             try {
-                selection = collectGlued(level, targetPosition) ?: return
-                selection.remove(worldPosition.x, worldPosition.y, worldPosition.z)
+                selection = collectGlued(level, targetPosition) { pos, _ -> pos != worldPosition } ?: return
                 lastException = null
             } catch (e: AssemblyException) {
                 lastException = e
