@@ -7,6 +7,7 @@
     "MixinGateMiningReach",
     "MixinGateRadiumBlockCollisions",
     "MixinGateUseReach",
+    "MixinManualApplicationRecipe",
     "MixinTweakedLinkedControllerClientHandler",
     "MixinTweakedLinkedControllerItem",
     "accessors.ItemAccessor",

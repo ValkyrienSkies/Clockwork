@@ -6,6 +6,7 @@
     "MixinFireBlock",
     "MixinGateMiningReach",
     "MixinGateUseReach",
+    "MixinManualApplicationRecipe",
     "schematics.MixinVdexCannonInventory",
     "schematics.MixinVdexCannonMaterials"
   ],
