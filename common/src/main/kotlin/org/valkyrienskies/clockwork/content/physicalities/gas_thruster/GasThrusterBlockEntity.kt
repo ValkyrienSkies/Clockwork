@@ -273,6 +273,13 @@ class GasThrusterBlockEntity(type: BlockEntityType<*>?, pos: BlockPos, state: Bl
         val node = kelvin.getNodeAt(ductNodePos) as? GasThrusterDuctNode ?: return clearMassFlow()
 
         val worldPosition = currentLevel.toWorldCoordinates(blockPos.toJOMLD().add(0.5, 0.5, 0.5))
+        val exhaustNeighbor = blockPos.relative(facing.opposite)
+        val worldExhaustCenter = currentLevel.toWorldCoordinates(Vec3.atCenterOf(exhaustNeighbor))
+        if (!worldPosition.isFinite || !worldExhaustCenter.x.isFinite() ||
+            !worldExhaustCenter.y.isFinite() || !worldExhaustCenter.z.isFinite()) {
+            node.environmentValid = false
+            return clearMassFlow()
+        }
         val aero = (currentLevel.shipObjectWorld as? VsiServerShipWorld)?.aerodynamicUtils
         val ambientPressure = aero?.getAirPressureForY(worldPosition.y, currentLevel.dimensionId)
         val ambientTemperature = aero?.getAirTemperatureForY(worldPosition.y, currentLevel.dimensionId)
@@ -282,8 +289,6 @@ class GasThrusterBlockEntity(type: BlockEntityType<*>?, pos: BlockPos, state: Bl
             return clearMassFlow()
         }
 
-        val exhaustNeighbor = blockPos.relative(facing.opposite)
-        val worldExhaustCenter = currentLevel.toWorldCoordinates(Vec3.atCenterOf(exhaustNeighbor))
         val worldExhaustPos = BlockPos.containing(worldExhaustCenter)
         val localState = if (currentLevel.hasChunkAt(exhaustNeighbor)) currentLevel.getBlockState(exhaustNeighbor) else null
         val worldState = if (currentLevel.hasChunkAt(worldExhaustPos)) currentLevel.getBlockState(worldExhaustPos) else null
