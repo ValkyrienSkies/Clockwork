@@ -4,7 +4,7 @@
 	"textures": {
 		"0": "vs_clockwork:block/duct_tank_top",
 		"1": "vs_clockwork:block/duct_tank",
-		"4": "vs_clockwork:block/fluid_tank_inner",
+		"4": "vs_clockwork:block/duct_tank_top",
 		"particle": "vs_clockwork:block/duct_tank"
 	},
 	"elements": [

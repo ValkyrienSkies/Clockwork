@@ -1,8 +1,6 @@
 package org.valkyrienskies.clockwork.content.logistics.gas.storage.tank
 
-import com.simibubi.create.AllSpriteShifts
 import com.simibubi.create.api.connectivity.ConnectivityHandler
-import com.simibubi.create.content.fluids.tank.FluidTankCTBehaviour
 import com.simibubi.create.foundation.block.connected.CTModel
 import com.simibubi.create.foundation.block.connected.CTSpriteShiftEntry
 import net.createmod.catnip.data.Iterate
@@ -21,7 +19,7 @@ import java.util.function.Supplier
 class DuctTankModel private constructor(originalModel: BakedModel, side: CTSpriteShiftEntry, top: CTSpriteShiftEntry, inner: CTSpriteShiftEntry) :
     CTModel(originalModel, DuctTankCTBehaviour(side, top, inner)) {
 
-    constructor(originalModel: BakedModel) : this(originalModel, ClockworkSpriteShifts.DUCT_TANK, ClockworkSpriteShifts.DUCT_TANK_TOP, AllSpriteShifts.FLUID_TANK_INNER)
+    constructor(originalModel: BakedModel) : this(originalModel, ClockworkSpriteShifts.DUCT_TANK, ClockworkSpriteShifts.DUCT_TANK_TOP, ClockworkSpriteShifts.DUCT_TANK_TOP)
 
     override fun emitBlockQuads(
         blockView: BlockAndTintGetter,
