@@ -17,6 +17,7 @@ class GravitronState {
     internal var holdRoute = emptyList<GatemakyrPlayerGate>()
     internal var holdDepth = 0
     internal var localHoldAnchor: Vec3? = null
+    internal var holdAim: Vec3? = null
     var heldBlockPos: Vector3dc? = null
     var playerGrabbedRotation: Vector2dc? = null // Pitch , Yaw
     var shipGrabbedPos: Vector3dc? = null

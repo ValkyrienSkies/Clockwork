@@ -367,7 +367,11 @@ object GravitronEffects {
                 val route = state.route.map { ref -> gates[ref.owner to ref.side]?.takeIf(ref::matches) }
                 if (route.any { it == null }) emptyList() else {
                     val live = route.filterNotNull()
-                    val depth = GravitronGatePath.depth(live, state.holdDepth, state.route.first().localAnchor, worldAnchor)
+                    val held = state.holdDepth.coerceIn(0, live.size)
+                    val canonical = ship.renderTransform.shipToWorld.transformPosition(
+                        Vector3d(state.anchor.x, state.anchor.y, state.anchor.z))
+                    val reference = GravitronGatePath.backward(live.take(held), Vec3(canonical.x, canonical.y, canonical.z))
+                    val depth = GravitronGatePath.depth(live, held, reference, worldAnchor)
                     GravitronGatePath.legs(live.take(depth), eye, worldAnchor)
                 }
             } else if (holding) emptyList() else listOfNotNull(GravitronGatePath.toAnchor(gates.values, eye, worldAnchor, ship.id))

@@ -67,6 +67,61 @@ internal class GravitronGatePath(val gate: GatemakyrPlayerGate, val apparentAnch
         fun forward(route: List<GatemakyrPlayerGate>, point: Vec3) = route.fold(point) { p, gate -> gate.passage.point(p) }
         fun backward(route: List<GatemakyrPlayerGate>, point: Vec3) = route.asReversed().fold(point) { p, gate -> unfolded(gate, p) }
 
+        fun reverse(gate: GatemakyrPlayerGate) =
+            GatemakyrPlayerGate(gate.partner, gate.packet, GatemakyrPassage(gate.passage.exit, gate.passage.entrance))
+
+        fun simplified(route: List<GatemakyrPlayerGate>): List<GatemakyrPlayerGate> {
+            val result = ArrayList<GatemakyrPlayerGate>(route.size)
+            for (hop in route) {
+                if (result.isNotEmpty() && reverse(result.last()).matches(hop)) result.removeAt(result.lastIndex)
+                else result.add(hop)
+            }
+            return result
+        }
+
+        private fun crosses(gate: GatemakyrPlayerGate, from: Vec3, to: Vec3): Boolean {
+            val frame = gate.passage.entrance
+            val normal = frame.normal.normalize()
+            val a = from.subtract(frame.position).dot(normal)
+            val b = to.subtract(frame.position).dot(normal)
+            return a * b <= 0.0 && !(a < 0.0 && (gate.source.surface || gate.destination.surface))
+        }
+
+        private fun passing(gate: GatemakyrPlayerGate, anchor: Vec3, margin: Double): Boolean {
+            val frame = gate.passage.exit
+            val local = anchor.subtract(frame.position)
+            return abs(local.dot(frame.normal.normalize())) <= margin &&
+                abs(local.dot(frame.u) / frame.u.lengthSqr()) <= gate.destination.width * 0.5 + 0.5 &&
+                abs(local.dot(frame.v) / frame.v.lengthSqr()) <= gate.destination.height * 0.5 + 0.5
+        }
+
+        fun valid(route: List<GatemakyrPlayerGate>, eye: Vec3, anchor: Vec3, transit: Double = 0.0): Boolean {
+            var from = eye
+            val path = legs(route, eye, anchor)
+            return path.withIndex().all { (i, leg) ->
+                (crosses(leg.gate, from, leg.apparentAnchor) || i == path.lastIndex && passing(leg.gate, anchor, transit))
+                    .also { from = leg.gate.passage.point(leg.contact) }
+            }
+        }
+
+        fun length(route: List<GatemakyrPlayerGate>, eye: Vec3, anchor: Vec3): Double {
+            var from = eye
+            var total = 0.0
+            for (leg in legs(route, eye, anchor)) {
+                total += from.distanceTo(leg.contact)
+                from = leg.gate.passage.point(leg.contact)
+            }
+            return total + from.distanceTo(anchor)
+        }
+
+        fun rerouted(route: List<GatemakyrPlayerGate>, gates: Collection<GatemakyrPlayerGate>, eye: Vec3, anchor: Vec3,
+                     heldShip: Long, transit: Double = 0.0): List<GatemakyrPlayerGate>? {
+            if (valid(route, eye, anchor, transit)) return null
+            val candidates = route.indices.map { route.take(it) }.filter { valid(it, eye, anchor, transit) } +
+                listOfNotNull(toAnchor(gates, eye, anchor, heldShip)?.let { listOf(it.gate) })
+            return candidates.minBy { length(it, eye, anchor) }
+        }
+
         fun depth(route: List<GatemakyrPlayerGate>, preferred: Int, reference: Vec3, anchor: Vec3): Int {
             val current = preferred.coerceIn(0, route.size)
             return listOf(current, current - 1, current + 1).filter { it in 0..route.size }

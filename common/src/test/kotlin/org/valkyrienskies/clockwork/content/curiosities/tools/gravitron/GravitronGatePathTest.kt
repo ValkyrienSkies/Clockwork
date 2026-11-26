@@ -86,6 +86,43 @@ class GravitronGatePathTest {
         assertEquals(11 * 0.65, pieces.sumOf { (a, b) -> a.distanceTo(b) }, 1e-8)
     }
 
+    @Test fun inverseHopsCancelButWindingThroughOneMouthDoesNot() {
+        val other = entrance.copy(position = Vec3(3.0, 0.0, 0.0))
+        val map = GatemakyrPassage(entrance.localFrame(), other.localFrame())
+        val forward = GatemakyrPlayerGate(packet(0, entrance), packet(1, other), map)
+        val back = GatemakyrPlayerGate(packet(1, other), packet(0, entrance), GatemakyrPassage(map.exit, map.entrance))
+        assertTrue(GravitronGatePath.reverse(forward).matches(back))
+        assertTrue(GravitronGatePath.reverse(back).matches(forward))
+        assertFalse(GravitronGatePath.reverse(forward).matches(forward))
+        assertTrue(GravitronGatePath.simplified(listOf(forward, back)).isEmpty())
+        assertEquals(1, GravitronGatePath.simplified(listOf(back, forward, forward)).size)
+        assertEquals(2, GravitronGatePath.simplified(listOf(forward, forward)).size)
+        val point = Vec3(1.0, 2.0, -3.0)
+        assertEquals(0.0, point.distanceTo(GravitronGatePath.forward(listOf(forward, back), point)), 1e-8)
+    }
+
+    @Test fun staleWindingIsReroutedInsteadOfWrappedAroundTheMouths() {
+        val other = entrance.copy(position = Vec3(3.0, 0.0, 0.0))
+        val map = GatemakyrPassage(entrance.localFrame(), other.localFrame())
+        val forward = GatemakyrPlayerGate(packet(0, entrance), packet(1, other), map)
+        val back = GatemakyrPlayerGate(packet(1, other), packet(0, entrance), GatemakyrPassage(map.exit, map.entrance))
+        val ship = map.point(Vec3(0.0, 0.0, -2.0))
+        assertTrue(GravitronGatePath.valid(listOf(forward), eye, ship))
+        assertNull(GravitronGatePath.rerouted(listOf(forward), listOf(forward, back), eye, ship, 42))
+        val wound = listOf(forward, forward)
+        assertFalse(GravitronGatePath.valid(wound, eye, ship))
+        val route = requireNotNull(GravitronGatePath.rerouted(wound, listOf(forward, back), eye, ship, 42))
+        assertTrue(route.size < wound.size)
+        assertTrue(GravitronGatePath.valid(route, eye, ship))
+        assertTrue(GravitronGatePath.legs(route, eye, ship).none { it.bent })
+        assertTrue(GravitronGatePath.length(route, eye, ship) <= GravitronGatePath.length(listOf(forward), eye, ship) + 1e-8)
+        assertEquals(0.0, ship.distanceTo(GravitronGatePath.forward(route, GravitronGatePath.backward(route, ship))), 1e-8)
+        val crossing = map.point(Vec3(0.0, 0.0, 0.5))
+        assertFalse(GravitronGatePath.valid(listOf(forward), eye, crossing))
+        assertTrue(GravitronGatePath.valid(listOf(forward), eye, crossing, 2.0))
+        assertNull(GravitronGatePath.rerouted(listOf(forward), listOf(forward, back), eye, crossing, 42, 2.0))
+    }
+
     @Test fun holdOrientationAndLaunchUseTheSameRotationAsTheGate() {
         for (face in Direction.values()) {
             val other = GatemakyrTarget(exit.position, face)

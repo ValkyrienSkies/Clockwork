@@ -92,6 +92,7 @@ class GrabTool : GravitronToolBase() {
             state.holdRoute = emptyList()
             state.holdDepth = 0
             state.localHoldAnchor = null
+            state.holdAim = null
             state.shipID = null
             state.shipGrabbedPos = null
             state.heldBlockPos = null
@@ -115,26 +116,48 @@ class GrabTool : GravitronToolBase() {
                     val origPlayerRot = playerRotToQuaternion(s.playerGrabbedRotation!!.x(), s.playerGrabbedRotation!!.y()).normalize()
                     val newPlayerRot = playerRotToQuaternion(playerCurrentRotation.x(), playerCurrentRotation.y()).normalize()
                     val deltaPlayerRot = newPlayerRot.mul(origPlayerRot.conjugate(Quaterniond()), Quaterniond())
-                    val rotation = deltaPlayerRot.mul(s.shipGrabbedRot, Quaterniond()).normalize()
+                    var rotation = deltaPlayerRot.mul(s.shipGrabbedRot, Quaterniond()).normalize()
 
                     // Update Pos Values
-                    val lookDif = entity.lookAngle.toJOML().normalize().mul(s.shipGrabbedDistance!!)
+                    val view = playerRotToQuaternion(entity.xRot.toDouble(), entity.yRot.toDouble())
+                    val aim = s.holdAim?.let { view.transform(it.toJOML()) } ?: entity.lookAngle.toJOML()
+                    val lookDif = aim.normalize().mul(s.shipGrabbedDistance!!)
                     s.heldBlockPos = entity.eyePosition.toJOML().add(lookDif)
                     val location = Vector3d(s.shipGrabbedPos)
                     val position = Vector3d(s.heldBlockPos)
 
                     val gates = GatemakyrServer.physicalGates(level)
-                    val target = position.toMinecraft()
+                    var target = position.toMinecraft()
                     val anchor = ship.shipToWorld.transformPosition(location, Vector3d()).toMinecraft()
                     val previous = s.localHoldAnchor ?: anchor
                     val old = s.holdRoute
                     val live = old.map { prior -> gates.firstOrNull(prior::matches) }
-                    val depth = GravitronGatePath.depth(live.mapIndexed { i, gate -> gate ?: old[i] }, s.holdDepth, previous, anchor)
+                    var depth = GravitronGatePath.depth(live.mapIndexed { i, gate -> gate ?: old[i] }, s.holdDepth, previous, anchor)
                     if (live.take(depth).any { it == null }) {
                         if (entity is Player) dropShip(entity)
                         return
                     }
-                    val crossed = live.take(depth).filterNotNull()
+                    val threaded = GravitronGatePath.simplified(live.take(depth).filterNotNull())
+                    val extent = ship.worldAABB.extent(Vector3d())
+                    val rerouted = GravitronGatePath.rerouted(threaded, gates, entity.eyePosition, anchor, ship.id,
+                        2.0 * maxOf(extent.x, extent.y, extent.z))
+                    val crossed = rerouted ?: threaded
+                    depth = crossed.size
+                    if (rerouted != null) {
+                        val world = GravitronGatePath.forward(threaded, target)
+                        target = GravitronGatePath.backward(crossed, world)
+                        val offset = target.subtract(entity.eyePosition)
+                        if (offset.lengthSqr() > 1e-12) {
+                            s.shipGrabbedDistance = offset.length()
+                            s.holdAim = view.conjugate(Quaterniond()).transform(offset.normalize().toJOML()).toMinecraft()
+                        }
+                        s.heldBlockPos = target.toJOML()
+                        val before = threaded.fold(Quaterniond()) { q, gate -> gate.passage.rotation().mul(q) }
+                        val after = crossed.fold(Quaterniond()) { q, gate -> gate.passage.rotation().mul(q) }
+                        rotation = after.conjugate().mul(before).mul(rotation).normalize()
+                        s.shipGrabbedRot = Quaterniond(rotation)
+                        s.playerGrabbedRotation = Vector2d(playerCurrentRotation)
+                    }
                     val desired = GravitronGatePath.forward(crossed, target)
                     val legs = GravitronGatePath.legs(crossed, entity.eyePosition, anchor)
                     val last = legs.lastOrNull()
@@ -341,6 +364,7 @@ class GrabTool : GravitronToolBase() {
             s.holdRoute = route
             s.holdDepth = route.size
             s.localHoldAnchor = localAnchor
+            s.holdAim = null
             s.shipID = ship.id
             s.heldBlockPos = heldPosInWorld
             s.playerGrabbedRotation = Vector2d(player.xRot.toDouble(), player.yRot.toDouble())
@@ -362,6 +386,10 @@ class GrabTool : GravitronToolBase() {
             state.shipGrabbedRot = passage.rotation().mul(current).mul(original.conjugate()).mul(grabbed).normalize()
             state.playerGrabbedRotation = Vector2d(pitch.toDouble(), yaw.toDouble())
             state.localHoldAnchor = state.localHoldAnchor?.let(passage::point)
+            state.holdAim = state.holdAim?.let { aim ->
+                val arrived = playerRotToQuaternion(pitch.toDouble(), yaw.toDouble()).conjugate()
+                arrived.mul(passage.rotation()).mul(current).transform(aim.toJOML()).toMinecraft()
+            }
             if (state.holdRoute.firstOrNull()?.matches(gate) == true && state.holdDepth > 0) {
                 state.holdRoute = state.holdRoute.drop(1)
                 state.holdDepth--
@@ -370,8 +398,7 @@ class GrabTool : GravitronToolBase() {
                     dropShip(player)
                     return
                 }
-                val reverse = GatemakyrPlayerGate(gate.partner, gate.packet, GatemakyrPassage(passage.exit, passage.entrance))
-                state.holdRoute = (listOf(reverse) + state.holdRoute.take(state.holdDepth)).take(8)
+                state.holdRoute = (listOf(GravitronGatePath.reverse(gate)) + state.holdRoute.take(state.holdDepth)).take(8)
                 state.holdDepth++
             }
             if (player is ServerPlayer) {
