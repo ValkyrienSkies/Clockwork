@@ -315,7 +315,8 @@ class WandLinks : SavedData() {
             massGraphTick = level.gameTime
         }
         val (a, b) = massGraph!!.endpoints(link.a.shipId.takeIf { it >= 0 }, link.b.shipId.takeIf { it >= 0 })
-        val mass = SpringJoints.effectiveMass(a.mass, b.mass, fixedA = a.anchored, fixedB = b.anchored)
+        val mass = SpringJoints.effectiveMass(a.mass, b.mass, fixedA = a.anchored, fixedB = b.anchored,
+            retainMassFloor = !link.spring)
         if (abs(mass - link.mass) > link.mass * 0.01) {
             link.mass = mass
             link.settingsDirty = true

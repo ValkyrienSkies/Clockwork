@@ -67,6 +67,34 @@ class SpringJointsTest {
         assertTrue(SpringJoints.effectiveMass(100.0, heavy) < heavy / 100)
     }
 
+    @Test fun lightSpringLoadsKeepMassProportionalAxialAndTwistGains() {
+        val pose = VSJointPose(Vector3d(), Quaterniond())
+        val mass = SpringJoints.effectiveMass(500.0, 10.0, fixedA = true, retainMassFloor = false)
+        assertEquals(10.0, mass)
+        assertEquals(10.0, SpringJoints.effectiveMass(20.0, 20.0, retainMassFloor = false))
+        assertEquals(100.0, SpringJoints.effectiveMass(20.0, 20.0))
+
+        val (spring, alignment) = SpringJoints.create(1, 2, pose, pose, 3.0, mass)
+        assertEquals(875f, spring.stiffness)
+        assertEquals(140f, spring.damping!!)
+        val twist = alignment.drives!![VSD6Joint.D6Drive.TWIST]!!
+        assertEquals(70f, twist.driveStiffness)
+        assertEquals(26.25f, twist.driveDamping)
+        assertEquals(600f, twist.driveForceLimit)
+    }
+
+    @Test fun springTuningRetainsFallbackAndUpperBound() {
+        val pose = VSJointPose(Vector3d(), Quaterniond())
+        assertEquals(100.0, SpringJoints.effectiveMass(null, Double.NaN, retainMassFloor = false))
+        assertEquals(10.0, SpringJoints.effectiveMass(Double.POSITIVE_INFINITY, 10.0, retainMassFloor = false))
+        assertEquals(1.0e9, SpringJoints.effectiveMass(null, 1.0e10, retainMassFloor = false))
+        for (invalid in listOf(0.0, -1.0, Double.NaN, Double.POSITIVE_INFINITY)) {
+            val spring = SpringJoints.create(1, 2, pose, pose, 3.0, invalid).first
+            assertEquals(8750f, spring.stiffness)
+            assertEquals(1400f, spring.damping!!)
+        }
+    }
+
     @Test fun alignmentResistsTwistWithoutLockingMotion() {
         val pose = VSJointPose(Vector3d(), Quaterniond())
         val (spring, alignment) = SpringJoints.create(1, 2, pose, pose, 3.0, 500.0)

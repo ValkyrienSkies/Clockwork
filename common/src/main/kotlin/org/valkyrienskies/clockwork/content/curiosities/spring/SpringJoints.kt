@@ -13,24 +13,30 @@ import kotlin.math.atan2
 import kotlin.math.max
 
 internal object SpringJoints {
+    private const val FALLBACK_MASS = 100.0
+    private const val MAX_TUNING_MASS = 1.0e9
     private const val STIFFNESS = 87.5
     private const val DAMPING = 14.0
     private const val TWIST_STIFFNESS = 7.0
     private const val TWIST_DAMPING = 2.625
     private const val BREAK_ACCELERATION = 7200.0
 
-    fun effectiveMass(a: Double?, b: Double?, fixedA: Boolean = false, fixedB: Boolean = false): Double {
+    fun effectiveMass(a: Double?, b: Double?, fixedA: Boolean = false, fixedB: Boolean = false, retainMassFloor: Boolean = true): Double {
         val first = a?.takeIf { !fixedA && it.isFinite() && it > 0 }
         val second = b?.takeIf { !fixedB && it.isFinite() && it > 0 }
-        return (when {
-            first == null -> second ?: 100.0
+        val mass = tuningMass(when {
+            first == null -> second ?: FALLBACK_MASS
             second == null -> first
             else -> 1.0 / (1.0 / first + 1.0 / second)
-        }).coerceIn(100.0, 1.0e9)
+        })
+        return if (retainMassFloor) mass.coerceAtLeast(FALLBACK_MASS) else mass
     }
 
+    private fun tuningMass(mass: Double): Double =
+        if (mass.isFinite() && mass > 0.0) mass.coerceAtMost(MAX_TUNING_MASS) else FALLBACK_MASS
+
     fun create(a: Long, b: Long, poseA: VSJointPose, poseB: VSJointPose, length: Double, mass: Double, settings: SpringSettings = SpringSettings()): Pair<VSSpringJoint, VSD6Joint> {
-        val effectiveMass = mass.coerceIn(100.0, 1.0e9)
+        val effectiveMass = tuningMass(mass)
         val limits = VSJointMaxForceTorque(Float.MAX_VALUE, Float.MAX_VALUE)
         val spring = VSSpringJoint(a, poseA, b, poseB, limits,
             restLength = length.toFloat(), stiffness = (effectiveMass * STIFFNESS * settings.stiffness).toFloat(),
