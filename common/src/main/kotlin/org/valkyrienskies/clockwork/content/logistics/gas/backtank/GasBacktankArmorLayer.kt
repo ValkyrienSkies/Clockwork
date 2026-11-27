@@ -1,6 +1,7 @@
 package org.valkyrienskies.clockwork.content.logistics.gas.backtank
 
 import com.mojang.blaze3d.vertex.PoseStack
+import net.createmod.catnip.animation.AnimationTickHolder
 import net.createmod.catnip.render.CachedBuffers
 import net.createmod.catnip.render.SuperByteBuffer
 import net.fabricmc.fabric.api.client.rendering.v1.LivingEntityFeatureRendererRegistrationCallback
@@ -12,8 +13,10 @@ import net.minecraft.client.renderer.entity.EntityRenderer
 import net.minecraft.client.renderer.entity.LivingEntityRenderer
 import net.minecraft.client.renderer.entity.RenderLayerParent
 import net.minecraft.client.renderer.entity.layers.RenderLayer
+import net.minecraft.world.entity.EquipmentSlot
 import net.minecraft.world.entity.LivingEntity
 import net.minecraft.world.entity.Pose
+import net.minecraft.world.level.block.HorizontalDirectionalBlock
 import org.valkyrienskies.clockwork.ClockworkBlocks
 
 open class GasBacktankArmorLayer<T : LivingEntity?, M : EntityModel<T>?>(renderer: RenderLayerParent<T, M>?) : RenderLayer<T, M>(renderer!!) {
@@ -40,6 +43,13 @@ open class GasBacktankArmorLayer<T : LivingEntity?, M : EntityModel<T>?>(rendere
         val renderedState = ClockworkBlocks.GAS_BACKTANK.defaultState
             //.setValue(BacktankBlock.HORIZONTAL_FACING, Direction.SOUTH)
         val backtank = CachedBuffers.block(renderedState)
+        val wornStack = entity.getItemBySlot(EquipmentSlot.CHEST)
+        val pressure = GasBacktankGauge.pressureFromItemStack(wornStack)
+        val fill = GasBacktankGauge.fillFromPressure(pressure)
+        val renderTime = AnimationTickHolder.getRenderTime(entity.level())
+        val phase = (entity.id and 0xFF) * 0.1f
+        val facing = renderedState.getValue(HorizontalDirectionalBlock.FACING)
+        val vc = buffer.getBuffer(renderType)
 
 
         ms.pushPose()
@@ -50,7 +60,19 @@ open class GasBacktankArmorLayer<T : LivingEntity?, M : EntityModel<T>?>(rendere
 
         backtank
             .light<SuperByteBuffer>(light)
-            .renderInto(ms, buffer.getBuffer(renderType))
+            .renderInto(ms, vc)
+
+        GasBacktankRenderer.renderNeedle(
+            blockState = renderedState,
+            facing = facing,
+            fill = fill,
+            pressure = pressure,
+            renderTime = renderTime,
+            phase = phase,
+            ms = ms,
+            vc = vc,
+            light = light
+        )
 
 
         ms.popPose()

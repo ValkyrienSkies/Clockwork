@@ -54,6 +54,7 @@ import org.valkyrienskies.clockwork.content.curiosities.tools.wanderwand.Wanderw
 import org.valkyrienskies.clockwork.content.curiosities.tools.screwdriver.ScrewdriverItem
 import org.valkyrienskies.clockwork.content.kinetics.universal_shaft.UniversalShaftItem
 import org.valkyrienskies.clockwork.content.logistics.gas.backtank.GasBackTankItem
+import org.valkyrienskies.clockwork.content.logistics.gas.backtank.GasBacktankItemRenderer
 import org.valkyrienskies.clockwork.content.physicalities.extendon.ExtendonHoseItem
 import org.valkyrienskies.clockwork.platform.CWItem
 import org.valkyrienskies.clockwork.util.builder.ClockworkRegistrate
@@ -311,6 +312,7 @@ object ClockworkItems {
             properties.stacksTo(1)
         }
         .tab(ClockworkMod.GAS_CREATIVE_TABINFO)
+        .transform(ClockworkRegistrate.customRenderedItem { Supplier { GasBacktankItemRenderer() } })
         .tag(AllItemTags.PRESSURIZED_AIR_SOURCES.tag)
         .register()
 

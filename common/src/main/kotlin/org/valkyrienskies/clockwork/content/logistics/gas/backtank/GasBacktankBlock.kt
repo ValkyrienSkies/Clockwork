@@ -81,7 +81,14 @@ class GasBacktankBlock(properties: Properties) : HorizontalDirectionalBlock(prop
     }
 
     override fun createNode(pos: DuctNodePos): DuctNode {
-        return TankDuctNode(pos = pos, volume = 0.75, maxPressure = 16375049.0, maxTemperature = 1478.0, size = 3.0, heatCapacity = 44.9)
+        return TankDuctNode(
+            pos = pos,
+            volume = VOLUME,
+            maxPressure = MAX_PRESSURE,
+            maxTemperature = MAX_TEMPERATURE,
+            size = TANK_SIZE,
+            heatCapacity = HEAT_CAPACITY
+        )
     }
 
     override fun onPlace(state: BlockState, level: Level, pos: BlockPos, oldState: BlockState, isMoving: Boolean) {
@@ -170,7 +177,15 @@ class GasBacktankBlock(properties: Properties) : HorizontalDirectionalBlock(prop
     }
 
     override fun getInternalVolume(): Double {
-        return 0.75
+        return VOLUME
+    }
+
+    override fun getMaximumPressure(): Double {
+        return MAX_PRESSURE
+    }
+
+    override fun getMaximumTemperature(): Double {
+        return MAX_TEMPERATURE
     }
 
     override fun getAdditionalInfoLines(): List<Component> {
@@ -192,5 +207,11 @@ class GasBacktankBlock(properties: Properties) : HorizontalDirectionalBlock(prop
         return AllShapes.BACKTANK
     }
 
-
+    companion object {
+        const val VOLUME = 0.75
+        const val TANK_SIZE = 3.0
+        const val MAX_PRESSURE = 16375049.0
+        const val MAX_TEMPERATURE = 1478.0
+        const val HEAT_CAPACITY = 44.9
+    }
 }

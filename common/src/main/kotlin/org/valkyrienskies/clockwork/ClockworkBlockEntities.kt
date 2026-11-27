@@ -77,6 +77,7 @@ import org.valkyrienskies.clockwork.content.kinetics.sequenced_seat.SequencedSea
 import org.valkyrienskies.clockwork.content.kinetics.universal_shaft.UniversalShaftBlockEntity
 import org.valkyrienskies.clockwork.content.kinetics.universal_shaft.UniversalShaftRenderer
 import org.valkyrienskies.clockwork.content.logistics.gas.backtank.GasBacktankBlockEntity
+import org.valkyrienskies.clockwork.content.logistics.gas.backtank.GasBacktankRenderer
 import org.valkyrienskies.clockwork.content.logistics.gas.crafter.GasCrafterBlockEntity
 import org.valkyrienskies.clockwork.content.logistics.gas.combustor.GasCombustorBlockEntity
 import org.valkyrienskies.clockwork.content.logistics.gas.crafter.GasCrafterBlockEntityRenderer
@@ -972,6 +973,13 @@ object ClockworkBlockEntities {
                 pos,
                 state
             )
+        }
+        .renderer {
+            NonNullFunction { context: BlockEntityRendererProvider.Context? ->
+                GasBacktankRenderer(
+                    context!!
+                )
+            }
         }
         .validBlocks(ClockworkBlocks.GAS_BACKTANK)
         .register()
