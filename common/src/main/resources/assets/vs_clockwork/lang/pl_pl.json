@@ -445,7 +445,7 @@
 
   "vs_clockwork.gui.air_compressor.info.title": "Informacje o kompresorze:",
   "vs_clockwork.gui.air_compressor.info.obstructed.title": "Zablokowany",
-  "vs_clockwork.gui.air_compressor.info.obstructed": "Nie może działać, gdy nad nim znajduje się pełny blok.",
+  "vs_clockwork.gui.air_compressor.info.obstructed": "Przestrzeń tuż przed wlotem powietrza musi być wolna.",
   "vs_clockwork.gui.air_compressor.info.exhausted.title": "Wyczerpany",
   "vs_clockwork.gui.air_compressor.info.exhausted": "_Ciśnienie_ w systemie jest _zbyt wysokie_, aby kontynuować pompowanie.",
   "vs_clockwork.gui.air_compressor.info.active.title": "Aktywna",

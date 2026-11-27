@@ -2,6 +2,7 @@ package org.valkyrienskies.clockwork.content.logistics.gas.generation.compressor
 
 import com.mojang.blaze3d.vertex.PoseStack
 import com.simibubi.create.AllSoundEvents
+import com.simibubi.create.content.kinetics.base.DirectionalKineticBlock
 import com.simibubi.create.content.kinetics.base.KineticBlockEntityRenderer
 import com.simibubi.create.foundation.particle.AirParticleData
 import net.createmod.catnip.animation.AnimationTickHolder
@@ -13,9 +14,9 @@ import net.minecraft.client.renderer.LevelRenderer
 import net.minecraft.client.renderer.MultiBufferSource
 import net.minecraft.client.renderer.RenderType
 import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider
-import net.minecraft.core.BlockPos
 import net.minecraft.util.Mth
 import net.minecraft.world.level.Level
+import org.joml.Vector3f
 import org.valkyrienskies.clockwork.ClockworkPartials
 import org.valkyrienskies.clockwork.util.EaseHelper
 import org.valkyrienskies.mod.common.util.toDoubles
@@ -32,11 +33,11 @@ class AirCompressorRenderer(context: BlockEntityRendererProvider.Context?) : Kin
 
         // --- Particle Constants ---
         private const val PARTICLE_BURST_COUNT = 36
-        private const val PARTICLE_Y_OFFSET = 1.6f
-        private const val PARTICLE_VERTICAL_SPEED = 0.05
+        private const val PARTICLE_FORWARD_OFFSET = 1.1f
+        private const val PARTICLE_SPEED = 0.05
         private const val PARTICLE_AIR_DATA_SCALE = 0.00f
         private const val PARTICLE_AIR_DATA_DRAG = 0.005f
-        private const val PARTICLE_HORIZONTAL_SPREAD = 0.5f
+        private const val PARTICLE_SPREAD = 0.5f
     }
 
     override fun renderSafe(
@@ -52,20 +53,22 @@ class AirCompressorRenderer(context: BlockEntityRendererProvider.Context?) : Kin
         val level = be.level ?: return // Ensure level exists
 
         val blockPos = be.blockPos
-        val lightBelow = LevelRenderer.getLightColor(level, blockPos.below())
-        val lightAbove = LevelRenderer.getLightColor(level, blockPos.above())
+        val facing = be.blockState.getValue(DirectionalKineticBlock.FACING)
+        val rotation = facing.rotation
+        val shaftLight = LevelRenderer.getLightColor(level, blockPos.relative(facing.opposite))
+        val intakeLight = LevelRenderer.getLightColor(level, blockPos.relative(facing))
 
         val vb = buffer.getBuffer(RenderType.cutoutMipped())
 
         val axisPartial = CachedBuffers.partial(ClockworkPartials.COMPRESSOR_AXIS, be.blockState)
-        standardKineticRotationTransform(axisPartial, be, lightBelow).renderInto(ms, vb)
+        standardKineticRotationTransform(axisPartial, be, shaftLight).rotateCentered(rotation).renderInto(ms, vb)
 
 
         if (level is PonderLevel) {
             val stroke = AnimationTickHolder.getRenderTime(level) * abs(be.speed) * SPEED_TO_SIZE_FACTOR % 2f
             be.clientSize = if (be.active) 1f - abs(1f - stroke) else 0f
             val deflating = be.active && stroke >= 1f
-            if (deflating && !be.clientParticles) spawnAirBurstParticles(blockPos, level)
+            if (deflating && !be.clientParticles) spawnAirBurstParticles(be, level)
             be.clientParticles = deflating
         } else {
             updateClientSize(be, partialTicks)
@@ -80,14 +83,16 @@ class AirCompressorRenderer(context: BlockEntityRendererProvider.Context?) : Kin
         val easedHalfSize = EaseHelper.easeInOutQuad(be.clientSize) / 2.0f
 
         fabricPartial.apply {
+            rotateCentered(rotation)
             scale(1.0f, BASE_FABRIC_SCALE_Y + easedHalfSize, 1.0f)
             translate(0.0, (BASE_FABRIC_SCALE_Y - easedHalfSize) / 2.0, 0.0) // Divide by 2.0 for Float division
-            light<SuperByteBuffer>(lightAbove)
+            light<SuperByteBuffer>(intakeLight)
         }.renderInto(ms, vb)
 
         topPartial.apply {
+            rotateCentered(rotation)
             translate(0.0, ((easedHalfSize - BASE_FABRIC_SCALE_Y) * TOP_TRANSLATION_FACTOR).toDouble(), 0.0)
-            light<SuperByteBuffer>(lightAbove)
+            light<SuperByteBuffer>(intakeLight)
         }.renderInto(ms, vb)
     }
 
@@ -115,7 +120,7 @@ class AirCompressorRenderer(context: BlockEntityRendererProvider.Context?) : Kin
         // Spawn particle burst when fully inflated and particles haven't been spawned yet this cycle
         if (be.clientSize >= 1.0f && !be.clientParticles) {
             be.clientParticles = true
-            spawnAirBurstParticles(be.blockPos, level)
+            spawnAirBurstParticles(be, level)
 
             val pitch = abs(be.speed) / 256f + level.random.nextFloat() + 0.25f
             AllSoundEvents.STEAM.playAt(level, be.blockPos.toDoubles(), 0.4f, pitch, true)
@@ -131,25 +136,26 @@ class AirCompressorRenderer(context: BlockEntityRendererProvider.Context?) : Kin
     /**
      * Spawns a burst of air particles around the top of the compressor.
      */
-    private fun spawnAirBurstParticles(pos: BlockPos, level: Level) {
-        val xBase = pos.x + 0.5
-        val yBase = pos.y + PARTICLE_Y_OFFSET
-        val zBase = pos.z + 0.5
+    private fun spawnAirBurstParticles(be: AirCompressorBlockEntity, level: Level) {
+        val center = be.blockPos.center
+        val facing = be.blockState.getValue(DirectionalKineticBlock.FACING)
+        val rotation = facing.rotation
 
         repeat(PARTICLE_BURST_COUNT) {
-            // Random offsets within a horizontal radius and slightly above the block
-            val rX = (level.random.nextFloat() - 0.5f) * 2 * PARTICLE_HORIZONTAL_SPREAD
-            val rY = level.random.nextFloat().toDouble()
-            val rZ = (level.random.nextFloat() - 0.5f) * 2 * PARTICLE_HORIZONTAL_SPREAD
+            val offset = Vector3f(
+                (level.random.nextFloat() - 0.5f) * 2 * PARTICLE_SPREAD,
+                PARTICLE_FORWARD_OFFSET + level.random.nextFloat(),
+                (level.random.nextFloat() - 0.5f) * 2 * PARTICLE_SPREAD
+            ).rotate(rotation)
 
             level.addParticle(
                 AirParticleData(PARTICLE_AIR_DATA_SCALE, PARTICLE_AIR_DATA_DRAG),
-                xBase + rX,
-                yBase + rY,
-                zBase + rZ,
-                0.0,
-                PARTICLE_VERTICAL_SPEED,
-                0.0
+                center.x + offset.x,
+                center.y + offset.y,
+                center.z + offset.z,
+                facing.stepX * PARTICLE_SPEED,
+                facing.stepY * PARTICLE_SPEED,
+                facing.stepZ * PARTICLE_SPEED
             )
         }
     }

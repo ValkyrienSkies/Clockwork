@@ -165,7 +165,7 @@ object GasMachineryPonders {
         scene.idle(15)
         scene.world().setKineticSpeed(util.select().fromTo(compressor.below(2), compressor), 96f)
         scene.effects().rotationDirectionIndicator(compressor.below())
-        scene.caption(util, compressor.below(), "Drive an Air Compressor from below to draw in the surrounding air", PonderPalette.INPUT)
+        scene.caption(util, compressor.below(), "Turn the shaft opposite the intake to draw in the surrounding air", PonderPalette.INPUT)
         scene.world().showSection(util.select().fromTo(compressor.west(), compressor.west(2)), Direction.EAST)
         scene.idle(15)
         scene.caption(util, compressor.west(), "Connect a duct to carry the compressed air away", PonderPalette.OUTPUT)

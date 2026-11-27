@@ -416,7 +416,7 @@
   "vs_clockwork.gui.air_compressor.info.active.title": "Активен",
   "vs_clockwork.gui.air_compressor.info.exhausted": "_Давление_ в системе _слишком велико_ откачки.",
   "vs_clockwork.gui.air_compressor.info.exhausted.title": "Перегружен",
-  "vs_clockwork.gui.air_compressor.info.obstructed": "Невозможно работать со твёрдым блоком, расположенным непосредственно над ним.",
+  "vs_clockwork.gui.air_compressor.info.obstructed": "Оставьте пространство перед воздухозаборником свободным.",
   "vs_clockwork.gui.air_compressor.info.obstructed.title": "Заблокирован",
   "vs_clockwork.gui.air_compressor.info.title": "Информация о компрессоре:",
   "vs_clockwork.gui.ductInfo.energy": "Тепловая энергия: %s",

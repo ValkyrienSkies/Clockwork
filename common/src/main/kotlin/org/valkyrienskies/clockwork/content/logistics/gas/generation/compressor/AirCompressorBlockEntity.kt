@@ -1,5 +1,6 @@
 package org.valkyrienskies.clockwork.content.logistics.gas.generation.compressor
 
+import com.simibubi.create.content.kinetics.base.DirectionalKineticBlock.FACING
 import net.createmod.ponder.api.level.PonderLevel
 import net.minecraft.ChatFormatting
 import net.minecraft.core.BlockPos
@@ -9,7 +10,8 @@ import net.minecraft.network.chat.Component
 import net.minecraft.server.level.ServerLevel
 import net.minecraft.world.level.block.entity.BlockEntityType
 import net.minecraft.world.level.block.state.BlockState
-import org.valkyrienskies.clockwork.ClockworkConfig;
+import net.minecraft.world.phys.AABB
+import org.valkyrienskies.clockwork.ClockworkConfig
 import org.valkyrienskies.clockwork.ClockworkLang
 import org.valkyrienskies.clockwork.ClockworkMod
 import org.valkyrienskies.clockwork.util.DuctNetworkUtils.simulatesGas
@@ -43,6 +45,8 @@ class AirCompressorBlockEntity(typeIn: BlockEntityType<*>, pos: BlockPos, state:
     val exhausted get() = status == CompressorStatus.EXHAUSTED
     val obstructed get() = status == CompressorStatus.OBSTRUCTED
 
+    override fun createRenderBoundingBox(): AABB = AABB(blockPos).inflate(0.75)
+
     fun getAirDensity(): Double {
         val level = level as? ServerLevel ?: return 1.0
         val position = level.toWorldCoordinates(blockPos)
@@ -66,7 +70,7 @@ class AirCompressorBlockEntity(typeIn: BlockEntityType<*>, pos: BlockPos, state:
         kelvin.getNodeAt(getDuctNodePosition()) ?: return
 
         val speed = abs(getSpeed())
-        if (level!!.getBlockState(blockPos.above()).isAir) {
+        if (level!!.getBlockState(blockPos.relative(blockState.getValue(FACING))).isAir) {
             if (speed > 0) {
                 // Should this depend on actual air pressure outside? If we are in vacuum,
                 // no way this compressor thing will still pump 10 ground atmospheres.

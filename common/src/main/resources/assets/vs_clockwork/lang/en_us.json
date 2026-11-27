@@ -1119,7 +1119,7 @@
 
   "vs_clockwork.gui.air_compressor.info.title": "Compressor Info:",
   "vs_clockwork.gui.air_compressor.info.obstructed.title": "Obstructed",
-  "vs_clockwork.gui.air_compressor.info.obstructed": "Cannot operate with a solid block directly above.",
+  "vs_clockwork.gui.air_compressor.info.obstructed": "The space directly in front of the air intake must be clear.",
   "vs_clockwork.gui.air_compressor.info.exhausted.title": "Exhausted",
   "vs_clockwork.gui.air_compressor.info.exhausted": "_Pressure_ in the system is _too high_ to keep pumping.",
   "vs_clockwork.gui.air_compressor.info.active.title": "Active",
@@ -1289,7 +1289,7 @@
   "vs_clockwork.ponder.plane_tips.text_9": "Causing your plane to turn",
 
   "vs_clockwork.ponder.air_compressor.header": "Compressing air into ducts",
-  "vs_clockwork.ponder.air_compressor.text_1": "Drive an Air Compressor from below to draw in the surrounding air",
+  "vs_clockwork.ponder.air_compressor.text_1": "Turn the shaft opposite the intake to draw in the surrounding air",
   "vs_clockwork.ponder.air_compressor.text_2": "Connect a duct to carry the compressed air away",
   "vs_clockwork.ponder.air_compressor.text_3": "Covering the intake stops the compressor, even while its shaft is turning",
   "vs_clockwork.ponder.air_compressor.text_4": "Altitude and dimension determine the intake temperature and how much of the gas is Air",

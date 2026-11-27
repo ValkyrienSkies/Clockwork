@@ -458,7 +458,7 @@
 
   "vs_clockwork.gui.air_compressor.info.title": "Kompresör Bilgisi:",
   "vs_clockwork.gui.air_compressor.info.obstructed.title": "Engellenmiş",
-  "vs_clockwork.gui.air_compressor.info.obstructed": "Üstünde katı bir blok varken çalışamaz.",
+  "vs_clockwork.gui.air_compressor.info.obstructed": "Hava girişinin hemen önü boş olmalıdır.",
   "vs_clockwork.gui.air_compressor.info.exhausted.title": "Tükenmiş",
   "vs_clockwork.gui.air_compressor.info.exhausted": "Sistemin içindeki _Basınç_ pompalamaya devam etmek için _çok yüksek._",
   "vs_clockwork.gui.air_compressor.info.active.title": "Aktif",

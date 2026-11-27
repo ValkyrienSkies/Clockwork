@@ -424,7 +424,7 @@
 
   "vs_clockwork.gui.air_compressor.info.title": "压缩机信息：",
   "vs_clockwork.gui.air_compressor.info.obstructed.title": "工作受阻",
-  "vs_clockwork.gui.air_compressor.info.obstructed": "正上方存在固体方块，无法工作。",
+  "vs_clockwork.gui.air_compressor.info.obstructed": "请保持进气口正前方畅通。",
   "vs_clockwork.gui.air_compressor.info.exhausted.title": "负载已饱和",
   "vs_clockwork.gui.air_compressor.info.exhausted": "管道系统_压力过高_，无法继续工作。",
   "vs_clockwork.gui.air_compressor.info.active.title": "工作中",

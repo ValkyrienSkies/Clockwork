@@ -1,6 +1,6 @@
 package org.valkyrienskies.clockwork.content.logistics.gas.generation.compressor
 
-import com.simibubi.create.content.kinetics.base.KineticBlock
+import com.simibubi.create.content.kinetics.base.DirectionalKineticBlock
 import com.simibubi.create.foundation.block.IBE
 import net.minecraft.core.BlockPos
 import net.minecraft.core.Direction
@@ -20,7 +20,11 @@ import org.valkyrienskies.clockwork.util.gui.ProductionType
 import org.valkyrienskies.kelvin.KelvinMod
 import org.valkyrienskies.kelvin.util.INodeBlock
 
-class AirCompressorBlock(properties: Properties?) : KineticBlock(properties), INodeBlock, IBE<AirCompressorBlockEntity>, IHaveDuctStats {
+class AirCompressorBlock(properties: Properties?) : DirectionalKineticBlock(properties), INodeBlock, IBE<AirCompressorBlockEntity>, IHaveDuctStats {
+
+    init {
+        registerDefaultState(defaultBlockState().setValue(FACING, Direction.UP))
+    }
 
     override fun onPlace(state: BlockState, level: Level, pos: BlockPos, oldState: BlockState, isMoving: Boolean) {
         super.onPlace(state, level, pos, oldState, isMoving)
@@ -32,11 +36,13 @@ class AirCompressorBlock(properties: Properties?) : KineticBlock(properties), IN
         super.onRemove(state, level, pos, newState, isMoving)
     }
 
-    override fun getRotationAxis(state: BlockState?): Direction.Axis {
-        return Direction.Axis.Y
+    override fun getRotationAxis(state: BlockState): Direction.Axis {
+        return state.getValue(FACING).axis
     }
 
-
+    override fun areStatesKineticallyEquivalent(oldState: BlockState, newState: BlockState): Boolean {
+        return oldState == newState
+    }
 
     override fun getBlockEntityClass(): Class<AirCompressorBlockEntity> {
         return AirCompressorBlockEntity::class.java
@@ -46,8 +52,8 @@ class AirCompressorBlock(properties: Properties?) : KineticBlock(properties), IN
         return ClockworkBlockEntities.AIR_COMPRESSOR.get()
     }
 
-    override fun hasShaftTowards(world: LevelReader?, pos: BlockPos?, state: BlockState?, face: Direction): Boolean {
-        return face == Direction.DOWN
+    override fun hasShaftTowards(world: LevelReader?, pos: BlockPos?, state: BlockState, face: Direction): Boolean {
+        return face == state.getValue(FACING).opposite
     }
 
     override fun getProductionStats(): Map<ResourceLocation, ProductionInfo> {
