@@ -29,11 +29,37 @@ pluginManagement {
     }
 }
 
-include("common")
-include("forge")
-include("fabric")
+val allPlatforms = listOf("forge", "fabric")
+val explicitPlatforms = providers.gradleProperty("targetPlatform").orNull
+    ?.split(",")
+    ?.map { it.trim().lowercase() }
+    ?.filter { it in allPlatforms }
+    ?.distinct()
+    ?.takeIf { it.isNotEmpty() }
 
-val kelvinTasksRequested = gradle.startParameter.taskNames.any { it.removePrefix(":").startsWith("kelvin:") }
+val requestedTaskNames = gradle.startParameter.taskNames
+val inferredPlatforms = if (explicitPlatforms == null && requestedTaskNames.isNotEmpty()) {
+    val taskPlatforms = requestedTaskNames.mapNotNull { task ->
+        val normalized = task.removePrefix(":")
+        when {
+            normalized.startsWith("forge:") -> "forge"
+            normalized.startsWith("fabric:") -> "fabric"
+            else -> null
+        }
+    }
+    if (taskPlatforms.size == requestedTaskNames.size) taskPlatforms.distinct() else null
+} else {
+    null
+}
+
+val selectedPlatforms = explicitPlatforms ?: inferredPlatforms ?: allPlatforms
+
+include("common")
+for (platform in selectedPlatforms) {
+    include(platform)
+}
+
+val kelvinTasksRequested = requestedTaskNames.any { it.removePrefix(":").startsWith("kelvin:") }
 if (kelvinTasksRequested || providers.gradleProperty("includeKelvin").orNull.toBoolean()) {
     val kelvin = file("Kelvin")
     require(kelvin.resolve("settings.gradle.kts").isFile || kelvin.resolve("settings.gradle").isFile) {

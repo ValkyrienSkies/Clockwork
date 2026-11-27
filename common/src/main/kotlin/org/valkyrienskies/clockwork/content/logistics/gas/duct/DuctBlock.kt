@@ -71,8 +71,6 @@ class DuctBlock(properties: Properties) : Block(properties), INodeBlock, IDuct, 
 
     //credit to NEEPMeat for the pipe implementation idea :3dsmile:
 
-    private val shapes: HashMap<BlockState, VoxelShape> = HashMap()
-
     val DIR_SHAPES: Map<Direction, VoxelShape> = ImmutableMap.Builder<Direction, VoxelShape>()
         .put(Direction.NORTH, box(3.0, 3.0, 0.0, 13.0, 13.0, 3.0))
         .put(Direction.EAST, box(13.0, 3.0, 3.0, 16.0, 13.0, 13.0))
@@ -80,6 +78,17 @@ class DuctBlock(properties: Properties) : Block(properties), INodeBlock, IDuct, 
         .put(Direction.WEST, box(0.0, 3.0, 3.0, 3.0, 13.0, 13.0))
         .put(Direction.UP, box(3.0, 13.0, 3.0, 13.0, 16.0, 13.0))
         .put(Direction.DOWN, box(3.0, 0.0, 3.0, 13.0, 3.0, 13.0)).build()
+
+    // Only SIDE connections affect the voxel shape, so there are 2^6 = 64 unique shapes across all 31,250 states.
+    private val shapesByMask: Array<VoxelShape> = Array(1 shl Direction.entries.size) { mask ->
+        var shape: VoxelShape = getCenterShape()
+        for (direction in Direction.entries) {
+            if ((mask and (1 shl direction.ordinal)) != 0) {
+                shape = Shapes.or(shape, DIR_SHAPES[direction]!!)
+            }
+        }
+        shape
+    }
 
 
     init {
@@ -92,10 +101,6 @@ class DuctBlock(properties: Properties) : Block(properties), INodeBlock, IDuct, 
                 .setValue(UP_CONNECTION, DuctConnectionType.NONE)
                 .setValue(DOWN_CONNECTION, DuctConnectionType.NONE)
         )
-
-        for (state: BlockState in this.stateDefinition.possibleStates) {
-            shapes[state] = getShapeForState(state)
-        }
     }
 
     override fun createBlockStateDefinition(builder: StateDefinition.Builder<Block, BlockState>) {
@@ -317,13 +322,13 @@ class DuctBlock(properties: Properties) : Block(properties), INodeBlock, IDuct, 
     }
 
     fun getShapeForState(state: BlockState): VoxelShape {
-        var shape: VoxelShape = getCenterShape()
+        var mask = 0
         for (direction in Direction.entries) {
             if (state.getValue(DIR_TO_CONNECTION[direction]!!) === DuctConnectionType.SIDE) {
-                shape = Shapes.or(shape, DIR_SHAPES[direction]!!)
+                mask = mask or (1 shl direction.ordinal)
             }
         }
-        return shape
+        return shapesByMask[mask]
     }
 
     override fun getVisualShape(
@@ -332,11 +337,11 @@ class DuctBlock(properties: Properties) : Block(properties), INodeBlock, IDuct, 
         pos: BlockPos,
         context: CollisionContext
     ): VoxelShape {
-        return shapes[state]!!
+        return getShapeForState(state)
     }
 
     override fun getShape(state: BlockState, level: BlockGetter, pos: BlockPos, context: CollisionContext): VoxelShape {
-        return shapes[state]!!
+        return getShapeForState(state)
     }
 
     override fun getRenderShape(state: BlockState): RenderShape {
