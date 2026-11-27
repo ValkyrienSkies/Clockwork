@@ -5,7 +5,6 @@ import net.minecraft.ChatFormatting
 import net.minecraft.client.gui.GuiGraphics
 import net.minecraft.network.chat.Component
 import net.minecraft.resources.ResourceLocation
-import org.valkyrienskies.clockwork.ClockworkConfig
 import org.valkyrienskies.clockwork.ClockworkLang
 import org.valkyrienskies.clockwork.ClockworkMod
 import org.valkyrienskies.clockwork.content.logistics.gas.crafter.GasCraftingRecipe
@@ -57,19 +56,6 @@ object GasThermalBar {
         }
     }
 
-    enum class ThermalTier(val langKey: String, val color: ChatFormatting) {
-        WARM("recipe.gas_thermal.tier.warm", ChatFormatting.GOLD),
-        KINDLED("recipe.gas_thermal.tier.kindled", ChatFormatting.GOLD),
-        SEETHING("recipe.gas_thermal.tier.seething", ChatFormatting.YELLOW),
-        NEAR_DUCT_LIMIT("recipe.gas_thermal.tier.near_duct_limit", ChatFormatting.RED),
-        MELTS_DUCTS("recipe.gas_thermal.tier.melts_ducts", ChatFormatting.RED),
-        SLIGHT_HEAT("recipe.gas_thermal.tier.slight_heat", ChatFormatting.GOLD),
-        RELEASES_HEAT("recipe.gas_thermal.tier.releases_heat", ChatFormatting.GOLD),
-        INTENSE_HEAT("recipe.gas_thermal.tier.intense_heat", ChatFormatting.RED),
-        COOLS("recipe.gas_thermal.tier.cools", ChatFormatting.AQUA),
-        HEAVY_COOLING("recipe.gas_thermal.tier.heavy_cooling", ChatFormatting.AQUA),
-    }
-
     data class ThermalInfo(
         val squares: Int,
         val energyJoules: Double,
@@ -78,7 +64,6 @@ object GasThermalBar {
         val showRedline: Boolean,
         val meltsDuct: Boolean,
         val isCrafting: Boolean,
-        val tier: ThermalTier,
     )
 
     fun mixtureHeatCapacity(gases: Map<GasType, Double>): Double {
@@ -90,17 +75,12 @@ object GasThermalBar {
         return total
     }
 
-    fun fromGasReaction(
-        recipe: GasBaseRecipe,
-        kindledTempK: Double = safeKindledTemp(),
-        seethingTempK: Double = safeSeethingTemp(),
-    ): ThermalInfo? {
+    fun fromGasReaction(recipe: GasBaseRecipe): ThermalInfo? {
         val energy = recipe.energy
         if (!energy.isFinite() || abs(energy) < 1e-6) return null
 
         if (energy < 0.0) {
             val squares = energyToCraftSquares(energy)
-            val tier = if (squares >= 7) ThermalTier.HEAVY_COOLING else ThermalTier.COOLS
             return ThermalInfo(
                 squares = squares,
                 energyJoules = energy,
@@ -109,7 +89,6 @@ object GasThermalBar {
                 showRedline = false,
                 meltsDuct = false,
                 isCrafting = false,
-                tier = tier,
             )
         }
 
@@ -119,13 +98,6 @@ object GasThermalBar {
             val burnTempK = (inCv * AMBIENT_TEMP_K + energy) / outCv
             val meltsDuct = burnTempK > STANDARD_DUCT_MAX_TEMP_K
             val squares = burnTempToSquares(burnTempK)
-            val tier = when {
-                meltsDuct -> ThermalTier.MELTS_DUCTS
-                burnTempK >= STANDARD_DUCT_MAX_TEMP_K - 50.0 -> ThermalTier.NEAR_DUCT_LIMIT
-                burnTempK >= seethingTempK -> ThermalTier.SEETHING
-                burnTempK >= kindledTempK -> ThermalTier.KINDLED
-                else -> ThermalTier.WARM
-            }
             return ThermalInfo(
                 squares = squares,
                 energyJoules = energy,
@@ -134,7 +106,6 @@ object GasThermalBar {
                 showRedline = true,
                 meltsDuct = meltsDuct,
                 isCrafting = false,
-                tier = tier,
             )
         }
 
@@ -147,7 +118,6 @@ object GasThermalBar {
             showRedline = false,
             meltsDuct = false,
             isCrafting = false,
-            tier = craftHeatTier(squares),
         )
     }
 
@@ -158,11 +128,6 @@ object GasThermalBar {
 
         val isCold = energy < 0.0
         val squares = energyToCraftSquares(energy)
-        val tier = if (isCold) {
-            if (squares >= 7) ThermalTier.HEAVY_COOLING else ThermalTier.COOLS
-        } else {
-            craftHeatTier(squares)
-        }
         return ThermalInfo(
             squares = squares,
             energyJoules = energy,
@@ -171,7 +136,6 @@ object GasThermalBar {
             showRedline = false,
             meltsDuct = false,
             isCrafting = true,
-            tier = tier,
         )
     }
 
@@ -191,20 +155,6 @@ object GasThermalBar {
         val t = ((logVal - CRAFT_LOG_MIN) / (CRAFT_LOG_MAX - CRAFT_LOG_MIN)).coerceIn(0.0, 1.0)
         return (1.0 + t * (TOTAL_SQUARES - 1)).roundToInt().coerceIn(1, TOTAL_SQUARES)
     }
-
-    private fun craftHeatTier(squares: Int): ThermalTier = when {
-        squares >= 7 -> ThermalTier.INTENSE_HEAT
-        squares >= 4 -> ThermalTier.RELEASES_HEAT
-        else -> ThermalTier.SLIGHT_HEAT
-    }
-
-    private fun safeKindledTemp(): Double = runCatching {
-        ClockworkConfig.SERVER.gasHeater.heaterKindledTemp.toDouble()
-    }.getOrDefault(800.0)
-
-    private fun safeSeethingTemp(): Double = runCatching {
-        ClockworkConfig.SERVER.gasHeater.heaterSeethingTemp.toDouble()
-    }.getOrDefault(1300.0)
 
     fun totalWidth(info: ThermalInfo): Int {
         val barWidth = if (info.showRedline) REDLINE_BAR_WIDTH else PLAIN_BAR_WIDTH
@@ -263,18 +213,30 @@ object GasThermalBar {
     }
 
     fun addTooltip(tooltip: ITooltipBuilder, info: ThermalInfo) {
-        tooltip.add(
-            ClockworkLang.translate(info.tier.langKey)
-                .style(info.tier.color)
-                .component()
+        val sign = if (info.energyJoules >= 0.0) "+" else "-"
+        val energyText = Component.literal(sign).append(
+            DuctTextUtil.translateEnergy(ClockworkLang.builder(), abs(info.energyJoules), true).component()
         )
+
+        if (info.isCrafting) {
+            val titleKey = if (info.isCold) "recipe.gas_thermal.absorbs_heat" else "recipe.gas_thermal.releases_heat"
+            val titleColor = if (info.isCold) ChatFormatting.AQUA else ChatFormatting.GOLD
+            tooltip.add(ClockworkLang.translate(titleKey).style(titleColor).component())
+            tooltip.add(
+                ClockworkLang.translate("recipe.gas_thermal.thermal_change", energyText)
+                    .style(ChatFormatting.GRAY)
+                    .component()
+            )
+            return
+        }
 
         val burnTemp = info.burnTempK
         if (burnTemp != null) {
             val formattedTemp = DuctTextUtil.translateTemperature(ClockworkLang.builder(), burnTemp, true).component()
+            val tempColor = if (info.meltsDuct) ChatFormatting.RED else ChatFormatting.GOLD
             tooltip.add(
                 ClockworkLang.translate("recipe.gas_thermal.burn_temp", formattedTemp)
-                    .style(ChatFormatting.WHITE)
+                    .style(tempColor)
                     .component()
             )
             if (info.meltsDuct) {
@@ -284,41 +246,21 @@ object GasThermalBar {
                         .style(ChatFormatting.RED)
                         .component()
                 )
-            } else if (burnTemp >= safeSeethingTemp()) {
-                tooltip.add(
-                    ClockworkLang.translate("recipe.gas_thermal.reaches_seething")
-                        .style(ChatFormatting.GRAY)
-                        .component()
-                )
-            } else if (burnTemp >= safeKindledTemp()) {
-                tooltip.add(
-                    ClockworkLang.translate("recipe.gas_thermal.reaches_kindled")
-                        .style(ChatFormatting.GRAY)
-                        .component()
-                )
             }
-        } else if (info.isCold) {
             tooltip.add(
-                ClockworkLang.translate("recipe.gas_thermal.endothermic_hint")
-                    .style(ChatFormatting.AQUA)
-                    .component()
-            )
-        } else if (info.isCrafting) {
-            tooltip.add(
-                ClockworkLang.translate("recipe.gas_thermal.exothermic_craft_hint")
+                ClockworkLang.translate("recipe.gas_thermal.heat_released", energyText)
                     .style(ChatFormatting.GRAY)
                     .component()
             )
+            return
         }
 
-        val sign = if (info.energyJoules >= 0.0) "+" else "-"
-        val energyText = Component.literal(sign).append(
-            DuctTextUtil.translateEnergy(ClockworkLang.builder(), abs(info.energyJoules), true).component()
-        )
-        val energyKey = if (info.isCrafting) "recipe.gas_thermal.energy_per_craft" else "recipe.gas_thermal.energy_per_batch"
+        val titleKey = if (info.isCold) "recipe.gas_thermal.absorbs_heat" else "recipe.gas_thermal.releases_heat"
+        val titleColor = if (info.isCold) ChatFormatting.AQUA else ChatFormatting.GOLD
+        tooltip.add(ClockworkLang.translate(titleKey).style(titleColor).component())
         tooltip.add(
-            ClockworkLang.translate(energyKey, energyText)
-                .style(ChatFormatting.DARK_GRAY)
+            ClockworkLang.translate("recipe.gas_thermal.heat_released", energyText)
+                .style(ChatFormatting.GRAY)
                 .component()
         )
     }

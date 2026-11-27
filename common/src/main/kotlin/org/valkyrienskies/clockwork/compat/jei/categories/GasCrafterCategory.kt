@@ -18,9 +18,9 @@ import mezz.jei.api.recipe.RecipeIngredientRole
 import net.minecraft.client.Minecraft
 import net.minecraft.client.gui.GuiGraphics
 import net.minecraft.world.item.ItemStack
-import org.valkyrienskies.clockwork.ClockworkGuiTextures
 import org.valkyrienskies.clockwork.compat.jei.ClockworkJEI.Companion.addInputGasSlot
 import org.valkyrienskies.clockwork.compat.jei.ClockworkJEI.Companion.addOutputGasSlot
+import org.valkyrienskies.clockwork.compat.jei.GasRequirementChips
 import org.valkyrienskies.clockwork.compat.jei.GasThermalBar
 import org.valkyrienskies.clockwork.compat.jei.animated_blocks.AnimatedGasCrafter
 import org.valkyrienskies.clockwork.content.logistics.gas.crafter.GasCraftingRecipe
@@ -70,17 +70,16 @@ class GasCrafterCategory(val info: Info<GasCraftingRecipe>, val guiHelper: IGuiH
         }
 
 
-        var i = if (requiredHeat == HeatCondition.NONE) 0 else 1
-
-        var first = true
-        if (recipe.gasRecipe?.requirements != null)
-        recipe.gasRecipe!!.requirements.forEach {
-            val screenElement = if (first) ClockworkGuiTextures.JEI_DARKER_BAR else ClockworkGuiTextures.JEI_DARKER_BAR_FULL
-            first = false
-            screenElement.render(graphics, 4, 80+20*i)
-            graphics.drawString(Minecraft.getInstance().font, it.key.get_text(it.value), 9, 86+20*i, 16777215, false)
-            i++
-        }
+        val reqStartY = if (noHeat) 82 else 102
+        GasRequirementChips.render(
+            graphics = graphics,
+            requirements = recipe.gasRecipe?.requirements,
+            centerX = width / 2,
+            startY = reqStartY,
+            mouseX = mouseX,
+            mouseY = mouseY,
+            isCombustionReaction = false,
+        )
     }
 
     override fun getTooltip(
@@ -90,11 +89,24 @@ class GasCrafterCategory(val info: Info<GasCraftingRecipe>, val guiHelper: IGuiH
         mouseX: Double,
         mouseY: Double
     ) {
-        val thermal = GasThermalBar.fromGasCrafting(recipe) ?: return
-        val bounds = GasThermalBar.boundsCentered(width / 2 + 3, 4, thermal)
-        if (bounds.contains(mouseX, mouseY)) {
-            GasThermalBar.addTooltip(tooltip, thermal)
+        val thermal = GasThermalBar.fromGasCrafting(recipe)
+        if (thermal != null) {
+            val bounds = GasThermalBar.boundsCentered(width / 2 + 3, 4, thermal)
+            if (bounds.contains(mouseX, mouseY)) {
+                GasThermalBar.addTooltip(tooltip, thermal)
+                return
+            }
         }
+        val reqStartY = if (recipe.getRequiredHeat() == HeatCondition.NONE) 82 else 102
+        GasRequirementChips.addTooltip(
+            tooltip = tooltip,
+            requirements = recipe.gasRecipe?.requirements,
+            centerX = width / 2,
+            startY = reqStartY,
+            mouseX = mouseX,
+            mouseY = mouseY,
+            isCombustionReaction = false,
+        )
     }
 
     override fun getWidth(): Int = 177
@@ -102,9 +114,9 @@ class GasCrafterCategory(val info: Info<GasCraftingRecipe>, val guiHelper: IGuiH
     override fun getHeight(): Int {
         val recipe = currentRecipe ?: return 83
 
-        val requirementCount = (if (recipe.requiredHeat != HeatCondition.NONE) 1 else 0) + (recipe.gasRecipe?.requirements?.size ?: return 83)
-        val calculatedHeight = 83 + (requirementCount * 20)
-        return calculatedHeight
+        val heatBarHeight = if (recipe.requiredHeat != HeatCondition.NONE) 20 else 0
+        val reqHeight = GasRequirementChips.measureHeight(recipe.gasRecipe?.requirements, isCombustionReaction = false)
+        return 83 + heatBarHeight + reqHeight
     }
 
     override fun setRecipe(

@@ -10,12 +10,11 @@ import mezz.jei.api.helpers.IGuiHelper
 import mezz.jei.api.recipe.IFocusGroup
 import mezz.jei.api.recipe.RecipeType
 import mezz.jei.api.recipe.category.IRecipeCategory
-import net.minecraft.client.Minecraft
 import net.minecraft.client.gui.GuiGraphics
 import net.minecraft.network.chat.Component
-import org.valkyrienskies.clockwork.ClockworkGuiTextures
 import org.valkyrienskies.clockwork.compat.jei.ClockworkJEI.Companion.addInputGasSlot
 import org.valkyrienskies.clockwork.compat.jei.ClockworkJEI.Companion.addOutputGasSlot
+import org.valkyrienskies.clockwork.compat.jei.GasRequirementChips
 import org.valkyrienskies.clockwork.compat.jei.GasThermalBar
 import org.valkyrienskies.clockwork.compat.jei.animated_blocks.AnimatedDuct
 import org.valkyrienskies.kelvin.api.GasType
@@ -51,8 +50,8 @@ class GasReactionCategory(val guiHelper: IGuiHelper) : IRecipeCategory<GasBaseRe
     override fun getHeight(): Int {
         val recipe = currentRecipe ?: return 20
 
-        val requirementCount = recipe.requirements.size
-        return topSectionHeight(recipe) + (requirementCount * 20)
+        val reqHeight = GasRequirementChips.measureHeight(recipe.requirements, isCombustionReaction = true)
+        return topSectionHeight(recipe) + reqHeight
     }
 
     override fun setRecipe(builder: IRecipeLayoutBuilder, recipe: GasBaseRecipe, focuses: IFocusGroup) {
@@ -99,13 +98,16 @@ class GasReactionCategory(val guiHelper: IGuiHelper) : IRecipeCategory<GasBaseRe
             GasThermalBar.render(graphics, width / 2, 20, thermal)
         }
 
-        val reqStartY = topSectionHeight(recipe)
-        var i = 0
-        recipe.requirements.forEach {
-            ClockworkGuiTextures.JEI_DARKER_BAR_FULL.render(graphics, 4, reqStartY + 20 * i)
-            graphics.drawString(Minecraft.getInstance().font, it.key.get_text(it.value), 7, reqStartY + 5 + 20 * i, 16777215)
-            i++
-        }
+        val reqStartY = topSectionHeight(recipe) + 1
+        GasRequirementChips.render(
+            graphics = graphics,
+            requirements = recipe.requirements,
+            centerX = width / 2,
+            startY = reqStartY,
+            mouseX = mouseX,
+            mouseY = mouseY,
+            isCombustionReaction = true,
+        )
     }
 
     override fun getTooltip(
@@ -115,10 +117,23 @@ class GasReactionCategory(val guiHelper: IGuiHelper) : IRecipeCategory<GasBaseRe
         mouseX: Double,
         mouseY: Double
     ) {
-        val thermal = GasThermalBar.fromGasReaction(recipe) ?: return
-        val bounds = GasThermalBar.boundsCentered(width / 2, 20, thermal)
-        if (bounds.contains(mouseX, mouseY)) {
-            GasThermalBar.addTooltip(tooltip, thermal)
+        val thermal = GasThermalBar.fromGasReaction(recipe)
+        if (thermal != null) {
+            val bounds = GasThermalBar.boundsCentered(width / 2, 20, thermal)
+            if (bounds.contains(mouseX, mouseY)) {
+                GasThermalBar.addTooltip(tooltip, thermal)
+                return
+            }
         }
+        val reqStartY = topSectionHeight(recipe) + 1
+        GasRequirementChips.addTooltip(
+            tooltip = tooltip,
+            requirements = recipe.requirements,
+            centerX = width / 2,
+            startY = reqStartY,
+            mouseX = mouseX,
+            mouseY = mouseY,
+            isCombustionReaction = true,
+        )
     }
 }

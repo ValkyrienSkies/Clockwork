@@ -7,6 +7,7 @@ import mezz.jei.api.recipe.category.IRecipeCategory;
 import mezz.jei.gui.recipes.RecipeGuiLogic;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
+import org.valkyrienskies.clockwork.compat.jei.categories.GasCrafterCategory;
 import org.valkyrienskies.clockwork.compat.jei.categories.GasReactionCategory;
 
 import java.util.Optional;
@@ -15,7 +16,7 @@ import java.util.function.Supplier;
 @Mixin(RecipeGuiLogic.class)
 public class MixinRecipeGuiLogic {
     /**
-     * This forces JEI to check the height of our recipe every time if its a GasReaction instead of using a previously cached height.
+     * This forces JEI to check the height of our recipe every time if its a GasReaction or GasCrafter instead of using a previously cached height.
      */
     @WrapOperation(
             method = "getVisibleRecipeLayoutsWithButtons",
@@ -23,7 +24,7 @@ public class MixinRecipeGuiLogic {
             require = 0
     )
     private static <T> T thingy(Optional instance, Supplier<? extends Integer> supplier, Operation<Integer> original, @Local IRecipeCategory<?> recipeCategory) {
-        if (recipeCategory instanceof GasReactionCategory) {
+        if (recipeCategory instanceof GasReactionCategory || recipeCategory instanceof GasCrafterCategory) {
             return (T) supplier.get();
         }
         return (T) original.call(instance, supplier);
