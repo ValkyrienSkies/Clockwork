@@ -25,7 +25,11 @@ loom {
     }
 }
 
-tasks.matching { it.name == "runClient" || it.name == "genIntellijRuns" }.configureEach {
+afterEvaluate {
+    rootProject.configureModernFixDevConfig(file(loom.runs.client.runDir), "fabric")
+}
+
+tasks.matching { it.name in ["runClient", "genIntellijRuns", "classes"] }.configureEach {
     doFirst {
         rootProject.configureModernFixDevConfig(file(loom.runs.client.runDir), "fabric")
     }

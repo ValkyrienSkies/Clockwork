@@ -159,6 +159,7 @@ processResources {
 }
 
 def useFastClientJvm = rootProject.devFastClientJvm
+def enableDevPerfMods = rootProject.devPerfModsEnabled
 
 loom {
     accessWidenerPath = project(":common").loom.accessWidenerPath
@@ -166,6 +167,12 @@ loom {
         client {
             vmArg "-Xms2G"
             vmArg "-Xmx4G"
+            if (enableDevPerfMods) {
+                // Architectury Loom 1.3 leaves two SRG @Shadow methods unremapped in ModernFix's Forge jar
+                // (Minecraft.m_231374_ in blast_search_trees and ModelBakery.m_119341_ in dynamic_resources).
+                property "modernfix.config.mixin.perf.blast_search_trees", "false"
+                property "modernfix.config.mixin.perf.dynamic_resources", "false"
+            }
             if (useFastClientJvm) {
                 vmArg "-XX:TieredStopAtLevel=1"
             }
@@ -188,7 +195,11 @@ loom {
     }
 }
 
-tasks.matching { it.name == "runClient" || it.name == "genIntellijRuns" }.configureEach {
+afterEvaluate {
+    rootProject.configureModernFixDevConfig(file(loom.runs.client.runDir), "forge")
+}
+
+tasks.matching { it.name in ["runClient", "genIntellijRuns", "classes"] }.configureEach {
     doFirst {
         rootProject.configureModernFixDevConfig(file(loom.runs.client.runDir), "forge")
     }
