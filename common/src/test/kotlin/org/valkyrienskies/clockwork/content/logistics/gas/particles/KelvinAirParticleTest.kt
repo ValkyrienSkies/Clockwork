@@ -92,14 +92,13 @@ class KelvinAirParticleTest {
     @Test
     fun `twirl offset starts at zero and stays bounded within twirl radius`() {
         val radius = 1f / 6f
-        val start = KelvinAirParticle.computeTwirlOffset(0f, radius, 42f, Direction.Axis.X)
+        val start = KelvinAirParticle.computeTwirlOffset(0, radius, 42f, Direction.Axis.X)
         assertEquals(0.0, start.length(), 1e-6)
 
         for (axis in listOf(Direction.Axis.X, Direction.Axis.Z)) {
-            for (step in 1..20) {
-                val progress = step / 20f
-                val offset = KelvinAirParticle.computeTwirlOffset(progress, radius, 90f, axis)
-                assertTrue(offset.length() <= radius + 1e-5, "Offset exceeded radius at progress=$progress")
+            for (age in 1..40) {
+                val offset = KelvinAirParticle.computeTwirlOffset(age, radius, 90f, axis)
+                assertTrue(offset.length() <= radius + 1e-5, "Offset exceeded radius at age=$age")
                 if (axis == Direction.Axis.X) {
                     assertEquals(0.0, abs(offset.x), 1e-6)
                 } else {
@@ -107,6 +106,24 @@ class KelvinAirParticleTest {
                 }
             }
         }
+    }
+
+    @Test
+    fun `thermal lift matches DefaultGasParticle plume rise at low speed and attenuates at high speed`() {
+        // Low-speed exhaust emission should rise multiple blocks like DefaultGasParticle for air
+        var y = 0.0
+        var vy = 0.02
+        repeat(50) {
+            y += vy
+            vy *= KelvinAirParticle.DRAG
+            vy += KelvinAirParticle.computeThermalLift(0.0, vy, 0.0)
+        }
+        assertTrue(y > 4.0, "Expected low-speed air exhaust to rise > 4 blocks over 50 ticks, got $y")
+
+        // High-speed jet should have strongly attenuated thermal lift so it does not bend upward
+        val lowSpeedLift = KelvinAirParticle.computeThermalLift(0.0, 0.02, 0.0)
+        val highSpeedLift = KelvinAirParticle.computeThermalLift(0.4, 0.0, 0.0)
+        assertTrue(highSpeedLift < lowSpeedLift * 0.1, "Expected high-speed lift ($highSpeedLift) << low-speed lift ($lowSpeedLift)")
     }
 
     @Test

@@ -62,7 +62,7 @@ class KelvinAirParticle(
         twirlAngleOffset = random.nextFloat() * 360f
         twirlAxis = if (random.nextBoolean()) Direction.Axis.X else Direction.Axis.Z
 
-        lifetime = MIN_LIFETIME + random.nextInt(LIFETIME_RANGE)
+        lifetime = (lifetime * LIFETIME_MULT).toInt().coerceAtLeast(1)
         setAlpha(BASE_ALPHA)
         setSpriteFromAge(sprites)
     }
@@ -86,9 +86,10 @@ class KelvinAirParticle(
         velX *= DRAG
         velY *= DRAG
         velZ *= DRAG
+        velY += computeThermalLift(velX, velY, velZ)
 
         val progress = age.toFloat() / lifetime.toFloat()
-        val twirlOffset = computeTwirlOffset(progress, twirlRadius, twirlAngleOffset, twirlAxis)
+        val twirlOffset = computeTwirlOffset(age, twirlRadius, twirlAngleOffset, twirlAxis)
 
         val nextX = centerX + twirlOffset.x
         val nextY = centerY + twirlOffset.y
@@ -116,22 +117,35 @@ class KelvinAirParticle(
         const val BASE_ALPHA = 0.25f
         const val SIZE_MULTIPLIER = 0.75f
         const val DRAG = 0.94
-        const val MIN_LIFETIME = 25
-        const val LIFETIME_RANGE = 16
+        const val THERMAL_LIFT = 0.02
+        const val BUOYANCY_GATING_K = 200.0
+        const val LIFETIME_MULT = 1.75
         private const val TWIRL_RADIUS_DIVISOR = 6f
-        private const val TWIRL_RAMP_RATE = 4f
+        private const val TWIRL_DEGREES_PER_TICK = 18f
+        private const val TWIRL_RAMP_TICKS = 6f
         private const val FADE_OUT_START = 0.75f
-        private const val VELOCITY_JITTER = 0.05
-        private const val MIN_JITTER = 0.003
+        private const val VELOCITY_JITTER = 0.15
+        private const val MIN_JITTER = 0.005
+
+        /**
+         * Matches `DefaultGasParticle`'s neutral-density thermal lift: at low speeds particles rise
+         * cleanly out of exhausts/vents, while at high jet velocities inertia dominates so
+         * horizontal thrusters/exhausts do not sharply bend upward.
+         */
+        fun computeThermalLift(velX: Double, velY: Double, velZ: Double): Double {
+            val speedSq = velX * velX + velY * velY + velZ * velZ
+            val buoyancyFactor = 1.0 / (1.0 + BUOYANCY_GATING_K * speedSq)
+            return THERMAL_LIFT * buoyancyFactor
+        }
 
         fun computeTwirlOffset(
-            progress: Float,
+            age: Int,
             twirlRadius: Float,
             twirlAngleOffset: Float,
             twirlAxis: Direction.Axis
         ): Vec3 {
-            val angle = (progress * 2f * 360f + twirlAngleOffset) % 360f
-            val ramp = (progress * TWIRL_RAMP_RATE).coerceIn(0f, 1f)
+            val angle = (age * TWIRL_DEGREES_PER_TICK + twirlAngleOffset) % 360f
+            val ramp = (age / TWIRL_RAMP_TICKS).coerceIn(0f, 1f)
             return VecHelper.rotate(
                 Vec3(0.0, (twirlRadius * ramp).toDouble(), 0.0),
                 angle.toDouble(),
