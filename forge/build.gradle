@@ -167,6 +167,9 @@ loom {
         client {
             vmArg "-Xms2G"
             vmArg "-Xmx4G"
+            // Enable DCEVM enhanced HotSwap on JetBrains Runtime (ignored on non-JBR JDKs).
+            vmArg "-XX:+IgnoreUnrecognizedVMOptions"
+            vmArg "-XX:+AllowEnhancedClassRedefinition"
             if (enableDevPerfMods) {
                 // Architectury Loom 1.3 leaves two SRG @Shadow methods unremapped in ModernFix's Forge jar
                 // (Minecraft.m_231374_ in blast_search_trees and ModelBakery.m_119341_ in dynamic_resources).

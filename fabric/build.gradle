@@ -18,6 +18,9 @@ loom {
         client {
             vmArg "-Xms2G"
             vmArg "-Xmx4G"
+            // Enable DCEVM enhanced HotSwap on JetBrains Runtime (ignored on non-JBR JDKs).
+            vmArg "-XX:+IgnoreUnrecognizedVMOptions"
+            vmArg "-XX:+AllowEnhancedClassRedefinition"
             if (useFastClientJvm) {
                 vmArg "-XX:TieredStopAtLevel=1"
             }
