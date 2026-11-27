@@ -57,8 +57,8 @@ object GasBacktankGauge {
     }
 
     fun needleAngleDegrees(fill: Float): Float {
-        if (!fill.isFinite()) return 0f
-        return fill.coerceIn(0f, 1f) * MAX_NEEDLE_DEGREES
+        if (!fill.isFinite()) return MAX_NEEDLE_DEGREES
+        return (1f - fill.coerceIn(0f, 1f)) * MAX_NEEDLE_DEGREES
     }
 
     fun needleAngleDegrees(
