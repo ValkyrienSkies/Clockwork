@@ -12,7 +12,7 @@
   "requirements": {
     "kelvin:min_temperature": 385
   },
-  "energy": 4656,
+  "energy": 4956,
   "result_gasses": {
     "vs_clockwork:exhaust": {
       "amount": 0.003,
