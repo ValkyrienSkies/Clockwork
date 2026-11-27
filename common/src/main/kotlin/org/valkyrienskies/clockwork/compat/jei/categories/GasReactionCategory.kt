@@ -17,6 +17,7 @@ import org.valkyrienskies.clockwork.ClockworkGuiTextures
 import org.valkyrienskies.clockwork.compat.jei.ClockworkJEI.Companion.addInputGasSlot
 import org.valkyrienskies.clockwork.compat.jei.ClockworkJEI.Companion.addOutputGasSlot
 import org.valkyrienskies.clockwork.compat.jei.GasThermalBar
+import org.valkyrienskies.clockwork.compat.jei.animated_blocks.AnimatedDuct
 import org.valkyrienskies.kelvin.api.GasType
 import org.valkyrienskies.kelvin.api.recipe.GasBaseRecipe
 import org.valkyrienskies.kelvin.api.recipe.KelvinGasIngredient
@@ -26,6 +27,7 @@ import javax.annotation.ParametersAreNonnullByDefault
 
 @ParametersAreNonnullByDefault
 class GasReactionCategory(val guiHelper: IGuiHelper) : IRecipeCategory<GasBaseRecipe> {
+    private val duct = AnimatedDuct()
     private var currentRecipe: GasBaseRecipe? = null
 
     override fun getRecipeType(): RecipeType<GasBaseRecipe> {
