@@ -10,6 +10,7 @@ import com.simibubi.create.foundation.gui.AllGuiTextures
 import com.simibubi.create.foundation.item.ItemHelper
 import com.simibubi.create.foundation.utility.CreateLang
 import mezz.jei.api.gui.builder.IRecipeLayoutBuilder
+import mezz.jei.api.gui.builder.ITooltipBuilder
 import mezz.jei.api.gui.ingredient.IRecipeSlotsView
 import mezz.jei.api.helpers.IGuiHelper
 import mezz.jei.api.recipe.IFocusGroup
@@ -20,6 +21,7 @@ import net.minecraft.world.item.ItemStack
 import org.valkyrienskies.clockwork.ClockworkGuiTextures
 import org.valkyrienskies.clockwork.compat.jei.ClockworkJEI.Companion.addInputGasSlot
 import org.valkyrienskies.clockwork.compat.jei.ClockworkJEI.Companion.addOutputGasSlot
+import org.valkyrienskies.clockwork.compat.jei.GasThermalBar
 import org.valkyrienskies.clockwork.compat.jei.animated_blocks.AnimatedGasCrafter
 import org.valkyrienskies.clockwork.content.logistics.gas.crafter.GasCraftingRecipe
 import org.valkyrienskies.clockwork.platform.GasCrafterJEI.addFluidOutputSlots
@@ -63,6 +65,10 @@ class GasCrafterCategory(val info: Info<GasCraftingRecipe>, val guiHelper: IGuiH
             .draw(graphics, width / 2 + 3, 55)
         crafter.draw(graphics, width / 2 + 3, 34)
 
+        GasThermalBar.fromGasCrafting(recipe)?.let { thermal ->
+            GasThermalBar.render(graphics, width / 2 + 3, 4, thermal)
+        }
+
 
         var i = if (requiredHeat == HeatCondition.NONE) 0 else 1
 
@@ -74,6 +80,20 @@ class GasCrafterCategory(val info: Info<GasCraftingRecipe>, val guiHelper: IGuiH
             screenElement.render(graphics, 4, 80+20*i)
             graphics.drawString(Minecraft.getInstance().font, it.key.get_text(it.value), 9, 86+20*i, 16777215, false)
             i++
+        }
+    }
+
+    override fun getTooltip(
+        tooltip: ITooltipBuilder,
+        recipe: GasCraftingRecipe,
+        recipeSlotsView: IRecipeSlotsView,
+        mouseX: Double,
+        mouseY: Double
+    ) {
+        val thermal = GasThermalBar.fromGasCrafting(recipe) ?: return
+        val bounds = GasThermalBar.boundsCentered(width / 2 + 3, 4, thermal)
+        if (bounds.contains(mouseX, mouseY)) {
+            GasThermalBar.addTooltip(tooltip, thermal)
         }
     }
 
