@@ -1,0 +1,22 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    " P ",
+    "DTD",
+    " P "
+  ],
+  "key": {
+    "P": {
+      "item": "create:iron_sheet"
+    },
+    "D": {
+      "item": "vs_clockwork:duct"
+    },
+    "T": {
+      "item": "create:fluid_tank"
+    }
+  },
+  "result": {
+    "item": "vs_clockwork:gas_engine"
+  }
+}
