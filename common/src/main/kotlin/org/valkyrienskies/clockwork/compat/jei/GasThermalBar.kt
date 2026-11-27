@@ -33,8 +33,11 @@ object GasThermalBar {
     private const val REDLINE_GAP = 3
     private const val ICON_SIZE = 9
     private const val ICON_GAP = 2
-    private const val WARN_SIZE = 7
+    private const val WARN_WIDTH = 7
+    private const val WARN_HEIGHT = 8
     private const val WARN_GAP = 2
+    private const val WARN_U = 207
+    private const val WARN_V = 1
     private const val REDLINE_BAR_WIDTH = 56
     private const val PLAIN_BAR_WIDTH = 53
 
@@ -158,7 +161,7 @@ object GasThermalBar {
 
     fun totalWidth(info: ThermalInfo): Int {
         val barWidth = if (info.showRedline) REDLINE_BAR_WIDTH else PLAIN_BAR_WIDTH
-        val warnExtra = if (info.meltsDuct) WARN_GAP + WARN_SIZE else 0
+        val warnExtra = if (info.meltsDuct) WARN_GAP + WARN_WIDTH else 0
         return ICON_SIZE + ICON_GAP + barWidth + warnExtra
     }
 
@@ -166,7 +169,7 @@ object GasThermalBar {
         val barWidth = if (info.showRedline) REDLINE_BAR_WIDTH else PLAIN_BAR_WIDTH
         val barX = centerX - barWidth / 2
         val leftX = barX - ICON_GAP - ICON_SIZE
-        val rightX = barX + barWidth + if (info.meltsDuct) WARN_GAP + WARN_SIZE else 0
+        val rightX = barX + barWidth + if (info.meltsDuct) WARN_GAP + WARN_WIDTH else 0
         return Bounds(leftX, y, rightX - leftX, BAR_HEIGHT)
     }
 
@@ -206,7 +209,7 @@ object GasThermalBar {
         // 4. Right melt warning [!] badge when exceeding standard duct limit
         if (info.meltsDuct) {
             val warnX = barX + barWidth + WARN_GAP
-            graphics.blit(TEXTURE, warnX, y + 2, 0, 206f, 1f, WARN_SIZE, WARN_SIZE, 256, 256)
+            graphics.blit(TEXTURE, warnX, y + 2, 0, WARN_U.toFloat(), WARN_V.toFloat(), WARN_WIDTH, WARN_HEIGHT, 256, 256)
         }
 
         return bounds
