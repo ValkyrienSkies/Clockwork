@@ -17,6 +17,7 @@ import org.joml.Quaterniondc
 import org.joml.Vector3d
 import org.valkyrienskies.clockwork.content.contraptions.phys.hinge.HingeLinks
 import org.valkyrienskies.clockwork.content.curiosities.rope.RopeKnotItem
+import org.valkyrienskies.clockwork.content.kinetics.combobulator.CombobulatorNetwork
 import org.valkyrienskies.clockwork.content.kinetics.combobulator.ThinkableItem
 import org.valkyrienskies.core.internal.joints.VSJointPose
 import org.valkyrienskies.mod.common.getShipManagingPos
@@ -89,6 +90,7 @@ object WandLinkTransfer {
             data.resetJoints(level, link)
             if (a != null) { link.pose0 = pose(link.pose0, link.a, a); link.a = a.anchor }
             if (b != null) { link.pose1 = pose(link.pose1, link.b, b); link.b = b.anchor }
+            if (link.thinkable) CombobulatorNetwork.markDirty(level)
             if (link.strut && link.a.shipId == link.b.shipId) {
                 link.pose0 = link.pose1
                 val start = link.a.world(level)

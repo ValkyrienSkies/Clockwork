@@ -52,6 +52,7 @@ import org.valkyrienskies.clockwork.content.schematics.VdexBlueprintLibrary
 import org.valkyrienskies.clockwork.content.schematics.VdexConstruction
 import org.valkyrienskies.clockwork.content.curiosities.tools.gravitron.GravitronFrozenShip
 import org.valkyrienskies.clockwork.content.curiosities.tools.wanderwand.WanderwandServer
+import org.valkyrienskies.clockwork.content.kinetics.combobulator.CombobulatorNetwork
 import org.valkyrienskies.clockwork.content.forces.*
 import org.valkyrienskies.clockwork.content.forces.GravitronController
 import org.valkyrienskies.clockwork.content.forces.contraption.BearingController
@@ -194,6 +195,15 @@ object ClockworkMod {
             HarpoonProjectiles.clear()
             GatemakyrServer.clear()
             BalloonPocketGasEffects.clear()
+            CombobulatorNetwork.clear()
+        }
+
+        LifecycleEvent.SERVER_LEVEL_UNLOAD.register {
+            CombobulatorNetwork.clear(it)
+        }
+
+        TickEvent.SERVER_LEVEL_PRE.register {
+            CombobulatorNetwork.tick(it)
         }
 
         TickEvent.SERVER_LEVEL_POST.register {

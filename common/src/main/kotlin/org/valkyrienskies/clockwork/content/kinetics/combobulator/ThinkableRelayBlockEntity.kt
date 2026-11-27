@@ -25,15 +25,15 @@ class ThinkableRelayBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: 
     override fun thinkableValue(side: Direction) = thinkableValue(side, "")
 
     override fun thinkableValue(side: Direction, reading: String): Double? {
-        val source = source(side) ?: return null
+        val source = resolveSource(side) ?: return null
         return source.device?.thinkableValue(source.side, reading)?.takeIf { it.isFinite() }
     }
 
-    override fun thinkableReadings(side: Direction) = source(side)?.let {
+    override fun thinkableReadings(side: Direction) = resolveSource(side)?.let {
         it.device?.thinkableReadings(it.side)
     } ?: emptyList()
 
-    private fun source(side: Direction): ThinkableConnections.Source? {
+    internal fun resolveSource(side: Direction): ThinkableConnections.Source? {
         var device: Thinkable = this
         var output = side
         val visited = mutableSetOf<ThinkableRelayBlockEntity>()

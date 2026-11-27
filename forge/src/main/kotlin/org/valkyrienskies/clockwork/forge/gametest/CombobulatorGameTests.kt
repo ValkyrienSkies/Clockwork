@@ -141,6 +141,63 @@ class CombobulatorGameTests {
         }
 
         @JvmStatic
+        @GameTest(template = TEMPLATE, batch = BATCH)
+        fun deepCombinationalChainSettlesInSingleTickRegardlessOfPlacementOrder(helper: GameTestHelper) {
+            val base = helper.absolutePos(BlockPos(1, 3, 1))
+            // Place downstream nodes first so block-entity tick order is reversed relative to dataflow.
+            val stages = (5 downTo 0).map { index ->
+                val p = base.east(index)
+                val program = if (index == 0) {
+                    CombobulatorProgram.controller().copy(channels = listOf(
+                        CombobulatorChannel(0, "A", true, constant = 1.0),
+                        CombobulatorChannel(1, "B", true, constant = 1.0),
+                        CombobulatorChannel(3, "Output", false, face = CombobulatorFace.RIGHT, device = true)))
+                } else {
+                    CombobulatorProgram.controller().copy(channels = listOf(
+                        CombobulatorChannel(0, "A", true, face = CombobulatorFace.LEFT, device = true),
+                        CombobulatorChannel(1, "B", true, constant = 1.0),
+                        CombobulatorChannel(3, "Output", false, face = CombobulatorFace.RIGHT, device = true)))
+                }
+                index to place(helper, p, program)
+            }.toMap()
+            val tail = stages.getValue(5)
+            // First tick after placement settles all 6 stages (1+1+1+1+1+1+1 = 7.0) without 6-tick cascade lag.
+            helper.runAtTickTime(1) {
+                helper.assertTrue(tail.value(3) == 7.0, "6-stage chain did not settle in 1 tick: ${tail.value(3)}")
+                // Change root input and verify the change propagates through all 6 stages on the very next tick.
+                val root = stages.getValue(0)
+                root.updateProgram(CombobulatorProgram.controller().copy(channels = listOf(
+                    CombobulatorChannel(0, "A", true, constant = 10.0),
+                    CombobulatorChannel(1, "B", true, constant = 1.0),
+                    CombobulatorChannel(3, "Output", false, face = CombobulatorFace.RIGHT, device = true))), root.revision)
+            }
+            helper.runAtTickTime(2) {
+                helper.assertTrue(tail.value(3) == 16.0, "Updated input did not propagate through all 6 stages in 1 tick: ${tail.value(3)}")
+                helper.succeed()
+            }
+        }
+
+        @JvmStatic
+        @GameTest(template = TEMPLATE, batch = BATCH)
+        fun delayFeedbackLoopIntegratesOncePerTick(helper: GameTestHelper) {
+            val pos = helper.absolutePos(BlockPos(1, 3, 1))
+            val delay = place(helper, pos.east(), CombobulatorProgram.controller(
+                CombobulatorOperation(CombobulatorFunction.DELAY, ticks = 1)).copy(channels = listOf(
+                CombobulatorChannel(0, "A", true, face = CombobulatorFace.LEFT, device = true),
+                CombobulatorChannel(3, "Output", false, face = CombobulatorFace.TOP, thinkable = true))))
+            val adder = place(helper, pos, CombobulatorProgram.controller().copy(channels = listOf(
+                CombobulatorChannel(0, "A", true, face = CombobulatorFace.TOP, thinkable = true),
+                CombobulatorChannel(1, "B", true, constant = 1.0),
+                CombobulatorChannel(3, "Output", false, face = CombobulatorFace.RIGHT, device = true))))
+            helper.assertTrue(adder.connectThinkable(Direction.UP, WandAnchor.at(helper.level, delay.blockPos, Direction.UP)), "Delay feedback cable failed")
+            helper.runAtTickTime(5) {
+                helper.assertTrue(adder.value(3) == 5.0 && delay.value(3) == 4.0,
+                    "DELAY(1) integrator drifted from 1 step/tick: adder=${adder.value(3)}, delay=${delay.value(3)}")
+                helper.succeed()
+            }
+        }
+
+        @JvmStatic
         @GameTest(template = TEMPLATE, batch = BATCH, timeoutTicks = 100)
         fun thinkablePulseArrivesThenStopsWhenInputIsDisabled(helper: GameTestHelper) {
             val pos = helper.absolutePos(BlockPos(1, 3, 1))

@@ -24,6 +24,7 @@ import org.valkyrienskies.clockwork.content.curiosities.rope.RopeKnotPhysics
 import org.valkyrienskies.clockwork.content.curiosities.rope.RopeKnotServer
 import org.valkyrienskies.clockwork.content.curiosities.rope.RopeWinchBlockEntity
 import org.valkyrienskies.clockwork.content.curiosities.harpoon.EntityHarpoonTether
+import org.valkyrienskies.clockwork.content.kinetics.combobulator.CombobulatorNetwork
 import org.valkyrienskies.clockwork.content.kinetics.combobulator.ThinkableSignals
 import org.valkyrienskies.clockwork.content.kinetics.combobulator.ThinkableConnections
 import java.util.UUID
@@ -118,6 +119,7 @@ class WandLinks : SavedData() {
             physical && (rope || strut), spring, thinkable, harpoon, strut)
         links[link.id] = link
         setDirty()
+        if (link.thinkable) CombobulatorNetwork.markDirty(level)
         if (link.entityTether == null) ensureJoint(level, link)
         if (link.physical) RopeKnotServer.ensureKnots(level, link)
         return link
@@ -136,6 +138,7 @@ class WandLinks : SavedData() {
             listOf(link.a, link.b).any { !level.hasChunkAt(it.pos) || level.getBlockState(it.pos).isAir }) return false
         links[link.id] = link
         setDirty()
+        if (link.thinkable) CombobulatorNetwork.markDirty(level)
         ensureJoint(level, link)
         if (link.physical) RopeKnotServer.ensureKnots(level, link)
         return true
@@ -171,6 +174,7 @@ class WandLinks : SavedData() {
         if (links[link.id] !== link) return
         if (link.thinkable) ThinkableConnections.device(level, link.b)?.receiveThinkable(link.b.face, null)
         links.remove(link.id)
+        if (link.thinkable) CombobulatorNetwork.markDirty(level)
         link.entityTether?.clear(level)
         link.knotA?.let { level.getEntity(it)?.discard() }
         link.knotB?.let { level.getEntity(it)?.discard() }
@@ -225,6 +229,7 @@ class WandLinks : SavedData() {
                 if (link.thinkable) {
                     link.pulseStart = -1; link.pulseArrived = true
                     ThinkableConnections.device(level, link.b)?.receiveThinkable(link.b.face, null)
+                    if (!link.suspended) CombobulatorNetwork.markDirty(level)
                 }
                 link.previousDistance = null; link.age = 0; link.missingTicks = 0; link.suspended = true
                 continue
@@ -238,6 +243,7 @@ class WandLinks : SavedData() {
                     link.alignmentId = null
                 }
                 link.suspended = false
+                if (link.thinkable) CombobulatorNetwork.markDirty(level)
             }
             if (link.spring || link.rope) refreshConnectedMass(level, link)
             if (link.spring) {

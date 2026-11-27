@@ -12,6 +12,11 @@ enum class CombobulatorFunction(val inputs: Int) {
     DELAY(1), PULSE(1), TIMER(1), LATCH(2), COUNTER(2), SWITCH(3), REGISTER(2);
 
     val timed get() = this == DELAY || this == PULSE || this == TIMER
+    val sequential get() = when (this) {
+        DELAY, PULSE, TIMER, LATCH, COUNTER, REGISTER -> true
+        ADD, SUBTRACT, MULTIPLY, DIVIDE, FLOOR, CEIL, MODULO,
+        COMPARE, AND, OR, NOT, XOR, NAND, NOR, XNOR, SWITCH -> false
+    }
     val booleanOutput get() = this in setOf(COMPARE, AND, OR, NOT, XOR, NAND, NOR, XNOR, PULSE, TIMER, LATCH)
     val group get() = when (this) {
         ADD, SUBTRACT, MULTIPLY, DIVIDE, FLOOR, CEIL, MODULO -> CombobulatorGroup.ARITHMETIC
@@ -69,6 +74,11 @@ internal class CombobulatorOperationRuntime {
         private set
     var fault: CombobulatorFault? = null
         private set
+
+    fun peekDelayOutput(operation: CombobulatorOperation): Double {
+        if (!output.isFinite()) return output
+        return if (delay.size >= operation.ticks) delay.first() else 0.0
+    }
 
     fun tick(operation: CombobulatorOperation, inputs: DoubleArray) {
         fault = null

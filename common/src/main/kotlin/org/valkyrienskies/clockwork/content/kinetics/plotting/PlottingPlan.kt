@@ -8,6 +8,7 @@ import net.minecraft.nbt.Tag
 import org.valkyrienskies.clockwork.content.kinetics.combobulator.CombobulatorFunction
 import org.valkyrienskies.clockwork.content.kinetics.combobulator.CombobulatorOperation
 import org.valkyrienskies.clockwork.content.kinetics.combobulator.CombobulatorOperationRuntime
+import org.valkyrienskies.clockwork.content.kinetics.combobulator.CombobulatorScheduler
 import kotlin.math.roundToInt
 
 enum class PlottingKind { FUNCTION, CONSTANT, INPUT, OUTPUT }
@@ -147,29 +148,66 @@ internal class PlottingSimulation {
     }
 
     fun tick(plan: PlottingPlan) {
-        val snapshot = values.toMutableMap()
+        val previous = values.toMutableMap()
         plan.nodes.filter { it.kind == PlottingKind.CONSTANT || it.kind == PlottingKind.INPUT }
-            .forEach { snapshot[it.id] = inputValue(it) }
+            .forEach { previous[it.id] = inputValue(it) }
         val sources = plan.nodes.filter { it.hasOutput }.map { it.id }.toSet()
         val nodes = plan.nodes.associateBy { it.id }
-        val next = mutableMapOf<Int, Double>()
-        for (node in plan.nodes) {
-            val inputs = DoubleArray(3) { index ->
-                val binding = node.inputs[index]
-                val source = nodes[binding.source]
-                val connected = binding.source in sources && (binding.connection != PlottingConnection.ADJACENT ||
-                    source != null && node.touches(source, index))
-                val value = if (binding.source == null) binding.constant else snapshot[binding.source].takeIf { connected } ?: Double.NaN
-                if (binding.connection != PlottingConnection.LINK || binding.source == null) value else if (!value.isFinite()) 0.0 else value.coerceIn(0.0, 15.0).roundToInt().toDouble()
+
+        fun connectedSource(node: PlottingNode, index: Int): PlottingNode? {
+            val binding = node.inputs[index]
+            val sourceId = binding.source ?: return null
+            if (sourceId !in sources) return null
+            val source = nodes[sourceId] ?: return null
+            if (binding.connection == PlottingConnection.ADJACENT && !node.touches(source, index)) return null
+            return source
+        }
+
+        val batches = CombobulatorScheduler.schedule(
+            nodes = plan.nodes,
+            dependencies = { node ->
+                (0 until node.inputCount).mapNotNull { index -> connectedSource(node, index) }
+            },
+            isSequential = { node ->
+                node.kind == PlottingKind.FUNCTION && node.operation.function.sequential
+            },
+        )
+
+        val current = previous.toMutableMap()
+        for (batch in batches) {
+            val sampled = batch.nodes.map { node ->
+                val inputs = DoubleArray(3) { index ->
+                    val binding = node.inputs[index]
+                    val value = if (binding.source == null) {
+                        binding.constant
+                    } else {
+                        val source = connectedSource(node, index)
+                        if (source == null) Double.NaN
+                        else if (source in batch.preTickReads) preTickValue(source, previous)
+                        else current[source.id] ?: Double.NaN
+                    }
+                    if (binding.connection != PlottingConnection.LINK || binding.source == null) value
+                    else if (!value.isFinite()) 0.0 else value.coerceIn(0.0, 15.0).roundToInt().toDouble()
+                }
+                node to inputs
             }
-            next[node.id] = when (node.kind) {
-                PlottingKind.FUNCTION -> runtimes.getOrPut(node.id) { CombobulatorOperationRuntime() }
-                    .apply { tick(node.operation, inputs) }.output
-                PlottingKind.CONSTANT, PlottingKind.INPUT -> inputValue(node)
-                PlottingKind.OUTPUT -> inputs[0]
+            for ((node, inputs) in sampled) {
+                current[node.id] = when (node.kind) {
+                    PlottingKind.FUNCTION -> runtimes.getOrPut(node.id) { CombobulatorOperationRuntime() }
+                        .apply { tick(node.operation, inputs) }.output
+                    PlottingKind.CONSTANT, PlottingKind.INPUT -> inputValue(node)
+                    PlottingKind.OUTPUT -> inputs[0]
+                }
             }
         }
-        values = next
+        values = plan.nodes.associate { it.id to (current[it.id] ?: Double.NaN) }
         ticks++
+    }
+
+    private fun preTickValue(source: PlottingNode, previous: Map<Int, Double>): Double {
+        if (source.kind == PlottingKind.FUNCTION && source.operation.function == CombobulatorFunction.DELAY) {
+            return runtimes[source.id]?.peekDelayOutput(source.operation) ?: 0.0
+        }
+        return previous[source.id] ?: 0.0
     }
 }

@@ -45,6 +45,13 @@ class CombobulatorBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: Bl
     private var signals = DoubleArray(CombobulatorProgram.MAX_CHANNELS)
     private var previousSignals = signals.copyOf()
     private var evaluatedAt = Long.MIN_VALUE
+    internal val isSequentialNode: Boolean
+        get() = program.operation?.function?.sequential ?: true
+    internal val hasWirelessInput: Boolean
+        get() = program.channels.any { it.input && it.wireless && it.constant == null && it.bound }
+    internal val needsPreparation: Boolean
+        get() = !linksReady || cables.isNotEmpty() ||
+            blockState.getValue(CombobulatorBlock.FUNCTION_GROUP) != (program.operation?.function?.group ?: CombobulatorGroup.DEFAULT)
     private val faceSignals = IntArray(Direction.entries.size)
     private val links = mutableMapOf<Int, ChannelLink>()
     private val cables = mutableMapOf<CombobulatorFace, WandAnchor>()
@@ -56,11 +63,29 @@ class CombobulatorBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: Bl
         private set
     private val network get() = Create.REDSTONE_LINK_NETWORK_HANDLER
 
+    init {
+        setLazyTickRate(4)
+    }
+
     override fun addBehaviours(behaviours: MutableList<BlockEntityBehaviour>) = Unit
 
-    override fun tick() {
-        super.tick()
+    // Runs whenever this block entity is placed or loaded into a level, before its first tick.
+    override fun setLevel(level: Level) {
+        super.setLevel(level)
+        if (level is ServerLevel) CombobulatorNetwork.register(level, this)
+    }
+
+    override fun lazyTick() {
+        super.lazyTick()
         val level = level as? ServerLevel ?: return
+        refreshReadings(level)
+        if (syncPending) {
+            syncPending = false
+            sendData()
+        }
+    }
+
+    internal fun ensurePrepared(level: ServerLevel) {
         refreshFunctionGroup(level)
         if (!linksReady) registerLinks(level)
         val front = blockState.getValue(HorizontalDirectionalBlock.FACING)
@@ -72,6 +97,50 @@ class CombobulatorBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: Bl
                 setChanged()
             }
         }
+    }
+
+    internal fun wirelessUpstreamCombobulators(level: ServerLevel): List<CombobulatorBlockEntity> {
+        val result = mutableListOf<CombobulatorBlockEntity>()
+        for (channel in program.channels) {
+            if (channel.input && channel.wireless && channel.constant == null) {
+                links[channel.id]?.collectUpstreamCombobulators(level, result)
+            }
+        }
+        return result
+    }
+
+    internal fun upstreamCombobulators(level: ServerLevel): List<CombobulatorBlockEntity> {
+        val front = blockState.getValue(HorizontalDirectionalBlock.FACING)
+        val result = mutableListOf<CombobulatorBlockEntity>()
+        for (channel in program.channels) {
+            if (!channel.input || channel.constant != null) continue
+            if (channel.wireless) {
+                links[channel.id]?.collectUpstreamCombobulators(level, result)
+                continue
+            }
+            val face = channel.face?.direction(front) ?: continue
+            if (channel.thinkable || channel.device) {
+                val source = ThinkableConnections.sourceAt(level, worldPosition, face, channel.thinkable)
+                val resolved = when (val device = source?.device) {
+                    is ThinkableRelayBlockEntity -> device.resolveSource(source.side)?.device
+                    else -> device
+                }
+                if (resolved is CombobulatorBlockEntity) result += resolved
+            } else {
+                val neighborPos = worldPosition.relative(face)
+                if (level.hasChunkAt(neighborPos)) {
+                    val neighbor = level.getBlockEntity(neighborPos) as? CombobulatorBlockEntity
+                    if (neighbor != null && !neighbor.isRemoved && neighbor.emitsRedstoneOn(face.opposite)) {
+                        result += neighbor
+                    }
+                }
+            }
+        }
+        return result
+    }
+
+    internal fun sampleInputs(level: ServerLevel): DoubleArray {
+        val front = blockState.getValue(HorizontalDirectionalBlock.FACING)
         val next = DoubleArray(CombobulatorProgram.MAX_CHANNELS)
         for (channel in program.channels) {
             if (!channel.input) continue
@@ -87,6 +156,10 @@ class CombobulatorBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: Bl
                 else -> if (program.operation != null) Double.NaN else 0.0
             }
         }
+        return next
+    }
+
+    internal fun commitEvaluation(level: ServerLevel, next: DoubleArray) {
         val operation = program.operation
         if (operation != null) {
             operationRuntime.tick(operation, next)
@@ -102,25 +175,45 @@ class CombobulatorBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: Bl
         previousSignals = previous
         evaluatedAt = level.gameTime
         signals = next
-        for (channel in program.channels.filter { !it.input && it.device }) {
-            val side = channel.face?.direction(front) ?: continue
-            ThinkableConnections.sendAdjacent(level, worldPosition, side, previousSignals[channel.id].takeIf { it.isFinite() })
-        }
-        for (link in links.values) {
-            if (!link.isListening && next[link.id] != previous[link.id]) network.updateNetworkOf(level, link)
-        }
-        refreshFaces(level, front)
         val nextStep = if (operation != null) -1 else runtime.activeStep
         val nextFault = if (operation != null) operationRuntime.fault else runtime.fault
         syncPending = syncPending || activeStep != nextStep || fault != nextFault ||
             !previous.contentEquals(next)
         activeStep = nextStep
         fault = nextFault
-        if (level.gameTime % 4 == 0L) refreshReadings(level)
-        if (syncPending && level.gameTime % 4 == 0L) {
-            syncPending = false
-            sendData()
+    }
+
+    internal fun publishOutputs(level: ServerLevel) {
+        val front = blockState.getValue(HorizontalDirectionalBlock.FACING)
+        for (channel in program.channels.filter { !it.input && it.device }) {
+            val side = channel.face?.direction(front) ?: continue
+            ThinkableConnections.sendAdjacent(level, worldPosition, side, signals[channel.id].takeIf { it.isFinite() })
         }
+        for (link in links.values) {
+            if (!link.isListening && signals[link.id] != previousSignals[link.id]) network.updateNetworkOf(level, link)
+        }
+        refreshFaces(level, front)
+    }
+
+    private fun emitsRedstoneOn(side: Direction): Boolean {
+        val front = blockState.getValue(HorizontalDirectionalBlock.FACING)
+        return program.channels.any {
+            !it.input && !it.wireless && !it.thinkable && !it.device && it.face?.direction(front) == side
+        }
+    }
+
+    private fun readChannelOutput(channel: CombobulatorChannel): Double {
+        val serverLevel = level as? ServerLevel
+        if (serverLevel != null && CombobulatorNetwork.usesPreTickRead(serverLevel, this)) {
+            val operation = program.operation
+            if (operation?.function == CombobulatorFunction.DELAY && channel.id == 3) {
+                val value = operationRuntime.peekDelayOutput(operation)
+                return if (channel.thinkable || channel.device) value else redstone(value).toDouble()
+            }
+            val snapshot = if (evaluatedAt == serverLevel.gameTime) previousSignals else signals
+            return snapshot.getOrElse(channel.id) { Double.NaN }
+        }
+        return signals.getOrElse(channel.id) { Double.NaN }
     }
 
     fun signal(id: Int): Int = redstone(value(id))
@@ -134,16 +227,14 @@ class CombobulatorBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: Bl
         val channel = program.channels.firstOrNull {
             !it.input && !it.wireless && !it.thinkable && !it.device && it.face?.direction(front) == side
         }
-        return channel?.let { signal(it.id) } ?: 0
+        return channel?.let { redstone(readChannelOutput(it)) } ?: 0
     }
 
     override fun thinkableValue(side: Direction): Double? {
         val front = blockState.getValue(HorizontalDirectionalBlock.FACING)
         val channel = program.channels.firstOrNull { !it.input && (it.thinkable || it.device) && it.face?.direction(front) == side }
-        return channel?.let {
-            val snapshot = if (program.operation != null && evaluatedAt == level?.gameTime) previousSignals else signals
-            snapshot[it.id].takeIf { value -> value.isFinite() }
-        }
+            ?: return null
+        return readChannelOutput(channel).takeIf { it.isFinite() }
     }
 
     override fun providesThinkable(side: Direction): Boolean {
@@ -226,6 +317,7 @@ class CombobulatorBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: Bl
         evaluatedAt = Long.MIN_VALUE
         registerLinks(level)
         refreshFaces(level, blockState.getValue(HorizontalDirectionalBlock.FACING))
+        (level as? ServerLevel)?.let { CombobulatorNetwork.markDirty(it) }
         notifyUpdate()
     }
 
@@ -269,7 +361,10 @@ class CombobulatorBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: Bl
 
     override fun invalidate() {
         clearDeviceOutputs()
-        level?.takeUnless { it.isClientSide }?.let(::unregisterLinks)
+        (level as? ServerLevel)?.let {
+            CombobulatorNetwork.unregister(it, this)
+            unregisterLinks(it)
+        }
         super.invalidate()
     }
 
@@ -324,6 +419,9 @@ class CombobulatorBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: Bl
                 else redstone(operationRuntime.output).toDouble()
             previousSignals = signals.copyOf()
         }
+        if (!clientPacket) {
+            (level as? ServerLevel)?.let { CombobulatorNetwork.markDirty(it) }
+        }
         cables.clear()
         val savedCables = tag.getCompound("Thinkables")
         for (face in CombobulatorFace.entries) {
@@ -348,11 +446,16 @@ class CombobulatorBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: Bl
 
     private inner class ChannelLink(channel: CombobulatorChannel) : IRedstoneLinkable {
         val id = channel.id
+        val owner get() = this@CombobulatorBlockEntity
         private val listening = channel.input
         private val key = Couple.create(Frequency.of(channel.first), Frequency.of(channel.second))
 
         override fun isListening(): Boolean = listening
-        override fun getTransmittedStrength(): Int = if (listening) 0 else signal(id)
+        override fun getTransmittedStrength(): Int {
+            if (listening) return 0
+            val channel = program.channels.firstOrNull { it.id == id && !it.input } ?: return 0
+            return redstone(readChannelOutput(channel))
+        }
         override fun setReceivedStrength(power: Int) = Unit
         override fun getNetworkKey(): Couple<Frequency> = key
         override fun getLocation(): BlockPos = worldPosition
@@ -361,6 +464,18 @@ class CombobulatorBlockEntity(type: BlockEntityType<*>, pos: BlockPos, state: Bl
             val level = level ?: return false
             return !isRemoved && !isChunkUnloaded && level.isLoaded(worldPosition) &&
                 level.getBlockEntity(worldPosition) === this@CombobulatorBlockEntity
+        }
+
+        fun collectUpstreamCombobulators(level: ServerLevel, out: MutableList<CombobulatorBlockEntity>) {
+            val actors = network.networksIn(level)[key] ?: return
+            val origin = level.toWorldCoordinates(Vec3.atCenterOf(worldPosition))
+            val range = AllConfigs.server().logistics.linkRange.get().toDouble()
+            for (actor in actors) {
+                if (actor is ChannelLink && !actor.isListening && actor.isAlive &&
+                    origin.closerThan(level.toWorldCoordinates(Vec3.atCenterOf(actor.location)), range)) {
+                    out += actor.owner
+                }
+            }
         }
 
         fun sample(level: Level): Int {

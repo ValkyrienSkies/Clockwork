@@ -19,7 +19,7 @@ class PlottingSimulationTest {
     private fun function(id: Int, function: CombobulatorFunction, vararg inputs: PlottingInput) =
         PlottingNode(id, id, 0, operation = CombobulatorOperation(function), inputs = List(3) { inputs.getOrElse(it) { PlottingInput() } })
 
-    @Test fun circuitUsesPreviousTickOutputsRegardlessOfNodeOrder() {
+    @Test fun circuitPropagatesCombinationalChainsInOneTickRegardlessOfNodeOrder() {
         val nodes = listOf(PlottingNode(1, 0, 0, PlottingKind.CONSTANT, value = 2.5),
             function(2, CombobulatorFunction.MULTIPLY, PlottingInput(1), PlottingInput(constant = 2.0)),
             function(3, CombobulatorFunction.ADD, PlottingInput(2), PlottingInput(constant = 1.0)))
@@ -28,10 +28,56 @@ class PlottingSimulationTest {
         a.tick(PlottingPlan(nodes = nodes)); b.tick(PlottingPlan(nodes = nodes.reversed()))
         assertEquals(a.values, b.values)
         assertEquals(5.0, a.values[2])
-        assertEquals(1.0, a.values[3])
-        a.tick(PlottingPlan(nodes = nodes)); b.tick(PlottingPlan(nodes = nodes.reversed()))
-        assertEquals(a.values, b.values)
         assertEquals(6.0, a.values[3])
+    }
+
+    @Test fun convergingDiamondDoesNotGlitchCounter() {
+        // Input -> NOT -> XOR(Input, NOT) -> COUNTER; XOR(x, !x) is always high (15), so COUNTER only sees 1 rising edge
+        val input = PlottingNode(1, 0, 0, PlottingKind.INPUT, value = 0.0)
+        val not = function(2, CombobulatorFunction.NOT, PlottingInput(1))
+        val xor = function(3, CombobulatorFunction.XOR, PlottingInput(1), PlottingInput(2))
+        val counter = function(4, CombobulatorFunction.COUNTER, PlottingInput(3), PlottingInput(constant = 0.0))
+        val plan = PlottingPlan(nodes = listOf(counter, xor, not, input))
+        val simulation = PlottingSimulation().apply { reset(plan) }
+        simulation.tick(plan)
+        assertEquals(1.0, simulation.values[4])
+        simulation.setInput(1, 1.0)
+        simulation.tick(plan)
+        assertEquals(1.0, simulation.values[4])
+        simulation.setInput(1, 0.0)
+        simulation.tick(plan)
+        assertEquals(1.0, simulation.values[4])
+    }
+
+    @Test fun combinationalFeedbackLoopIsSymmetricAndOrderIndependent() {
+        val first = function(1, CombobulatorFunction.ADD, PlottingInput(2), PlottingInput(constant = 1.0))
+        val second = function(2, CombobulatorFunction.ADD, PlottingInput(1), PlottingInput(constant = 1.0))
+        val a = PlottingSimulation().apply { reset(PlottingPlan(nodes = listOf(first, second))) }
+        val b = PlottingSimulation().apply { reset(PlottingPlan(nodes = listOf(second, first))) }
+        repeat(6) {
+            a.tick(PlottingPlan(nodes = listOf(first, second)))
+            b.tick(PlottingPlan(nodes = listOf(second, first)))
+            assertEquals(a.values, b.values)
+            assertEquals((it + 1).toDouble(), a.values[1])
+            assertEquals((it + 1).toDouble(), a.values[2])
+        }
+    }
+
+    @Test fun delayAndRegisterIntegratorsAdvanceAtExactTickRates() {
+        val addDelay = function(1, CombobulatorFunction.ADD, PlottingInput(constant = 1.0), PlottingInput(2))
+        val delay1 = PlottingNode(2, 1, 0, operation = CombobulatorOperation(CombobulatorFunction.DELAY, ticks = 1),
+            inputs = listOf(PlottingInput(1), PlottingInput(), PlottingInput()))
+        val delayPlan = PlottingPlan(nodes = listOf(delay1, addDelay))
+        val delaySim = PlottingSimulation().apply { reset(delayPlan) }
+        val delayOutputs = (1..5).map { delaySim.tick(delayPlan); delaySim.values[1] }
+        assertEquals(listOf(1.0, 2.0, 3.0, 4.0, 5.0), delayOutputs)
+
+        val addReg = function(1, CombobulatorFunction.ADD, PlottingInput(constant = 1.0), PlottingInput(2))
+        val reg = function(2, CombobulatorFunction.REGISTER, PlottingInput(1), PlottingInput(constant = 1.0))
+        val regPlan = PlottingPlan(nodes = listOf(reg, addReg))
+        val regSim = PlottingSimulation().apply { reset(regPlan) }
+        val regOutputs = (1..5).map { regSim.tick(regPlan); regSim.values[1] }
+        assertEquals(listOf(1.0, 2.0, 3.0, 4.0, 5.0), regOutputs)
     }
 
     @Test fun feedbackCircuitAdvancesWithoutRecursiveEvaluation() {

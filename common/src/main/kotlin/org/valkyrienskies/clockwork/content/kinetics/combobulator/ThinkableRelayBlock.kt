@@ -5,6 +5,7 @@ import com.simibubi.create.foundation.block.WrenchableDirectionalBlock
 import net.minecraft.core.BlockPos
 import net.minecraft.core.Direction
 import net.minecraft.network.chat.Component
+import net.minecraft.server.level.ServerLevel
 import net.minecraft.world.InteractionResult
 import net.minecraft.world.item.context.BlockPlaceContext
 import net.minecraft.world.item.context.UseOnContext
@@ -47,12 +48,15 @@ class ThinkableRelayBlock(properties: Properties) : WrenchableDirectionalBlock(p
 
     override fun onPlace(state: BlockState, level: Level, pos: BlockPos, oldState: BlockState, moved: Boolean) {
         super.onPlace(state, level, pos, oldState, moved)
-        if (level.isClientSide) return
+        if (level !is ServerLevel) return
         if (oldState.block === this) {
-            if (oldState.getValue(FACING) != state.getValue(FACING))
+            if (oldState.getValue(FACING) != state.getValue(FACING)) {
                 withBlockEntityDo(level, pos) { it.clearOutputs(oldState.getValue(FACING)) }
+                CombobulatorNetwork.markDirty(level)
+            }
             return
         }
+        CombobulatorNetwork.markDirty(level)
         val next = connected(state, level, pos)
         if (next != state) level.setBlock(pos, next, UPDATE_CLIENTS)
     }
@@ -81,7 +85,10 @@ class ThinkableRelayBlock(properties: Properties) : WrenchableDirectionalBlock(p
     }
 
     override fun onRemove(state: BlockState, level: Level, pos: BlockPos, newState: BlockState, moved: Boolean) {
-        if (state.block !== newState.block) withBlockEntityDo(level, pos) { it.clearOutputs() }
+        if (state.block !== newState.block) {
+            withBlockEntityDo(level, pos) { it.clearOutputs() }
+            if (level is ServerLevel) CombobulatorNetwork.markDirty(level)
+        }
         IBE.onRemove(state, level, pos, newState)
         super.onRemove(state, level, pos, newState, moved)
     }

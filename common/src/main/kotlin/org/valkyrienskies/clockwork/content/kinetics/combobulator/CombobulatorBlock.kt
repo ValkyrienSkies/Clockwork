@@ -6,6 +6,7 @@ import net.fabricmc.api.EnvType
 import net.fabricmc.api.Environment
 import net.minecraft.core.BlockPos
 import net.minecraft.core.Direction
+import net.minecraft.server.level.ServerLevel
 import net.minecraft.world.InteractionHand
 import net.minecraft.world.InteractionResult
 import net.minecraft.world.entity.player.Player
@@ -51,7 +52,11 @@ class CombobulatorBlock(properties: Properties) : HorizontalDirectionalBlock(pro
 
     override fun onPlace(state: BlockState, level: Level, pos: BlockPos, oldState: BlockState, moved: Boolean) {
         super.onPlace(state, level, pos, oldState, moved)
-        if (oldState.block === this || level.isClientSide) return
+        if (level !is ServerLevel) return
+        if (oldState.block === this) {
+            if (oldState.getValue(FACING) != state.getValue(FACING)) CombobulatorNetwork.markDirty(level)
+            return
+        }
         var connected = state
         CONNECTIONS.forEach { (direction, property) ->
             connected = connected.setValue(property, connects(level.getBlockState(pos.relative(direction))))
