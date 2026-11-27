@@ -6,6 +6,8 @@ import net.minecraft.core.BlockPos
 import net.minecraft.core.Direction
 import net.minecraft.network.chat.Component
 import net.minecraft.resources.ResourceLocation
+import net.minecraft.world.item.context.BlockPlaceContext
+import net.minecraft.world.level.BlockGetter
 import net.minecraft.world.level.Level
 import net.minecraft.world.level.LevelReader
 import net.minecraft.world.level.block.entity.BlockEntityType
@@ -13,6 +15,7 @@ import net.minecraft.world.level.block.state.BlockState
 import org.valkyrienskies.clockwork.ClockworkBlockEntities
 import org.valkyrienskies.clockwork.ClockworkConfig
 import org.valkyrienskies.clockwork.ClockworkGasses
+import org.valkyrienskies.clockwork.content.logistics.gas.duct.DuctPlacementHelper
 import org.valkyrienskies.clockwork.util.gui.IHaveDuctStats
 import org.valkyrienskies.clockwork.util.gui.ProductionInfo
 import org.valkyrienskies.clockwork.util.gui.ProductionMethod
@@ -24,6 +27,31 @@ class AirCompressorBlock(properties: Properties?) : DirectionalKineticBlock(prop
 
     init {
         registerDefaultState(defaultBlockState().setValue(FACING, Direction.UP))
+    }
+
+    override fun getStateForPlacement(context: BlockPlaceContext): BlockState {
+        if (context.player?.isShiftKeyDown == true) {
+            return defaultBlockState().setValue(FACING, context.nearestLookingDirection)
+        }
+        val preferredShaft = super.getPreferredFacing(context)
+        if (preferredShaft != null) {
+            return defaultBlockState().setValue(FACING, preferredShaft.opposite)
+        }
+
+        val defaultFacing = context.nearestLookingDirection.opposite
+        val preferredDuctAxis = DuctPlacementHelper.getPreferredAxis(context, requireActiveConnector = true)
+        val facing = DuctPlacementHelper.resolvePerpendicularFacing(
+            defaultFacing = defaultFacing,
+            preferredDuctAxis = preferredDuctAxis,
+            nearestLookingDirections = context.nearestLookingDirections
+        ) { dir -> context.level.getBlockState(context.clickedPos.relative(dir)).isAir }
+        return defaultBlockState().setValue(FACING, facing)
+    }
+
+    override fun canConnectTo(self: BlockPos, other: BlockPos, direction: Direction, level: BlockGetter): Boolean {
+        val state = level.getBlockState(self)
+        if (state.block !is AirCompressorBlock) return false
+        return direction.axis != state.getValue(FACING).axis
     }
 
     override fun onPlace(state: BlockState, level: Level, pos: BlockPos, oldState: BlockState, isMoving: Boolean) {

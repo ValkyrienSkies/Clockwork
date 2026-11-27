@@ -20,6 +20,7 @@ import net.minecraft.world.level.block.state.properties.BlockStateProperties
 import net.minecraft.world.phys.BlockHitResult
 import org.valkyrienskies.clockwork.ClockworkBlockEntities
 import org.valkyrienskies.clockwork.content.curiosities.sensor.ISensorBlock
+import org.valkyrienskies.clockwork.content.logistics.gas.duct.DuctPlacementHelper
 import org.valkyrienskies.clockwork.content.logistics.gas.duct.IDuct
 import org.valkyrienskies.kelvin.util.INodeBlock
 
@@ -27,6 +28,10 @@ class RedstoneDuctBlock(properties: Properties) : RotatedPillarBlock(properties)
 
     init {
         registerDefaultState(defaultBlockState().setValue(POWER, 0))
+    }
+
+    override fun getStateForPlacement(context: BlockPlaceContext): BlockState {
+        return DuctPlacementHelper.getStateForPillarPlacement(defaultBlockState(), context)
     }
 
     override fun use(state: BlockState, level: Level, pos: BlockPos, player: Player, hand: InteractionHand, hit: BlockHitResult): InteractionResult? {

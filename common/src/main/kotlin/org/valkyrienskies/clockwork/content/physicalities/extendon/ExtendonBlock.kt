@@ -1,9 +1,6 @@
 package org.valkyrienskies.clockwork.content.physicalities.extendon
 
-import com.simibubi.create.content.kinetics.base.DirectionalKineticBlock
-import com.simibubi.create.content.kinetics.base.IRotate
 import com.simibubi.create.foundation.block.IBE
-import net.createmod.catnip.data.Iterate
 import net.minecraft.ChatFormatting
 import net.minecraft.core.BlockPos
 import net.minecraft.core.Direction
@@ -22,6 +19,7 @@ import net.minecraft.world.level.block.state.StateDefinition
 import net.minecraft.world.phys.BlockHitResult
 import org.valkyrienskies.clockwork.ClockworkBlockEntities
 import org.valkyrienskies.clockwork.ClockworkItems
+import org.valkyrienskies.clockwork.content.logistics.gas.duct.DuctPlacementHelper
 import org.valkyrienskies.clockwork.util.ClockworkCopyableBlock
 import org.valkyrienskies.clockwork.util.gui.IHaveDuctStats
 import org.valkyrienskies.kelvin.util.INodeBlock
@@ -50,42 +48,18 @@ class ExtendonBlock(properties: Properties) : DirectionalBlock(properties), IBE<
     }
 
     fun getPreferredFacing(context: BlockPlaceContext): Direction? {
-        var prefferedSide: Direction? = null
-        for (side in Iterate.directions) {
-            val blockState = context.level
-                .getBlockState(
-                    context.clickedPos
-                        .relative(side)
-                )
-            if (blockState.block is IRotate) {
-                if ((blockState.block as IRotate).hasShaftTowards(
-                        context.level, context.clickedPos
-                            .relative(side), blockState, side.opposite
-                    )
-                ) if (prefferedSide != null && prefferedSide.axis !== side.axis) {
-                    prefferedSide = null
-                    break
-                } else {
-                    prefferedSide = side
-                }
-            }
-        }
-        return prefferedSide
+        return DuctPlacementHelper.getPreferredFacing(context, requireActiveConnector = true)
     }
 
     override fun getStateForPlacement(context: BlockPlaceContext): BlockState {
         val preferred = getPreferredFacing(context)
-        if (preferred == null || (context.player != null && context.player!!
-                .isShiftKeyDown)
-        ) {
-            val nearestLookingDirection = context.nearestLookingDirection
-            return defaultBlockState().setValue(
-                DirectionalKineticBlock.FACING, if (context.player != null && context.player!!
-                        .isShiftKeyDown
-                ) nearestLookingDirection else nearestLookingDirection.opposite
-            )
-        }
-        return defaultBlockState().setValue(DirectionalKineticBlock.FACING, preferred.opposite)
+        val facing = DuctPlacementHelper.resolveDirectionalFacing(
+            preferredSide = preferred,
+            nearestLookingDirection = context.nearestLookingDirection,
+            sneaking = context.player?.isShiftKeyDown == true,
+            portOnFacingOpposite = true
+        )
+        return defaultBlockState().setValue(FACING, facing)
     }
 
     override fun getBlockEntityClass(): Class<ExtendonBlockEntity> {

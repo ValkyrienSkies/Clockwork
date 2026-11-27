@@ -11,6 +11,7 @@ import net.minecraft.world.level.block.Block
 import net.minecraft.world.level.block.state.BlockState
 import org.valkyrienskies.clockwork.ClockworkBlockEntities
 import org.valkyrienskies.clockwork.ClockworkMod
+import org.valkyrienskies.clockwork.content.logistics.gas.duct.DuctPlacementHelper
 import org.valkyrienskies.clockwork.content.logistics.gas.duct.IDuct
 import org.valkyrienskies.clockwork.util.DuctNetworkUtils
 import org.valkyrienskies.kelvin.api.DuctNodePos
@@ -18,9 +19,13 @@ import org.valkyrienskies.kelvin.api.DuctNodePos
 class SiphonHarpoonBlock(properties: Properties) : HarpoonBlock(properties), ICogWheel, IDuct {
     override fun getBlockEntityType() = ClockworkBlockEntities.SIPHON_HARPOON.get()
 
-    override fun getStateForPlacement(context: BlockPlaceContext): BlockState =
-        defaultBlockState().setValue(FACING, context.clickedFace)
+    override fun getStateForPlacement(context: BlockPlaceContext): BlockState {
+        val preferred = DuctPlacementHelper.getPreferredFacing(context)
+        val sneaking = context.player?.isShiftKeyDown == true
+        val facing = if (preferred != null && !sneaking) preferred.opposite else context.clickedFace
+        return defaultBlockState().setValue(FACING, facing)
             .setValue(POWERED, context.level.hasNeighborSignal(context.clickedPos))
+    }
 
     override fun hasShaftTowards(world: LevelReader, pos: BlockPos, state: BlockState, face: Direction) = false
 

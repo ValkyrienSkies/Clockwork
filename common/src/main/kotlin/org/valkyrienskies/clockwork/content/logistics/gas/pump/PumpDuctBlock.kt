@@ -13,6 +13,7 @@ import net.minecraft.world.InteractionHand
 import net.minecraft.world.InteractionResult
 import net.minecraft.world.entity.player.Player
 import net.minecraft.world.item.Items
+import net.minecraft.world.item.context.BlockPlaceContext
 import net.minecraft.world.level.BlockGetter
 import net.minecraft.world.level.Level
 import net.minecraft.world.level.LevelAccessor
@@ -31,6 +32,7 @@ import org.valkyrienskies.clockwork.ClockworkMod
 import org.valkyrienskies.clockwork.content.logistics.gas.IConnectable
 import org.valkyrienskies.clockwork.content.logistics.gas.GasTransfer
 import org.valkyrienskies.clockwork.content.logistics.gas.MeteredGasInlet
+import org.valkyrienskies.clockwork.content.logistics.gas.duct.DuctPlacementHelper
 import org.valkyrienskies.clockwork.content.logistics.gas.duct.IDuct
 import org.valkyrienskies.clockwork.util.gui.IHaveDuctStats
 import org.valkyrienskies.clockwork.util.gui.ProductionInfo
@@ -52,6 +54,13 @@ class PumpDuctBlock(properties: Properties, val mode: Mode = Mode.PUMP) :
     override fun createBlockStateDefinition(builder: StateDefinition.Builder<Block, BlockState>) {
         builder.add(BlockStateProperties.WATERLOGGED)
         super.createBlockStateDefinition(builder)
+    }
+
+    override fun getPreferredFacing(context: BlockPlaceContext): Direction? {
+        val preferred = DuctPlacementHelper.getPreferredFacing(context) ?: return null
+        // Ozonite generators only connect on FACING (FACING.opposite is the air intake), while
+        // DirectionalKineticBlock sets FACING = preferred.opposite.
+        return if (mode == Mode.OZONITE) preferred.opposite else preferred
     }
 
     override fun getRotationAxis(state: BlockState): Direction.Axis {

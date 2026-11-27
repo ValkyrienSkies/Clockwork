@@ -9,8 +9,10 @@ import net.minecraft.core.BlockPos
 import net.minecraft.core.Direction
 import net.minecraft.core.Direction.Axis
 import net.minecraft.network.chat.Component
+import net.minecraft.world.item.context.BlockPlaceContext
 import net.minecraft.world.level.BlockGetter
 import net.minecraft.world.level.Level
+import net.minecraft.world.level.LevelReader
 import net.minecraft.world.level.block.Block
 import net.minecraft.world.level.block.entity.BlockEntityType
 import net.minecraft.world.level.block.state.BlockState
@@ -19,6 +21,7 @@ import net.minecraft.world.phys.shapes.CollisionContext
 import net.minecraft.world.phys.shapes.VoxelShape
 import org.valkyrienskies.clockwork.ClockworkBlockEntities
 import org.valkyrienskies.clockwork.ClockworkConfig
+import org.valkyrienskies.clockwork.content.logistics.gas.duct.DuctPlacementHelper
 import org.valkyrienskies.clockwork.content.logistics.gas.duct.IDuct
 import org.valkyrienskies.clockwork.util.gui.IHaveDuctStats
 import org.valkyrienskies.kelvin.api.DuctNode
@@ -30,6 +33,33 @@ class ValveDuctBlock(properties: Properties?) : DirectionalAxisKineticBlock(prop
 
     override fun getShape(state: BlockState, p_220053_2_: BlockGetter, p_220053_3_: BlockPos, p_220053_4_: CollisionContext): VoxelShape {
         return AllShapes.FLUID_VALVE[getDuctAxis(state)]
+    }
+
+    override fun getFacingForPlacement(context: BlockPlaceContext): Direction {
+        val defaultFacing = super.getFacingForPlacement(context)
+        if (context.player?.isShiftKeyDown == true) return defaultFacing
+
+        val preferredDuctAxis = DuctPlacementHelper.getPreferredAxis(context) ?: return defaultFacing
+        if (defaultFacing.axis != preferredDuctAxis) return defaultFacing
+
+        val level = context.level
+        val pos = context.clickedPos
+        val shaftDirections = Iterate.directions.filter {
+            it.axis != preferredDuctAxis && super.prefersConnectionTo(level, pos, it, true)
+        }
+        return DuctPlacementHelper.resolveValveFacing(
+            defaultFacing = defaultFacing,
+            preferredDuctAxis = preferredDuctAxis,
+            perpendicularShaftDirections = shaftDirections,
+            nearestLookingDirections = context.nearestLookingDirections
+        )
+    }
+
+    override fun prefersConnectionTo(reader: LevelReader, pos: BlockPos, facing: Direction, shaftAxis: Boolean): Boolean {
+        if (!shaftAxis) {
+            return DuctPlacementHelper.prefersConnectionTo(reader, pos, facing)
+        }
+        return super.prefersConnectionTo(reader, pos, facing, shaftAxis)
     }
 
     override fun onPlace(state: BlockState, level: Level, pos: BlockPos, oldState: BlockState, isMoving: Boolean) {

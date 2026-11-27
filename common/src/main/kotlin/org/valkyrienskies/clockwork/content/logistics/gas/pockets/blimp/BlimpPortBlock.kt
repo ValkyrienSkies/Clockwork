@@ -10,6 +10,7 @@ import net.minecraft.network.chat.Component
 import net.minecraft.world.InteractionHand
 import net.minecraft.world.InteractionResult
 import net.minecraft.world.entity.player.Player
+import net.minecraft.world.item.context.BlockPlaceContext
 import net.minecraft.world.level.BlockGetter
 import net.minecraft.world.level.Level
 import net.minecraft.world.level.block.Block
@@ -18,6 +19,7 @@ import net.minecraft.world.level.block.state.BlockState
 import net.minecraft.world.phys.BlockHitResult
 import org.valkyrienskies.clockwork.ClockworkBlockEntities
 import org.valkyrienskies.clockwork.ClockworkConfig
+import org.valkyrienskies.clockwork.content.logistics.gas.duct.DuctPlacementHelper
 import org.valkyrienskies.clockwork.content.logistics.gas.duct.IDuct
 import org.valkyrienskies.clockwork.util.gui.IHaveDuctStats
 import org.valkyrienskies.kelvin.api.DuctNode
@@ -33,6 +35,12 @@ import org.valkyrienskies.kelvin.api.nodes.ValveDuctNode
  * - [getPointerAxis]: remaining perpendicular axis carrying the valve indicator and Thinkable ports.
  */
 class BlimpPortBlock(properties: Properties) : DirectionalAxisKineticBlock(properties), IDuct, IBE<BlimpPortBlockEntity>, IHaveDuctStats {
+
+    override fun getFacingForPlacement(context: BlockPlaceContext): Direction {
+        val defaultFacing = super.getFacingForPlacement(context)
+        if (context.player?.isShiftKeyDown == true) return defaultFacing
+        return DuctPlacementHelper.getPreferredFacing(context)?.opposite ?: defaultFacing
+    }
 
     override fun onPlace(state: BlockState, level: Level, pos: BlockPos, oldState: BlockState, isMoving: Boolean) {
         super.onPlace(state, level, pos, oldState, isMoving)

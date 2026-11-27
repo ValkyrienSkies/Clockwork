@@ -6,6 +6,7 @@ import net.minecraft.ChatFormatting
 import net.minecraft.core.BlockPos
 import net.minecraft.core.Direction
 import net.minecraft.network.chat.Component
+import net.minecraft.world.item.context.BlockPlaceContext
 import net.minecraft.world.level.BlockGetter
 import net.minecraft.world.level.Level
 import net.minecraft.world.level.block.Block
@@ -17,6 +18,7 @@ import net.minecraft.world.phys.shapes.VoxelShape
 import org.valkyrienskies.clockwork.ClockworkBlockEntities
 import org.valkyrienskies.clockwork.ClockworkConfig
 import org.valkyrienskies.clockwork.ClockworkMod
+import org.valkyrienskies.clockwork.content.logistics.gas.duct.DuctPlacementHelper
 import org.valkyrienskies.clockwork.content.logistics.gas.duct.IDuct
 import org.valkyrienskies.clockwork.util.gui.IHaveDuctStats
 import org.valkyrienskies.kelvin.api.DuctNode
@@ -39,6 +41,9 @@ class RadiatorBlock(properties: Properties) :
 
     override fun getShape(state: BlockState, level: BlockGetter, pos: BlockPos, context: CollisionContext) =
         shapes.getValue(state.getValue(AXIS))
+
+    override fun getStateForPlacement(context: BlockPlaceContext): BlockState =
+        DuctPlacementHelper.getStateForPillarPlacement(defaultBlockState(), context)
 
     override fun canConnectTo(self: BlockPos, other: BlockPos, direction: Direction, level: BlockGetter) =
         direction.axis == level.getBlockState(self).getValue(AXIS)

@@ -16,6 +16,7 @@ import net.minecraft.world.level.block.state.StateDefinition
 import org.valkyrienskies.clockwork.ClockworkBlockEntities
 import org.valkyrienskies.clockwork.ClockworkConfig
 import org.valkyrienskies.clockwork.content.logistics.gas.duct.DuctPipeNode
+import org.valkyrienskies.clockwork.content.logistics.gas.duct.DuctPlacementHelper
 import org.valkyrienskies.clockwork.content.logistics.gas.duct.IDuct
 import org.valkyrienskies.clockwork.util.gui.IHaveDuctStats
 import org.valkyrienskies.clockwork.util.gui.ProductionInfo
@@ -34,8 +35,16 @@ class AirIntakeBlock(properties: Properties) : DirectionalBlock(properties), IBE
         builder.add(FACING)
     }
 
-    override fun getStateForPlacement(context: BlockPlaceContext): BlockState =
-        defaultBlockState().setValue(FACING, context.nearestLookingDirection.opposite)
+    override fun getStateForPlacement(context: BlockPlaceContext): BlockState {
+        val preferred = DuctPlacementHelper.getPreferredFacing(context)
+        val facing = DuctPlacementHelper.resolveDirectionalFacing(
+            preferredSide = preferred,
+            nearestLookingDirection = context.nearestLookingDirection,
+            sneaking = context.player?.isShiftKeyDown == true,
+            portOnFacingOpposite = true
+        )
+        return defaultBlockState().setValue(FACING, facing)
+    }
 
     override fun rotate(state: BlockState, rotation: Rotation): BlockState =
         state.setValue(FACING, rotation.rotate(state.getValue(FACING)))

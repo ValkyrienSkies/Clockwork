@@ -21,6 +21,7 @@ import org.valkyrienskies.clockwork.ClockworkBlockEntities
 import org.valkyrienskies.clockwork.ClockworkConfig
 import org.valkyrienskies.clockwork.ClockworkShapes
 import org.valkyrienskies.clockwork.content.logistics.gas.duct.DuctPipeNode
+import org.valkyrienskies.clockwork.content.logistics.gas.duct.DuctPlacementHelper
 import org.valkyrienskies.clockwork.content.logistics.gas.duct.IDuct
 import org.valkyrienskies.clockwork.util.gui.IHaveDuctStats
 import org.valkyrienskies.kelvin.api.DuctNode
@@ -33,14 +34,15 @@ class ExhaustBlock(properties: Properties) : DirectionalBlock(properties), IBE<E
         super.createBlockStateDefinition(builder)
     }
 
-    override fun getStateForPlacement(context: BlockPlaceContext): BlockState? {
-
-        val nearestLookingDirection = context.nearestLookingDirection
-        return defaultBlockState().setValue(
-            FACING, if (context.player != null && context.player!!
-                    .isShiftKeyDown
-            ) nearestLookingDirection else nearestLookingDirection.opposite
+    override fun getStateForPlacement(context: BlockPlaceContext): BlockState {
+        val preferred = DuctPlacementHelper.getPreferredFacing(context)
+        val facing = DuctPlacementHelper.resolveDirectionalFacing(
+            preferredSide = preferred,
+            nearestLookingDirection = context.nearestLookingDirection,
+            sneaking = context.player?.isShiftKeyDown == true,
+            portOnFacingOpposite = true
         )
+        return defaultBlockState().setValue(FACING, facing)
     }
 
     override fun getShape(

@@ -16,6 +16,7 @@ import net.minecraft.world.level.block.entity.BlockEntityType
 import net.minecraft.world.level.block.state.BlockState
 import net.minecraft.world.level.block.state.StateDefinition
 import org.valkyrienskies.clockwork.ClockworkConfig
+import org.valkyrienskies.clockwork.content.logistics.gas.duct.DuctPlacementHelper
 import org.valkyrienskies.clockwork.content.logistics.gas.duct.IDuct
 import org.valkyrienskies.clockwork.content.physicalities.steering.DrivingControlItem
 import org.valkyrienskies.clockwork.content.physicalities.steering.DrivingControlLinks
@@ -38,8 +39,15 @@ class GasProcessorBlock<T : KNodeBlockEntity>(
         builder.add(FACING)
     }
 
-    override fun getStateForPlacement(context: BlockPlaceContext): BlockState =
-        defaultBlockState().setValue(FACING, context.horizontalDirection.opposite)
+    override fun getStateForPlacement(context: BlockPlaceContext): BlockState {
+        val preferred = DuctPlacementHelper.getPreferredHorizontalFacing(context)
+        val facing = DuctPlacementHelper.resolveHorizontalFacing(
+            preferredSide = preferred,
+            horizontalDirection = context.horizontalDirection,
+            sneaking = context.player?.isShiftKeyDown == true
+        )
+        return defaultBlockState().setValue(FACING, facing)
+    }
 
     override fun rotate(state: BlockState, rotation: Rotation): BlockState =
         state.setValue(FACING, rotation.rotate(state.getValue(FACING)))

@@ -15,6 +15,7 @@ import net.minecraft.world.level.block.RotatedPillarBlock
 import net.minecraft.world.level.block.entity.BlockEntityType
 import net.minecraft.world.level.block.state.BlockState
 import org.valkyrienskies.clockwork.ClockworkBlockEntities
+import org.valkyrienskies.clockwork.content.logistics.gas.duct.DuctPlacementHelper
 import org.valkyrienskies.clockwork.content.logistics.gas.duct.IDuct
 import org.valkyrienskies.clockwork.util.gui.IHaveDuctStats
 import org.valkyrienskies.kelvin.util.INodeBlock
@@ -28,10 +29,12 @@ class GasEngineBlock(properties: Properties) : RotatedPillarBlock(properties), I
         return ClockworkBlockEntities.GAS_ENGINE.get()
     }
 
-    override fun getStateForPlacement(context: BlockPlaceContext): BlockState? {
-        val nearestLookingDirection = context.nearestLookingDirection
-        return defaultBlockState().setValue(AXIS, nearestLookingDirection.axis)
-
+    override fun getStateForPlacement(context: BlockPlaceContext): BlockState {
+        return DuctPlacementHelper.getStateForPillarPlacement(
+            defaultBlockState(),
+            context,
+            defaultAxis = context.nearestLookingDirection.axis
+        )
     }
 
     override fun onPlace(state: BlockState, level: Level, pos: BlockPos, oldState: BlockState, movedByPiston: Boolean) {

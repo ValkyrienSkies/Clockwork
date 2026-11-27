@@ -21,6 +21,7 @@ import net.minecraft.world.level.block.state.StateDefinition
 import org.valkyrienskies.clockwork.ClockworkBlockEntities
 import org.valkyrienskies.clockwork.util.gui.IHaveDuctStats
 import org.valkyrienskies.clockwork.ClockworkMod
+import org.valkyrienskies.clockwork.content.logistics.gas.duct.DuctPlacementHelper
 import org.valkyrienskies.kelvin.KelvinMod
 import org.valkyrienskies.kelvin.util.INodeBlock
 import org.valkyrienskies.kelvin.util.KelvinDamageSources
@@ -104,11 +105,13 @@ class GasHeaterBlock(properties: Properties) : HorizontalDirectionalBlock(proper
     }
 
     override fun getStateForPlacement(context: BlockPlaceContext): BlockState {
-        return defaultBlockState()
-            .setValue(
-                HorizontalKineticBlock.HORIZONTAL_FACING, context.horizontalDirection
-                    .opposite
-            )
+        val preferred = DuctPlacementHelper.getPreferredHorizontalFacing(context)
+        val facing = DuctPlacementHelper.resolveHorizontalFacing(
+            preferredSide = preferred,
+            horizontalDirection = context.horizontalDirection,
+            sneaking = context.player?.isShiftKeyDown == true
+        )
+        return defaultBlockState().setValue(HorizontalKineticBlock.HORIZONTAL_FACING, facing)
     }
 
     override fun canConnectTo(self: BlockPos, other: BlockPos, direction: Direction, level: BlockGetter): Boolean {
