@@ -56,7 +56,8 @@ class ValveDuctBlockEntity(typeIn: BlockEntityType<*>, pos: BlockPos, state: Blo
         if (!level.simulatesGas || blockState.block !is ValveDuctBlock) return
 
         val valveNode = ClockworkMod.getKelvin(level).getNodeAt(getDuctNodePosition()) as? ValveDuctNode ?: return
-        valveNode.radius = pointer.value.toDouble().coerceIn(0.0, 1.0) * ValveDuctBlock.MAX_FLOW_RADIUS
+        valveNode.radius = ValveDuctBlock.MAX_FLOW_RADIUS
+        valveNode.flowFraction = pointer.value.toDouble()
     }
 
     override fun onSpeedChanged(previousSpeed: Float) {

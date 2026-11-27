@@ -81,8 +81,8 @@ class ValveDuctBlock(properties: Properties?) : DirectionalAxisKineticBlock(prop
             maxPressure = 16375049.0,
             maxTemperature = 1478.0,
             heatCapacity = 44.9,
-            radius = 0.0,
-        )
+            radius = MAX_FLOW_RADIUS,
+        ).apply { flowFraction = 0.0 }
     }
 
     override fun getInternalVolume(): Double {
