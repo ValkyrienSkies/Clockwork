@@ -100,6 +100,12 @@ class GasBackTankItem(block: Block, properties: Properties) : BlockItem(block, p
         ) {
             val masses = readGasMasses(tag)
             val currentBreathable = breathableMass(masses, breathableTag)
+            if (!tag.contains("Air")) {
+                if (currentBreathable > 1e-9) {
+                    tag.putFloat("Air", (currentBreathable * AirKgsToAirTicks).toFloat())
+                }
+                return
+            }
             val airTagMass = (tag.getFloat("Air").toDouble() / AirKgsToAirTicks).coerceAtLeast(0.0)
             if (abs(airTagMass - currentBreathable) <= 0.01) return
 

@@ -11,6 +11,7 @@ import net.minecraft.world.item.ItemStack
 import net.minecraft.world.phys.AABB
 import org.joml.Vector3d
 import org.valkyrienskies.clockwork.ClockworkDamageTypes
+import org.valkyrienskies.clockwork.ClockworkMod
 import org.valkyrienskies.clockwork.content.forces.data.BalloonData
 import org.valkyrienskies.clockwork.content.logistics.gas.backtank.GasBackTankItem
 import org.valkyrienskies.kelvin.KelvinMod
@@ -22,6 +23,7 @@ import org.valkyrienskies.mod.common.getShipsIntersecting
 import org.valkyrienskies.mod.common.shipObjectWorld
 import java.util.UUID
 import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.atomic.AtomicBoolean
 
 /**
  * Applies atmospheric effects to players breathing gas from a balloon/blimp pocket
@@ -49,6 +51,7 @@ object BalloonPocketGasEffects {
     val BREATHABLE_TAG = GasTag(KelvinMod.asResourceLocation("breathable"))
 
     private val suffocatingAir = ConcurrentHashMap<UUID, Int>()
+    private val loggedEmptyBreathableTag = AtomicBoolean(false)
 
     enum class PocketGasEffect {
         NONE,
@@ -59,6 +62,7 @@ object BalloonPocketGasEffects {
 
     fun clear() {
         suffocatingAir.clear()
+        loggedEmptyBreathableTag.set(false)
     }
 
     fun tick(level: ServerLevel) {
@@ -94,7 +98,13 @@ object BalloonPocketGasEffects {
             PocketGasEffect.NONE
         }
 
-        val backtankStack = getActiveDivingBacktank(player)
+        val wornBacktank = GasBackTankItem.getWornStack(player)
+        if (wornBacktank != null) {
+            // Vanilla Inventory.tick() skips armor slots, so sync Create's "Air" consumption while worn.
+            wornBacktank.tag?.let { GasBackTankItem.syncBreathableGasFromAirTag(it, breathableTag) }
+        }
+
+        val backtankStack = if (wornBacktank != null && DivingHelmetItem.isWornBy(player)) wornBacktank else null
         if (backtankStack != null) {
             val backtankEffect = classifyBacktank(backtankStack, toxicTag, breathableTag)
             if (backtankEffect != PocketGasEffect.NONE) {
@@ -217,6 +227,17 @@ object BalloonPocketGasEffects {
 
         if (totalMass <= MIN_GAS_MASS || totalMoles <= MIN_GAS_MOLES) {
             return PocketGasEffect.NONE
+        }
+
+        if (breathableTag.gases.isEmpty()) {
+            if (loggedEmptyBreathableTag.compareAndSet(false, true)) {
+                ClockworkMod.LOGGER.error(
+                    "Kelvin gas tag '{}' is empty; breathable gases will be treated as unbreathable. Check datapack loading and gas tag registration.",
+                    breathableTag.resourceLocation,
+                )
+            }
+        } else {
+            loggedEmptyBreathableTag.set(false)
         }
 
         if (sealed && volume > 0.0) {
