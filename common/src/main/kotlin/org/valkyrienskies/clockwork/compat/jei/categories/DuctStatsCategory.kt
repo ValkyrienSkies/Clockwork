@@ -20,7 +20,6 @@ import org.valkyrienskies.clockwork.ClockworkGuiTextures
 import org.valkyrienskies.clockwork.compat.jei.ClockworkJEI.Companion.addOutputGasSlot
 import org.valkyrienskies.clockwork.compat.jei.DuctStatsDummyRecipe
 import org.valkyrienskies.clockwork.compat.jei.DuctStatsDummyRecipe.Companion.DUCT_STATS_DUMMY_TYPE
-import org.valkyrienskies.clockwork.compat.jei.animated_blocks.AnimatedDuct
 import org.valkyrienskies.kelvin.api.recipe.KelvinGasIngredient
 import org.valkyrienskies.kelvin.impl.registry.GasTypeRegistry
 import javax.annotation.ParametersAreNonnullByDefault
