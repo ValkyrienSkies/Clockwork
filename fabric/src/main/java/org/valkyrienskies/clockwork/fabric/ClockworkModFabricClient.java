@@ -1,6 +1,7 @@
 package org.valkyrienskies.clockwork.fabric;
 
 import org.valkyrienskies.clockwork.client.render.goggles.AeronautGoggleOverlayRenderer;
+import org.valkyrienskies.clockwork.fabric.client.FabricTarFog;
 
 import org.valkyrienskies.clockwork.content.schematics.VdexPlacementClient;
 
@@ -50,6 +51,7 @@ public class ClockworkModFabricClient implements ClientModInitializer {
         ));
 
         ClockworkModClient.initClient();
+        FabricTarFog.register();
 
         ClockworkPartials.INSTANCE.init();
         FabricClockworkPartials.init();
