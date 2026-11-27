@@ -8,6 +8,7 @@ import net.minecraft.core.particles.ParticleOptions;
 import net.minecraft.core.particles.ParticleType;
 import net.minecraft.core.registries.BuiltInRegistries;
 import org.valkyrienskies.clockwork.content.curiosities.particles.PhysLightningParticle;
+import org.valkyrienskies.clockwork.content.logistics.gas.particles.KelvinAirParticleData;
 import org.valkyrienskies.clockwork.content.logistics.gas.pockets.nozzle.LeakParticleData;
 import org.valkyrienskies.clockwork.platform.PlatformUtils;
 import org.valkyrienskies.clockwork.platform.api.DeferredRegister;
@@ -16,7 +17,8 @@ import java.util.function.Supplier;
 
 public enum ClockworkParticles {
     PHYS_LIGHTNING(PhysLightningParticle.Data::new),
-    LEAK("leak", LeakParticleData::new);
+    LEAK("leak", LeakParticleData::new),
+    AIR("air", KelvinAirParticleData::new);
     private final ParticleEntry<?> entry;
 
     <D extends ParticleOptions> ClockworkParticles(Supplier<? extends ICustomParticleData<D>> typeFactory) {

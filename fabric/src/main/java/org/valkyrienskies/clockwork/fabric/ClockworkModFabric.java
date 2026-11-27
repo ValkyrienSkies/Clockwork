@@ -76,6 +76,7 @@ public class ClockworkModFabric implements ModInitializer {
         }
 
         ClockworkMod.registerHeaters();
+        LifecycleEvent.SETUP.register(ClockworkGasses::registerParticleOverrides);
         LifecycleEvent.SETUP.register(FabricThinkableCompat::initialize);
     }
 

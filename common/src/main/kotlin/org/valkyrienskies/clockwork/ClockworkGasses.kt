@@ -1,8 +1,11 @@
 package org.valkyrienskies.clockwork
 
 import net.minecraft.resources.ResourceLocation
+import org.valkyrienskies.clockwork.content.logistics.gas.particles.KelvinAirParticleData
 import org.valkyrienskies.kelvin.KelvinMod
 import org.valkyrienskies.kelvin.api.GasType
+import org.valkyrienskies.kelvin.impl.client.particle.DefaultGasParticlePicker
+import org.valkyrienskies.kelvin.impl.registry.GasParticlePickerRegistry
 import org.valkyrienskies.kelvin.impl.registry.GasTypeRegistry
 
 object ClockworkGasses {
@@ -62,6 +65,21 @@ object ClockworkGasses {
         iconCodes.put(STEAM.resourceLocation, "\uE007")
         iconCodes.put(HYDROGEN.resourceLocation, "\uE008")
         iconCodes.put(VITRIOL.resourceLocation, "\uE009")
+    }
+
+    /**
+     * Overrides Kelvin's default `kelvin:air` particle picker with Clockwork's Create-styled air
+     * particle. Must run during common setup (after particle registries and Kelvin's deferred
+     * `.listen` callbacks have completed).
+     */
+    @JvmStatic
+    fun registerParticleOverrides() {
+        val air = GasTypeRegistry.getGasType(KelvinMod.MOD_ID, "air") ?: return
+        GasParticlePickerRegistry.register(
+            air.resourceLocation,
+            air,
+            DefaultGasParticlePicker(KelvinAirParticleData())
+        )
     }
 
 }
