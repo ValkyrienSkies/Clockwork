@@ -92,7 +92,7 @@ class ClockworkRenderTypes(
         val TERRAIN_TRACKS = tireMarks(TextureAtlas.LOCATION_BLOCKS)
 
         private fun tireMarks(texture: ResourceLocation): RenderType = create(
-            if (texture == TEX) "skid_marks" else "terrain_tracks", DefaultVertexFormat.NEW_ENTITY, VertexFormat.Mode.QUADS, 262144, false, true,
+            if (texture == TEX) "skid_marks" else "terrain_tracks", DefaultVertexFormat.NEW_ENTITY, VertexFormat.Mode.QUADS, 262144, false, false,
             CompositeState.builder()
                 .setShaderState(RENDERTYPE_ENTITY_TRANSLUCENT_SHADER)
                 .setTextureState(TextureStateShard(texture, false, false))

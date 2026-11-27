@@ -2,6 +2,7 @@ package org.valkyrienskies.clockwork.content.physicalities.wheel
 
 import com.mojang.blaze3d.vertex.BufferBuilder
 import com.mojang.blaze3d.vertex.PoseStack
+import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap
 import net.minecraft.core.particles.BlockParticleOption
 import net.minecraft.core.particles.DustParticleOptions
 import net.minecraft.core.particles.ParticleOptions
@@ -19,6 +20,7 @@ import net.minecraft.client.particle.Particle
 import net.minecraft.client.renderer.LevelRenderer
 import net.minecraft.client.renderer.MultiBufferSource
 import net.minecraft.client.renderer.culling.Frustum
+import net.minecraft.client.renderer.texture.MissingTextureAtlasSprite
 import net.minecraft.client.renderer.texture.OverlayTexture
 import net.minecraft.client.renderer.texture.TextureAtlas
 import net.minecraft.client.renderer.texture.TextureAtlasSprite
@@ -35,6 +37,7 @@ import net.minecraft.world.phys.BlockHitResult
 import net.minecraft.world.phys.AABB
 import net.minecraft.util.RandomSource
 import net.minecraft.world.level.block.state.BlockState
+import org.joml.Matrix3f
 import org.joml.Matrix4f
 import org.joml.Matrix4d
 import org.joml.Quaternionf
@@ -92,12 +95,22 @@ object WheelEffects {
                        val texture: BlockState? = null) {
         val pixels = HashMap<Int, Pixel>()
         val bounds = AABB(block).inflate(.003)
+        val lightPos = block.relative(Direction.getNearest(normal.x, normal.y, normal.z))
+        val rubber = material.rubber && texture == null
+        private val textureState = if (rubber) null else texture ?: if (material == WheelSurface.GRASS) Blocks.DIRT.defaultBlockState() else state
         private val flipU = material == WheelSurface.DIRT || material == WheelSurface.GRAVEL
         var geometry: List<Quad>? = null
+        private var cachedAtlasMarker: TextureAtlasSprite? = null
         private var cachedSprite: TextureAtlasSprite? = null
 
-        fun geometry(sprite: TextureAtlasSprite?): List<Quad> {
-            geometry?.takeIf { cachedSprite === sprite }?.let { return it }
+        fun geometry(atlasMarker: TextureAtlasSprite): List<Quad> {
+            if (textureState != null && cachedAtlasMarker !== atlasMarker) {
+                cachedSprite = coatingSprite(textureState)
+                cachedAtlasMarker = atlasMarker
+                geometry = null
+            }
+            geometry?.let { return it }
+            val sprite = cachedSprite
             val axis = (0..2).maxBy { abs(normal[it]) }
             val u = (axis + 1) % 3
             val v = (axis + 2) % 3
@@ -148,7 +161,6 @@ object WheelEffects {
                 }
                 result.add(Quad(vertices, pixel.strength, pixel.time, pixel.color))
             }
-            cachedSprite = sprite
             geometry = result
             return result
         }
@@ -204,6 +216,16 @@ object WheelEffects {
     private val buffers = MultiBufferSource.immediate(BufferBuilder(16384))
     private val renderType = ClockworkRenderTypes.SKID_MARKS
     private val terrainBuffers = MultiBufferSource.immediate(BufferBuilder(16384))
+    private val markBodies = Long2ObjectOpenHashMap<ClientVsBody?>()
+    private val markRelative = Matrix4d()
+    private val markRelativePose = Matrix4f()
+    private val markPose = Matrix4f()
+    private val markNormalMatrix = Matrix3f()
+    private val markRotation = Quaternionf()
+    private val markPoint = Vector3f()
+    private val markNormal = Vector3f()
+    private val markCenter = Vector3d()
+    private val markBounds = AABBd()
     private var pixelCount = 0
     private var level: ClientLevel? = null
     private var clock = 0L
@@ -270,6 +292,10 @@ object WheelEffects {
         surfaceEffects(world)
         marks.entries.removeIf { (_, mark) ->
             val before = mark.pixels.size
+            if (world.hasChunkAt(mark.block) && world.getBlockState(mark.block) != mark.state) {
+                pixelCount -= before
+                return@removeIf true
+            }
             mark.pixels.entries.removeIf { clock - it.value.time >= 2400 }
             if (before != mark.pixels.size) mark.geometry = null
             pixelCount -= before - mark.pixels.size
@@ -778,57 +804,65 @@ object WheelEffects {
         val rubberBuffer = buffers.getBuffer(renderType)
         val terrainBuffer = terrainBuffers.getBuffer(ClockworkRenderTypes.TERRAIN_TRACKS)
         val cameraPosition = camera.position
-        val frustum = Frustum(stack.last().pose(), projection).also {
+        val pose = stack.last()
+        val frustum = Frustum(pose.pose(), projection).also {
             it.prepare(cameraPosition.x, cameraPosition.y, cameraPosition.z)
         }
-        val point = Vector3f()
-        val normal = Vector3f()
-        val center = Vector3d()
-        val bounds = AABBd()
+        val allBodies = world.shipObjectWorld.allBodies
+        val atlasMarker = Minecraft.getInstance().modelManager.getAtlas(TextureAtlas.LOCATION_BLOCKS)
+            .getSprite(MissingTextureAtlasSprite.getLocation())
         val iterator = marks.values.iterator()
         while (iterator.hasNext()) {
             val mark = iterator.next()
-            val body = if (mark.surface == -1L) null else world.shipObjectWorld.allBodies.getById(mark.surface) as? ClientVsBody
-            if (mark.surface != -1L && body == null) { pixelCount -= mark.pixels.size; iterator.remove(); continue }
-            center.set(mark.block.x + .5, mark.block.y + .5, mark.block.z + .5)
-            body?.renderTransform?.toWorld?.transformPosition(center)
-            if (cameraPosition.distanceToSqr(center.x, center.y, center.z) > 96 * 96) continue
-            val visibleBounds = if (body == null) mark.bounds else {
-                bounds.setMin(mark.bounds.minX, mark.bounds.minY, mark.bounds.minZ)
+            val block = mark.block
+            val transform = if (mark.surface == -1L) {
+                if (cameraPosition.distanceToSqr(block.x + .5, block.y + .5, block.z + .5) > 96 * 96) continue
+                if (!world.hasChunkAt(block)) continue
+                null
+            } else {
+                var body = markBodies.get(mark.surface)
+                if (body == null && !markBodies.containsKey(mark.surface)) {
+                    body = allBodies.getById(mark.surface) as? ClientVsBody
+                    markBodies.put(mark.surface, body)
+                }
+                if (body == null) { pixelCount -= mark.pixels.size; iterator.remove(); continue }
+                if (!world.hasChunkAt(block)) continue
+                body.renderTransform
+            }
+            val toWorld = transform?.toWorld
+            val visibleBounds = if (toWorld == null) mark.bounds else {
+                markCenter.set(block.x + .5, block.y + .5, block.z + .5)
+                toWorld.transformPosition(markCenter)
+                if (cameraPosition.distanceToSqr(markCenter.x, markCenter.y, markCenter.z) > 96 * 96) continue
+                markBounds.setMin(mark.bounds.minX, mark.bounds.minY, mark.bounds.minZ)
                     .setMax(mark.bounds.maxX, mark.bounds.maxY, mark.bounds.maxZ)
-                    .transform(body.renderTransform.toWorld).toMinecraft()
+                    .transform(toWorld).toMinecraft()
             }
             if (!frustum.isVisible(visibleBounds)) continue
-            if (!world.hasChunkAt(mark.block)) continue
-            if (world.getBlockState(mark.block) != mark.state) { pixelCount -= mark.pixels.size; iterator.remove(); continue }
-            stack.pushPose()
-            val relative = Matrix4d().translation(-cameraPosition.x, -cameraPosition.y, -cameraPosition.z)
-            if (body != null) {
-                relative.mul(body.renderTransform.toWorld)
-                stack.last().normal().rotate(Quaternionf(body.renderTransform.rotation))
-            }
-            relative.translate(mark.block.x.toDouble(), mark.block.y.toDouble(), mark.block.z.toDouble())
-            stack.mulPoseMatrix(Matrix4f(relative))
-            val pose = stack.last()
-            val light = LevelRenderer.getLightColor(world, mark.block.relative(Direction.getNearest(mark.normal.x, mark.normal.y, mark.normal.z)))
-            val rubber = mark.material.rubber && mark.texture == null
-            val buffer = if (rubber) rubberBuffer else terrainBuffer
-            val textureState = mark.texture ?: if (mark.material == WheelSurface.GRASS) Blocks.DIRT.defaultBlockState() else mark.state
-            val sprite = if (rubber) null else coatingSprite(textureState)
-            pose.normal().transform(normal.set(mark.normal.x.toFloat(), mark.normal.y.toFloat(), mark.normal.z.toFloat()))
-            for (quad in mark.geometry(sprite)) {
+            markRelative.translation(-cameraPosition.x, -cameraPosition.y, -cameraPosition.z)
+            if (toWorld != null) markRelative.mul(toWorld)
+            markRelative.translate(block.x.toDouble(), block.y.toDouble(), block.z.toDouble())
+            pose.pose().mul(markRelativePose.set(markRelative), markPose)
+            val normalMatrix = if (transform == null) pose.normal() else
+                pose.normal().rotate(markRotation.set(transform.rotation), markNormalMatrix)
+            normalMatrix.transform(markNormal.set(mark.normal.x.toFloat(), mark.normal.y.toFloat(), mark.normal.z.toFloat()))
+            val light = LevelRenderer.getLightColor(world, mark.lightPos)
+            val buffer = if (mark.rubber) rubberBuffer else terrainBuffer
+            val quads = mark.geometry(atlasMarker)
+            for (quadIndex in quads.indices) {
+                val quad = quads[quadIndex]
                 val alpha = quad.strength * fade(clock - quad.time, partialTick)
                 val vertices = quad.vertices
                 for (i in 0 until 4) {
                     val start = i * 5
-                    pose.pose().transformPosition(vertices[start], vertices[start + 1], vertices[start + 2], point)
-                    buffer.vertex(point.x, point.y, point.z, quad.color.x, quad.color.y, quad.color.z, alpha,
+                    markPose.transformPosition(vertices[start], vertices[start + 1], vertices[start + 2], markPoint)
+                    buffer.vertex(markPoint.x, markPoint.y, markPoint.z, quad.color.x, quad.color.y, quad.color.z, alpha,
                         vertices[start + 3], vertices[start + 4], OverlayTexture.NO_OVERLAY, light,
-                        normal.x, normal.y, normal.z)
+                        markNormal.x, markNormal.y, markNormal.z)
                 }
             }
-            stack.popPose()
         }
+        markBodies.clear()
         buffers.endBatch()
         terrainBuffers.endBatch()
     }

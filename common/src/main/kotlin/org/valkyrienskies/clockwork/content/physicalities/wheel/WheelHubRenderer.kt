@@ -28,6 +28,8 @@ import org.joml.Matrix4d
 import org.joml.Matrix4f
 import org.joml.Quaternionf
 import org.joml.Vector3d
+import org.joml.Vector3f
+import org.joml.Vector4f
 import org.valkyrienskies.clockwork.ClockworkPartials
 import org.valkyrienskies.core.api.bodies.ClientVsBody
 import org.valkyrienskies.core.api.ships.ClientShip
@@ -136,14 +138,20 @@ internal object WheelVisuals {
     }
 
     private val woods = setOf("oak", "spruce", "birch", "jungle", "acacia", "dark_oak", "mangrove", "cherry", "bamboo", "crimson", "warped")
+    private val woodTreads = HashMap<Block, ResourceLocation?>()
+    private val rimSprite = ClockworkMod.asResource("block/wheel/wheel")
 
     fun treadTexture(type: TireType, wood: Block): ResourceLocation? {
         if (type.appearance.mesh != TireType.Mesh.TREAD) return null
         if (type != TireType.WOOD) return type.appearance.treadTexture
+        val cached = woodTreads[wood]
+        if (cached != null || woodTreads.containsKey(wood)) return cached
         val id = BuiltInRegistries.BLOCK.getKey(wood)
         val name = id.path.removeSuffix("_planks")
-        return if (id.namespace == "minecraft" && name in woods)
+        val texture = if (id.namespace == "minecraft" && name in woods)
             ClockworkMod.asResource("textures/block/wheel/wooden/$name.png") else null
+        woodTreads[wood] = texture
+        return texture
     }
 
     fun planks(wood: Block): TextureAtlasSprite =
@@ -152,7 +160,7 @@ internal object WheelVisuals {
     fun rimBuffer(buffer: VertexConsumer, type: TireType?, wood: Block): VertexConsumer {
         if (type != TireType.WOOD) return buffer
         val original = Minecraft.getInstance().getTextureAtlas(TextureAtlas.LOCATION_BLOCKS)
-            .apply(ClockworkMod.asResource("block/wheel/wheel"))
+            .apply(rimSprite)
         val target = planks(wood)
         return object : VertexConsumer {
             override fun vertex(x: Double, y: Double, z: Double) = apply { buffer.vertex(x, y, z) }
@@ -171,24 +179,55 @@ internal object WheelVisuals {
     }
 }
 
-internal class TireDeformation(tire: WheelTire, contacts: List<TireContact>, compressionScale: Double = 1.0,
-                               support: (Vector3d) -> Double) {
-    private val slack = tire.carcassRadius - tire.radius
-    private val flatness = (1.0 - tire.pressureKpa / 100.0).coerceAtLeast(0.0)
-    private val carcassRadius = tire.carcassRadius
-    private val halfWidth = tire.width / 2
-    private val planes = contacts.map { contact ->
-        val normal = contact.normal
-        val meshSupport = support(normal)
-        val limit = if (slack > 0) minOf(meshSupport,
-            tire.radius * sqrt(normal.y * normal.y + normal.z * normal.z) + halfWidth * abs(normal.x)) else meshSupport
-        normal to (limit - contact.compression.coerceIn(0f, (tire.thickness * tire.type.physics.compression * compressionScale).toFloat()))
+internal class TireDeformation() {
+    constructor(tire: WheelTire, contacts: List<TireContact>, compressionScale: Double = 1.0,
+                support: (Vector3d) -> Double) : this() {
+        reset(tire, contacts, compressionScale) { support(it) }
+    }
+
+    fun interface Support {
+        fun distance(normal: Vector3d): Double
+    }
+
+    private class Plane(var normal: Vector3d, var limit: Double)
+    private val planes = ArrayList<Plane>()
+    private var planeCount = 0
+    private var slack = 0.0
+    private var flatness = 0.0
+    private var carcassRadius = 0.0
+    private var halfWidth = 0.0
+    val isIdentity get() = planeCount == 0 && slack <= 0
+
+    fun reset(tire: WheelTire, contacts: List<TireContact>, compressionScale: Double, support: Support) {
+        slack = tire.carcassRadius - tire.radius
+        flatness = (1.0 - tire.pressureKpa / 100.0).coerceAtLeast(0.0)
+        carcassRadius = tire.carcassRadius
+        halfWidth = tire.width / 2
+        planeCount = 0
+        for (i in contacts.indices) {
+            val contact = contacts[i]
+            val normal = contact.normal
+            val meshSupport = support.distance(normal)
+            val limit = if (slack > 0) minOf(meshSupport,
+                tire.radius * sqrt(normal.y * normal.y + normal.z * normal.z) + halfWidth * abs(normal.x)) else meshSupport
+            val compressed = limit - contact.compression.coerceIn(0f, (tire.thickness * tire.type.physics.compression * compressionScale).toFloat())
+            if (planeCount == planes.size) planes.add(Plane(normal, compressed))
+            else {
+                val plane = planes[planeCount]
+                plane.normal = normal
+                plane.limit = compressed
+            }
+            planeCount++
+        }
     }
 
     fun apply(point: Vector3d, rubber: Double): Vector3d {
         if (rubber <= 0.0) return point
         var fold = 0.0
-        for ((normal, limit) in planes) {
+        for (i in 0 until planeCount) {
+            val plane = planes[i]
+            val normal = plane.normal
+            val limit = plane.limit
             if (slack > 0) {
                 val towardContact = -(point.y * normal.y + point.z * normal.z) / carcassRadius
                 fold = maxOf(fold, ((towardContact - .45) / .35).coerceIn(0.0, 1.0))
@@ -208,14 +247,41 @@ internal class TireDeformation(tire: WheelTire, contacts: List<TireContact>, com
 internal object TireMesh {
     private const val SEGMENTS = 8
     private val PROFILE_V = floatArrayOf(0f, 6f, 10f, 12f, 20f, 22f, 26f, 32f)
-    private data class Vertex(val x: Float, val y: Float, val z: Float, val u: Float, val v: Float,
-                              val nx: Float, val ny: Float, val nz: Float, val shade: Float, val rubber: Float,
-                              val deposit: Float)
-    private data class Geometry(val radius: Double, val width: Double, val rimRadius: Double, val rimWidth: Double,
-                                val coating: Boolean, val wearGrade: Int)
-    private val meshes = object : LinkedHashMap<Geometry, List<Vertex>>(32, .75f, true) {
-        override fun removeEldestEntry(eldest: MutableMap.MutableEntry<Geometry, List<Vertex>>) = size > 128
+    private const val VERTEX_STRIDE = 6
+    private const val U = 3
+    private const val V = 4
+    private const val RUBBER = 5
+    private const val SHADE = 4 * VERTEX_STRIDE
+    private const val DEPOSIT = SHADE + 1
+    private const val PADDLE_BAND = DEPOSIT + 1
+    private const val FALLBACK_NORMAL = PADDLE_BAND + 1
+    private const val QUAD_STRIDE = FALLBACK_NORMAL + 3
+
+    private data class Geometry(var radius: Double, var width: Double, var rimRadius: Double, var rimWidth: Double,
+                                var coating: Boolean, var wearGrade: Int)
+    private class Mesh(val quads: FloatArray, val normals: DoubleArray, private val positions: FloatArray) : TireDeformation.Support {
+        override fun distance(normal: Vector3d): Double {
+            if (positions.isEmpty()) throw NoSuchElementException()
+            val x = normal.x
+            val y = normal.y
+            val z = normal.z
+            var support = Double.NEGATIVE_INFINITY
+            for (i in positions.indices step 3)
+                support = maxOf(support, -(positions[i] * x + positions[i + 1] * y + positions[i + 2] * z))
+            return support
+        }
     }
+
+    private val lookup = Geometry(0.0, 0.0, 0.0, 0.0, false, 0)
+    private val meshes = object : LinkedHashMap<Geometry, Mesh>(32, .75f, true) {
+        override fun removeEldestEntry(eldest: MutableMap.MutableEntry<Geometry, Mesh>) = size > 128
+    }
+    private val deformation = TireDeformation()
+    private val points = Array(4) { Vector3d() }
+    private val normal = Vector3d()
+    private val edge = Vector3d()
+    private val transformedPosition = Vector4f()
+    private val transformedNormal = Vector3f()
 
     private data class Strip(val from: Double, val to: Double, val v0: Double, val v1: Double)
 
@@ -250,9 +316,23 @@ internal object TireMesh {
             .26 to 1.0, .38 to .97, .5 to sidewall, rimWidth / (2 * width) to rimRadius / radius)
     }
 
-    private fun build(radius: Double, width: Double, rimRadius: Double, rimWidth: Double, coating: Boolean, wearGrade: Int): List<Vertex> {
+    private fun loadPoint(point: Vector3d, quads: FloatArray, vertex: Int): Vector3d =
+        point.set(quads[vertex].toDouble(), quads[vertex + 1].toDouble(), quads[vertex + 2].toDouble())
+
+    private fun faceNormal(quads: FloatArray, offset: Int) {
+        normal.set(points[1]).sub(points[0]).cross(edge.set(points[3]).sub(points[0]))
+        if (normal.lengthSquared() > 1e-12) normal.normalize()
+        else normal.set(quads[offset + FALLBACK_NORMAL].toDouble(), quads[offset + FALLBACK_NORMAL + 1].toDouble(),
+            quads[offset + FALLBACK_NORMAL + 2].toDouble())
+    }
+
+    private fun build(geometry: Geometry): Mesh {
+        val (radius, width, rimRadius, rimWidth, coating, wearGrade) = geometry
         val profile = profile(radius, width, rimRadius, rimWidth)
-        val vertices = ArrayList<Vertex>()
+        val positions = LinkedHashSet<Vector3f>()
+        var quads = FloatArray(128 * QUAD_STRIDE)
+        var normals = DoubleArray(128 * 3)
+        var quadCount = 0
         for (band in 0 until profile.lastIndex) {
             val a = profile[band]
             val b = profile[band + 1]
@@ -288,6 +368,12 @@ internal object TireMesh {
                 val centerZ = (sin(angle) * (1 - centerT) + sin(nextAngle) * centerT) * centerR
                 val deposit = if (coating) (.5 + (sin(centerX * 13 + centerY * 7) +
                     sin(centerZ * 11 - centerX * 5) + sin(centerY * 13 - centerZ * 7)) / 6).toFloat() else 0f
+                val offset = quadCount * QUAD_STRIDE
+                val n = quadCount * 3
+                if (offset == quads.size) {
+                    quads = quads.copyOf(quads.size * 2)
+                    normals = normals.copyOf(normals.size * 2)
+                }
                 for (corner in 0..3) {
                     val row = if (corner < 2) strip.from else strip.to
                     val t = (if (corner == 1 || corner == 2) part + 1 else part).toDouble() / parts
@@ -298,70 +384,117 @@ internal object TireMesh {
                     val bead = (band == 0 && row == 0.0) || (band == profile.lastIndex - 1 && row == 1.0)
                     val rubber = if (bead) 0.0 else ((sqrt(y * y + z * z) - rimRadius * cos(PI / SEGMENTS)) /
                         ((radius - rimRadius) * cos(PI / SEGMENTS))).coerceIn(0.0, 1.0)
-                    vertices.add(Vertex(axial.toFloat(), y.toFloat(), z.toFloat(),
-                        ((segment + t) / SEGMENTS * repeats / 4).toFloat(), if (worn) 3.5f / 32 else (if (corner < 2) strip.v0 else strip.v1).toFloat(),
-                        (nx / normalLength).toFloat(), (radial * cos(faceAngle) / normalLength).toFloat(),
-                        (radial * sin(faceAngle) / normalLength).toFloat(), shade, rubber.toFloat(), deposit))
+                    val vertex = offset + corner * VERTEX_STRIDE
+                    quads[vertex] = axial.toFloat()
+                    quads[vertex + 1] = y.toFloat()
+                    quads[vertex + 2] = z.toFloat()
+                    quads[vertex + U] = ((segment + t) / SEGMENTS * repeats / 4).toFloat()
+                    quads[vertex + V] = if (worn) 3.5f / 32 else (if (corner < 2) strip.v0 else strip.v1).toFloat()
+                    quads[vertex + RUBBER] = rubber.toFloat()
+                    positions.add(Vector3f(quads[vertex], quads[vertex + 1], quads[vertex + 2]))
+                    loadPoint(points[corner], quads, vertex)
                 }
-            }
-        }
-        return vertices
-    }
-
-    fun render(size: WheelTire, contacts: List<TireContact>, ms: PoseStack, buffer: VertexConsumer, light: Int, overlay: Int,
-               coating: WheelEffects.Coating? = null, sprite: TextureAtlasSprite? = null) {
-        val pose = ms.last()
-        val radius = size.carcassRadius - if (size.type.appearance.cleats in listOf(TireType.Cleats.PADDLES, TireType.Cleats.TEETH))
-            LayeredTireRenderer.cleatHeight(size) else 0.0
-        val geometry = Geometry(radius, size.width, size.rimRadius, size.rimWidth, coating != null, if (coating == null) size.wearGrade else 0)
-        val vertices = meshes.getOrPut(geometry) { build(radius, size.width, size.rimRadius, size.rimWidth, coating != null, geometry.wearGrade) }
-        val buildup = coating?.let { sqrt(it.amount.coerceIn(0f, 1f)) } ?: 0f
-        val deformation = TireDeformation(size, contacts, .5) { normal ->
-            vertices.maxOf { -(it.x * normal.x + it.y * normal.y + it.z * normal.z) }
-        }
-        val points = Array(4) { Vector3d() }
-        val normal = Vector3d()
-        val edge = Vector3d()
-        for (offset in vertices.indices step 4) {
-            for (i in 0..3) {
-                val v = vertices[offset + i]
-                val p = points[i].set(v.x.toDouble(), v.y.toDouble(), v.z.toDouble())
-                deformation.apply(p, v.rubber.toDouble())
-            }
-            val v0 = vertices[offset]
-            val paddleBand = if (size.type.appearance.cleats == TireType.Cleats.PADDLES) {
-                val start = v0.v * 32
-                val end = vertices[offset + 2].v * 32
-                when {
+                val start = quads[offset + V] * 32
+                val end = quads[offset + 2 * VERTEX_STRIDE + V] * 32
+                quads[offset + SHADE] = shade
+                quads[offset + DEPOSIT] = deposit
+                quads[offset + PADDLE_BAND] = when {
                     start >= 10 && end <= 12 -> 10f / 32
                     start >= 12 && end <= 20 -> 12f / 32
                     start >= 20 && end <= 22 -> 20f / 32
                     else -> 0f
                 }
-            } else 0f
-            normal.set(points[1]).sub(points[0]).cross(edge.set(points[3]).sub(points[0]))
-            if (normal.lengthSquared() > 1e-12) normal.normalize() else normal.set(v0.nx.toDouble(), v0.ny.toDouble(), v0.nz.toDouble())
-            if (coating == null) for (i in 0..3) {
-                val v = vertices[offset + i]
-                val p = points[i]
-                buffer.vertex(pose.pose(), p.x.toFloat(), p.y.toFloat(), p.z.toFloat()).color(v.shade, v.shade, v.shade, 1f)
-                    .uv(v.u, v.v - paddleBand).overlayCoords(overlay).uv2(light)
-                    .normal(pose.normal(), normal.x.toFloat(), normal.y.toFloat(), normal.z.toFloat()).endVertex()
+                quads[offset + FALLBACK_NORMAL] = (nx / normalLength).toFloat()
+                quads[offset + FALLBACK_NORMAL + 1] = (radial * cos(faceAngle) / normalLength).toFloat()
+                quads[offset + FALLBACK_NORMAL + 2] = (radial * sin(faceAngle) / normalLength).toFloat()
+                faceNormal(quads, offset)
+                normals[n] = normal.x
+                normals[n + 1] = normal.y
+                normals[n + 2] = normal.z
+                quadCount++
             }
-            if (coating != null && sprite != null) {
-                val coverage = ((.18f + buildup * .44f - v0.deposit) * 8f).coerceIn(0f, .85f) * buildup
-                if (coverage <= .01f) continue
-                val tile = floor((0..3).minOf { vertices[offset + it].u }.toDouble() * 4)
+        }
+        val support = FloatArray(positions.size * 3)
+        var p = 0
+        for (position in positions) {
+            support[p++] = position.x
+            support[p++] = position.y
+            support[p++] = position.z
+        }
+        return Mesh(quads.copyOf(quadCount * QUAD_STRIDE), normals.copyOf(quadCount * 3), support)
+    }
+
+    fun render(size: WheelTire, contacts: List<TireContact>, ms: PoseStack, buffer: VertexConsumer, light: Int, overlay: Int,
+               coating: WheelEffects.Coating? = null, sprite: TextureAtlasSprite? = null) {
+        if (coating != null && sprite == null) return
+        val pose = ms.last()
+        val matrix = pose.pose()
+        val normalMatrix = pose.normal()
+        val cleats = size.type.appearance.cleats
+        val paddles = cleats == TireType.Cleats.PADDLES
+        lookup.radius = size.carcassRadius - if (paddles || cleats == TireType.Cleats.TEETH) LayeredTireRenderer.cleatHeight(size) else 0.0
+        lookup.width = size.width
+        lookup.rimRadius = size.rimRadius
+        lookup.rimWidth = size.rimWidth
+        lookup.coating = coating != null
+        lookup.wearGrade = if (coating == null) size.wearGrade else 0
+        val mesh = meshes[lookup] ?: lookup.copy().let { key -> build(key).also { meshes[key] = it } }
+        val quads = mesh.quads
+        val buildup = if (coating != null) sqrt(coating.amount.coerceIn(0f, 1f)) else 0f
+        deformation.reset(size, contacts, .5, mesh)
+        val identity = deformation.isIdentity
+        for (quad in 0 until mesh.normals.size / 3) {
+            val offset = quad * QUAD_STRIDE
+            val coverage = if (coating == null) 0f else
+                ((.18f + buildup * .44f - quads[offset + DEPOSIT]) * 8f).coerceIn(0f, .85f) * buildup
+            if (coating != null && coverage <= .01f) continue
+            var moved = false
+            if (!identity) for (i in 0..3) {
+                val vertex = offset + i * VERTEX_STRIDE
+                val p = loadPoint(points[i], quads, vertex)
+                val x = p.x
+                val y = p.y
+                val z = p.z
+                deformation.apply(p, quads[vertex + RUBBER].toDouble())
+                if (!moved) moved = p.x != x || p.y != y || p.z != z
+            }
+            if (moved) faceNormal(quads, offset)
+            else {
+                val n = quad * 3
+                normal.set(mesh.normals[n], mesh.normals[n + 1], mesh.normals[n + 2])
+            }
+            val face = normalMatrix.transform(transformedNormal.set(normal.x.toFloat(), normal.y.toFloat(), normal.z.toFloat()))
+            val shade = quads[offset + SHADE]
+            if (coating == null) {
+                val paddleBand = if (paddles) quads[offset + PADDLE_BAND] else 0f
                 for (i in 0..3) {
-                    val v = vertices[offset + i]
-                    val p = points[i]
-                    val alpha = coverage * (.2f + v.rubber * .8f)
-                    buffer.vertex(pose.pose(), (p.x + normal.x * .002).toFloat(),
-                        (p.y + normal.y * .002).toFloat(), (p.z + normal.z * .002).toFloat())
-                        .color(v.shade * coating.color.x, v.shade * coating.color.y, v.shade * coating.color.z, alpha)
-                        .uv(sprite.getU(((v.u * 4 - tile) * 16).coerceIn(0.0, 16.0)), sprite.getV(v.v.toDouble() * 16))
-                        .overlayCoords(overlay).uv2(light)
-                        .normal(pose.normal(), normal.x.toFloat(), normal.y.toFloat(), normal.z.toFloat()).endVertex()
+                    val vertex = offset + i * VERTEX_STRIDE
+                    if (identity) transformedPosition.set(quads[vertex], quads[vertex + 1], quads[vertex + 2], 1f)
+                    else {
+                        val p = points[i]
+                        transformedPosition.set(p.x.toFloat(), p.y.toFloat(), p.z.toFloat(), 1f)
+                    }
+                    val p = matrix.transform(transformedPosition)
+                    buffer.vertex(p.x, p.y, p.z, shade, shade, shade, 1f, quads[vertex + U], quads[vertex + V] - paddleBand,
+                        overlay, light, face.x, face.y, face.z)
+                }
+            } else if (sprite != null) {
+                val tile = floor(minOf(minOf(quads[offset + U], quads[offset + VERTEX_STRIDE + U]),
+                    minOf(quads[offset + 2 * VERTEX_STRIDE + U], quads[offset + 3 * VERTEX_STRIDE + U])).toDouble() * 4)
+                val dx = normal.x * .002
+                val dy = normal.y * .002
+                val dz = normal.z * .002
+                val red = shade * coating.color.x
+                val green = shade * coating.color.y
+                val blue = shade * coating.color.z
+                for (i in 0..3) {
+                    val vertex = offset + i * VERTEX_STRIDE
+                    val p = if (identity) loadPoint(points[i], quads, vertex) else points[i]
+                    val position = matrix.transform(transformedPosition.set((p.x + dx).toFloat(), (p.y + dy).toFloat(), (p.z + dz).toFloat(), 1f))
+                    val alpha = coverage * (.2f + quads[vertex + RUBBER] * .8f)
+                    val u = sprite.getU(((quads[vertex + U] * 4 - tile) * 16).coerceIn(0.0, 16.0))
+                    val v = sprite.getV(quads[vertex + V].toDouble() * 16)
+                    buffer.vertex(position.x, position.y, position.z, red, green, blue, alpha, u, v, overlay, light, face.x, face.y, face.z)
                 }
             }
         }
