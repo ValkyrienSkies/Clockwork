@@ -1,8 +1,10 @@
-# 0.5.7.1
+# 0.5.7.2
 
-Whoops
+Last time (maybe)
 
 ### Bugfixes:
-- _Actually_ fixed propellers this time for real for real
-- Fixed the gyro not working
-- Updated Turkish translations to 0.5.7 (by Blista-Compact)
+- Fixed some recipes being missing when TFG was _not_ present
+- Fixed the Physics Infuser particle texture
+- Added more gas crafting recipes
+- Changed the gas engine recipe
+- Made the blade controller default to an angle of 15
